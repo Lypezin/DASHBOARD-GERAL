@@ -56,7 +56,13 @@ export function useHeaderAuth() {
       }
 
       const profile = profileResult.profile!;
-      setUser(profile);
+      setUser({
+        ...profile,
+        avatar_url: profile.avatar_url
+          || sessionResult.user?.user_metadata?.avatar_url
+          || sessionResult.user?.user_metadata?.picture
+          || null
+      });
 
       const profileOrganizationId = profile.organization_id;
       const authOrganizationId = sessionResult.user?.user_metadata?.organization_id;

@@ -18,7 +18,7 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
     const {
         isOpen, setIsOpen, onlineUsersData, searchTerm, setSearchTerm,
         myCustomStatus, setMyCustomStatus, notifications, activeChatUser,
-        setActiveChatUser, selectedProfileUser, setSelectedProfileUser, chatInput, setChatInput, replyingTo, setReplyingTo,
+        setActiveChatUser, selectedProfileUser, setSelectedProfileUserId, chatInput, setChatInput, replyingTo, setReplyingTo,
         chatEndRef, unreadCounts, fileInputRef, activeMessages, filteredUsers,
         formatTimeOnline, totalUnread, onlineUsers, handleFileUpload
     } = useSidebarController(currentUser, currentTab);
@@ -88,7 +88,7 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                     currentUserId={currentUser.id}
                     unreadCount={selectedProfileUser ? (unreadCounts[selectedProfileUser.id] || 0) : 0}
                     onStartChat={(user) => {
-                        setSelectedProfileUser(user);
+                        setSelectedProfileUserId(user.id);
                         setActiveChatUser(user);
                         setIsOpen(true);
                     }}
@@ -102,11 +102,11 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                     unreadCounts={unreadCounts}
                     selectedUserId={selectedProfileUser?.id}
                     onUserSelect={(user) => {
-                        setSelectedProfileUser(user);
+                        setSelectedProfileUserId(user.id);
                         setIsOpen(true);
                     }}
                     onUserClick={(user) => {
-                        setSelectedProfileUser(user);
+                        setSelectedProfileUserId(user.id);
                         setActiveChatUser(user);
                         setIsOpen(true);
                     }}

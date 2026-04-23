@@ -4,6 +4,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Activity, Clock3, ExternalLink, MessageSquare, User2, ChevronRight } from 'lucide-react';
+import { buildProfileHref } from './profileHref';
 
 interface UserProfilePreviewProps {
     user: OnlineUser | null;
@@ -11,21 +12,6 @@ interface UserProfilePreviewProps {
     unreadCount?: number;
     onStartChat: (user: OnlineUser) => void;
     formatTimeOnline: (d: string) => string;
-}
-
-function buildProfileHref(user: OnlineUser, currentUserId: string) {
-    if (user.id === currentUserId) return '/perfil';
-
-    const params = new URLSearchParams();
-    if (user.name) params.set('name', user.name);
-    if (user.avatar_url) params.set('avatar', user.avatar_url);
-    if (user.role) params.set('role', user.role);
-    if (user.custom_status) params.set('status', user.custom_status);
-    if (user.current_tab) params.set('tab', user.current_tab);
-    if (user.online_at) params.set('onlineAt', user.online_at);
-    if (user.is_idle) params.set('idle', '1');
-
-    return `/perfil/${user.id}?${params.toString()}`;
 }
 
 export function UserProfilePreview({
@@ -51,26 +37,30 @@ export function UserProfilePreview({
     return (
         <div className="px-3 pt-3">
             <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
-                <div className="flex items-start gap-3">
-                    <Avatar className="h-12 w-12 border border-slate-200 dark:border-slate-800">
-                        <AvatarImage src={user.avatar_url || undefined} alt={user.name || 'Usuario'} />
-                        <AvatarFallback>{user.name?.slice(0, 2).toUpperCase() || 'US'}</AvatarFallback>
-                    </Avatar>
+                <Link href={profileHref} className="block rounded-xl transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-900/80">
+                    <div className="flex items-start gap-3">
+                        <Avatar className="h-12 w-12 border border-slate-200 dark:border-slate-800">
+                            <AvatarImage src={user.avatar_url || undefined} alt={user.name || 'Usuario'} />
+                            <AvatarFallback>{user.name?.slice(0, 2).toUpperCase() || 'US'}</AvatarFallback>
+                        </Avatar>
 
-                    <div className="min-w-0 flex-1">
-                        <div className="flex items-center gap-2">
-                            <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{user.name || 'Usuario'}</p>
-                            <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${user.is_idle ? 'bg-amber-400' : 'bg-emerald-500'}`} />
+                        <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                                <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{user.name || 'Usuario'}</p>
+                                <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${user.is_idle ? 'bg-amber-400' : 'bg-emerald-500'}`} />
+                            </div>
+
+                            <div className="mt-2 flex flex-wrap gap-2">
+                                <Badge variant="outline" className="capitalize">{user.role || 'usuario'}</Badge>
+                                {unreadCount > 0 && (
+                                    <Badge className="bg-red-500 hover:bg-red-500">{unreadCount > 9 ? '9+' : unreadCount} nao lida(s)</Badge>
+                                )}
+                            </div>
                         </div>
 
-                        <div className="mt-2 flex flex-wrap gap-2">
-                            <Badge variant="outline" className="capitalize">{user.role || 'usuario'}</Badge>
-                            {unreadCount > 0 && (
-                                <Badge className="bg-red-500 hover:bg-red-500">{unreadCount > 9 ? '9+' : unreadCount} nao lida(s)</Badge>
-                            )}
-                        </div>
+                        <ExternalLink size={14} className="mt-1 shrink-0 text-slate-400" />
                     </div>
-                </div>
+                </Link>
 
                 <div className="mt-3 grid gap-2 text-xs text-slate-600 dark:text-slate-300">
                     {user.custom_status && (

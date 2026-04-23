@@ -15,7 +15,7 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
     const [notifications, setNotifications] = useState<{ id: string, message: string }[]>([]);
 
     const [activeChatUser, setActiveChatUser] = useState<OnlineUser | null>(null);
-    const [selectedProfileUser, setSelectedProfileUser] = useState<OnlineUser | null>(null);
+    const [selectedProfileUserId, setSelectedProfileUserId] = useState<string | null>(null);
     const [chatInput, setChatInput] = useState('');
     const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
@@ -31,7 +31,7 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
 
     useEffect(() => {
         if (activeChatUser) {
-            setSelectedProfileUser(activeChatUser);
+            setSelectedProfileUserId(activeChatUser.id);
         }
     }, [activeChatUser]);
 
@@ -77,21 +77,19 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
         );
     }, [onlineUsers, searchTerm]);
 
-    useEffect(() => {
-        if (filteredUsers.length === 0) {
-            setSelectedProfileUser(null);
-            return;
+    const selectedProfileUser = useMemo(() => {
+        if (filteredUsers.length === 0) return null;
+
+        if (selectedProfileUserId) {
+            return filteredUsers.find(user => user.id === selectedProfileUserId)
+                || onlineUsers.find(user => user.id === selectedProfileUserId)
+                || null;
         }
 
-        setSelectedProfileUser(prev => {
-            if (prev) {
-                const updatedUser = filteredUsers.find(user => user.id === prev.id);
-                if (updatedUser) return updatedUser;
-            }
+        if (!isOpen) return null;
 
-            return filteredUsers.find(user => user.id !== currentUser?.id) || filteredUsers[0];
-        });
-    }, [currentUser?.id, filteredUsers]);
+        return filteredUsers.find(user => user.id !== currentUser?.id) || filteredUsers[0];
+    }, [currentUser?.id, filteredUsers, isOpen, onlineUsers, selectedProfileUserId]);
 
     const totalUnread = useMemo(() => Object.values(unreadCounts).reduce((a, b) => a + b, 0), [unreadCounts]);
 
@@ -113,7 +111,7 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
 
     return {
         isOpen, setIsOpen, onlineUsersData, searchTerm, setSearchTerm, myCustomStatus, setMyCustomStatus, notifications, activeChatUser, setActiveChatUser,
-        selectedProfileUser, setSelectedProfileUser, chatInput, setChatInput, replyingTo, setReplyingTo, chatEndRef, unreadCounts, fileInputRef, activeMessages, filteredUsers, formatTimeOnline,
+        selectedProfileUser, setSelectedProfileUserId, chatInput, setChatInput, replyingTo, setReplyingTo, chatEndRef, unreadCounts, fileInputRef, activeMessages, filteredUsers, formatTimeOnline,
         totalUnread, onlineUsers, handleFileUpload
     };
 }

@@ -1,7 +1,9 @@
+import Link from 'next/link';
 import { OnlineUser } from '@/hooks/data/useOnlineUsers';
 import { CurrentUser } from '@/types';
 import { cn } from '@/lib/utils';
-import { User as UserIcon, Smartphone, Monitor, Coffee, Clock, MessageSquare } from 'lucide-react';
+import { User as UserIcon, Smartphone, Monitor, Coffee, Clock, MessageSquare, ExternalLink } from 'lucide-react';
+import { buildProfileHref } from './profileHref';
 
 interface UserListItemProps {
     user: OnlineUser;
@@ -24,6 +26,8 @@ export function UserListItem({
     onChatClick,
     formatTimeOnline
 }: UserListItemProps) {
+    const profileHref = buildProfileHref(user, currentUser.id);
+
     return (
         <button
             type="button"
@@ -73,20 +77,32 @@ export function UserListItem({
                                 </div>
                             </div>
 
-                            {user.id !== currentUser.id && (
-                                <button
-                                    type="button"
-                                    onClick={(e) => {
-                                        e.stopPropagation();
-                                        onChatClick(user);
-                                    }}
-                                    className="flex shrink-0 items-center gap-1 rounded-lg bg-blue-50 px-2 py-1.5 text-[11px] font-medium text-blue-600 transition-colors hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400"
-                                    title="Conversar"
+                            <div className="flex shrink-0 items-center gap-1">
+                                <Link
+                                    href={profileHref}
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="flex items-center gap-1 rounded-lg bg-slate-100 px-2 py-1.5 text-[11px] font-medium text-slate-600 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                                    title="Abrir perfil"
                                 >
-                                    <MessageSquare size={12} />
-                                    Chat
-                                </button>
-                            )}
+                                    <ExternalLink size={12} />
+                                    Perfil
+                                </Link>
+
+                                {user.id !== currentUser.id && (
+                                    <button
+                                        type="button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onChatClick(user);
+                                        }}
+                                        className="flex items-center gap-1 rounded-lg bg-blue-50 px-2 py-1.5 text-[11px] font-medium text-blue-600 transition-colors hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400"
+                                        title="Conversar"
+                                    >
+                                        <MessageSquare size={12} />
+                                        Chat
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
                         <div className="mt-1 flex items-center gap-2">
