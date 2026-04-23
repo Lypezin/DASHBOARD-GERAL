@@ -7,6 +7,22 @@ import { fetchOrganizationData } from './organizationDataHelper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
+function areSameOrganization(prev: Organization | null, next: Organization | null) {
+    if (prev === next) return true;
+    if (!prev || !next) return false;
+
+    return (
+        prev.id === next.id &&
+        prev.name === next.name &&
+        prev.slug === next.slug &&
+        prev.max_users === next.max_users &&
+        prev.is_active === next.is_active &&
+        prev.created_at === next.created_at &&
+        prev.updated_at === next.updated_at &&
+        prev.user_count === next.user_count
+    );
+}
+
 export function useOrganizationFetcher() {
     const [organization, setOrganization] = useState<Organization | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -47,9 +63,8 @@ export function useOrganizationFetcher() {
             const orgData = await fetchOrganizationData(organizationId);
 
             if (orgData) {
-                // Only update if data actually changed to avoid re-renders
                 setOrganization(prev => {
-                    if (JSON.stringify(prev) === JSON.stringify(orgData)) return prev;
+                    if (areSameOrganization(prev, orgData)) return prev;
                     return orgData;
                 });
             } else {

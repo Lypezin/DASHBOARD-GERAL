@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { ActivityLog, MonitoringStats, UserProfile } from './types';
@@ -23,11 +23,15 @@ export function useMonitoringData() {
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+    const requestInFlightRef = useRef(false);
 
     const fetchData = useCallback(async (background = false) => {
+        if (requestInFlightRef.current) return;
+        requestInFlightRef.current = true;
+
         if (background) setRefreshing(true);
         else setLoading(true);
-        setError(null);
+        if (!background) setError(null);
 
         try {
             const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
@@ -99,6 +103,7 @@ export function useMonitoringData() {
                 setError(msg || 'Erro ao carregar dados de monitoramento');
             }
         } finally {
+            requestInFlightRef.current = false;
             if (background) setRefreshing(false);
             else setLoading(false);
         }

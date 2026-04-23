@@ -6,7 +6,6 @@ import { Entregador } from '@/types';
 import { calculateHealthScore, HealthBadge } from '@/components/ui/HealthBadge';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { Clock, Target, Hash, Activity } from 'lucide-react';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { TagManager } from './TagManager';
 import { MetaEditor } from './MetaEditor';
 import { useEntregadorDetail } from './hooks/useEntregadorDetail';
@@ -30,7 +29,7 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
             <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-3">
-                        <TooltipProvider delayDuration={0}><HealthBadge grade={hs.grade} score={hs.score} size="md" /></TooltipProvider>
+                        <HealthBadge grade={hs.grade} score={hs.score} size="md" />
                         <div><p className="text-lg font-bold">{entregador.nome_entregador}</p><p className="text-xs text-slate-500">{entregador.id_entregador}</p></div>
                     </DialogTitle>
                 </DialogHeader>

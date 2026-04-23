@@ -4,7 +4,7 @@ import React from 'react';
 import { Entregador } from '@/types';
 import { ChevronDown, ScatterChart } from 'lucide-react';
 import { HealthGrade } from '@/components/ui/HealthBadge';
-import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { useCorrelationChart, axisLabels, AxisMetric } from './hooks/useCorrelationChart';
 
 const gradeColors: Record<HealthGrade, string> = { A: '#10b981', B: '#3b82f6', C: '#f59e0b', D: '#ef4444' };
@@ -14,7 +14,6 @@ export const CorrelationScatter = React.memo(function CorrelationScatter({ entre
     if (entregadores.length < 3) return null;
 
     return (
-        <TooltipProvider delayDuration={0}>
             <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-5">
                 <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
                     <div className="flex items-center gap-2"><ScatterChart className="h-4 w-4 text-slate-500" /><h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Correlação de Métricas</h3></div>
@@ -54,6 +53,5 @@ export const CorrelationScatter = React.memo(function CorrelationScatter({ entre
                     ))}
                 </div>
             </div>
-        </TooltipProvider>
     );
 });

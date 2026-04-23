@@ -18,13 +18,13 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
 
   const { getCached, setCached } = useCache<TabData>({
     ttl: CACHE.TAB_DATA_TTL,
-    getCacheKey: (params) => `${params.tab}-${JSON.stringify(params.filterPayload)}`,
+    getCacheKey: (params) => `${params.tab}-${params.filterPayloadKey}`,
   });
 
   const filterPayloadStr = useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
 
-  const fetchData = useCallback(async (tab: string, payload: FilterPayload, fetchId: number) => {
-    const cached = getCached({ tab, filterPayload: payload });
+  const fetchData = useCallback(async (tab: string, payload: FilterPayload, filterPayloadKey: string, fetchId: number) => {
+    const cached = getCached({ tab, filterPayloadKey });
     if (cached !== null) {
       if (fetchIdRef.current === fetchId) {
         setData(tab === 'valores' ? (Array.isArray(cached) ? cached : []) : cached);
@@ -47,7 +47,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
 
       const processedData = processTabSuccessData(tab, result);
       setData(processedData);
-      setCached({ tab, filterPayload: payload }, processedData);
+      setCached({ tab, filterPayloadKey }, processedData);
       setLoading(false);
     } catch (error) {
       if (fetchIdRef.current !== fetchId) return;
@@ -55,7 +55,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
       const msg = error instanceof Error ? error.message : '';
       if (msg === 'RETRY_500' || msg === 'RETRY_RATE_LIMIT') {
         setTimeout(() => {
-          if (fetchIdRef.current === fetchId) fetchData(tab, payload, fetchId);
+          if (fetchIdRef.current === fetchId) fetchData(tab, payload, filterPayloadKey, fetchId);
         }, msg === 'RETRY_500' ? DELAYS.RETRY_500 : DELAYS.RETRY_RATE_LIMIT);
         return;
       }
@@ -81,12 +81,12 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
     }
 
     const currentFetchId = ++fetchIdRef.current;
-    fetchData(activeTab, JSON.parse(filterPayloadStr) as FilterPayload, currentFetchId);
+    fetchData(activeTab, filterPayload as FilterPayload, filterPayloadStr, currentFetchId);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [activeTab, filterPayloadStr, isOrgLoading, fetchData]);
+  }, [activeTab, fetchData, filterPayload, filterPayloadStr, isOrgLoading]);
 
   return { data, loading };
 }

@@ -65,20 +65,18 @@ export function useDashboardDataEffect({ filterPayload, fetchDashboardData, chec
             return;
         }
 
-        const currentPayload = filterPayload;
         const currentPayloadKey = payloadKey;
 
         const timeoutId = setTimeout(async () => {
-            if (JSON.stringify(currentPayload) !== currentPayloadKey) return;
             if (pendingPayloadKeyRef.current !== currentPayloadKey) return;
 
             const isFirstExecutionInTimeout = isFirstExecutionRef.current;
-            const hasValidFiltersInTimeout = (currentPayload.p_ano !== null && currentPayload.p_ano !== undefined) ||
-                (currentPayload.p_data_inicial !== null && currentPayload.p_data_inicial !== undefined);
+            const hasValidFiltersInTimeout = (filterPayload.p_ano !== null && filterPayload.p_ano !== undefined) ||
+                (filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
 
-            if (IS_DEV) safeLog.info('[useDashboardDataEffect] Iniciando fetch com payload válido:', currentPayload);
+            if (IS_DEV) safeLog.info('[useDashboardDataEffect] Iniciando fetch com payload válido:', filterPayload);
 
-            const data = await fetchDashboardData(currentPayload);
+            const data = await fetchDashboardData(filterPayload);
 
             if (data) {
                 const cacheKeyToUse = isFirstExecutionInTimeout && !hasValidFiltersInTimeout ? '__first_execution_dimensions__' : currentPayloadKey;

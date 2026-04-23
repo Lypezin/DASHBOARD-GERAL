@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -11,9 +11,33 @@ export function UserActivityTracker() {
     const visitIdRef = useRef<string | null>(null);
     const startTimeRef = useRef<number | null>(null);
     const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const [authUserId, setAuthUserId] = useState<string | null | undefined>(undefined);
 
     useEffect(() => {
-        if (pathname?.startsWith('/dashboard')) {
+        let mounted = true;
+
+        const syncAuthUser = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (mounted) {
+                setAuthUserId(session?.user?.id ?? null);
+            }
+        };
+
+        void syncAuthUser();
+
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (!mounted) return;
+            setAuthUserId(session?.user?.id ?? null);
+        });
+
+        return () => {
+            mounted = false;
+            subscription.unsubscribe();
+        };
+    }, []);
+
+    useEffect(() => {
+        if (pathname?.startsWith('/dashboard') || authUserId === undefined) {
             return;
         }
 
@@ -44,10 +68,7 @@ export function UserActivityTracker() {
 
         const handleRouteChange = async () => {
             const now = Date.now();
-            const { data: { session } } = await supabase.auth.getSession();
-            const user = session?.user;
-
-            if (!user || !isMounted) return;
+            if (!authUserId || !isMounted) return;
 
             closeCurrentVisit();
             startTimeRef.current = now;
@@ -56,7 +77,7 @@ export function UserActivityTracker() {
                 const { data, error } = await supabase
                     .from('user_activity_logs')
                     .insert({
-                        user_id: user.id,
+                        user_id: authUserId,
                         path: pathname,
                         entered_at: new Date().toISOString(),
                         last_seen: new Date().toISOString()
@@ -112,7 +133,7 @@ export function UserActivityTracker() {
 
             closeCurrentVisit();
         };
-    }, [pathname]);
+    }, [authUserId, pathname]);
 
     return null;
 }

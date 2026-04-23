@@ -4,7 +4,6 @@ import React, { useState, useMemo } from 'react';
 import { Entregador } from '@/types';
 import { Trophy, AlertTriangle, ChevronDown } from 'lucide-react';
 import { calculateHealthScore } from '@/components/ui/HealthBadge';
-import { TooltipProvider } from '@/components/ui/tooltip';
 import { SortMetric, metricLabels, getMetricValue, PerformerRow } from './TopBottomPerformerRow';
 
 interface TopBottomPerformersProps {
@@ -34,7 +33,6 @@ export const TopBottomPerformers = React.memo(function TopBottomPerformers({
     if (entregadores.length < 5) return null;
 
     return (
-        <TooltipProvider delayDuration={0}>
             <div className="space-y-4">
                 {/* Metric selector */}
                 <div className="flex items-center gap-3">
@@ -81,6 +79,5 @@ export const TopBottomPerformers = React.memo(function TopBottomPerformers({
                     </div>
                 </div>
             </div>
-        </TooltipProvider>
     );
 });
