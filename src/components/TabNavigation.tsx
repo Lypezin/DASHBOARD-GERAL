@@ -1,8 +1,9 @@
-/**
- * Componente de navegação de tabs
- * Centraliza lógica de navegação entre diferentes visualizações
- */
 'use client';
+
+/**
+ * Componente de navegacao de tabs
+ * Centraliza logica de navegacao entre diferentes visualizacoes
+ */
 
 import React from 'react';
 import { TabType } from '@/types';
@@ -14,28 +15,30 @@ interface TabNavigationProps {
   variant?: 'default' | 'compact';
 }
 
-export function TabNavigation({ activeTab, onTabChange, variant = 'default' }: TabNavigationProps) {
-  const tabs: { label: string; value: TabType }[] = [
-    { label: 'Dashboard', value: 'dashboard' },
-    { label: 'Análise', value: 'analise' },
-    { label: 'UTR', value: 'utr' },
-    { label: 'Entregadores', value: 'entregadores' },
-    { label: 'Valores', value: 'valores' },
-    { label: 'Prioridade | Promo', value: 'prioridade' },
-    { label: 'Evolução', value: 'evolucao' },
-    { label: 'Comparação', value: 'comparacao' },
-    { label: 'Operacional | Marketing', value: 'marketing_comparacao' },
-    { label: 'Marketing', value: 'marketing' },
-    { label: 'Resumo', value: 'resumo' },
-  ];
+const TABS: { label: string; value: TabType }[] = [
+  { label: 'Dashboard', value: 'dashboard' },
+  { label: 'Analise', value: 'analise' },
+  { label: 'UTR', value: 'utr' },
+  { label: 'Entregadores', value: 'entregadores' },
+  { label: 'Valores', value: 'valores' },
+  { label: 'Prioridade | Promo', value: 'prioridade' },
+  { label: 'Evolucao', value: 'evolucao' },
+  { label: 'Comparacao', value: 'comparacao' },
+  { label: 'Operacional | Marketing', value: 'marketing_comparacao' },
+  { label: 'Marketing', value: 'marketing' },
+  { label: 'Resumo', value: 'resumo' },
+];
 
+export function TabNavigation({ activeTab, onTabChange, variant = 'default' }: TabNavigationProps) {
   return (
     <div className="w-full flex overflow-x-auto pb-4 sm:pb-0 scrollbar-hide">
-      <div className={cn(
-        "flex items-center gap-1 sm:gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-2 px-2 rounded-full shadow-sm min-w-max mx-auto transition-transform duration-200",
-        variant === 'compact' ? "scale-95 origin-center" : ""
-      )}>
-        {tabs.map((tab) => {
+      <div
+        className={cn(
+          'flex items-center gap-1 sm:gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-2 px-2 rounded-full shadow-sm min-w-max mx-auto transition-transform duration-200',
+          variant === 'compact' ? 'scale-95 origin-center' : ''
+        )}
+      >
+        {TABS.map((tab) => {
           const isActive = activeTab === tab.value;
 
           return (
@@ -43,9 +46,9 @@ export function TabNavigation({ activeTab, onTabChange, variant = 'default' }: T
               key={tab.value}
               onClick={() => onTabChange(tab.value)}
               className={cn(
-                "relative cursor-pointer text-sm font-medium px-4 py-2 rounded-full transition-all duration-200 whitespace-nowrap",
-                "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100",
-                isActive && "text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 shadow-sm"
+                'relative cursor-pointer text-sm font-medium px-4 py-2 rounded-full transition-all duration-200 whitespace-nowrap',
+                'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100',
+                isActive && 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 shadow-sm'
               )}
             >
               <span className="relative z-10">{tab.label}</span>

@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { UserProfile } from './useHeaderAuth';
 
+const avatarCache = new Map<string, string | null>();
+
 export function useHeaderAvatar(user: UserProfile | null) {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(user?.avatar_url || null);
 
@@ -13,6 +15,11 @@ export function useHeaderAvatar(user: UserProfile | null) {
     if (!user?.id) return;
 
     let cancelled = false;
+    const cachedAvatar = avatarCache.get(user.id);
+
+    if (typeof cachedAvatar !== 'undefined') {
+      setAvatarUrl(cachedAvatar);
+    }
 
     const loadAvatar = async () => {
       const { data, error } = await supabase
@@ -22,15 +29,23 @@ export function useHeaderAvatar(user: UserProfile | null) {
         .maybeSingle();
 
       if (cancelled || error) return;
-      setAvatarUrl(data?.avatar_url || user?.avatar_url || null);
+      const nextAvatar = data?.avatar_url || user?.avatar_url || null;
+      avatarCache.set(user.id, nextAvatar);
+      setAvatarUrl(nextAvatar);
     };
 
-    void loadAvatar();
+    if (user.avatar_url) {
+      avatarCache.set(user.id, user.avatar_url);
+    } else if (typeof cachedAvatar === 'undefined') {
+      void loadAvatar();
+    }
 
     const handleProfileUpdate = (event: Event) => {
       const customEvent = event as CustomEvent<{ avatar_url?: string | null }>;
       if (typeof customEvent.detail?.avatar_url !== 'undefined') {
-        setAvatarUrl(customEvent.detail.avatar_url || null);
+        const nextAvatar = customEvent.detail.avatar_url || null;
+        avatarCache.set(user.id, nextAvatar);
+        setAvatarUrl(nextAvatar);
       } else {
         void loadAvatar();
       }

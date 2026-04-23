@@ -24,6 +24,7 @@ export function useMonitoringData() {
     const [error, setError] = useState<string | null>(null);
     const [lastUpdated, setLastUpdated] = useState<string | null>(null);
     const requestInFlightRef = useRef(false);
+    const profilesCacheRef = useRef<Map<string, UserProfile>>(new Map());
 
     const fetchData = useCallback(async (background = false) => {
         if (requestInFlightRef.current) return;
@@ -62,17 +63,30 @@ export function useMonitoringData() {
             }
 
             const userIds = Array.from(new Set(safeLogs.map(l => l.user_id).filter(Boolean)));
-            const { data: profiles, error: profilesError } = userIds.length > 0
-                ? await supabase
+            const missingProfileIds = userIds.filter(id => !profilesCacheRef.current.has(id));
+
+            if (missingProfileIds.length > 0) {
+                const { data: profiles, error: profilesError } = await supabase
                     .from('user_profiles')
                     .select('id, full_name, avatar_url, email')
-                    .in('id', userIds)
-                : { data: [], error: null };
+                    .in('id', missingProfileIds);
 
-            if (profilesError) safeLog.warn('Error fetching profiles:', profilesError);
+                if (profilesError) {
+                    safeLog.warn('Error fetching profiles:', profilesError);
+                } else {
+                    profiles?.forEach(profile => {
+                        profilesCacheRef.current.set(profile.id, profile);
+                    });
+                }
+            }
 
             const profileMap = new Map<string, UserProfile>();
-            profiles?.forEach(p => profileMap.set(p.id, p));
+            userIds.forEach(id => {
+                const profile = profilesCacheRef.current.get(id);
+                if (profile) {
+                    profileMap.set(id, profile);
+                }
+            });
 
             const activeUsers = processActiveUsers(safeLogs, profileMap);
             const topPages = processTopPages(safeLogs);

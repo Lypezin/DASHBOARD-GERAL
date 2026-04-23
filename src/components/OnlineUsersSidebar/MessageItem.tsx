@@ -1,4 +1,5 @@
 import React from 'react';
+import Image from 'next/image';
 import { ChatMessage } from '@/hooks/data/useOnlineUsers';
 import { CurrentUser } from '@/types';
 import { cn } from '@/lib/utils';
@@ -59,7 +60,14 @@ export const MessageItem: React.FC<MessageItemProps> = ({
                     <div key={`${attachment.url}-${index}`} className="mb-2 rounded-md overflow-hidden bg-black/5">
                         {attachment.type === 'image' ? (
                             <a href={attachment.url} target="_blank" rel="noopener noreferrer">
-                                <img src={attachment.url} alt={attachment.name ? `Anexo ${attachment.name}` : 'Anexo de imagem'} className="w-full h-auto max-h-48 object-cover hover:opacity-90 transition-opacity" />
+                                <Image
+                                    src={attachment.url}
+                                    alt={attachment.name ? `Anexo ${attachment.name}` : 'Anexo de imagem'}
+                                    width={800}
+                                    height={480}
+                                    sizes="(max-width: 768px) 80vw, 320px"
+                                    className="w-full h-auto max-h-48 object-cover hover:opacity-90 transition-opacity"
+                                />
                             </a>
                         ) : (
                             <a href={attachment.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 p-2 bg-white/10 hover:bg-white/20 transition-colors">

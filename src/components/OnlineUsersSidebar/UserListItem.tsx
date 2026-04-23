@@ -4,6 +4,7 @@ import { CurrentUser } from '@/types';
 import { cn } from '@/lib/utils';
 import { User as UserIcon, Smartphone, Monitor, Coffee, Clock, MessageSquare, ExternalLink } from 'lucide-react';
 import { buildProfileHref } from './profileHref';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface UserListItemProps {
     user: OnlineUser;
@@ -34,13 +35,12 @@ export function UserListItem({
         >
             <div className={cn('flex items-start gap-3', !isOpen && 'justify-center')}>
                 <div className="relative shrink-0">
-                    {user.avatar_url ? (
-                        <img src={user.avatar_url} alt={user.name || 'Usuario'} className="w-11 h-11 rounded-full object-cover border-2 border-white shadow-sm" />
-                    ) : (
-                        <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center border-2 border-white shadow-sm">
-                            <UserIcon className="w-5 h-5 text-slate-400" />
-                        </div>
-                    )}
+                    <Avatar className="h-11 w-11 border-2 border-white shadow-sm">
+                        <AvatarImage src={user.avatar_url || undefined} alt={user.name || 'Usuario'} className="object-cover" />
+                        <AvatarFallback className="bg-slate-100 text-slate-400">
+                            <UserIcon className="w-5 h-5" />
+                        </AvatarFallback>
+                    </Avatar>
 
                     <span
                         className={cn('absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white', user.is_idle ? 'bg-amber-400' : 'bg-emerald-500')}

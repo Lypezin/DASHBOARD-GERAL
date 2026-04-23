@@ -2,6 +2,7 @@ import { OnlineUser } from '@/hooks/data/useOnlineUsers';
 import { CurrentUser } from '@/types';
 import { User, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface ChatHeaderProps {
     activeChatUser: OnlineUser;
@@ -20,9 +21,12 @@ export function ChatHeader({ activeChatUser, currentUser, onClose }: ChatHeaderP
             <div className="flex items-center gap-2">
                 <div className="relative">
                     <span className={cn('absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-white', activeChatUser.is_idle ? 'bg-amber-400' : 'bg-emerald-500')} />
-                    {activeChatUser.avatar_url ? (
-                        <img src={activeChatUser.avatar_url} alt={`Avatar de ${activeChatUser.name || 'usuario'}`} className="w-8 h-8 rounded-full object-cover" />
-                    ) : <User className="w-8 h-8 p-1.5 bg-slate-100 rounded-full text-slate-500" />}
+                    <Avatar className="h-8 w-8">
+                        <AvatarImage src={activeChatUser.avatar_url || undefined} alt={`Avatar de ${activeChatUser.name || 'usuario'}`} className="object-cover" />
+                        <AvatarFallback className="bg-slate-100 text-slate-500">
+                            <User className="w-8 h-8 p-1.5" />
+                        </AvatarFallback>
+                    </Avatar>
                 </div>
                 <div className="leading-tight">
                     <span className="text-sm font-bold text-slate-800 block">{activeChatUser.name?.split(' ')[0]}</span>

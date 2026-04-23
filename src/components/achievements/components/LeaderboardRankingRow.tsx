@@ -2,6 +2,7 @@ import React from 'react';
 import { Trophy, User, Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ICON_MAP } from '@/contexts/gamification/icons';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 interface LeaderboardRankingRowProps { entry: any; index: number; }
 
@@ -21,9 +22,12 @@ export const LeaderboardRankingRow: React.FC<LeaderboardRankingRowProps> = ({ en
                     <div className={cn("w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full font-bold text-sm shadow-sm", isTop1 ? "bg-yellow-400 text-yellow-900" : isTop2 ? "bg-slate-300 text-slate-800" : isTop3 ? "bg-orange-300 text-orange-900" : "bg-slate-100 dark:bg-slate-800 text-slate-500")}>#{entry.rank}</div>
 
                     <div className="flex items-center gap-3">
-                        <div className={cn("w-10 h-10 rounded-full overflow-hidden border-2", isTop1 ? "border-yellow-400 shadow-sm" : "border-slate-100 dark:border-slate-700")}>
-                            {entry.avatar_url ? <img src={entry.avatar_url} alt={entry.user_name} loading="lazy" decoding="async" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 text-slate-400"><User className="w-5 h-5" /></div>}
-                        </div>
+                        <Avatar className={cn("w-10 h-10 border-2", isTop1 ? "border-yellow-400 shadow-sm" : "border-slate-100 dark:border-slate-700")}>
+                            <AvatarImage src={entry.avatar_url || undefined} alt={entry.user_name} className="object-cover" />
+                            <AvatarFallback className="bg-slate-100 dark:bg-slate-800 text-slate-400">
+                                <User className="w-5 h-5" />
+                            </AvatarFallback>
+                        </Avatar>
 
                         <div>
                             <div className="flex items-center gap-2">
