@@ -15,6 +15,7 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
     const [notifications, setNotifications] = useState<{ id: string, message: string }[]>([]);
 
     const [activeChatUser, setActiveChatUser] = useState<OnlineUser | null>(null);
+    const [selectedProfileUser, setSelectedProfileUser] = useState<OnlineUser | null>(null);
     const [chatInput, setChatInput] = useState('');
     const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
@@ -27,6 +28,12 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
             chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
     }, [messages, activeChatUser]);
+
+    useEffect(() => {
+        if (activeChatUser) {
+            setSelectedProfileUser(activeChatUser);
+        }
+    }, [activeChatUser]);
 
     useEffect(() => {
         if (joinedUsers.length === 0) return;
@@ -70,6 +77,22 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
         );
     }, [onlineUsers, searchTerm]);
 
+    useEffect(() => {
+        if (filteredUsers.length === 0) {
+            setSelectedProfileUser(null);
+            return;
+        }
+
+        setSelectedProfileUser(prev => {
+            if (prev) {
+                const updatedUser = filteredUsers.find(user => user.id === prev.id);
+                if (updatedUser) return updatedUser;
+            }
+
+            return filteredUsers.find(user => user.id !== currentUser?.id) || filteredUsers[0];
+        });
+    }, [currentUser?.id, filteredUsers]);
+
     const totalUnread = useMemo(() => Object.values(unreadCounts).reduce((a, b) => a + b, 0), [unreadCounts]);
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -90,7 +113,7 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
 
     return {
         isOpen, setIsOpen, onlineUsersData, searchTerm, setSearchTerm, myCustomStatus, setMyCustomStatus, notifications, activeChatUser, setActiveChatUser,
-        chatInput, setChatInput, replyingTo, setReplyingTo, chatEndRef, unreadCounts, fileInputRef, activeMessages, filteredUsers, formatTimeOnline,
+        selectedProfileUser, setSelectedProfileUser, chatInput, setChatInput, replyingTo, setReplyingTo, chatEndRef, unreadCounts, fileInputRef, activeMessages, filteredUsers, formatTimeOnline,
         totalUnread, onlineUsers, handleFileUpload
     };
 }

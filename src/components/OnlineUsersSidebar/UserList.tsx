@@ -7,11 +7,22 @@ interface UserListProps {
     currentUser: CurrentUser;
     filteredUsers: OnlineUser[];
     unreadCounts: Record<string, number>;
+    selectedUserId?: string | null;
     onUserClick: (user: OnlineUser) => void;
+    onUserSelect: (user: OnlineUser) => void;
     formatTimeOnline: (d: string) => string;
 }
 
-export function UserList({ isOpen, currentUser, filteredUsers, unreadCounts, onUserClick, formatTimeOnline }: UserListProps) {
+export function UserList({
+    isOpen,
+    currentUser,
+    filteredUsers,
+    unreadCounts,
+    selectedUserId,
+    onUserClick,
+    onUserSelect,
+    formatTimeOnline
+}: UserListProps) {
     const groupedUsers = {
         admin: filteredUsers.filter((u) => u.role === 'admin' || u.role === 'master'),
         marketing: filteredUsers.filter((u) => u.role === 'marketing'),
@@ -29,7 +40,7 @@ export function UserList({ isOpen, currentUser, filteredUsers, unreadCounts, onU
                 return (
                     <div key={group} className="space-y-2">
                         {isOpen && (
-                            <h4 className="text-[10px] font-bold text-slate-400 uppercase px-2 tracking-wider">
+                            <h4 className="px-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
                                 {group === 'user' ? 'Geral' : group} ({usersInGroup.length})
                             </h4>
                         )}
@@ -41,6 +52,8 @@ export function UserList({ isOpen, currentUser, filteredUsers, unreadCounts, onU
                                 currentUser={currentUser}
                                 unreadCount={unreadCounts[user.id] || 0}
                                 isOpen={isOpen}
+                                isSelected={selectedUserId === user.id}
+                                onSelect={onUserSelect}
                                 onChatClick={onUserClick}
                                 formatTimeOnline={formatTimeOnline}
                             />
@@ -50,8 +63,8 @@ export function UserList({ isOpen, currentUser, filteredUsers, unreadCounts, onU
             })}
 
             {!hasUsers && isOpen && (
-                <div className="text-center p-4 text-slate-400 text-sm">
-                    Ninguém encontrado... 👻
+                <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-sm text-slate-400 dark:border-slate-800 dark:text-slate-500">
+                    Ninguem encontrado no momento.
                 </div>
             )}
         </div>

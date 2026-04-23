@@ -1,0 +1,119 @@
+import Link from 'next/link';
+import { OnlineUser } from '@/hooks/data/useOnlineUsers';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { Activity, Clock3, ExternalLink, MessageSquare, User2 } from 'lucide-react';
+
+interface UserProfilePreviewProps {
+    user: OnlineUser | null;
+    currentUserId: string;
+    unreadCount?: number;
+    onStartChat: (user: OnlineUser) => void;
+    formatTimeOnline: (d: string) => string;
+}
+
+function buildProfileHref(user: OnlineUser, currentUserId: string) {
+    if (user.id === currentUserId) return '/perfil';
+
+    const params = new URLSearchParams();
+    if (user.name) params.set('name', user.name);
+    if (user.avatar_url) params.set('avatar', user.avatar_url);
+    if (user.role) params.set('role', user.role);
+    if (user.custom_status) params.set('status', user.custom_status);
+    if (user.current_tab) params.set('tab', user.current_tab);
+    if (user.online_at) params.set('onlineAt', user.online_at);
+    if (user.is_idle) params.set('idle', '1');
+
+    return `/perfil/${user.id}?${params.toString()}`;
+}
+
+export function UserProfilePreview({
+    user,
+    currentUserId,
+    unreadCount = 0,
+    onStartChat,
+    formatTimeOnline
+}: UserProfilePreviewProps) {
+    if (!user) {
+        return (
+            <div className="px-3 pt-3">
+                <div className="rounded-2xl border border-dashed border-slate-200 p-4 text-center text-sm text-slate-400 dark:border-slate-800 dark:text-slate-500">
+                    Selecione alguem da lista para ver o perfil rapido.
+                </div>
+            </div>
+        );
+    }
+
+    const isCurrentUser = user.id === currentUserId;
+    const profileHref = buildProfileHref(user, currentUserId);
+
+    return (
+        <div className="px-3 pt-3">
+            <div className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+                <div className="flex items-start gap-3">
+                    <Avatar className="h-14 w-14 border border-slate-200 dark:border-slate-800">
+                        <AvatarImage src={user.avatar_url || undefined} alt={user.name || 'Usuario'} />
+                        <AvatarFallback>{user.name?.slice(0, 2).toUpperCase() || 'US'}</AvatarFallback>
+                    </Avatar>
+
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                            <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100">{user.name || 'Usuario'}</p>
+                            <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${user.is_idle ? 'bg-amber-400' : 'bg-emerald-500'}`} />
+                        </div>
+
+                        <div className="mt-2 flex flex-wrap gap-2">
+                            <Badge variant="outline" className="capitalize">{user.role || 'usuario'}</Badge>
+                            <Badge variant="secondary">{user.is_idle ? 'Ausente' : 'Online'}</Badge>
+                            {unreadCount > 0 && (
+                                <Badge className="bg-red-500 hover:bg-red-500">{unreadCount > 9 ? '9+' : unreadCount} nao lida(s)</Badge>
+                            )}
+                        </div>
+                    </div>
+                </div>
+
+                <Separator className="my-4" />
+
+                <div className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
+                    {user.custom_status && (
+                        <div className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-900">
+                            <span className="font-medium text-slate-800 dark:text-slate-100">Status:</span> {user.custom_status}
+                        </div>
+                    )}
+
+                    {user.current_tab && (
+                        <div className="flex items-center gap-2">
+                            <Activity size={13} className="text-blue-500" />
+                            <span>
+                                Vendo agora: <strong>{user.current_tab.replace(/-/g, ' ').replace(/\b\w/g, (char: string) => char.toUpperCase())}</strong>
+                            </span>
+                        </div>
+                    )}
+
+                    <div className="flex items-center gap-2">
+                        <Clock3 size={13} className="text-slate-400" />
+                        <span>Conectado ha {formatTimeOnline(user.online_at)}</span>
+                    </div>
+                </div>
+
+                <div className="mt-4 flex gap-2">
+                    {!isCurrentUser && (
+                        <Button className="flex-1 gap-2" onClick={() => onStartChat(user)}>
+                            <MessageSquare size={14} />
+                            Conversar
+                        </Button>
+                    )}
+
+                    <Button asChild variant={isCurrentUser ? 'default' : 'outline'} className="flex-1 gap-2">
+                        <Link href={profileHref}>
+                            {isCurrentUser ? <User2 size={14} /> : <ExternalLink size={14} />}
+                            {isCurrentUser ? 'Meu perfil' : 'Entrar no perfil'}
+                        </Link>
+                    </Button>
+                </div>
+            </div>
+        </div>
+    );
+}
