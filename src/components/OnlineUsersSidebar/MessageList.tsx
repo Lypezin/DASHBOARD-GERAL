@@ -1,6 +1,5 @@
 import { ChatMessage, OnlineUser } from '@/hooks/data/useOnlineUsers';
 import { CurrentUser } from '@/types';
-import { cn } from '@/lib/utils';
 import { Smile, Pin } from 'lucide-react';
 import { MessageItem } from './MessageItem';
 
@@ -26,23 +25,23 @@ export function MessageList({ messages, currentUser, onReact, onPin, onReply, on
                 </div>
             )}
 
-            {messages.some(m => m.isPinned) && (
+            {messages.some(message => message.isPinned) && (
                 <div className="bg-yellow-50 px-3 py-1 border-b border-yellow-100 flex items-center gap-2 text-[10px] text-yellow-700 sticky top-0 z-10 mb-2 rounded shadow-sm">
                     <Pin size={10} className="fill-yellow-600 text-yellow-600" />
                     <span className="truncate flex-1 font-medium">Mensagens fixadas</span>
                 </div>
             )}
 
-            {messages.map((msg, i) => {
-                const isMe = msg.from === currentUser.id;
-                const replyTarget = messages.find(m => m.id === msg.replyTo?.id);
-                const replyTargetName = replyTarget?.from === currentUser.id ? "Você" :
-                    (replyTarget ? (onlineUsers.find(u => u.id === replyTarget.from)?.name?.split(' ')[0] || "Alguém") : undefined);
+            {messages.map((message) => {
+                const isMe = message.from === currentUser.id;
+                const replyTarget = messages.find(candidate => candidate.id === message.replyTo?.id);
+                const replyTargetName = replyTarget?.from === currentUser.id ? 'Voce' :
+                    (replyTarget ? (onlineUsers.find(user => user.id === replyTarget.from)?.name?.split(' ')[0] || 'Alguem') : undefined);
 
                 return (
                     <MessageItem
-                        key={i}
-                        msg={msg}
+                        key={message.id}
+                        msg={message}
                         currentUser={currentUser}
                         isMe={isMe}
                         onReact={onReact}

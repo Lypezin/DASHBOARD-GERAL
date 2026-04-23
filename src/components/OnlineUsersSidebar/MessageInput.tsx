@@ -1,4 +1,4 @@
-import { OnlineUser, ChatMessage } from '@/hooks/data/useOnlineUsers';
+import { ChatMessage } from '@/hooks/data/useOnlineUsers';
 import { Image as ImageIcon, ChevronRight, Reply, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import React from 'react';
@@ -10,7 +10,7 @@ interface MessageInputProps {
     replyingTo: ChatMessage | null;
     setReplyingTo: (msg: ChatMessage | null) => void;
     fileInputRef: React.RefObject<HTMLInputElement>;
-    setTypingTo: (id: string) => void;
+    setTypingTo: (id: string | null) => void;
     activeUserId: string;
 }
 
@@ -32,7 +32,7 @@ export function MessageInput({
                 </div>
             )}
 
-            <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className={cn("flex gap-2 items-end", replyingTo && "bg-slate-50 p-2 rounded-b-lg border border-slate-200 border-t-0")}>
+            <form onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} className={cn('flex gap-2 items-end', replyingTo && 'bg-slate-50 p-2 rounded-b-lg border border-slate-200 border-t-0')}>
                 <button
                     type="button"
                     className="p-2 text-slate-400 hover:bg-slate-100 rounded-full transition-colors"
@@ -48,9 +48,11 @@ export function MessageInput({
                         rows={1}
                         value={chatInput}
                         onChange={e => {
-                            setChatInput(e.target.value);
-                            setTypingTo(activeUserId);
+                            const nextValue = e.target.value;
+                            setChatInput(nextValue);
+                            setTypingTo(nextValue.trim() ? activeUserId : null);
                         }}
+                        onBlur={() => setTypingTo(null)}
                         onKeyDown={e => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();

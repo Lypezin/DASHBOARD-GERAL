@@ -15,22 +15,21 @@ interface UserListItemProps {
 export function UserListItem({ user, currentUser, unreadCount, isOpen, onChatClick, formatTimeOnline }: UserListItemProps) {
     return (
         <div className={cn(
-            "group flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100",
-            !isOpen && "justify-center px-0 py-3"
+            'group flex items-center gap-3 p-2 rounded-lg hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100',
+            !isOpen && 'justify-center px-0 py-3'
         )}>
-            {/* Avatar & Status */}
             <div className="relative shrink-0">
                 {user.avatar_url ? (
-                    <img src={user.avatar_url} alt={user.name || 'User'} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
+                    <img src={user.avatar_url} alt={user.name || 'Usuario'} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
                 ) : (
                     <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border-2 border-white shadow-sm">
                         <UserIcon className="w-5 h-5 text-slate-400" />
                     </div>
                 )}
 
-                <span className={cn("absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white",
-                    user.is_idle ? "bg-amber-400" : "bg-emerald-500")}
-                    title={user.is_idle ? "Ausente (Inativo)" : "Online"}
+                <span className={cn('absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-white',
+                    user.is_idle ? 'bg-amber-400' : 'bg-emerald-500')}
+                    title={user.is_idle ? 'Ausente (Inativo)' : 'Online'}
                 />
 
                 {unreadCount > 0 && (
@@ -40,7 +39,6 @@ export function UserListItem({ user, currentUser, unreadCount, isOpen, onChatCli
                 )}
             </div>
 
-            {/* Info Area */}
             {isOpen && (
                 <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between">
@@ -73,8 +71,8 @@ export function UserListItem({ user, currentUser, unreadCount, isOpen, onChatCli
                                 <Coffee size={10} /> {user.custom_status}
                             </span>
                         ) : (
-                            <span className={cn("text-xs truncate", user.is_idle ? "text-amber-500" : "text-emerald-600")}>
-                                {user.is_idle ? 'Ausente' : 'Disponível'}
+                            <span className={cn('text-xs truncate', user.is_idle ? 'text-amber-500' : 'text-emerald-600')}>
+                                {user.is_idle ? 'Ausente' : 'Disponivel'}
                             </span>
                         )}
                     </div>

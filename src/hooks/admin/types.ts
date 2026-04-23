@@ -33,4 +33,11 @@ export interface MonitoringStats {
         totalTimeSeconds: number;
         totalVisits: number;
     }[];
+    summary: {
+        totalVisits: number;
+        totalTimeSeconds: number;
+        uniqueUsers24h: number;
+        activeUsersNow: number;
+        monitoredPages: number;
+    };
 }

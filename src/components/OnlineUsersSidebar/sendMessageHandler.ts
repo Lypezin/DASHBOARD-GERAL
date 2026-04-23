@@ -7,6 +7,7 @@ interface SendMessageHandlerParams {
     sendMessage: (userId: string, message: string, options?: { replyTo?: string }) => void;
     setChatInput: (value: string) => void;
     setReplyingTo: (value: null) => void;
+    clearTyping?: () => void;
 }
 
 export function createSendMessageHandler({
@@ -15,7 +16,8 @@ export function createSendMessageHandler({
     replyingTo,
     sendMessage,
     setChatInput,
-    setReplyingTo
+    setReplyingTo,
+    clearTyping
 }: SendMessageHandlerParams) {
     return () => {
         if (!chatInput.trim() || !activeChatUser) return;
@@ -26,8 +28,8 @@ export function createSendMessageHandler({
 
         setChatInput('');
         setReplyingTo(null);
+        clearTyping?.();
 
-        // Notificação de envio
         toast.success(`Mensagem enviada para ${activeChatUser.name?.split(' ')[0]}`);
     };
 }

@@ -1,4 +1,3 @@
-
 import { useEffect, useRef } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { supabase } from '@/lib/supabaseClient';
@@ -11,66 +10,114 @@ interface UseChatSubscriptionProps {
     setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
 }
 
+function normalizeMessage(record: any): ChatMessage {
+    return {
+        id: record.id,
+        from: record.from_user,
+        to: record.to_user,
+        content: record.content,
+        timestamp: record.created_at,
+        replyTo: record.reply_to_id ? { id: record.reply_to_id } : undefined,
+        reactions: record.reactions || {},
+        attachments: record.attachments || [],
+        isPinned: record.is_pinned,
+        type: record.type
+    };
+}
+
+function isOptimisticMatch(existing: ChatMessage, incoming: ChatMessage) {
+    if (!existing.tempId) return false;
+    if (existing.from !== incoming.from || existing.to !== incoming.to) return false;
+    if ((existing.content || '') !== (incoming.content || '')) return false;
+    if ((existing.replyTo?.id || null) !== (incoming.replyTo?.id || null)) return false;
+
+    const existingTime = new Date(existing.timestamp).getTime();
+    const incomingTime = new Date(incoming.timestamp).getTime();
+
+    if (Number.isNaN(existingTime) || Number.isNaN(incomingTime)) return false;
+
+    return Math.abs(incomingTime - existingTime) < 30000;
+}
+
+function sortMessages(messages: ChatMessage[]) {
+    return [...messages].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+}
+
 export function useChatSubscription({ userId, setMessages }: UseChatSubscriptionProps) {
     const chatSubscriptionRef = useRef<RealtimeChannel | null>(null);
 
     useEffect(() => {
-        if (!userId) return;
+        if (!userId) {
+            setMessages([]);
+            return;
+        }
+
+        let cancelled = false;
 
         const loadHistory = async () => {
             try {
                 const history = await chatService.fetchHistory(userId);
-                setMessages(history);
+                if (cancelled) return;
+
+                setMessages(prev => sortMessages(
+                    [...history, ...prev].filter((message, index, arr) =>
+                        arr.findIndex(candidate => candidate.id === message.id) === index
+                    )
+                ));
             } catch (error) {
                 safeLog.error('Error fetching chat history:', error);
             }
         };
 
-        loadHistory();
+        void loadHistory();
 
         const handleChanges = (payload: any) => {
+            if (cancelled) return;
+
             if (payload.eventType === 'INSERT') {
-                const newMsg = payload.new;
+                const incoming = normalizeMessage(payload.new);
+
                 setMessages(prev => {
-                    if (prev.some(m => m.id === newMsg.id)) {
-                        return prev.map(m => m.id === newMsg.id ? {
-                            ...m,
-                            timestamp: newMsg.created_at,
-                            reactions: newMsg.reactions || {},
-                            isPinned: newMsg.is_pinned
-                        } : m);
+                    const existingIndex = prev.findIndex(message => message.id === incoming.id);
+                    if (existingIndex >= 0) {
+                        const next = [...prev];
+                        next[existingIndex] = { ...next[existingIndex], ...incoming };
+                        return sortMessages(next);
                     }
-                    return [...prev, {
-                        id: newMsg.id,
-                        from: newMsg.from_user,
-                        to: newMsg.to_user,
-                        content: newMsg.content,
-                        timestamp: newMsg.created_at,
-                        replyTo: newMsg.reply_to_id ? { id: newMsg.reply_to_id } : undefined,
-                        reactions: newMsg.reactions || {},
-                        attachments: newMsg.attachments || [],
-                        isPinned: newMsg.is_pinned,
-                        type: newMsg.type
-                    }];
+
+                    const optimisticIndex = prev.findIndex(message => isOptimisticMatch(message, incoming));
+                    if (optimisticIndex >= 0) {
+                        const next = [...prev];
+                        next[optimisticIndex] = {
+                            ...incoming,
+                            tempId: next[optimisticIndex].tempId
+                        };
+                        return sortMessages(next);
+                    }
+
+                    return sortMessages([...prev, incoming]);
                 });
             } else if (payload.eventType === 'UPDATE') {
-                setMessages(prev => prev.map(m => m.id === payload.new.id ? {
-                    ...m,
+                setMessages(prev => prev.map(message => message.id === payload.new.id ? {
+                    ...message,
                     reactions: payload.new.reactions || {},
                     isPinned: payload.new.is_pinned
-                } : m));
+                } : message));
             }
         };
 
-        const sub = supabase.channel('chat_db_changes')
+        const subscription = supabase.channel(`chat_db_changes:${userId}`)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages', filter: `to_user=eq.${userId}` }, handleChanges)
             .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_messages', filter: `from_user=eq.${userId}` }, handleChanges)
             .subscribe();
 
-        chatSubscriptionRef.current = sub;
+        chatSubscriptionRef.current = subscription;
 
         return () => {
-            if (chatSubscriptionRef.current) supabase.removeChannel(chatSubscriptionRef.current);
+            cancelled = true;
+            if (chatSubscriptionRef.current) {
+                supabase.removeChannel(chatSubscriptionRef.current);
+            }
         };
     }, [userId, setMessages]);
 }

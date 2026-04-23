@@ -1,5 +1,4 @@
 import { CurrentUser } from '@/types';
-import { cn } from '@/lib/utils';
 import { useSidebarController } from './useSidebarController';
 import { SidebarTrigger } from './SidebarTrigger';
 import { SidebarHeader } from './SidebarHeader';
@@ -7,7 +6,6 @@ import { UserList } from './UserList';
 import { ChatWindow } from './ChatWindow';
 import { NotificationsToast } from './NotificationsToast';
 import { createSendMessageHandler } from './sendMessageHandler';
-
 import { SidebarContainer } from './SidebarContainer';
 
 interface OnlineUsersSidebarProps {
@@ -34,7 +32,8 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
         replyingTo,
         sendMessage,
         setChatInput,
-        setReplyingTo
+        setReplyingTo,
+        clearTyping: () => setTypingTo(null)
     });
 
     return (
@@ -47,7 +46,6 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
             />
 
             <SidebarContainer isOpen={isOpen}>
-                {/* Hidden File Input */}
                 <input type="file" ref={fileInputRef} className="hidden" accept="image/*,application/pdf" onChange={handleFileUpload} />
 
                 <ChatWindow

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useOnlineUsers, OnlineUser, ChatMessage } from '@/hooks/data/useOnlineUsers';
 import { CurrentUser } from '@/types';
@@ -8,7 +7,6 @@ import { formatTimeOnline } from './utils';
 export function useSidebarController(currentUser: CurrentUser | null, currentTab: string) {
     const [isOpen, setIsOpen] = useState(false);
 
-    // Existing hook
     const onlineUsersData = useOnlineUsers(currentUser, currentTab);
     const { onlineUsers, messages, joinedUsers, clearJoinedUsers } = onlineUsersData;
 
@@ -16,58 +14,59 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
     const [myCustomStatus, setMyCustomStatus] = useState('');
     const [notifications, setNotifications] = useState<{ id: string, message: string }[]>([]);
 
-    // Chat State
     const [activeChatUser, setActiveChatUser] = useState<OnlineUser | null>(null);
     const [chatInput, setChatInput] = useState('');
     const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Persistence Hook
     const { unreadCounts } = useChatPersistence(currentUser, messages, activeChatUser);
 
-    // Scroll to bottom
     useEffect(() => {
         if (activeChatUser && chatEndRef.current) {
             chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
     }, [messages, activeChatUser]);
 
-    // Notifications
     useEffect(() => {
-        if (joinedUsers.length > 0) {
-            const newNotifs = joinedUsers.map(u => ({
-                id: Math.random().toString(36),
-                message: `${u.name?.split(' ')[0]} entrou!`
-            }));
+        if (joinedUsers.length === 0) return;
 
-            setNotifications(prev => [...prev, ...newNotifs]);
-            clearJoinedUsers();
+        const newNotifications = joinedUsers.map(user => ({
+            id: Math.random().toString(36),
+            message: `${user.name?.split(' ')[0]} entrou!`
+        }));
 
-            setTimeout(() => {
-                setNotifications(prev => prev.slice(newNotifs.length));
-            }, 3000);
-        }
+        setNotifications(prev => [...prev, ...newNotifications]);
+        clearJoinedUsers();
+
+        const notificationIds = new Set(newNotifications.map(notification => notification.id));
+        const timeout = setTimeout(() => {
+            setNotifications(prev => prev.filter(notification => !notificationIds.has(notification.id)));
+        }, 3000);
+
+        return () => clearTimeout(timeout);
     }, [joinedUsers, clearJoinedUsers]);
 
-    // Force tick for time updates
-    const [tick, setTick] = useState(0);
+    const [, setTick] = useState(0);
     useEffect(() => {
-        const interval = setInterval(() => setTick(t => t + 1), 60000);
+        const interval = setInterval(() => setTick(tick => tick + 1), 60000);
         return () => clearInterval(interval);
     }, []);
 
     const activeMessages = useMemo(() => (
         activeChatUser
-            ? messages.filter(m => (m.from === activeChatUser.id && m.to === currentUser?.id) || (m.from === currentUser?.id && m.to === activeChatUser.id))
+            ? messages.filter(message =>
+                (message.from === activeChatUser.id && message.to === currentUser?.id) ||
+                (message.from === currentUser?.id && message.to === activeChatUser.id)
+            )
             : []
     ), [activeChatUser, currentUser?.id, messages]);
 
     const filteredUsers = useMemo(() => {
         const normalizedSearch = searchTerm.toLowerCase();
-        return onlineUsers.filter((u: OnlineUser) =>
-            u.name?.toLowerCase().includes(normalizedSearch) ||
-            u.role?.toLowerCase().includes(normalizedSearch)
+        return onlineUsers.filter((user: OnlineUser) =>
+            user.name?.toLowerCase().includes(normalizedSearch) ||
+            user.role?.toLowerCase().includes(normalizedSearch)
         );
     }, [onlineUsers, searchTerm]);
 
@@ -81,7 +80,7 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
         const upload = await uploadFile(file);
 
         if (upload) {
-            await sendMessage(activeChatUser.id, "", {
+            await sendMessage(activeChatUser.id, '', {
                 attachments: [upload]
             });
         }

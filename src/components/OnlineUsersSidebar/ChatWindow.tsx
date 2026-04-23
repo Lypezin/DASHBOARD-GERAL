@@ -19,7 +19,7 @@ interface ChatWindowProps {
     replyingTo: ChatMessage | null;
     fileInputRef: React.RefObject<HTMLInputElement>;
     onlineUsers: OnlineUser[];
-    setTypingTo: (id: string) => void;
+    setTypingTo: (id: string | null) => void;
 }
 
 export function ChatWindow({

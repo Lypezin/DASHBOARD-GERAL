@@ -15,6 +15,7 @@ export interface OnlineUser {
 
 export interface ChatMessage {
     id: string;
+    tempId?: string;
     from: string;
     to: string;
     content: string;
