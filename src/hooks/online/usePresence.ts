@@ -5,6 +5,8 @@ import { OnlineUser } from './types';
 import { CurrentUser } from '@/types';
 import { getPresenceData } from './presenceData';
 
+const JOIN_NOTIFICATION_COOLDOWN_MS = 15000;
+
 export function usePresence(
     userId: string | null,
     currentUser: CurrentUser | null,
@@ -17,6 +19,7 @@ export function usePresence(
     const channelRef = useRef<RealtimeChannel | null>(null);
     const sessionStartRef = useRef(new Date().toISOString());
     const presenceBaseRef = useRef<OnlineUser | null>(null);
+    const recentJoinNotificationsRef = useRef<Map<string, number>>(new Map());
 
     const clearJoinedUsers = () => setJoinedUsers([]);
 
@@ -63,7 +66,17 @@ export function usePresence(
                 setOnlineUsers(prev => {
                     if (prev.length > 0) {
                         const prevIds = new Set(prev.map(u => u.id));
-                        const newJoiners = users.filter(u => !prevIds.has(u.id) && u.id !== userId);
+                        const now = Date.now();
+                        const newJoiners = users.filter(u => {
+                            if (u.id === userId || prevIds.has(u.id)) return false;
+
+                            const lastNotifiedAt = recentJoinNotificationsRef.current.get(u.id) ?? 0;
+                            if (now - lastNotifiedAt < JOIN_NOTIFICATION_COOLDOWN_MS) return false;
+
+                            recentJoinNotificationsRef.current.set(u.id, now);
+                            return true;
+                        });
+
                         if (newJoiners.length > 0) setJoinedUsers(last => [...last, ...newJoiners]);
                     }
                     return users;

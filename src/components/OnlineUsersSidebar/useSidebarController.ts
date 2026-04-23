@@ -4,6 +4,8 @@ import { CurrentUser } from '@/types';
 import { useChatPersistence } from './hooks/useChatPersistence';
 import { formatTimeOnline } from './utils';
 
+const NOTIFICATION_LIFETIME_MS = 3000;
+
 export function useSidebarController(currentUser: CurrentUser | null, currentTab: string) {
     const [isOpen, setIsOpen] = useState(false);
 
@@ -19,6 +21,7 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
     const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const notificationTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
     const { unreadCounts } = useChatPersistence(currentUser, messages, activeChatUser);
 
@@ -32,20 +35,30 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
         if (joinedUsers.length === 0) return;
 
         const newNotifications = joinedUsers.map(user => ({
-            id: Math.random().toString(36),
+            id: `${user.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
             message: `${user.name?.split(' ')[0]} entrou!`
         }));
 
         setNotifications(prev => [...prev, ...newNotifications]);
         clearJoinedUsers();
 
-        const notificationIds = new Set(newNotifications.map(notification => notification.id));
-        const timeout = setTimeout(() => {
-            setNotifications(prev => prev.filter(notification => !notificationIds.has(notification.id)));
-        }, 3000);
+        newNotifications.forEach(notification => {
+            const timeout = setTimeout(() => {
+                setNotifications(prev => prev.filter(item => item.id !== notification.id));
+                notificationTimeoutsRef.current.delete(notification.id);
+            }, NOTIFICATION_LIFETIME_MS);
 
-        return () => clearTimeout(timeout);
+            notificationTimeoutsRef.current.set(notification.id, timeout);
+        });
     }, [joinedUsers, clearJoinedUsers]);
+
+    useEffect(() => {
+        const activeTimeouts = notificationTimeoutsRef.current;
+        return () => {
+            activeTimeouts.forEach(timeout => clearTimeout(timeout));
+            activeTimeouts.clear();
+        };
+    }, []);
 
     const [, setTick] = useState(0);
     useEffect(() => {
