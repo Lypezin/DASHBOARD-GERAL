@@ -10,8 +10,6 @@ interface UserListItemProps {
     currentUser: CurrentUser;
     unreadCount: number;
     isOpen: boolean;
-    isSelected?: boolean;
-    onSelect: (user: OnlineUser) => void;
     onChatClick: (user: OnlineUser) => void;
     formatTimeOnline: (d: string) => string;
 }
@@ -21,31 +19,25 @@ export function UserListItem({
     currentUser,
     unreadCount,
     isOpen,
-    isSelected,
-    onSelect,
     onChatClick,
     formatTimeOnline
 }: UserListItemProps) {
+    const isCurrentUser = user.id === currentUser.id;
     const profileHref = buildProfileHref(user, currentUser.id);
 
     return (
-        <button
-            type="button"
-            onClick={() => onSelect(user)}
+        <div
             className={cn(
-                'group w-full rounded-xl border p-2 text-left transition-all',
-                isSelected
-                    ? 'border-blue-200 bg-blue-50/70 shadow-sm dark:border-blue-500/30 dark:bg-blue-500/10'
-                    : 'border-transparent hover:border-slate-100 hover:bg-slate-50 dark:hover:border-slate-800 dark:hover:bg-slate-900/70',
+                'group w-full rounded-2xl border border-slate-200/80 bg-white p-3 text-left shadow-sm transition-all hover:border-slate-300 hover:shadow-md dark:border-slate-800 dark:bg-slate-950 dark:hover:border-slate-700',
                 !isOpen && 'flex justify-center px-0 py-3'
             )}
         >
-            <div className={cn('flex items-center gap-3', !isOpen && 'justify-center')}>
+            <div className={cn('flex items-start gap-3', !isOpen && 'justify-center')}>
                 <div className="relative shrink-0">
                     {user.avatar_url ? (
-                        <img src={user.avatar_url} alt={user.name || 'Usuario'} className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm" />
+                        <img src={user.avatar_url} alt={user.name || 'Usuario'} className="w-11 h-11 rounded-full object-cover border-2 border-white shadow-sm" />
                     ) : (
-                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center border-2 border-white shadow-sm">
+                        <div className="w-11 h-11 rounded-full bg-slate-100 flex items-center justify-center border-2 border-white shadow-sm">
                             <UserIcon className="w-5 h-5 text-slate-400" />
                         </div>
                     )}
@@ -56,7 +48,7 @@ export function UserListItem({
                     />
 
                     {unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] text-white font-bold ring-2 ring-white animate-bounce">
+                        <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] text-white font-bold ring-2 ring-white animate-bounce">
                             {unreadCount > 9 ? '9+' : unreadCount}
                         </span>
                     )}
@@ -66,7 +58,7 @@ export function UserListItem({
                     <div className="min-w-0 flex-1">
                         <div className="flex items-center justify-between gap-2">
                             <div className="min-w-0">
-                                <p className="truncate text-sm font-medium text-slate-700 dark:text-slate-100" title={user.name || ''}>{user.name}</p>
+                                <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100" title={user.name || ''}>{user.name}</p>
                                 <div className="mt-0.5 flex items-center gap-1 text-[10px] text-slate-400">
                                     {user.device === 'mobile' ? (
                                         <span title="Mobile"><Smartphone size={12} className="text-slate-400" /></span>
@@ -76,36 +68,9 @@ export function UserListItem({
                                     <span className="truncate">{user.role || 'usuario'}</span>
                                 </div>
                             </div>
-
-                            <div className="flex shrink-0 items-center gap-1">
-                                <Link
-                                    href={profileHref}
-                                    onClick={(e) => e.stopPropagation()}
-                                    className="flex items-center gap-1 rounded-lg bg-slate-100 px-2 py-1.5 text-[11px] font-medium text-slate-600 transition-colors hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-                                    title="Abrir perfil"
-                                >
-                                    <ExternalLink size={12} />
-                                    Perfil
-                                </Link>
-
-                                {user.id !== currentUser.id && (
-                                    <button
-                                        type="button"
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onChatClick(user);
-                                        }}
-                                        className="flex items-center gap-1 rounded-lg bg-blue-50 px-2 py-1.5 text-[11px] font-medium text-blue-600 transition-colors hover:bg-blue-100 dark:bg-blue-500/10 dark:text-blue-400"
-                                        title="Conversar"
-                                    >
-                                        <MessageSquare size={12} />
-                                        Chat
-                                    </button>
-                                )}
-                            </div>
                         </div>
 
-                        <div className="mt-1 flex items-center gap-2">
+                        <div className="mt-2 flex items-center gap-2">
                             {user.custom_status ? (
                                 <span className="flex items-center gap-1 truncate text-xs italic text-slate-500">
                                     <Coffee size={10} /> {user.custom_status}
@@ -130,9 +95,42 @@ export function UserListItem({
                             <Clock size={10} />
                             <span>{formatTimeOnline(user.online_at)}</span>
                         </div>
+
+                        <div className="mt-3 grid grid-cols-2 gap-2">
+                            <Link
+                                href={profileHref}
+                                className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[11px] font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
+                                title={isCurrentUser ? 'Abrir meu perfil' : 'Abrir perfil'}
+                            >
+                                <ExternalLink size={12} />
+                                {isCurrentUser ? 'Meu perfil' : 'Ver perfil'}
+                            </Link>
+
+                            {isCurrentUser ? (
+                                <button
+                                    type="button"
+                                    disabled
+                                    className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-[11px] font-medium text-slate-400 cursor-not-allowed dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-500"
+                                    title="Voce nao pode conversar consigo mesmo"
+                                >
+                                    <MessageSquare size={12} />
+                                    Chat
+                                </button>
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => onChatClick(user)}
+                                    className="flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-3 py-2 text-[11px] font-medium text-white transition-colors hover:bg-blue-700"
+                                    title="Conversar"
+                                >
+                                    <MessageSquare size={12} />
+                                    Conversar
+                                </button>
+                            )}
+                        </div>
                     </div>
                 )}
             </div>
-        </button>
+        </div>
     );
 }

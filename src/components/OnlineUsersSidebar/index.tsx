@@ -7,7 +7,6 @@ import { ChatWindow } from './ChatWindow';
 import { NotificationsToast } from './NotificationsToast';
 import { createSendMessageHandler } from './sendMessageHandler';
 import { SidebarContainer } from './SidebarContainer';
-import { UserProfilePreview } from './UserProfilePreview';
 
 interface OnlineUsersSidebarProps {
     currentUser: CurrentUser | null;
@@ -18,7 +17,7 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
     const {
         isOpen, setIsOpen, onlineUsersData, searchTerm, setSearchTerm,
         myCustomStatus, setMyCustomStatus, notifications, activeChatUser,
-        setActiveChatUser, selectedProfileUser, setSelectedProfileUserId, chatInput, setChatInput, replyingTo, setReplyingTo,
+        setActiveChatUser, chatInput, setChatInput, replyingTo, setReplyingTo,
         chatEndRef, unreadCounts, fileInputRef, activeMessages, filteredUsers,
         formatTimeOnline, totalUnread, onlineUsers, handleFileUpload
     } = useSidebarController(currentUser, currentTab);
@@ -83,30 +82,12 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                     onClose={() => setIsOpen(false)}
                 />
 
-                <UserProfilePreview
-                    user={selectedProfileUser}
-                    currentUserId={currentUser.id}
-                    unreadCount={selectedProfileUser ? (unreadCounts[selectedProfileUser.id] || 0) : 0}
-                    onStartChat={(user) => {
-                        setSelectedProfileUserId(user.id);
-                        setActiveChatUser(user);
-                        setIsOpen(true);
-                    }}
-                    formatTimeOnline={formatTimeOnline}
-                />
-
                 <UserList
                     isOpen={isOpen}
                     currentUser={currentUser}
                     filteredUsers={filteredUsers}
                     unreadCounts={unreadCounts}
-                    selectedUserId={selectedProfileUser?.id}
-                    onUserSelect={(user) => {
-                        setSelectedProfileUserId(user.id);
-                        setIsOpen(true);
-                    }}
                     onUserClick={(user) => {
-                        setSelectedProfileUserId(user.id);
                         setActiveChatUser(user);
                         setIsOpen(true);
                     }}

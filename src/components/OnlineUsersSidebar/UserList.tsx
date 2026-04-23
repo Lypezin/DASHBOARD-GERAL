@@ -7,9 +7,7 @@ interface UserListProps {
     currentUser: CurrentUser;
     filteredUsers: OnlineUser[];
     unreadCounts: Record<string, number>;
-    selectedUserId?: string | null;
     onUserClick: (user: OnlineUser) => void;
-    onUserSelect: (user: OnlineUser) => void;
     formatTimeOnline: (d: string) => string;
 }
 
@@ -33,9 +31,7 @@ export function UserList({
     currentUser,
     filteredUsers,
     unreadCounts,
-    selectedUserId,
     onUserClick,
-    onUserSelect,
     formatTimeOnline
 }: UserListProps) {
     const groupedUsers = {
@@ -67,8 +63,6 @@ export function UserList({
                                 currentUser={currentUser}
                                 unreadCount={unreadCounts[user.id] || 0}
                                 isOpen={isOpen}
-                                isSelected={selectedUserId === user.id}
-                                onSelect={onUserSelect}
                                 onChatClick={onUserClick}
                                 formatTimeOnline={formatTimeOnline}
                             />
