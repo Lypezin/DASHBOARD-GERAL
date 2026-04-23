@@ -8,7 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "analyze": "ANALYZE=true next build"
+    "analyze": "node -e \"process.env.ANALYZE='true'; const cp=require('child_process'); const path=require('path'); const isWin=process.platform==='win32'; const cmd=path.join('node_modules','.bin',isWin?'next.cmd':'next'); const r=cp.spawnSync(cmd,['build'],{stdio:'inherit',env:process.env,shell:isWin}); if(r.error){console.error(r.error); process.exit(1)} process.exit(r.status ?? 1)\""
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",

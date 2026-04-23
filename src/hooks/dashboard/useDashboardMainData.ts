@@ -53,6 +53,17 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
   const { fetchDashboardData, loading, error } = useDashboardDataFetcher({ onError });
   const { checkCache, updateCache, clearCache, previousPayloadRef, isFirstExecutionRef, pendingPayloadKeyRef } = useDashboardCache();
 
+  const setters = useMemo(() => ({
+    setTotals,
+    setAderenciaSemanal,
+    setAderenciaDia,
+    setAderenciaTurno,
+    setAderenciaSubPraca,
+    setAderenciaOrigem,
+    setAderenciaDiaOrigem,
+    setDimensoes
+  }), []);
+
   useDashboardDataEffect({
     filterPayload,
     fetchDashboardData,
@@ -62,16 +73,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     previousPayloadRef,
     isFirstExecutionRef,
     pendingPayloadKeyRef,
-    setters: {
-      setTotals,
-      setAderenciaSemanal,
-      setAderenciaDia,
-      setAderenciaTurno,
-      setAderenciaSubPraca,
-      setAderenciaOrigem,
-      setAderenciaDiaOrigem,
-      setDimensoes
-    },
+    setters,
     shouldFetch: !isOrgLoading
   }, payloadKey);
 

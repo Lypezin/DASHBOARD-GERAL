@@ -17,21 +17,13 @@ export const shouldSkipRedirect = (pathname: string) => {
 export async function verifyAuthSession(pathname: string) {
     if (IS_DEV) safeLog.info('[HeaderAuth] Verifying session...');
 
-    // 1. Verificar Mock
     await checkSupabaseMock();
 
-    // 2. Verificar Sessão Auth
-    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+    // Header is UI state, not route security. Keep a valid local session alive
+    // if the Auth/User endpoint has a transient failure.
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
-    if (IS_DEV) {
-        safeLog.info('[HeaderAuth] Check result:', {
-            pathname,
-            hasUser: !!authUser,
-            error: authError?.message
-        });
-    }
-
-    if (authError || !authUser) {
+    if (sessionError || !session?.user) {
         const skipRedirect = shouldSkipRedirect(pathname);
         return {
             success: false,
@@ -39,17 +31,31 @@ export async function verifyAuthSession(pathname: string) {
         };
     }
 
+    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+
+    if (IS_DEV) {
+        safeLog.info('[HeaderAuth] Check result:', {
+            pathname,
+            hasSessionUser: !!session.user,
+            hasVerifiedUser: !!authUser,
+            error: authError?.message
+        });
+    }
+
+    if (authError || !authUser) {
+        if (IS_DEV) safeLog.warn('[HeaderAuth] getUser falhou; usando session.user como fallback:', authError);
+        return { success: true, user: session.user };
+    }
+
     return { success: true, user: authUser };
 }
 
 export async function verifyUserProfile() {
-    // 3. Buscar Perfil
     const { profile, error: profileError } = await fetchUserProfileWithRetry();
 
-    // 4. Tratar Erros de Perfil
     if (profileError) {
         if (isTemporaryError(profileError)) {
-            if (IS_DEV) safeLog.warn('[Header] Erro temporário ao buscar perfil, mostrando header sem perfil:', profileError);
+            if (IS_DEV) safeLog.warn('[Header] Erro temporario ao buscar perfil, mostrando header sem perfil:', profileError);
             return { success: false, action: 'none', error: profileError };
         }
 
@@ -57,9 +63,8 @@ export async function verifyUserProfile() {
         return { success: false, action: 'none', error: profileError };
     }
 
-    // 5. Verificar Aprovação
     if (!profile?.is_approved) {
-        if (IS_DEV) safeLog.warn('[Header] Usuário não aprovado');
+        if (IS_DEV) safeLog.warn('[Header] Usuario nao aprovado');
         await supabase.auth.signOut().catch(() => { });
         return { success: false, action: 'none', error: 'not_approved' };
     }

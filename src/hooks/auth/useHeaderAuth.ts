@@ -85,10 +85,8 @@ export function useHeaderAuth() {
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
-      if (isLoading) {
-        if (IS_DEV) safeLog.warn('[Header] Timeout atingido (3s), exibindo header publicamente');
-        setIsLoading(false);
-      }
+      if (IS_DEV) safeLog.warn('[Header] Timeout atingido (3s), exibindo header publicamente');
+      setIsLoading(false);
     }, 3000);
     loadingTimeoutRef.current = timeoutId;
     checkUser();
@@ -98,7 +96,7 @@ export function useHeaderAuth() {
         loadingTimeoutRef.current = null;
       }
     };
-  }, [checkUser, isLoading]);
+  }, [checkUser]);
 
   const handleLogout = useCallback(async () => {
     try {

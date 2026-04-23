@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { CACHE } from '@/constants/config';
 import { DashboardResumoData } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
@@ -59,7 +59,7 @@ export function useDashboardCache() {
     const isFirstExecutionRef = useRef<boolean>(globalDashboardCache.size === 0);
     const pendingPayloadKeyRef = useRef<string>('');
 
-    const checkCache = (payloadKey: string) => {
+    const checkCache = useCallback((payloadKey: string) => {
         pruneCache();
 
         const cached = globalDashboardCache.get(payloadKey);
@@ -68,26 +68,26 @@ export function useDashboardCache() {
         if (IS_DEV) safeLog.info('[useDashboardCache] Usando dados do cache global');
         touchCacheEntry(payloadKey, cached);
         return cached.data;
-    };
+    }, []);
 
-    const updateCache = (payloadKey: string, data: DashboardResumoData) => {
+    const updateCache = useCallback((payloadKey: string, data: DashboardResumoData) => {
         pruneCache();
         touchCacheEntry(payloadKey, {
             data,
             timestamp: Date.now()
         });
-    };
+    }, []);
 
-    const clearCache = () => {
+    const clearCache = useCallback(() => {
         if (IS_DEV) safeLog.info('[useDashboardCache] Limpando cache global');
         globalDashboardCache.clear();
-    };
+    }, []);
 
-    const getCacheData = () => {
+    const getCacheData = useCallback(() => {
         pruneCache();
         const latestEntry = Array.from(globalDashboardCache.values()).pop();
         return latestEntry?.data ?? null;
-    };
+    }, []);
 
     return {
         checkCache,
