@@ -1,7 +1,7 @@
 import React from 'react';
 import FiltroDateRange from '@/components/FiltroDateRange';
 import FiltroSelect from '@/components/FiltroSelect';
-import { Filters, FilterOption } from '@/types';
+import { Filters } from '@/types';
 
 interface FilterPrimarySectionProps {
     isModoIntervalo: boolean;
@@ -22,37 +22,31 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
 }) => {
     if (isModoIntervalo) {
         return (
-            <div className="flex items-end gap-4 flex-auto min-w-[520px]">
+            <div className="w-full min-w-0 flex-auto lg:w-auto">
                 <FiltroDateRange
                     dataInicial={filters?.dataInicial ?? null}
                     dataFinal={filters?.dataFinal ?? null}
-                    onDataInicialChange={(data) => {
+                    onRangeApply={(dataInicial, dataFinal) => {
                         setFilters(prev => {
                             if (!prev) return prev;
-                            const newFilters = { ...prev, dataInicial: data };
-                            if (data && prev.filtroModo !== 'intervalo') {
-                                newFilters.filtroModo = 'intervalo';
+
+                            if (!dataInicial && !dataFinal) {
+                                return {
+                                    ...prev,
+                                    dataInicial: null,
+                                    dataFinal: null,
+                                };
                             }
-                            return newFilters;
-                        });
-                    }}
-                    onDataFinalChange={(data) => {
-                        setFilters(prev => {
-                            if (!prev) return prev;
-                            const newFilters = { ...prev, dataFinal: data };
-                            if (data && prev.filtroModo !== 'intervalo') {
-                                newFilters.filtroModo = 'intervalo';
-                            }
-                            return newFilters;
-                        });
-                    }}
-                    onApply={() => {
-                        setFilters(prev => {
-                            if (!prev) return prev;
-                            if (prev.filtroModo !== 'intervalo' && (prev.dataInicial || prev.dataFinal)) {
-                                return { ...prev, filtroModo: 'intervalo' };
-                            }
-                            return prev;
+
+                            return {
+                                ...prev,
+                                filtroModo: 'intervalo',
+                                ano: null,
+                                semana: null,
+                                semanas: [],
+                                dataInicial,
+                                dataFinal,
+                            };
                         });
                     }}
                 />

@@ -6,9 +6,8 @@ import { useDateRangeLogic } from './date-range/useDateRangeLogic';
 interface FiltroDateRangeProps {
   dataInicial: string | null;
   dataFinal: string | null;
-  onDataInicialChange: (data: string | null) => void;
-  onDataFinalChange: (data: string | null) => void;
-  onApply?: () => void;
+  onRangeApply: (dataInicial: string | null, dataFinal: string | null) => void;
+  onRangeClear?: () => void;
 }
 
 const FiltroDateRange: React.FC<FiltroDateRangeProps> = (props) => {
@@ -27,7 +26,7 @@ const FiltroDateRange: React.FC<FiltroDateRangeProps> = (props) => {
   const dataMinima = '2020-01-01';
 
   return (
-    <div className="flex items-end gap-3">
+    <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end">
       <DateRangeInputs
         tempDataInicial={tempDataInicial}
         tempDataFinal={tempDataFinal}

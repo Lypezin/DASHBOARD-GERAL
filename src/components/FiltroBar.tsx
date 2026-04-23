@@ -1,5 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
-import { getISOWeek } from 'date-fns';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Filters, FilterOption, CurrentUser } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { useFiltroBar } from '@/hooks/ui/useFiltroBar';
@@ -26,6 +25,31 @@ const FiltroBar = React.memo(function FiltroBar({
     shouldDisablePracaFilter,
   } = useFiltroBar({ filters, setFilters, currentUser });
 
+  const [showDateRangeFilters, setShowDateRangeFilters] = useState(
+    filters?.filtroModo === 'intervalo'
+  );
+
+  useEffect(() => {
+    setShowDateRangeFilters(filters?.filtroModo === 'intervalo');
+  }, [filters?.filtroModo]);
+
+  const handleModeToggle = useCallback(() => {
+    setShowDateRangeFilters((current) => {
+      const next = !current;
+
+      if (!next && filters?.filtroModo === 'intervalo') {
+        handleToggleModo();
+      }
+
+      return next;
+    });
+  }, [filters?.filtroModo, handleToggleModo]);
+
+  const handleClearFiltersClick = useCallback(() => {
+    setShowDateRangeFilters(false);
+    handleClearFilters();
+  }, [handleClearFilters]);
+
   useEffect(() => {
     if (IS_DEV) {
       safeLog.info('[FiltroBar] Filters recebidos:', {
@@ -37,8 +61,6 @@ const FiltroBar = React.memo(function FiltroBar({
 
   const { anosOptions, semanasOptions } = useFiltroBarOptions(anos, semanas, filters);
 
-  const isModoIntervalo = filters?.filtroModo === 'intervalo';
-
   return (
     <div className="relative z-10 font-sans">
       <div className="flex flex-col lg:flex-row lg:items-end gap-4">
@@ -46,8 +68,8 @@ const FiltroBar = React.memo(function FiltroBar({
         {/* Toggle Mode Swtich - Now Integrated */}
         <div className="mb-0.5 min-w-fit">
           <FilterModeSwitch
-            isModoIntervalo={isModoIntervalo}
-            onToggle={handleToggleModo}
+            isModoIntervalo={showDateRangeFilters}
+            onToggle={handleModeToggle}
           />
         </div>
 
@@ -56,7 +78,7 @@ const FiltroBar = React.memo(function FiltroBar({
         {/* Filters Group */}
         <div className="flex-1 flex flex-wrap items-end gap-3">
           <FilterPrimarySection
-            isModoIntervalo={isModoIntervalo}
+            isModoIntervalo={showDateRangeFilters}
             filters={filters}
             setFilters={setFilters}
             anosOptions={anosOptions}
@@ -78,7 +100,7 @@ const FiltroBar = React.memo(function FiltroBar({
 
         {/* Clear Button - Compact */}
         {hasActiveFilters && (
-          <FilterClearButton onClear={handleClearFilters} />
+          <FilterClearButton onClear={handleClearFiltersClick} />
         )}
       </div>
     </div>

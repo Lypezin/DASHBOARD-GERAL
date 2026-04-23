@@ -4,17 +4,15 @@ import { safeLog } from '@/lib/errorHandler';
 interface UseDateRangeLogicProps {
     dataInicial: string | null;
     dataFinal: string | null;
-    onDataInicialChange: (data: string | null) => void;
-    onDataFinalChange: (data: string | null) => void;
-    onApply?: () => void;
+    onRangeApply: (dataInicial: string | null, dataFinal: string | null) => void;
+    onRangeClear?: () => void;
 }
 
 export const useDateRangeLogic = ({
     dataInicial,
     dataFinal,
-    onDataInicialChange,
-    onDataFinalChange,
-    onApply,
+    onRangeApply,
+    onRangeClear,
 }: UseDateRangeLogicProps) => {
     const [tempDataInicial, setTempDataInicial] = useState<string>(dataInicial || '');
     const [tempDataFinal, setTempDataFinal] = useState<string>(dataFinal || '');
@@ -59,23 +57,18 @@ export const useDateRangeLogic = ({
             setTempDataFinal(dataIni);
         }
 
-        onDataInicialChange(dataIni);
-        onDataFinalChange(dataFim);
+        onRangeApply(dataIni, dataFim);
 
         safeLog.info('[FiltroDateRange] Filtro aplicado:', { dataIni, dataFim });
-
-        if (onApply) {
-            onApply();
-        }
-    }, [tempDataInicial, tempDataFinal, onDataInicialChange, onDataFinalChange, onApply]);
+    }, [tempDataInicial, tempDataFinal, onRangeApply]);
 
     const handleLimpar = useCallback(() => {
         setTempDataInicial('');
         setTempDataFinal('');
-        onDataInicialChange(null);
-        onDataFinalChange(null);
+        onRangeApply(null, null);
+        onRangeClear?.();
         safeLog.info('[FiltroDateRange] Filtro limpo');
-    }, [onDataInicialChange, onDataFinalChange]);
+    }, [onRangeApply, onRangeClear]);
 
     const temAlteracao = tempDataInicial !== (dataInicial || '') || tempDataFinal !== (dataFinal || '');
     const temFiltro = dataInicial || dataFinal;
