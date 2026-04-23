@@ -1,8 +1,3 @@
-/**
- * Hook para gerenciar lógica de login
- * Extraído de src/app/login/page.tsx
- */
-
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
@@ -15,6 +10,17 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 export interface LoginFormData {
   email: string;
   password: string;
+}
+
+function isRecoverableProfileError(error: unknown) {
+  const errorCode = (error as any)?.code || '';
+  const errorMessage = String((error as any)?.message || '');
+
+  return errorCode === 'TIMEOUT' ||
+    errorCode === 'PGRST116' ||
+    errorMessage.includes('timeout') ||
+    errorMessage.includes('network') ||
+    errorMessage.includes('406');
 }
 
 export function useLogin() {
@@ -36,41 +42,31 @@ export function useLogin() {
         throw signInError;
       }
 
-      // Verificar se o usuário está aprovado com retry
       const { profile, profileError } = await fetchUserProfile();
 
       if (profileError) {
-        const errorCode = (profileError as any)?.code || '';
-        const errorMessage = String((profileError as any)?.message || '');
-        const isTemporaryError = errorCode === 'TIMEOUT' ||
-          errorMessage.includes('timeout') ||
-          errorMessage.includes('network');
-
-        if (isTemporaryError) {
-          if (IS_DEV) safeLog.warn('Erro temporário ao carregar perfil no login, continuando...');
+        if (isRecoverableProfileError(profileError)) {
+          if (IS_DEV) safeLog.warn('Erro temporario ao carregar perfil no login, continuando...', profileError);
         } else {
-          await supabase.auth.signOut();
-          throw new Error('Erro ao carregar perfil do usuário. Tente novamente.');
+          setError('Nao foi possivel validar seu perfil agora. Tente novamente em alguns segundos.');
+          setLoading(false);
+          return;
         }
       }
 
-      if (!profile?.is_approved) {
+      if (profile && !profile.is_approved) {
         await supabase.auth.signOut();
-        setError('Sua conta ainda não foi aprovada. Aguarde a aprovação de um administrador.');
+        setError('Sua conta ainda nao foi aprovada. Aguarde a aprovacao de um administrador.');
         setLoading(false);
         return;
       }
 
-      // Sincronizar organization_id para user_metadata
       try {
         await syncOrganizationIdToMetadata();
       } catch (err) {
-        if (IS_DEV) {
-          safeLog.warn('Erro ao sincronizar organization_id (não bloqueante):', err);
-        }
+        if (IS_DEV) safeLog.warn('Erro ao sincronizar organization_id (nao bloqueante):', err);
       }
 
-      // Registrar atividade de login
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (user?.id) {
@@ -80,7 +76,6 @@ export function useLogin() {
         if (IS_DEV) safeLog.warn('Erro ao registrar atividade de login:', err);
       }
 
-      // Login bem-sucedido
       router.push('/');
       router.refresh();
     } catch (err: unknown) {

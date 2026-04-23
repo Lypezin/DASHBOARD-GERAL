@@ -5,37 +5,21 @@ import { clearSupabaseStorage, hasOldSupabaseTokens, signOutAndRedirect } from '
 const IS_DEV = process.env.NODE_ENV === 'development';
 
 export async function checkSession(router: any) {
-    // PRIMEIRO: Limpar qualquer sessão inválida do localStorage antes de verificar
     if (hasOldSupabaseTokens()) {
-
         const { data: { session: testSession } } = await supabase.auth.getSession();
         if (!testSession || !testSession.user) {
-            // Sessão inválida - limpar tudo
-
-            if (IS_DEV) {
-                safeLog.warn('[useAuthGuard] Limpando sessões inválidas do localStorage');
-            }
+            if (IS_DEV) safeLog.warn('[useAuthGuard] Limpando sessoes invalidas do localStorage');
             clearSupabaseStorage();
         }
     }
 
-    // Verificar sessão atual
-
     const { data: { session }, error: sessionError } = await supabase.auth.getSession();
 
     if (sessionError || !session || !session.user) {
-        // Sem sessão válida - limpar e redirecionar
-
-        if (IS_DEV) {
-            safeLog.warn('[useAuthGuard] Sem sessão válida, limpando e redirecionando para login');
-        }
+        if (IS_DEV) safeLog.warn('[useAuthGuard] Sem sessao valida, redirecionando para login');
         await signOutAndRedirect(router);
         return null;
     }
-
-
-
-    // Verificar se o token da sessão ainda é válido com retry
 
     let verifiedUser = null;
     let verifyError = null;
@@ -43,22 +27,17 @@ export async function checkSession(router: any) {
 
     for (let i = 0; i < maxRetries; i++) {
         try {
-
             const { data: { user }, error } = await supabase.auth.getUser();
             if (user) {
-
                 verifiedUser = user;
                 verifyError = null;
                 break;
             } else if (error) {
-
                 verifyError = error;
                 if (IS_DEV) safeLog.warn(`[useAuthGuard] Tentativa ${i + 1}/${maxRetries} falhou:`, error.message);
-                // Esperar um pouco antes de tentar novamente (backoff exponencial)
                 await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, i)));
             }
         } catch (err) {
-
             verifyError = err;
             if (IS_DEV) safeLog.warn(`[useAuthGuard] Erro na tentativa ${i + 1}/${maxRetries}:`, err);
             await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, i)));
@@ -66,13 +45,10 @@ export async function checkSession(router: any) {
     }
 
     if (verifyError || !verifiedUser) {
-        // Token inválido após todas as tentativas - limpar e redirecionar
-
-        if (IS_DEV) {
-            safeLog.error('[useAuthGuard] Token inválido após retries, limpando e redirecionando:', verifyError);
-        }
-        await signOutAndRedirect(router);
-        return null;
+        // Do not destroy a local session because of a transient Auth/User endpoint failure.
+        // Server middleware still validates protected navigations, and Supabase refreshes tokens in the background.
+        if (IS_DEV) safeLog.warn('[useAuthGuard] getUser falhou apos retries; usando session.user como fallback:', verifyError);
+        return session.user;
     }
 
     return verifiedUser;

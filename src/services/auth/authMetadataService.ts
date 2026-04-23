@@ -24,7 +24,7 @@ export async function syncOrganizationIdToMetadata(): Promise<boolean> {
             .from('user_profiles')
             .select('organization_id')
             .eq('id', user.id)
-            .single();
+            .maybeSingle();
 
         if (profileError || !profile) {
             if (IS_DEV) {

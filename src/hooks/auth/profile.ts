@@ -22,11 +22,9 @@ export async function fetchAndValidateProfile(
         }>('get_current_user_profile', {}, { timeout: RPC_TIMEOUTS.FAST, validateParams: false });
 
         if (profileError) {
-            // ... error handling
             if (IS_DEV) {
-                safeLog.warn('[useAuthGuard] Erro ao buscar perfil, fazendo logout:', profileError);
+                safeLog.warn('[useAuthGuard] Erro ao buscar perfil; mantendo sessao para evitar logout indevido:', profileError);
             }
-            await signOutAndRedirect(router);
             return null;
         }
 
@@ -89,11 +87,9 @@ export async function fetchAndValidateProfile(
 
         return null;
     } catch (err) {
-        // Erro ao verificar perfil - fazer logout e redirecionar
         if (IS_DEV) {
-            safeLog.error('[useAuthGuard] Erro ao verificar perfil:', err);
+            safeLog.error('[useAuthGuard] Erro ao verificar perfil; mantendo sessao para evitar logout indevido:', err);
         }
-        await signOutAndRedirect(router);
         return null;
     }
 }

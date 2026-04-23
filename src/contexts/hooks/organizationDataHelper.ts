@@ -6,7 +6,7 @@ export async function fetchOrganizationData(organizationId: string): Promise<Org
         .from('organizations')
         .select('id, name, slug, max_users, is_active, created_at, updated_at')
         .eq('id', organizationId)
-        .single();
+        .maybeSingle();
 
     if (orgError) {
         throw new Error(`Erro ao buscar organização: ${orgError.message}`);
