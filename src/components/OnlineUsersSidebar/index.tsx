@@ -25,6 +25,7 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
     if (!currentUser) return null;
 
     const { setCustomStatus, sendMessage, setTypingTo, reactToMessage, pinMessage } = onlineUsersData;
+    const availableCount = onlineUsers.filter((user) => !user.is_idle).length;
 
     const handleSendMessage = createSendMessageHandler({
         chatInput,
@@ -73,6 +74,7 @@ export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSideb
                 <SidebarHeader
                     isOpen={isOpen}
                     onlineCount={onlineUsers.length}
+                    availableCount={availableCount}
                     unreadCount={totalUnread}
                     searchTerm={searchTerm}
                     setSearchTerm={setSearchTerm}

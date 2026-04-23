@@ -3,6 +3,7 @@ import { Users, Coffee, Sparkles, X, BellRing } from 'lucide-react';
 interface SidebarHeaderProps {
     isOpen: boolean;
     onlineCount: number;
+    availableCount: number;
     unreadCount: number;
     searchTerm: string;
     setSearchTerm: (v: string) => void;
@@ -13,7 +14,7 @@ interface SidebarHeaderProps {
 }
 
 export function SidebarHeader({
-    isOpen, onlineCount, unreadCount, searchTerm, setSearchTerm,
+    isOpen, onlineCount, availableCount, unreadCount, searchTerm, setSearchTerm,
     myCustomStatus, setMyCustomStatus, onStatusSubmit, onClose
 }: SidebarHeaderProps) {
     return (
@@ -49,18 +50,26 @@ export function SidebarHeader({
 
             {isOpen && (
                 <div className="mt-3 space-y-3">
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-3 gap-2">
                         <div className="rounded-2xl border border-slate-200 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-950">
                             <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">Online</p>
                             <p className="mt-1 text-lg font-semibold text-slate-800 dark:text-slate-100">{onlineCount}</p>
                         </div>
                         <div className="rounded-2xl border border-slate-200 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-950">
+                            <p className="text-[10px] uppercase tracking-[0.18em] text-slate-400">Disponiveis</p>
+                            <p className="mt-1 text-lg font-semibold text-slate-800 dark:text-slate-100">{availableCount}</p>
+                        </div>
+                        <div className="rounded-2xl border border-slate-200 bg-white px-3 py-2 dark:border-slate-700 dark:bg-slate-950">
                             <div className="flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] text-slate-400">
                                 <BellRing size={10} />
-                                Nao lidas
+                                Msgs
                             </div>
                             <p className="mt-1 text-lg font-semibold text-slate-800 dark:text-slate-100">{unreadCount}</p>
                         </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-blue-100 bg-blue-50/70 px-3 py-2 text-[11px] text-blue-700 dark:border-blue-500/20 dark:bg-blue-500/10 dark:text-blue-300">
+                        Acoes diretas: use <strong>Ver perfil</strong> ou <strong>Conversar</strong> em qualquer pessoa da lista.
                     </div>
 
                     <input

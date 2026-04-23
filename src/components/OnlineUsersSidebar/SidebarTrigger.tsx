@@ -1,4 +1,4 @@
-import { MessageSquareMore, Users } from 'lucide-react';
+import { MessageSquareMore, Users, Wifi } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SidebarTriggerProps {
@@ -21,32 +21,32 @@ export function SidebarTrigger({ isOpen, setIsOpen, onlineCount, unreadCount }: 
         >
             <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg">
                 <Users size={18} />
-
-                <span className="absolute -bottom-2 -left-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[10px] font-bold text-blue-600 shadow ring-2 ring-white dark:bg-slate-950 dark:ring-slate-900">
-                    {onlineCount}
-                </span>
-
-                {unreadCount > 0 && (
-                    <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-extrabold text-white shadow ring-2 ring-white dark:ring-slate-900">
-                        {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                )}
+                <span className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-blue-600" />
             </div>
 
             <div className="min-w-0 text-left">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">
                     Equipe
                 </p>
-                <div className="flex items-center gap-2">
-                    <span className="truncate text-sm font-semibold">
-                        Pessoas online
+                <p className="truncate text-sm font-semibold">
+                    Pessoas online
+                </p>
+
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+                        <Wifi size={10} />
+                        {onlineCount} online
                     </span>
-                    {unreadCount > 0 && (
-                        <span className="flex items-center gap-1 rounded-full bg-red-50 px-2 py-0.5 text-[10px] font-semibold text-red-600 dark:bg-red-500/10 dark:text-red-400">
-                            <MessageSquareMore size={10} />
-                            {unreadCount}
-                        </span>
-                    )}
+
+                    <span className={cn(
+                        'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold',
+                        unreadCount > 0
+                            ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400'
+                            : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+                    )}>
+                        <MessageSquareMore size={10} />
+                        {unreadCount} msgs
+                    </span>
                 </div>
             </div>
         </button>
