@@ -1,6 +1,10 @@
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
-import type { RefreshPrioritizedResult } from '@/types/upload';
+import type {
+    PendingMV,
+    RefreshMVResult,
+    RefreshPrioritizedResult,
+} from '@/types/upload';
 
 export interface RefreshState {
     isRefreshing: boolean;
@@ -53,9 +57,6 @@ export const performRefresh = async (
                 : 'Atualizando views criticas...'
         }));
 
-        safeLog.info(
-            '[performRefresh] Passo 3: Chamando refresh_mvs_prioritized com refresh_critical_only=true...'
-        );
         const { data, error } = await safeRpc<RefreshPrioritizedResult>(
             'refresh_mvs_prioritized',
             { refresh_critical_only: true },
@@ -65,16 +66,10 @@ export const performRefresh = async (
             }
         );
         safeLog.info(
-            `[performRefresh] Passo 3 concluido: success=${data?.success}, error=${
+            `[performRefresh] Passo 2 concluido: success=${data?.success}, error=${
                 error ? JSON.stringify(error) : 'none'
             }`
         );
-
-        setRefreshState(prev => ({
-            ...prev,
-            progress: 70,
-            status: 'Processando views pendentes...'
-        }));
 
         if (error) {
             const errorCode = error?.code;
@@ -93,7 +88,7 @@ export const performRefresh = async (
             logRefreshSuccess(data);
         }
 
-        await finalizePendingRefreshes(setRefreshState);
+        await refreshPendingViewsSequentially(setRefreshState);
     } catch (e) {
         safeLog.warn('Refresh prioritario nao disponivel, sera processado automaticamente', e);
         setRefreshState({
@@ -125,30 +120,61 @@ const logRefreshSuccess = (data: RefreshPrioritizedResult) => {
     }
 };
 
-const finalizePendingRefreshes = async (setRefreshState: SetRefreshState) => {
+const refreshPendingViewsSequentially = async (setRefreshState: SetRefreshState) => {
     try {
-        setRefreshState(prev => ({
-            ...prev,
-            progress: 90,
-            status: 'Finalizando views pendentes...'
-        }));
-
-        const { data, error } = await safeRpc<
-            Array<{ mv_name: string; success: boolean; message: string }>
-        >('refresh_pending_mvs', {}, { timeout: 900000, validateParams: false });
+        const { data, error } = await safeRpc<PendingMV[]>('get_pending_mvs', {}, {
+            timeout: 30000,
+            validateParams: false
+        });
 
         if (error) {
-            safeLog.warn('Refresh de MVs pendentes falhou:', error);
-        } else if (Array.isArray(data)) {
-            const failed = data.filter((item) => !item.success);
-            if (failed.length > 0) {
-                safeLog.warn('[performRefresh] Algumas MVs falharam no refresh pendente:', failed);
+            safeLog.warn('Nao foi possivel consultar as MVs pendentes:', error);
+            return;
+        }
+
+        const pendingViews = Array.isArray(data) ? data : [];
+
+        if (pendingViews.length === 0) {
+            safeLog.info('[performRefresh] Nenhuma MV pendente restante apos o refresh critico');
+            return;
+        }
+
+        safeLog.info(
+            `[performRefresh] Iniciando refresh sequencial de ${pendingViews.length} MVs pendentes`
+        );
+
+        let processedCount = 0;
+
+        for (const pendingView of pendingViews) {
+            const baseProgress = 72 + Math.round((processedCount / pendingViews.length) * 24);
+            setRefreshState(prev => ({
+                ...prev,
+                progress: baseProgress,
+                status: `Atualizando ${pendingView.mv_name}...`
+            }));
+
+            const { data: result, error: refreshError } = await safeRpc<RefreshMVResult>(
+                'refresh_single_mv',
+                { mv_name_param: pendingView.mv_name, force_normal: false },
+                {
+                    timeout: 180000,
+                    validateParams: false
+                }
+            );
+
+            if (refreshError) {
+                safeLog.warn(
+                    `[performRefresh] Falha ao atualizar ${pendingView.mv_name}:`,
+                    refreshError
+                );
             } else {
-                safeLog.info(`Refresh pendente concluido: ${data.length} MVs processadas`);
+                safeLog.info(`[performRefresh] ${pendingView.mv_name} concluida:`, result);
             }
+
+            processedCount += 1;
         }
     } catch (e) {
-        safeLog.warn('Refresh de MVs pendentes falhou:', e);
+        safeLog.warn('Refresh sequencial de MVs pendentes falhou:', e);
     } finally {
         setRefreshState({
             isRefreshing: false,
