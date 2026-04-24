@@ -88,6 +88,16 @@ export const performRefresh = async (
             logRefreshSuccess(data);
         }
 
+        if (force) {
+            safeLog.info('[performRefresh] Upload concluido com refresh do nucleo ativo; MVs secundarias ficam para processamento de baixo uso');
+            setRefreshState({
+                isRefreshing: false,
+                progress: 100,
+                status: 'Concluido'
+            });
+            return;
+        }
+
         await refreshPendingViewsSequentially(setRefreshState);
     } catch (e) {
         safeLog.warn('Refresh prioritario nao disponivel, sera processado automaticamente', e);

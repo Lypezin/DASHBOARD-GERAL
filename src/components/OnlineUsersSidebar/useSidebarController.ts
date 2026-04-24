@@ -6,6 +6,7 @@ import { formatTimeOnline } from './utils';
 import { supabase } from '@/lib/supabaseClient';
 
 const NOTIFICATION_LIFETIME_MS = 3000;
+const MAX_JOIN_NOTIFICATIONS = 3;
 
 export function useSidebarController(
     currentUser: CurrentUser | null,
@@ -16,7 +17,7 @@ export function useSidebarController(
     const [isOpen, setIsOpen] = useState(initialOpen);
     const [hasActivatedRealtime, setHasActivatedRealtime] = useState(initialOpen || preloadRealtime);
 
-    const onlineUsersData = useOnlineUsers(currentUser, currentTab, hasActivatedRealtime);
+    const onlineUsersData = useOnlineUsers(currentUser, currentTab, hasActivatedRealtime, isOpen);
     const { onlineUsers, messages, joinedUsers, clearJoinedUsers } = onlineUsersData;
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -54,7 +55,7 @@ export function useSidebarController(
             message: `${user.name?.split(' ')[0]} entrou!`
         }));
 
-        setNotifications((prev) => [...prev, ...newNotifications]);
+        setNotifications((prev) => [...prev, ...newNotifications].slice(-MAX_JOIN_NOTIFICATIONS));
         clearJoinedUsers();
 
         newNotifications.forEach((notification) => {

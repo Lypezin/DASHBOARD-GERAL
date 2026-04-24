@@ -48,12 +48,20 @@ export function useChatSubscription({ userId, enabled, setMessages }: UseChatSub
     const chatSubscriptionRef = useRef<RealtimeChannel | null>(null);
 
     useEffect(() => {
-        if (!enabled || !userId) {
+        if (!userId) {
             if (chatSubscriptionRef.current) {
                 supabase.removeChannel(chatSubscriptionRef.current);
                 chatSubscriptionRef.current = null;
             }
             setMessages([]);
+            return;
+        }
+
+        if (!enabled) {
+            if (chatSubscriptionRef.current) {
+                supabase.removeChannel(chatSubscriptionRef.current);
+                chatSubscriptionRef.current = null;
+            }
             return;
         }
 

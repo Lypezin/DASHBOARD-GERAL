@@ -49,7 +49,8 @@ export function useDashboardPage() {
   const filterOptions = useDashboardFilterOptions({
     dimensoes: mainData.dimensoes || dimensoes,
     currentUser,
-    filters
+    filters,
+    organizationId: filterPayload.p_organization_id
   });
 
   return {

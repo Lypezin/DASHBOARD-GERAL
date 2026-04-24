@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 
-const HEARTBEAT_INTERVAL_MS = 60000;
+const HEARTBEAT_INTERVAL_MS = 180000;
 
 export function UserActivityTracker() {
     const pathname = usePathname();

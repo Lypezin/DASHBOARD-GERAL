@@ -7,12 +7,17 @@ import { OnlineUser, ChatMessage } from '@/hooks/online/types';
 
 export type { OnlineUser, ChatMessage };
 
-export function useOnlineUsers(currentUser: CurrentUser | null, currentTab: string, enabled: boolean) {
+export function useOnlineUsers(
+    currentUser: CurrentUser | null,
+    currentTab: string,
+    presenceEnabled: boolean,
+    chatEnabled = presenceEnabled
+) {
     const userId = useMemo(() => currentUser?.id ?? null, [currentUser?.id]);
-    const isIdle = useIdleDetection(5, enabled);
+    const isIdle = useIdleDetection(5, presenceEnabled);
 
-    const presence = usePresence(userId, currentUser, currentTab, isIdle, enabled);
-    const chat = useChat(userId, enabled);
+    const presence = usePresence(userId, currentUser, currentTab, isIdle, presenceEnabled);
+    const chat = useChat(userId, chatEnabled);
 
     return {
         onlineUsers: presence.onlineUsers,

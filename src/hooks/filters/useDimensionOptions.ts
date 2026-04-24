@@ -14,6 +14,12 @@ interface DimensionCacheEntry {
     turnos: FilterOption[];
 }
 
+interface DimensionOptionsRpcRow {
+    sub_pracas?: unknown[];
+    origens?: unknown[];
+    turnos?: unknown[];
+}
+
 function toUniqueOptions(arr: unknown): FilterOption[] {
     if (!Array.isArray(arr)) return [];
 
@@ -37,6 +43,10 @@ function toUniqueOptions(arr: unknown): FilterOption[] {
 
 function createPracasKey(pracas: string[]) {
     return pracas.map((praca) => praca.trim().toUpperCase()).filter(Boolean).sort().join('|');
+}
+
+function createDimensionCacheKey(pracasKey: string, organizationId?: string | null) {
+    return `${organizationId || 'no-org'}::${pracasKey}`;
 }
 
 function processFallbackSubPracas(dimensoes: DimensoesDashboard, activePracas: string[]) {
@@ -87,7 +97,12 @@ function writeCachedOptions(key: string, entry: DimensionCacheEntry) {
     }
 }
 
-export function useDimensionOptions(dimensoes: DimensoesDashboard | null, currentUser?: CurrentUser | null, filters?: Filters | null) {
+export function useDimensionOptions(
+    dimensoes: DimensoesDashboard | null,
+    currentUser?: CurrentUser | null,
+    filters?: Filters | null,
+    organizationId?: string | null
+) {
     const [remoteOptions, setRemoteOptions] = useState<DimensionCacheEntry | null>(null);
     const assignedPracasKey = currentUser?.assigned_pracas.join('|') || '';
     const assignedPracas = useMemo(() => assignedPracasKey.split('|').filter(Boolean), [assignedPracasKey]);
@@ -113,6 +128,10 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
     }, [filters?.praca, userHasFullAccess, assignedPracas]);
 
     const targetPracasKey = useMemo(() => createPracasKey(targetPracas), [targetPracas]);
+    const dimensionCacheKey = useMemo(
+        () => createDimensionCacheKey(targetPracasKey, organizationId || currentUser?.organization_id),
+        [currentUser?.organization_id, organizationId, targetPracasKey]
+    );
 
     const baseOptions = useMemo(() => {
         if (!dimensoes) {
@@ -139,18 +158,42 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
         let cancelled = false;
 
         const fetchOptionsByPraca = async () => {
-            const cached = readCachedOptions(targetPracasKey);
+            const cached = readCachedOptions(dimensionCacheKey);
             if (cached) {
                 setRemoteOptions(cached);
                 return;
             }
 
             try {
-                const rpcParams = { p_pracas: targetPracas };
+                const rpcParams = {
+                    p_pracas: targetPracas,
+                    p_organization_id: organizationId || currentUser?.organization_id || null
+                };
+                const combinedResult = await safeRpc<DimensionOptionsRpcRow[]>(
+                    'get_dashboard_dimension_options',
+                    rpcParams,
+                    { timeout: 10000, validateParams: false }
+                );
+
+                if (cancelled) return;
+                if (!combinedResult.error && Array.isArray(combinedResult.data)) {
+                    const row = combinedResult.data[0] || {};
+                    const nextOptions: DimensionCacheEntry = {
+                        timestamp: Date.now(),
+                        subPracas: toUniqueOptions(row.sub_pracas),
+                        origens: toUniqueOptions(row.origens),
+                        turnos: toUniqueOptions(row.turnos)
+                    };
+
+                    setRemoteOptions(nextOptions);
+                    writeCachedOptions(dimensionCacheKey, nextOptions);
+                    return;
+                }
+
                 const [subPracasResult, origensResult, turnosResult] = await Promise.all([
-                    safeRpc<string[]>('get_subpracas_by_praca', rpcParams, { timeout: 10000, validateParams: false }),
-                    safeRpc<string[]>('get_origens_by_praca', rpcParams, { timeout: 10000, validateParams: false }),
-                    safeRpc<string[]>('get_turnos_by_praca', rpcParams, { timeout: 10000, validateParams: false })
+                    safeRpc<string[]>('get_subpracas_by_praca', { p_pracas: targetPracas }, { timeout: 10000, validateParams: false }),
+                    safeRpc<string[]>('get_origens_by_praca', { p_pracas: targetPracas }, { timeout: 10000, validateParams: false }),
+                    safeRpc<string[]>('get_turnos_by_praca', { p_pracas: targetPracas }, { timeout: 10000, validateParams: false })
                 ]);
 
                 if (cancelled) return;
@@ -166,7 +209,7 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
                 };
 
                 setRemoteOptions(nextOptions);
-                writeCachedOptions(targetPracasKey, nextOptions);
+                writeCachedOptions(dimensionCacheKey, nextOptions);
             } catch (error) {
                 if (IS_DEV) safeLog.warn('Failed to fetch dimension options by praca', error);
                 if (!cancelled) {
@@ -177,7 +220,7 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
                         turnos: []
                     };
                     setRemoteOptions(fallbackOptions);
-                    writeCachedOptions(targetPracasKey, fallbackOptions);
+                    writeCachedOptions(dimensionCacheKey, fallbackOptions);
                 }
             }
         };
@@ -187,7 +230,7 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
         return () => {
             cancelled = true;
         };
-    }, [dimensoes, hasScopedDimensions, targetPracas, targetPracasKey, userHasFullAccess]);
+    }, [currentUser?.organization_id, dimensionCacheKey, dimensoes, hasScopedDimensions, organizationId, targetPracas, userHasFullAccess]);
 
     if (baseOptions) {
         return baseOptions;

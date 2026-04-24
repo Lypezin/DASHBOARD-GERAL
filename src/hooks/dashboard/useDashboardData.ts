@@ -21,7 +21,7 @@ export function useDashboardData(initialFilters: Filters, activeTab: string, ano
 
   const {
     pracas, subPracas, origens, turnos,
-  } = useDashboardFilterOptions({ dimensoes, currentUser, filters: initialFilters });
+  } = useDashboardFilterOptions({ dimensoes, currentUser, filters: initialFilters, organizationId: filterPayload.p_organization_id });
 
   const aderenciaGeral = useMemo(() => calculateAderenciaGeral(aderenciaSemanal), [aderenciaSemanal]);
 
