@@ -12,6 +12,8 @@ export function useValoresBreakdown(filterPayload: FilterPayload, enabled: boole
     useEffect(() => {
         if (!enabled) {
             setData(null);
+            setError(null);
+            setLoading(false);
             return;
         }
 

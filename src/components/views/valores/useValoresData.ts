@@ -44,7 +44,8 @@ export function useValoresData(initialData: ValoresEntregador[] | null, initialL
     const hasMoreClient = visibleCount < sortedValores.length;
 
     // Estatísticas (Global Breakdown)
-    const { data: breakdownData, loading: loadingBreakdown, error: breakdownError } = useValoresBreakdown(filters, true);
+    const shouldLoadBreakdown = Boolean(filters?.detailed);
+    const { data: breakdownData, loading: loadingBreakdown, error: breakdownError } = useValoresBreakdown(filters, shouldLoadBreakdown);
 
     const {
         totalGeral,

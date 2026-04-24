@@ -71,7 +71,7 @@ const ValoresView = React.memo(function ValoresView({
           <ValoresTable sortedValores={paginatedValores} sortField={sortField} sortDirection={sortDirection} onSort={handleSort} formatarReal={formatarReal} isDetailed={filters?.detailed} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} />
         </motion.div>
 
-        {(filters?.detailed || breakdownData) && (
+        {filters?.detailed && (
           <ValoresBreakdownDisplay data={breakdownData} loading={loadingBreakdown} formatarReal={formatarReal} />
         )}
       </div>

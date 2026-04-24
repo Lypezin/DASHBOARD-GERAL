@@ -42,16 +42,15 @@ export const ResumoSemanalView = React.memo(({
     const loading = loadingEvolucao;
     // Persisted local praça filter
     const { selectedPracas, togglePraca, clearFilter } = useResumoPracasFilter();
+    const useLocalData = selectedPracas.length > 0;
 
     // Fetch filtered data (drivers, pedidos, SH) using local praça filter
     const { dataMap: localDataMap, loading: loadingLocal } = useResumoLocalData({
         ano: anoSelecionado,
         pracas: selectedPracas,
-        activeTab: 'resumo'
+        activeTab: 'resumo',
+        enabled: useLocalData
     });
-
-    // Determine if we're using local filtered data or global data
-    const useLocalData = selectedPracas.length > 0;
 
     const processedData = useResumoSemanalLogic({
         evolucaoSemanal,

@@ -10,9 +10,10 @@ interface UseResumoLocalDataOptions {
     ano: number;
     pracas: string[];
     activeTab: string;
+    enabled?: boolean;
 }
 
-export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDataOptions) {
+export function useResumoLocalData({ ano, pracas, activeTab, enabled = true }: UseResumoLocalDataOptions) {
     const [driversData, setDriversData] = useState<DriversData[]>([]);
     const [pedidosData, setPedidosData] = useState<PedidosData[]>([]);
     const [loading, setLoading] = useState(false);
@@ -23,6 +24,14 @@ export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDat
     const selectedPracas = useMemo(() => pracasKey ? pracasKey.split('|') : [], [pracasKey]);
 
     useEffect(() => {
+        if (!enabled) {
+            setDriversData([]);
+            setPedidosData([]);
+            setLoading(false);
+            setError(null);
+            return;
+        }
+
         if (isOrgLoading) return;
         if (!organization?.id) return;
         if (activeTab !== 'resumo') return;
@@ -80,7 +89,7 @@ export function useResumoLocalData({ ano, pracas, activeTab }: UseResumoLocalDat
             mounted = false;
             clearTimeout(timeoutId);
         };
-    }, [activeTab, ano, isOrgLoading, organization?.id, selectedPracas]);
+    }, [activeTab, ano, enabled, isOrgLoading, organization?.id, selectedPracas]);
 
     const dataMap = useMemo(() => {
         return mergeDriversAndPedidosData(driversData, pedidosData);
