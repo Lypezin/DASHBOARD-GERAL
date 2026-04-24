@@ -11,16 +11,17 @@ import { SidebarContainer } from './SidebarContainer';
 interface OnlineUsersSidebarProps {
     currentUser: CurrentUser | null;
     currentTab: string;
+    initialOpen?: boolean;
 }
 
-export function OnlineUsersSidebar({ currentUser, currentTab }: OnlineUsersSidebarProps) {
+export function OnlineUsersSidebar({ currentUser, currentTab, initialOpen = false }: OnlineUsersSidebarProps) {
     const {
         isOpen, setIsOpen, onlineUsersData, searchTerm, setSearchTerm,
         myCustomStatus, setMyCustomStatus, notifications, activeChatUser,
         setActiveChatUser, chatInput, setChatInput, replyingTo, setReplyingTo,
         chatEndRef, unreadCounts, fileInputRef, activeMessages, filteredUsers,
         formatTimeOnline, totalUnread, onlineUsers, handleFileUpload
-    } = useSidebarController(currentUser, currentTab);
+    } = useSidebarController(currentUser, currentTab, initialOpen);
 
     if (!currentUser) return null;
 

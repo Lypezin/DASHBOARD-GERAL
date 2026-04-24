@@ -1,13 +1,35 @@
 'use client';
 
 import React from 'react';
-import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import MarketingDashboardView from './MarketingDashboardView';
-import ResultadosView from './ResultadosView';
-import ValoresCidadeView from './ValoresCidadeView';
-import MarketingEntradaSaidaView from './marketing/MarketingEntradaSaidaView';
-import MarketingPresentationView from './marketing/MarketingPresentationView';
+import dynamic from 'next/dynamic';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import TabButton from '@/components/TabButton';
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+
+const MarketingDashboardView = dynamic(() => import('./MarketingDashboardView'), {
+  ssr: false,
+  loading: () => <DashboardSkeleton contentOnly />,
+});
+
+const ResultadosView = dynamic(() => import('./ResultadosView'), {
+  ssr: false,
+  loading: () => <DashboardSkeleton contentOnly />,
+});
+
+const ValoresCidadeView = dynamic(() => import('./ValoresCidadeView'), {
+  ssr: false,
+  loading: () => <DashboardSkeleton contentOnly />,
+});
+
+const MarketingEntradaSaidaView = dynamic(() => import('./marketing/MarketingEntradaSaidaView'), {
+  ssr: false,
+  loading: () => <DashboardSkeleton contentOnly />,
+});
+
+const MarketingPresentationView = dynamic(() => import('./marketing/MarketingPresentationView'), {
+  ssr: false,
+  loading: () => <DashboardSkeleton contentOnly />,
+});
 
 const MarketingView = React.memo(function MarketingView() {
   const router = useRouter();
@@ -23,9 +45,9 @@ const MarketingView = React.memo(function MarketingView() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8 animate-fade-in py-8">
+    <div className="mx-auto max-w-7xl space-y-8 px-4 py-8 animate-fade-in sm:px-6 lg:px-8">
       <div className="space-y-4">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
             <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Marketing</h1>
             <p className="text-muted-foreground">
@@ -34,7 +56,7 @@ const MarketingView = React.memo(function MarketingView() {
           </div>
         </div>
 
-        <div className="p-1 px-1.5 bg-slate-100/80 dark:bg-slate-900/50 rounded-2xl backdrop-blur-md border border-slate-200/60 dark:border-slate-800/60 inline-flex flex-wrap gap-1.5 shadow-sm ring-1 ring-slate-200/20 dark:ring-slate-800/20">
+        <div className="inline-flex flex-wrap gap-1.5 rounded-2xl border border-slate-200/60 bg-slate-100/80 p-1 px-1.5 shadow-sm dark:border-slate-800/60 dark:bg-slate-900/50">
           <TabButton
             label="Dashboard"
             active={activeSubTab === 'dashboard'}
@@ -63,8 +85,6 @@ const MarketingView = React.memo(function MarketingView() {
         </div>
       </div>
 
-      {/* Conteúdo das sub-guias */}
-      {/* Conteúdo das sub-guias */}
       {activeSubTab === 'dashboard' && <MarketingDashboardView />}
       {activeSubTab === 'resultados' && <ResultadosView />}
       {activeSubTab === 'valores-cidade' && <ValoresCidadeView />}

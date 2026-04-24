@@ -6,9 +6,9 @@ import { formatTimeOnline } from './utils';
 
 const NOTIFICATION_LIFETIME_MS = 3000;
 
-export function useSidebarController(currentUser: CurrentUser | null, currentTab: string) {
-    const [isOpen, setIsOpen] = useState(false);
-    const [hasActivatedRealtime, setHasActivatedRealtime] = useState(false);
+export function useSidebarController(currentUser: CurrentUser | null, currentTab: string, initialOpen = false) {
+    const [isOpen, setIsOpen] = useState(initialOpen);
+    const [hasActivatedRealtime, setHasActivatedRealtime] = useState(initialOpen);
 
     const onlineUsersData = useOnlineUsers(currentUser, currentTab, hasActivatedRealtime);
     const { onlineUsers, messages, joinedUsers, clearJoinedUsers } = onlineUsersData;

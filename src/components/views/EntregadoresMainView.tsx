@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { EntregadoresData } from '@/types';
+import dynamic from 'next/dynamic';
 import { EntregadoresMainStatsCards } from './entregadores/EntregadoresMainStatsCards';
 import { EntregadoresMainSearch } from './entregadores/EntregadoresMainSearch';
 import { EntregadoresMainTable } from './entregadores/EntregadoresMainTable';
@@ -9,16 +9,25 @@ import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { useEntregadoresMainSort } from './entregadores/hooks/useEntregadoresMainSort';
 import { useEntregadoresMainStats } from './entregadores/hooks/useEntregadoresMainStats';
 import { EntregadoresEmptyState } from './entregadores/EntregadoresEmptyState';
-import { TopBottomPerformers } from './entregadores/TopBottomPerformers';
-import { EntregadorProfileDialog } from './entregadores/EntregadorProfileDialog';
 import { EntregadoresHeader } from './entregadores/EntregadoresHeader';
 import { useEntregadoresExport } from './entregadores/hooks/useEntregadoresExport';
 import { useEntregadorProfile } from './entregadores/hooks/useEntregadorProfile';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
+import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
 import type { CurrentUser } from '@/types';
 import type { FilterPayload } from '@/types/filters';
+
+const DeferredTopBottomPerformers = dynamic(
+  () => import('./entregadores/TopBottomPerformers').then((mod) => ({ default: mod.TopBottomPerformers })),
+  { ssr: false }
+);
+
+const DeferredEntregadorProfileDialog = dynamic(
+  () => import('./entregadores/EntregadorProfileDialog').then((mod) => ({ default: mod.EntregadorProfileDialog })),
+  { ssr: false }
+);
 
 const EntregadoresMainView = React.memo(function EntregadoresMainView({
   filterPayload,
@@ -43,6 +52,10 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
   const { isExporting, handleExport } = useEntregadoresExport(sortedEntregadores);
   const { selectedEntregador, profileOpen, setProfileOpen, handleRowClick } = useEntregadorProfile();
   const stats = useEntregadoresMainStats(sortedEntregadores);
+  const showPerformers = useDeferredMount({
+    enabled: sortedEntregadores.length > 0,
+    timeoutMs: 800,
+  });
 
   if (loading) return <DashboardSkeleton contentOnly />;
 
@@ -81,13 +94,15 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
         onRowClick={handleRowClick}
       />
 
-      <TopBottomPerformers entregadores={sortedEntregadores} />
+      {showPerformers ? <DeferredTopBottomPerformers entregadores={sortedEntregadores} /> : null}
 
-      <EntregadorProfileDialog
-        entregador={selectedEntregador}
-        open={profileOpen}
-        onOpenChange={setProfileOpen}
-      />
+      {selectedEntregador ? (
+        <DeferredEntregadorProfileDialog
+          entregador={selectedEntregador}
+          open={profileOpen}
+          onOpenChange={setProfileOpen}
+        />
+      ) : null}
     </div>
   );
 });

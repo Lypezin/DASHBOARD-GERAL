@@ -46,12 +46,38 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
   const { registerInteraction } = useGamification();
 
   useEffect(() => {
-    switch (activeTab) {
-      case 'comparacao': registerInteraction('view_comparacao'); break;
-      case 'resumo': registerInteraction('view_resumo'); break;
-      case 'entregadores': registerInteraction('view_entregadores'); break;
-      case 'evolucao': registerInteraction('view_evolucao'); break;
+    const interactionMap = {
+      comparacao: 'view_comparacao',
+      resumo: 'view_resumo',
+      entregadores: 'view_entregadores',
+      evolucao: 'view_evolucao',
+    } as const;
+
+    const interaction = interactionMap[activeTab as keyof typeof interactionMap];
+    if (!interaction) return;
+
+    let idleId: number | null = null;
+    let timeoutId: number | null = null;
+
+    const run = () => registerInteraction(interaction);
+
+    if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+      idleId = window.requestIdleCallback(run, { timeout: 1200 });
+    } else if (typeof window !== 'undefined') {
+      timeoutId = window.setTimeout(run, 250);
+    } else {
+      run();
     }
+
+    return () => {
+      if (idleId !== null && typeof window !== 'undefined' && typeof window.cancelIdleCallback === 'function') {
+        window.cancelIdleCallback(idleId);
+      }
+
+      if (timeoutId !== null && typeof window !== 'undefined') {
+        window.clearTimeout(timeoutId);
+      }
+    };
   }, [activeTab, registerInteraction]);
 
   const needsChart = needsChartReady(activeTab);

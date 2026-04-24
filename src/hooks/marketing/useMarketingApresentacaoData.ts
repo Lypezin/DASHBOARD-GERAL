@@ -1,31 +1,40 @@
-import { useState, useEffect, useCallback } from 'react';
-import { MarketingTotals, MarketingFilters } from '@/types';
+import { useCallback, useEffect, useState } from 'react';
+import { MarketingFilters, MarketingTotals } from '@/types';
 import { fetchMarketingTotalsData } from '@/utils/marketingDataFetcher';
-import { getCurrentUserOrganizationId } from '@/utils/organizationHelpers';
+import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { safeLog } from '@/lib/errorHandler';
 
 export function useMarketingApresentacaoData(filters: MarketingFilters) {
-    const [loading, setLoading] = useState(true);
-    const [totals, setTotals] = useState<MarketingTotals | null>(null);
-    const [error, setError] = useState<string | null>(null);
+  const { organization, currentUser, hasResolved } = useAppBootstrap();
+  const organizationId = organization?.id || currentUser?.organization_id || null;
 
-    const loadData = useCallback(async () => {
-        setLoading(true);
-        try {
-            const orgId = await getCurrentUserOrganizationId();
-            const data = await fetchMarketingTotalsData(filters, orgId);
-            setTotals(data);
-        } catch (err) {
-            safeLog.error('[useMarketingApresentacaoData] Erro ao carregar dados:', err);
-            setError('Erro ao carregar dados da apresentação');
-        } finally {
-            setLoading(false);
-        }
-    }, [filters]);
+  const [loading, setLoading] = useState(true);
+  const [totals, setTotals] = useState<MarketingTotals | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        loadData();
-    }, [loadData]);
+  const loadData = useCallback(async () => {
+    if (!hasResolved) return;
 
-    return { loading, totals, error, reload: loadData };
+    setLoading(true);
+    try {
+      const data = await fetchMarketingTotalsData(filters, organizationId);
+      setTotals(data);
+    } catch (err) {
+      safeLog.error('[useMarketingApresentacaoData] Erro ao carregar dados:', err);
+      setError('Erro ao carregar dados da apresentação');
+    } finally {
+      setLoading(false);
+    }
+  }, [filters, hasResolved, organizationId]);
+
+  useEffect(() => {
+    if (!hasResolved) {
+      setLoading(true);
+      return;
+    }
+
+    void loadData();
+  }, [hasResolved, loadData]);
+
+  return { loading, totals, error, reload: loadData };
 }

@@ -34,8 +34,8 @@ export function TabNavigation({ activeTab, onTabChange, variant = 'default' }: T
     <div className="w-full flex overflow-x-auto pb-4 sm:pb-0 scrollbar-hide">
       <div
         className={cn(
-          'flex items-center gap-1 sm:gap-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 py-2 px-2 rounded-full shadow-sm min-w-max mx-auto transition-transform duration-200',
-          variant === 'compact' ? 'scale-95 origin-center' : ''
+          'mx-auto flex min-w-max items-center gap-1 rounded-2xl border border-slate-200/80 bg-white/95 px-2 py-2 shadow-sm transition-[background-color,border-color,transform] duration-200 dark:border-slate-800/80 dark:bg-slate-900/95 sm:gap-2',
+          variant === 'compact' ? 'origin-center sm:scale-[0.98]' : ''
         )}
       >
         {TABS.map((tab) => {
@@ -46,18 +46,14 @@ export function TabNavigation({ activeTab, onTabChange, variant = 'default' }: T
               key={tab.value}
               onClick={() => onTabChange(tab.value)}
               className={cn(
-                'relative cursor-pointer text-sm font-medium px-4 py-2 rounded-full transition-all duration-200 whitespace-nowrap',
-                'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100',
-                isActive && 'text-slate-900 dark:text-white bg-slate-100 dark:bg-slate-800 shadow-sm'
+                'relative cursor-pointer whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium transition-[color,background-color,box-shadow,transform] duration-200',
+                'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/80 dark:hover:text-slate-100',
+                isActive && 'bg-slate-100 text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white'
               )}
             >
-              <span className="relative z-10">{tab.label}</span>
+              <span>{tab.label}</span>
               {isActive && (
-                <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-slate-900 dark:bg-slate-100 rounded-t-full pointer-events-none">
-                  <div className="absolute w-12 h-6 bg-slate-900/20 dark:bg-slate-100/20 rounded-full blur-md -top-2 -left-2" />
-                  <div className="absolute w-8 h-6 bg-slate-900/20 dark:bg-slate-100/20 rounded-full blur-md -top-1" />
-                  <div className="absolute w-4 h-4 bg-slate-900/20 dark:bg-slate-100/20 rounded-full blur-sm top-0 left-2" />
-                </div>
+                <span className="pointer-events-none absolute inset-x-4 -bottom-0.5 h-0.5 rounded-full bg-blue-600 dark:bg-blue-400" />
               )}
             </button>
           );

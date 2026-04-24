@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { DashboardResumoData, UtrData, CurrentUser } from '@/types';
 import { getSafeErrorMessage, safeLog } from '@/lib/errorHandler';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -6,7 +6,13 @@ import { useAllWeeks } from '@/hooks/comparacao/useAllWeeks';
 import { fetchComparisonMetrics } from '@/hooks/comparacao/useComparisonMetrics';
 import { fetchComparisonUtr } from '@/hooks/comparacao/useComparisonUtr';
 
-interface UseComparacaoDataOptions { semanas: string[]; semanasSelecionadas: string[]; pracaSelecionada: string | null; currentUser: CurrentUser | null; anoSelecionado?: number; }
+interface UseComparacaoDataOptions {
+  semanas: string[];
+  semanasSelecionadas: string[];
+  pracaSelecionada: string | null;
+  currentUser: CurrentUser | null;
+  anoSelecionado?: number;
+}
 
 export function useComparacaoData(options: UseComparacaoDataOptions) {
   const { semanasSelecionadas, pracaSelecionada, currentUser, semanas, anoSelecionado } = options;
@@ -17,72 +23,59 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
   const [dadosComparacao, setDadosComparacao] = useState<DashboardResumoData[]>([]);
   const [utrComparacao, setUtrComparacao] = useState<Array<{ semana: string | number; utr: UtrData | null }>>([]);
 
-  // Use extracted hook for all weeks
   const todasSemanas = useAllWeeks(semanas, anoSelecionado);
 
-  // Removido compararSemanas pois a lógica agora é reativa via useEffect
-
   useEffect(() => {
-    // Se a organização ainda está carregando, não inicia busca
-    if (isOrgLoading) { safeLog.info('[Comparacao] Aguardando organização carregar...'); return; }
+    if (isOrgLoading) {
+      return;
+    }
 
     let isMounted = true;
 
     const fetchData = async () => {
-      safeLog.info('[Comparacao] fetchData iniciado', { semanasSelecionadas, pracaSelecionada, anoSelecionado, organizationId, currentUserRole: currentUser?.role, currentUserPracas: currentUser?.assigned_pracas });
-
-      // Só busca se tiver pelo menos 2 semanas selecionadas (regra original)
       if (!semanasSelecionadas || semanasSelecionadas.length < 2) {
-        safeLog.info('[Comparacao] Menos de 2 semanas selecionadas, retornando vazio');
-        setDadosComparacao([]); setUtrComparacao([]); setLoading(false);
+        setDadosComparacao([]);
+        setUtrComparacao([]);
+        setLoading(false);
         return;
       }
 
       setLoading(true);
       setError(null);
-      
-      // Limpar dados anteriores para evitar flashes de estados mistos
+
       if (isMounted) {
         setDadosComparacao([]);
         setUtrComparacao([]);
       }
 
       try {
-        safeLog.info('[Comparacao] Chamando fetchComparisonMetrics...');
-        const dados = await fetchComparisonMetrics(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado);
-        
+        const [dados, utrs] = await Promise.all([
+          fetchComparisonMetrics(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado),
+          fetchComparisonUtr(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado),
+        ]);
+
         if (!isMounted) return;
+
         setDadosComparacao(dados);
-
-        // Pequeno delay para evitar sobrecarga simultânea
-        await new Promise(resolve => setTimeout(resolve, 100));
-
-        safeLog.info('[Comparacao] Chamando fetchComparisonUtr...');
-        const utrs = await fetchComparisonUtr(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado);
-        
-        if (!isMounted) return;
         setUtrComparacao(utrs);
-
-        safeLog.info('[Comparacao] Dados recebidos:', { 
-          dadosLength: dados?.length, 
-          utrsLength: utrs?.length 
-        });
-      } catch (error: any) {
+      } catch (error: unknown) {
         safeLog.error('[Comparacao] Erro ao buscar dados:', error);
-        if (isMounted) setError(getSafeErrorMessage(error) || 'Erro ao comparar semanas. Tente novamente.');
+        if (isMounted) {
+          setError(getSafeErrorMessage(error) || 'Erro ao comparar semanas. Tente novamente.');
+        }
       } finally {
-        if (isMounted) setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
-    fetchData();
+    void fetchData();
 
     return () => {
       isMounted = false;
     };
   }, [semanasSelecionadas, pracaSelecionada, currentUser, organizationId, isOrgLoading, anoSelecionado]);
-
-
 
   return { loading: loading || isOrgLoading, error, dadosComparacao, utrComparacao, todasSemanas };
 }

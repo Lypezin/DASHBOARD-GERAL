@@ -1,69 +1,21 @@
-import { useEffect, useState } from 'react';
-import { safeRpc } from '@/lib/rpcWrapper';
-import { hasFullCityAccess, type CurrentUser } from '@/types';
-
-interface ValoresCidadeProfile extends CurrentUser {
-  is_approved: boolean;
-}
+import { useMemo } from 'react';
+import { hasFullCityAccess } from '@/types';
+import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 
 export const useValoresCidadeAuth = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { currentUser, profile, hasResolved, isLoading } = useAppBootstrap();
 
-  useEffect(() => {
-    let mounted = true;
-
-    const validateAccess = async () => {
-      try {
-        setLoading(true);
-        setErrorMessage(null);
-
-        const { data: profile, error } = await safeRpc<ValoresCidadeProfile>('get_current_user_profile', {}, {
-          timeout: 10000,
-          validateParams: false,
-        });
-
-        if (!mounted) {
-          return;
-        }
-
-        if (error || !profile) {
-          setIsAuthenticated(false);
-          setErrorMessage('Não foi possível validar suas permissões no momento.');
-          return;
-        }
-
-        if (!profile.is_approved) {
-          setIsAuthenticated(false);
-          setErrorMessage('Seu acesso ainda não foi aprovado.');
-          return;
-        }
-
-        if (!hasFullCityAccess(profile)) {
-          setIsAuthenticated(false);
-          setErrorMessage('Acesso restrito a perfis com permissão ampliada de cidades.');
-          return;
-        }
-
-        setIsAuthenticated(true);
-      } finally {
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    void validateAccess();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
+  const errorMessage = useMemo(() => {
+    if (!hasResolved) return null;
+    if (!profile) return 'Não foi possível validar suas permissões no momento.';
+    if (profile.is_approved === false) return 'Seu acesso ainda não foi aprovado.';
+    if (!hasFullCityAccess(currentUser)) return 'Acesso restrito a perfis com permissão ampliada de cidades.';
+    return null;
+  }, [currentUser, hasResolved, profile]);
 
   return {
-    isAuthenticated,
-    loading,
+    isAuthenticated: hasResolved && !!profile && profile.is_approved !== false && hasFullCityAccess(currentUser),
+    loading: isLoading || !hasResolved,
     errorMessage,
   };
 };

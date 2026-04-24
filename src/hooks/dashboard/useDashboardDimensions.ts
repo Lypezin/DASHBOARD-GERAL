@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import type { DimensoesDashboard } from '@/types';
+import { fetchAllWeeks, primeAllWeeksCache } from '@/hooks/data/allWeeksCache';
 
 const CACHE_KEY = 'dashboard_dimensions_cache_v4';
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hora
@@ -35,6 +36,7 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
       try {
         const cached = readCachedDimensions();
         if (cached) {
+          primeAllWeeksCache(cached.semanas);
           setAnosDisponiveis(cached.anos);
           setSemanasDisponiveis(cached.semanas);
           setOutrasDimensoes(cached);
@@ -52,9 +54,9 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
 
         // Evita scans amplos na mv_aderencia_agregada: sub_pracas/origens/turnos
         // agora sao carregados sob demanda em useDimensionOptions.
-        const [anosResult, semanasResult, pracasResult] = await Promise.all([
+        const [anosResult, semanasData, pracasResult] = await Promise.all([
           safeRpc<number[]>('listar_anos_disponiveis', {}, { timeout: 10000, validateParams: false }),
-          safeRpc<any[]>('listar_todas_semanas', {}, { timeout: 10000, validateParams: false }),
+          fetchAllWeeks(),
           safeRpc<any[]>('list_pracas_disponiveis', {}, { timeout: 10000, validateParams: false })
         ]);
 
@@ -62,10 +64,6 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
 
         const anosData = Array.isArray(anosResult.data) ? anosResult.data : [];
         const mergedYears = Array.from(new Set([...DEFAULT_YEARS, ...anosData])).sort((a, b) => b - a);
-
-        const semanasData = Array.isArray(semanasResult.data)
-          ? semanasResult.data.map(s => (typeof s === 'object' && s !== null ? `${s.ano || 2025}-W${s.semana || s.numero_semana}` : String(s)))
-          : [];
 
         const pracasData = Array.isArray(pracasResult.data)
           ? pracasResult.data.map((p: any) => p?.praca || p).filter(Boolean).map(String)

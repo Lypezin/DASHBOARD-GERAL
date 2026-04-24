@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { UtrData, EntregadoresData, ValoresEntregador, CurrentUser } from '@/types';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { CurrentUser } from '@/types';
 import { useCache } from './useCache';
 import { CACHE, DELAYS } from '@/constants/config';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -8,8 +8,21 @@ import { fetchTabData } from '@/utils/tabData/fetchTabData';
 import { processTabSuccessData, getTabFallbackData, TabData } from './tabDataHelpers';
 
 const SELF_MANAGED_TABS = ['evolucao', 'dashboard', 'analise', 'comparacao', 'marketing', 'resumo'];
+const SHARED_TAB_SCOPES: Record<string, string> = {
+  entregadores: 'entregadores_shared',
+  prioridade: 'entregadores_shared',
+};
+const SHARED_TAB_REQUESTS = new Map<string, Promise<TabData>>();
 
-export function useTabData(activeTab: string, filterPayload: object, currentUser?: CurrentUser | null) {
+function getTabScope(tab: string) {
+  return SHARED_TAB_SCOPES[tab] || tab;
+}
+
+function getRequestTab(tab: string) {
+  return tab === 'prioridade' ? 'entregadores' : tab;
+}
+
+export function useTabData(activeTab: string, filterPayload: object, _currentUser?: CurrentUser | null) {
   const [data, setData] = useState<TabData>(null);
   const [loading, setLoading] = useState(false);
   const fetchIdRef = useRef(0);
@@ -24,7 +37,11 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
   const filterPayloadStr = useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
 
   const fetchData = useCallback(async (tab: string, payload: FilterPayload, filterPayloadKey: string, fetchId: number) => {
-    const cached = getCached({ tab, filterPayloadKey });
+    const tabScope = getTabScope(tab);
+    const requestTab = getRequestTab(tab);
+    const cacheParams = { tab: tabScope, filterPayloadKey };
+    const cached = getCached(cacheParams);
+
     if (cached !== null) {
       if (fetchIdRef.current === fetchId) {
         setData(tab === 'valores' ? (Array.isArray(cached) ? cached : []) : cached);
@@ -36,18 +53,29 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
     setLoading(true);
 
     try {
-      const result = await fetchTabData({ tab, filterPayload: payload });
-      if (fetchIdRef.current !== fetchId) return;
+      const requestKey = `${tabScope}-${filterPayloadKey}`;
+      let request = SHARED_TAB_REQUESTS.get(requestKey);
 
-      if (result.error) {
-        setData(getTabFallbackData(tab));
-        setLoading(false);
-        return;
+      if (!request) {
+        request = (async () => {
+          const result = await fetchTabData({ tab: requestTab, filterPayload: payload });
+          if (result.error) {
+            throw result.error;
+          }
+
+          return processTabSuccessData(requestTab, result);
+        })().finally(() => {
+          SHARED_TAB_REQUESTS.delete(requestKey);
+        });
+
+        SHARED_TAB_REQUESTS.set(requestKey, request);
       }
 
-      const processedData = processTabSuccessData(tab, result);
+      const processedData = await request;
+      if (fetchIdRef.current !== fetchId) return;
+
       setData(processedData);
-      setCached({ tab, filterPayloadKey }, processedData);
+      setCached(cacheParams, processedData);
       setLoading(false);
     } catch (error) {
       if (fetchIdRef.current !== fetchId) return;
@@ -55,7 +83,9 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
       const msg = error instanceof Error ? error.message : '';
       if (msg === 'RETRY_500' || msg === 'RETRY_RATE_LIMIT') {
         setTimeout(() => {
-          if (fetchIdRef.current === fetchId) fetchData(tab, payload, filterPayloadKey, fetchId);
+          if (fetchIdRef.current === fetchId) {
+            void fetchData(tab, payload, filterPayloadKey, fetchId);
+          }
         }, msg === 'RETRY_500' ? DELAYS.RETRY_500 : DELAYS.RETRY_RATE_LIMIT);
         return;
       }
@@ -81,7 +111,7 @@ export function useTabData(activeTab: string, filterPayload: object, currentUser
     }
 
     const currentFetchId = ++fetchIdRef.current;
-    fetchData(activeTab, filterPayload as FilterPayload, filterPayloadStr, currentFetchId);
+    void fetchData(activeTab, filterPayload as FilterPayload, filterPayloadStr, currentFetchId);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
