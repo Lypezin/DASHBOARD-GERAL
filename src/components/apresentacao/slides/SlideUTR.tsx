@@ -4,6 +4,7 @@ import { SlideHeader } from './components/SlideHeader';
 import { cn } from '@/lib/utils';
 import { Target, AlertTriangle } from 'lucide-react';
 import { UtrData } from '@/types';
+import { extractUtrValue } from '@/utils/utr/extractUtrValue';
 
 interface UtrComparacaoItem { semana: string; utr: UtrData | null; }
 
@@ -49,16 +50,8 @@ const SlideUTR: React.FC<SlideUTRProps> = ({ isVisible, numeroSemana1, numeroSem
                                     </div>
                                 </td>
                                 {utrComparacao.map((item, idx) => {
-                                    let utrValue = 0;
-                                    let hasError = false;
-
-                                    if (item.utr) {
-                                        if (item.utr.geral && typeof item.utr.geral === 'object' && 'utr' in item.utr.geral) {
-                                            utrValue = item.utr.geral.utr ?? 0;
-                                        }
-                                    } else {
-                                        hasError = true;
-                                    }
+                                    const utrValue = extractUtrValue(item.utr);
+                                    const hasError = utrValue === null;
 
                                     return (
                                         <td key={idx} className="px-8 py-8 text-center border-l border-slate-200 align-middle">
@@ -68,7 +61,7 @@ const SlideUTR: React.FC<SlideUTRProps> = ({ isVisible, numeroSemana1, numeroSem
                                                 </span>
                                             ) : (
                                                 <div className="flex flex-col items-center gap-2">
-                                                    {typeof utrValue === 'number' ? utrValue.toFixed(2) : '0.00'}
+                                                    {utrValue.toFixed(2)}
                                                 </div>
                                             )}
                                         </td>

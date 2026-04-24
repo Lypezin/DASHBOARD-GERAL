@@ -2,6 +2,7 @@ import React from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { UtrData } from '@/types';
 import { AlertTriangle } from 'lucide-react';
+import { extractUtrValue } from '@/utils/utr/extractUtrValue';
 import {
   Table,
   TableBody,
@@ -29,7 +30,7 @@ export const ComparacaoUtrSection: React.FC<ComparacaoUtrSectionProps> = ({
     return (
       <div className="rounded-xl border border-amber-200 dark:border-amber-900/50 bg-amber-50 dark:bg-amber-950/20 p-4 flex items-center gap-3">
         <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0" />
-        <p className="text-sm text-amber-700 dark:text-amber-300">UTR não disponível para as semanas selecionadas.</p>
+        <p className="text-sm text-amber-700 dark:text-amber-300">UTR nao disponivel para as semanas selecionadas.</p>
       </div>
     );
   }
@@ -44,7 +45,7 @@ export const ComparacaoUtrSection: React.FC<ComparacaoUtrSectionProps> = ({
           <TableHeader>
             <TableRow className="hover:bg-transparent bg-slate-50/80 dark:bg-slate-800/30">
               <TableHead className="text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-5">
-                Métrica
+                Metrica
               </TableHead>
               {semanasSelecionadas.map((semana) => (
                 <TableHead key={semana} className="text-center text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 border-l border-slate-100 dark:border-slate-800">
@@ -59,18 +60,10 @@ export const ComparacaoUtrSection: React.FC<ComparacaoUtrSectionProps> = ({
                 UTR Geral
               </TableCell>
               {utrComparacao.map((item, idx) => {
-                let utrValue = 0;
-                let hasError = false;
+                const utrValue = extractUtrValue(item.utr);
+                const hasError = utrValue === null;
 
-                if (item.utr) {
-                  if (item.utr.geral && typeof item.utr.geral === 'object' && 'utr' in item.utr.geral) {
-                    utrValue = item.utr.geral.utr ?? 0;
-                  }
-                } else {
-                  hasError = true;
-                }
-
-                safeLog.info(`📊 UTR Semana ${item.semana}:`, { utr: utrValue, hasError });
+                safeLog.info(`[Comparacao] UTR Semana ${item.semana}:`, { utr: utrValue, hasError });
 
                 return (
                   <TableCell key={idx} className="text-center border-l border-slate-100 dark:border-slate-800">
