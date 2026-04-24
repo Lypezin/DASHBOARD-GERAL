@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabaseClient';
-import { Organization } from '@/contexts/OrganizationContext';
+import type { Organization } from '@/contexts/organizationTypes';
 
 export async function fetchOrganizationData(organizationId: string): Promise<Organization | null> {
     const { data: orgData, error: orgError } = await supabase

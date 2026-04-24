@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { AppLayoutShell } from "@/components/AppLayoutShell";
 import { ThemeProviderWrapper } from "@/components/ThemeProviderWrapper";
@@ -10,6 +10,12 @@ const inter = Inter({
   subsets: ["latin"],
   display: 'swap',
   variable: '--font-inter',
+});
+
+const outfit = Outfit({
+  subsets: ["latin"],
+  display: 'swap',
+  variable: '--font-outfit',
 });
 
 export const metadata: Metadata = {
@@ -41,7 +47,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className="scroll-smooth" suppressHydrationWarning>
-      <body className={`${inter.className} antialiased`}>
+      <body className={`${outfit.variable} ${inter.variable} antialiased`}>
         <ThemeProviderWrapper>
           <Toaster richColors position="top-right" />
           <TooltipProvider delayDuration={0}>

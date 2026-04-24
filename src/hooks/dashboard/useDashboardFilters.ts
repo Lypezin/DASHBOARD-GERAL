@@ -13,17 +13,24 @@ export function useDashboardFilters() {
 
     const filtersProtectedRef = useRef(false);
     const filtersInitializedRef = useRef(false);
+    const lastQueryRef = useRef('');
 
     useEffect(() => {
         if (!filtersInitializedRef.current) {
             filtersInitializedRef.current = true;
+            lastQueryRef.current = buildFilterQueryParams(filters, searchParams);
             return;
         }
 
         const queryString = buildFilterQueryParams(filters, searchParams);
+        if (queryString === lastQueryRef.current) {
+            return;
+        }
+
+        lastQueryRef.current = queryString;
         const url = queryString ? `${pathname}?${queryString}` : pathname;
         window.history.replaceState(null, '', url);
-        registerInteraction('filter_change');
+        void registerInteraction('filter_change');
 
     }, [filters, pathname, searchParams, registerInteraction]);
 

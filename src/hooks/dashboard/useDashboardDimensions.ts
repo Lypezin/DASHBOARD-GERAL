@@ -6,8 +6,21 @@ import type { DimensoesDashboard } from '@/types';
 const CACHE_KEY = 'dashboard_dimensions_cache_v4';
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hora
 const DEFAULT_YEARS = [2024, 2025, 2026];
+const EMPTY_DIMENSIONS: DimensoesDashboard = {
+  anos: DEFAULT_YEARS,
+  semanas: [],
+  pracas: [],
+  sub_pracas: [],
+  origens: [],
+  turnos: []
+};
 
-export function useDashboardDimensions() {
+interface UseDashboardDimensionsOptions {
+  fetchRemote?: boolean;
+}
+
+export function useDashboardDimensions(options: UseDashboardDimensionsOptions = {}) {
+  const { fetchRemote = true } = options;
   const [anosDisponiveis, setAnosDisponiveis] = useState<number[]>([]);
   const [semanasDisponiveis, setSemanasDisponiveis] = useState<string[]>([]);
   const [outrasDimensoes, setOutrasDimensoes] = useState<DimensoesDashboard | null>(null);
@@ -25,6 +38,14 @@ export function useDashboardDimensions() {
           setAnosDisponiveis(cached.anos);
           setSemanasDisponiveis(cached.semanas);
           setOutrasDimensoes(cached);
+          setLoading(false);
+          return;
+        }
+
+        if (!fetchRemote) {
+          setAnosDisponiveis(DEFAULT_YEARS);
+          setSemanasDisponiveis([]);
+          setOutrasDimensoes(EMPTY_DIMENSIONS);
           setLoading(false);
           return;
         }
@@ -65,15 +86,8 @@ export function useDashboardDimensions() {
         writeCachedDimensions(dimensoesBase);
       } catch (err) {
         safeLog.error('Erro ao buscar dimensoes iniciais:', err);
-        setAnosDisponiveis([2025]);
-        setOutrasDimensoes({
-          anos: [2025],
-          semanas: [],
-          pracas: [],
-          sub_pracas: [],
-          origens: [],
-          turnos: []
-        });
+        setAnosDisponiveis(DEFAULT_YEARS);
+        setOutrasDimensoes(EMPTY_DIMENSIONS);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -84,7 +98,7 @@ export function useDashboardDimensions() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [fetchRemote]);
 
   return { anosDisponiveis, semanasDisponiveis, dimensoes: outrasDimensoes, loadingDimensions: loading };
 }
@@ -107,7 +121,7 @@ function readCachedDimensions(): DimensoesDashboard | null {
   return null;
 }
 
-function writeCachedDimensions(data: DimensoesDashboard) {
+export function writeCachedDimensions(data: DimensoesDashboard) {
   try {
     sessionStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: Date.now(), data }));
   } catch {

@@ -4,13 +4,13 @@ import { ChatMessage } from './types';
 import { chatService } from './services/chatService';
 import { useChatSubscription } from './useChatSubscription';
 
-export function useChat(userId: string | null) {
+export function useChat(userId: string | null, enabled: boolean) {
     const [messages, setMessages] = useState<ChatMessage[]>([]);
 
-    useChatSubscription({ userId, setMessages });
+    useChatSubscription({ userId, enabled, setMessages });
 
     const sendMessage = async (toUser: string, content: string, options?: { replyTo?: string, attachments?: any[] }) => {
-        if (!userId) return;
+        if (!enabled || !userId) return;
 
         const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
         const msg: ChatMessage = {
@@ -24,13 +24,13 @@ export function useChat(userId: string | null) {
             attachments: options?.attachments
         };
 
-        setMessages(prev => [...prev, msg]);
+        setMessages((prev) => [...prev, msg]);
 
         try {
             const data = await chatService.sendMessage(userId, toUser, content, options);
             if (data) {
-                setMessages(prev => {
-                    const normalized = prev.map(message => message.id === tempId ? {
+                setMessages((prev) => {
+                    const normalized = prev.map((message) => message.id === tempId ? {
                         ...message,
                         id: data.id,
                         tempId,
@@ -43,24 +43,27 @@ export function useChat(userId: string | null) {
                     } : message);
 
                     return normalized.filter((message, index, arr) =>
-                        arr.findIndex(candidate => candidate.id === message.id) === index
+                        arr.findIndex((candidate) => candidate.id === message.id) === index
                     );
                 });
             }
         } catch (error) {
             safeLog.error('Error sending message:', error);
-            setMessages(prev => prev.filter(message => message.id !== tempId));
+            setMessages((prev) => prev.filter((message) => message.id !== tempId));
         }
     };
 
     const reactToMessage = async (msgId: string, emoji: string) => {
-        if (!userId) return;
-        setMessages(prev => prev.map(message => {
+        if (!enabled || !userId) return;
+
+        setMessages((prev) => prev.map((message) => {
             if (message.id === msgId) {
                 return { ...message, reactions: { ...message.reactions, [userId]: emoji } };
             }
+
             return message;
         }));
+
         try {
             await chatService.reactToMessage(msgId, userId, emoji);
         } catch (error) {
@@ -69,7 +72,9 @@ export function useChat(userId: string | null) {
     };
 
     const pinMessage = async (msgId: string, isPinned: boolean) => {
-        setMessages(prev => prev.map(message => message.id === msgId ? { ...message, isPinned } : message));
+        if (!enabled) return;
+
+        setMessages((prev) => prev.map((message) => message.id === msgId ? { ...message, isPinned } : message));
         try {
             await chatService.pinMessage(msgId, isPinned);
         } catch (error) {
@@ -78,7 +83,8 @@ export function useChat(userId: string | null) {
     };
 
     const uploadFile = async (file: File) => {
-        if (!userId) return null;
+        if (!enabled || !userId) return null;
+
         try {
             return await chatService.uploadFile(userId, file);
         } catch (error) {

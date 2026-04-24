@@ -3,17 +3,8 @@
 
 import React, { createContext, useContext } from 'react';
 import { useOrganizationFetcher } from './hooks/useOrganizationFetcher';
-
-export interface Organization {
-  id: string;
-  name: string;
-  slug: string;
-  max_users: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  user_count?: number;
-}
+import type { Organization } from './organizationTypes';
+export type { Organization } from './organizationTypes';
 
 interface OrganizationContextType {
   organization: Organization | null;

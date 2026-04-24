@@ -13,7 +13,7 @@ export function SidebarTrigger({ isOpen, setIsOpen, onlineCount, unreadCount }: 
         <button
             onClick={() => setIsOpen(true)}
             className={cn(
-                'fixed bottom-6 right-6 z-[99999] flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/95 px-3 py-3 text-slate-700 shadow-2xl backdrop-blur-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_20px_40px_rgba(15,23,42,0.16)] dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-100',
+                'fixed bottom-6 right-6 z-[99999] flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/95 px-3 py-3 text-slate-700 shadow-xl backdrop-blur-sm transition-[transform,opacity,box-shadow,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(15,23,42,0.14)] dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-100',
                 isOpen && 'pointer-events-none translate-y-4 opacity-0'
             )}
             title="Abrir painel da equipe"

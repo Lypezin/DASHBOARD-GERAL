@@ -41,10 +41,10 @@ export const DashboardFiltersContainer = React.memo(function DashboardFiltersCon
   return (
     <Card className={cn(
       "border border-slate-200/50 dark:border-slate-800/50 shadow-sm",
-      "bg-white/60 dark:bg-slate-900/60 backdrop-blur-xl",
-      "sticky top-4 z-40 mb-6 transition-all duration-300",
-      "hover:shadow-lg hover:border-slate-300/50 dark:hover:border-slate-700/50",
-      "hover:ring-1 hover:ring-slate-200 dark:hover:ring-slate-800 rounded-2xl"
+      "bg-white/80 dark:bg-slate-900/78 supports-[backdrop-filter]:backdrop-blur-md",
+      "sticky top-4 z-40 mb-6 transition-[background-color,border-color,box-shadow] duration-200",
+      "hover:shadow-md hover:border-slate-300/50 dark:hover:border-slate-700/50",
+      "hover:ring-1 hover:ring-slate-200/70 dark:hover:ring-slate-800 rounded-2xl"
     )}>
       <CardContent className="p-4 sm:p-6">
         <FiltroBar

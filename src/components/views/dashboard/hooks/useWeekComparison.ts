@@ -1,12 +1,9 @@
 import { useMemo, useState, useEffect } from 'react';
-import { useDashboardFilters } from '@/hooks/dashboard/useDashboardFilters';
-import { useDashboardDimensions } from '@/hooks/dashboard/useDashboardDimensions';
 import { fetchComparisonMetrics } from '@/hooks/comparacao/useComparisonMetrics';
-import { useOrganization } from '@/contexts/OrganizationContext';
-import { useAuth } from '@/hooks/auth/useAuth';
-import { AderenciaSemanal } from '@/types';
+import { AderenciaSemanal, CurrentUser } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { useTargetWeeks } from './useTargetWeeks';
+import type { Filters } from '@/types/filters';
 
 export interface ComparisonMetricData {
     label: string;
@@ -15,12 +12,13 @@ export interface ComparisonMetricData {
     format: 'number' | 'percent' | 'hours';
 }
 
-export function useWeekComparison(aderenciaSemanal?: AderenciaSemanal[]) {
-    const { filters } = useDashboardFilters();
-    const { loadingDimensions } = useDashboardDimensions();
-    const { organizationId, isLoading: isOrgLoading } = useOrganization();
-    const { user: currentUser } = useAuth();
+interface UseWeekComparisonOptions {
+    aderenciaSemanal?: AderenciaSemanal[];
+    filters: Filters;
+    currentUser: CurrentUser | null;
+}
 
+export function useWeekComparison({ aderenciaSemanal, filters, currentUser }: UseWeekComparisonOptions) {
     const [loading, setLoading] = useState(false);
     const [metrics, setMetrics] = useState<ComparisonMetricData[]>([]);
     const [currentWeekLabel, setCurrentWeekLabel] = useState('');
@@ -49,18 +47,26 @@ export function useWeekComparison(aderenciaSemanal?: AderenciaSemanal[]) {
         : null, [assignedPracasKey, currentUserId, currentUserKey, currentUserOrganizationId, currentUserRole, isCurrentUserAdmin]);
 
     useEffect(() => {
-        if (!weeksToCompare || isOrgLoading) {
-            if (!weeksToCompare && !loadingDimensions) setMetrics([]);
+        if (!weeksToCompare) {
+            setMetrics([]);
             return;
         }
 
         let isMounted = true;
+
         const fetchData = async () => {
             setLoading(true);
             try {
                 const praca = filters.praca || null;
                 const year = filters.ano || undefined;
-                const results = await fetchComparisonMetrics([weeksToCompare.previous, weeksToCompare.current], praca, stableCurrentUser, organizationId || null, year);
+                const results = await fetchComparisonMetrics(
+                    [weeksToCompare.previous, weeksToCompare.current],
+                    praca,
+                    stableCurrentUser,
+                    stableCurrentUser?.organization_id ?? null,
+                    year
+                );
+
                 if (!isMounted) return;
 
                 if (results.length === 2) {
@@ -70,10 +76,10 @@ export function useWeekComparison(aderenciaSemanal?: AderenciaSemanal[]) {
                     const calcAderencia = (dados: any[]) => dados?.[0]?.aderencia_percentual || 0;
 
                     setMetrics([
-                        { label: 'Aderência', current: calcAderencia(currData.aderencia_semanal), previous: calcAderencia(prevData.aderencia_semanal), format: 'percent' },
+                        { label: 'Aderencia', current: calcAderencia(currData.aderencia_semanal), previous: calcAderencia(prevData.aderencia_semanal), format: 'percent' },
                         { label: 'Completadas', current: currData.total_completadas || 0, previous: prevData.total_completadas || 0, format: 'number' },
                         { label: 'Ofertadas', current: currData.total_ofertadas || 0, previous: prevData.total_ofertadas || 0, format: 'number' },
-                        { label: 'Taxa Aceitação', current: calcTaxa(currData.total_ofertadas || 0, currData.total_aceitas || 0), previous: calcTaxa(prevData.total_ofertadas || 0, prevData.total_aceitas || 0), format: 'percent' }
+                        { label: 'Taxa Aceitacao', current: calcTaxa(currData.total_ofertadas || 0, currData.total_aceitas || 0), previous: calcTaxa(prevData.total_ofertadas || 0, prevData.total_aceitas || 0), format: 'percent' }
                     ]);
                     setCurrentWeekLabel(weeksToCompare.currentLabel);
                     setPreviousWeekLabel(weeksToCompare.previousLabel);
@@ -85,9 +91,9 @@ export function useWeekComparison(aderenciaSemanal?: AderenciaSemanal[]) {
             }
         };
 
-        fetchData();
+        void fetchData();
         return () => { isMounted = false; };
-    }, [filters.ano, filters.praca, isOrgLoading, loadingDimensions, organizationId, stableCurrentUser, weeksComparisonKey, weeksToCompare]);
+    }, [filters.ano, filters.praca, stableCurrentUser, weeksComparisonKey, weeksToCompare]);
 
     return { metrics, loading, currentWeekLabel, previousWeekLabel };
 }

@@ -8,8 +8,9 @@ const NOTIFICATION_LIFETIME_MS = 3000;
 
 export function useSidebarController(currentUser: CurrentUser | null, currentTab: string) {
     const [isOpen, setIsOpen] = useState(false);
+    const [hasActivatedRealtime, setHasActivatedRealtime] = useState(false);
 
-    const onlineUsersData = useOnlineUsers(currentUser, currentTab);
+    const onlineUsersData = useOnlineUsers(currentUser, currentTab, hasActivatedRealtime);
     const { onlineUsers, messages, joinedUsers, clearJoinedUsers } = onlineUsersData;
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -26,6 +27,12 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
     const { unreadCounts } = useChatPersistence(currentUser, messages, activeChatUser);
 
     useEffect(() => {
+        if (isOpen && !hasActivatedRealtime) {
+            setHasActivatedRealtime(true);
+        }
+    }, [hasActivatedRealtime, isOpen]);
+
+    useEffect(() => {
         if (activeChatUser && chatEndRef.current) {
             chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
         }
@@ -34,17 +41,17 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
     useEffect(() => {
         if (joinedUsers.length === 0) return;
 
-        const newNotifications = joinedUsers.map(user => ({
+        const newNotifications = joinedUsers.map((user) => ({
             id: `${user.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
             message: `${user.name?.split(' ')[0]} entrou!`
         }));
 
-        setNotifications(prev => [...prev, ...newNotifications]);
+        setNotifications((prev) => [...prev, ...newNotifications]);
         clearJoinedUsers();
 
-        newNotifications.forEach(notification => {
+        newNotifications.forEach((notification) => {
             const timeout = setTimeout(() => {
-                setNotifications(prev => prev.filter(item => item.id !== notification.id));
+                setNotifications((prev) => prev.filter((item) => item.id !== notification.id));
                 notificationTimeoutsRef.current.delete(notification.id);
             }, NOTIFICATION_LIFETIME_MS);
 
@@ -55,20 +62,20 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
     useEffect(() => {
         const activeTimeouts = notificationTimeoutsRef.current;
         return () => {
-            activeTimeouts.forEach(timeout => clearTimeout(timeout));
+            activeTimeouts.forEach((timeout) => clearTimeout(timeout));
             activeTimeouts.clear();
         };
     }, []);
 
     const [, setTick] = useState(0);
     useEffect(() => {
-        const interval = setInterval(() => setTick(tick => tick + 1), 60000);
+        const interval = setInterval(() => setTick((tick) => tick + 1), 60000);
         return () => clearInterval(interval);
     }, []);
 
     const activeMessages = useMemo(() => (
         activeChatUser
-            ? messages.filter(message =>
+            ? messages.filter((message) =>
                 (message.from === activeChatUser.id && message.to === currentUser?.id) ||
                 (message.from === currentUser?.id && message.to === activeChatUser.id)
             )
@@ -102,8 +109,29 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
     };
 
     return {
-        isOpen, setIsOpen, onlineUsersData, searchTerm, setSearchTerm, myCustomStatus, setMyCustomStatus, notifications, activeChatUser, setActiveChatUser,
-        chatInput, setChatInput, replyingTo, setReplyingTo, chatEndRef, unreadCounts, fileInputRef, activeMessages, filteredUsers, formatTimeOnline,
-        totalUnread, onlineUsers, handleFileUpload
+        isOpen,
+        setIsOpen,
+        hasActivatedRealtime,
+        onlineUsersData,
+        searchTerm,
+        setSearchTerm,
+        myCustomStatus,
+        setMyCustomStatus,
+        notifications,
+        activeChatUser,
+        setActiveChatUser,
+        chatInput,
+        setChatInput,
+        replyingTo,
+        setReplyingTo,
+        chatEndRef,
+        unreadCounts,
+        fileInputRef,
+        activeMessages,
+        filteredUsers,
+        formatTimeOnline,
+        totalUnread,
+        onlineUsers,
+        handleFileUpload
     };
 }

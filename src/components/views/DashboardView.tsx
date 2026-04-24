@@ -84,7 +84,11 @@ const DashboardView = React.memo(function DashboardView({
       {/* #2 — Comparativo Semanal (Última Selecionada vs Anterior) */}
       {aderenciaSemanal.length > 0 && (
         <section>
-          <MonthComparisonCards aderenciaSemanal={aderenciaSemanal} />
+          <MonthComparisonCards
+            aderenciaSemanal={aderenciaSemanal}
+            filters={filters}
+            currentUser={currentUser}
+          />
         </section>
       )}
 

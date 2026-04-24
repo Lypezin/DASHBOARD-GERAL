@@ -26,7 +26,11 @@ export async function registerChartJS() {
     const { Chart, registerables } = await import('chart.js');
     Chart.register(...registerables);
 
-    Chart.defaults.font.family = "'Inter', sans-serif";
+    const fontFamily = typeof document !== 'undefined'
+      ? window.getComputedStyle(document.body).fontFamily || "'Inter', sans-serif"
+      : "'Inter', sans-serif";
+
+    Chart.defaults.font.family = fontFamily;
     Chart.defaults.plugins.legend.position = 'bottom';
     Chart.defaults.plugins.tooltip.backgroundColor = '#2c3e50';
     Chart.defaults.plugins.tooltip.titleFont = { weight: 'bold', size: 14 };

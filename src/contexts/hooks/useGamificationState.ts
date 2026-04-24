@@ -1,8 +1,10 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { Badge, LeaderboardEntry } from '@/types/gamification';
 import { useGamificationCelebration } from '@/hooks/gamification/useGamificationCelebration';
+import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
+import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
 
 export function useGamificationState() {
     const [badges, setBadges] = useState<Badge[]>([]);
@@ -10,6 +12,9 @@ export function useGamificationState() {
     const [recentUnlock, setRecentUnlock] = useState<Badge | null>(null);
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
     const { triggerCelebration } = useGamificationCelebration();
+    const { currentUser, isAuthenticated, hasResolved } = useAppBootstrap();
+    const shouldBootstrapGamification = useDeferredMount({ timeoutMs: 1200 });
+    const loginRegisteredRef = useRef<string | null>(null);
 
     const refreshLeaderboard = useCallback(async () => {
         const { data } = await supabase.rpc('get_gamification_leaderboard');
@@ -17,13 +22,14 @@ export function useGamificationState() {
     }, []);
 
     const fetchState = useCallback(async () => {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!currentUser?.id) return;
 
-        refreshLeaderboard();
+        await refreshLeaderboard();
 
-        const { data: allBadges } = await supabase.from('gamification_badges').select('slug, name, description, icon, category');
-        const { data: unlocked } = await supabase.from('gamification_user_badges').select('badge_slug, unlocked_at').eq('user_id', user.id);
+        const [{ data: allBadges }, { data: unlocked }] = await Promise.all([
+            supabase.from('gamification_badges').select('slug, name, description, icon, category'),
+            supabase.from('gamification_user_badges').select('badge_slug, unlocked_at').eq('user_id', currentUser.id)
+        ]);
 
         if (allBadges) setBadges(allBadges);
 
@@ -37,9 +43,11 @@ export function useGamificationState() {
                 }));
             setUnlockedBadges(unlockedList);
         }
-    }, [refreshLeaderboard]);
+    }, [currentUser?.id, refreshLeaderboard]);
 
     const registerInteraction = useCallback(async (type: 'login' | 'view_comparacao' | 'upload' | 'view_resumo' | 'view_entregadores' | 'view_evolucao' | 'filter_change') => {
+        if (!currentUser?.id) return;
+
         try {
             const { data, error } = await supabase.rpc('register_interaction', { p_interaction_type: type });
 
@@ -66,19 +74,20 @@ export function useGamificationState() {
         } catch (e) {
             safeLog.error('Gamification error:', e);
         }
-    }, [triggerCelebration]);
+    }, [currentUser?.id, triggerCelebration]);
 
     useEffect(() => {
-        fetchState();
+        if (!shouldBootstrapGamification || !hasResolved || !isAuthenticated || !currentUser?.id) {
+            return;
+        }
 
-        const checkLogin = async () => {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                registerInteraction('login');
-            }
-        };
-        checkLogin();
-    }, [fetchState, registerInteraction]);
+        void fetchState();
+
+        if (loginRegisteredRef.current !== currentUser.id) {
+            loginRegisteredRef.current = currentUser.id;
+            void registerInteraction('login');
+        }
+    }, [currentUser?.id, fetchState, hasResolved, isAuthenticated, registerInteraction, shouldBootstrapGamification]);
 
     return {
         badges,

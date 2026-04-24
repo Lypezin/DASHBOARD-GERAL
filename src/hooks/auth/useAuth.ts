@@ -1,15 +1,11 @@
-import { useAuthGuard } from './useAuthGuard';
-import { CurrentUser } from '@/types';
+import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 
 export function useAuth() {
-    const { currentUser, isAuthenticated, isChecking } = useAuthGuard({
-        requireApproval: false,
-        fetchUserProfile: true,
-    });
+    const { currentUser, isAuthenticated, isLoading } = useAppBootstrap();
 
     return {
         user: currentUser,
-        isAuthenticated,
-        loading: isChecking,
+        isAuthenticated: isAuthenticated && !!currentUser,
+        loading: isLoading,
     };
 }

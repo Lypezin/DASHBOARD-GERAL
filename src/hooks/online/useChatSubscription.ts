@@ -7,6 +7,7 @@ import { chatService } from './services/chatService';
 
 interface UseChatSubscriptionProps {
     userId: string | null;
+    enabled: boolean;
     setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
 }
 
@@ -43,11 +44,15 @@ function sortMessages(messages: ChatMessage[]) {
     return [...messages].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
 }
 
-export function useChatSubscription({ userId, setMessages }: UseChatSubscriptionProps) {
+export function useChatSubscription({ userId, enabled, setMessages }: UseChatSubscriptionProps) {
     const chatSubscriptionRef = useRef<RealtimeChannel | null>(null);
 
     useEffect(() => {
-        if (!userId) {
+        if (!enabled || !userId) {
+            if (chatSubscriptionRef.current) {
+                supabase.removeChannel(chatSubscriptionRef.current);
+                chatSubscriptionRef.current = null;
+            }
             setMessages([]);
             return;
         }
@@ -59,9 +64,9 @@ export function useChatSubscription({ userId, setMessages }: UseChatSubscription
                 const history = await chatService.fetchHistory(userId);
                 if (cancelled) return;
 
-                setMessages(prev => sortMessages(
+                setMessages((prev) => sortMessages(
                     [...history, ...prev].filter((message, index, arr) =>
-                        arr.findIndex(candidate => candidate.id === message.id) === index
+                        arr.findIndex((candidate) => candidate.id === message.id) === index
                     )
                 ));
             } catch (error) {
@@ -77,15 +82,15 @@ export function useChatSubscription({ userId, setMessages }: UseChatSubscription
             if (payload.eventType === 'INSERT') {
                 const incoming = normalizeMessage(payload.new);
 
-                setMessages(prev => {
-                    const existingIndex = prev.findIndex(message => message.id === incoming.id);
+                setMessages((prev) => {
+                    const existingIndex = prev.findIndex((message) => message.id === incoming.id);
                     if (existingIndex >= 0) {
                         const next = [...prev];
                         next[existingIndex] = { ...next[existingIndex], ...incoming };
                         return sortMessages(next);
                     }
 
-                    const optimisticIndex = prev.findIndex(message => isOptimisticMatch(message, incoming));
+                    const optimisticIndex = prev.findIndex((message) => isOptimisticMatch(message, incoming));
                     if (optimisticIndex >= 0) {
                         const next = [...prev];
                         next[optimisticIndex] = {
@@ -98,7 +103,7 @@ export function useChatSubscription({ userId, setMessages }: UseChatSubscription
                     return sortMessages([...prev, incoming]);
                 });
             } else if (payload.eventType === 'UPDATE') {
-                setMessages(prev => prev.map(message => message.id === payload.new.id ? {
+                setMessages((prev) => prev.map((message) => message.id === payload.new.id ? {
                     ...message,
                     reactions: payload.new.reactions || {},
                     isPinned: payload.new.is_pinned
@@ -117,7 +122,8 @@ export function useChatSubscription({ userId, setMessages }: UseChatSubscription
             cancelled = true;
             if (chatSubscriptionRef.current) {
                 supabase.removeChannel(chatSubscriptionRef.current);
+                chatSubscriptionRef.current = null;
             }
         };
-    }, [userId, setMessages]);
+    }, [enabled, setMessages, userId]);
 }

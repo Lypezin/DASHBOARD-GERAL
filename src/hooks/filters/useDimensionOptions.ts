@@ -92,6 +92,15 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
     const assignedPracasKey = currentUser?.assigned_pracas.join('|') || '';
     const assignedPracas = useMemo(() => assignedPracasKey.split('|').filter(Boolean), [assignedPracasKey]);
     const userHasFullAccess = hasFullCityAccess(currentUser);
+    const hasScopedDimensions = useMemo(() => {
+        if (!dimensoes) return false;
+
+        return (
+            dimensoes.sub_pracas.length > 0 ||
+            dimensoes.origens.length > 0 ||
+            (dimensoes.turnos?.length || 0) > 0
+        );
+    }, [dimensoes]);
 
     const targetPracas = useMemo(() => {
         if (filters?.praca) return [filters.praca];
@@ -110,7 +119,7 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
             return { subPracas: [], origens: [], turnos: [] };
         }
 
-        if (targetPracas.length === 0) {
+        if (targetPracas.length === 0 || hasScopedDimensions || !userHasFullAccess) {
             return {
                 subPracas: toUniqueOptions(dimensoes.sub_pracas),
                 origens: toUniqueOptions(dimensoes.origens),
@@ -119,10 +128,10 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
         }
 
         return null;
-    }, [dimensoes, targetPracas.length]);
+    }, [dimensoes, hasScopedDimensions, targetPracas.length, userHasFullAccess]);
 
     useEffect(() => {
-        if (!dimensoes || targetPracas.length === 0) {
+        if (!dimensoes || targetPracas.length === 0 || hasScopedDimensions || !userHasFullAccess) {
             setRemoteOptions(null);
             return;
         }
@@ -161,12 +170,14 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
             } catch (error) {
                 if (IS_DEV) safeLog.warn('Failed to fetch dimension options by praca', error);
                 if (!cancelled) {
-                    setRemoteOptions({
+                    const fallbackOptions = {
                         timestamp: Date.now(),
                         subPracas: processFallbackSubPracas(dimensoes, targetPracas),
                         origens: [],
                         turnos: []
-                    });
+                    };
+                    setRemoteOptions(fallbackOptions);
+                    writeCachedOptions(targetPracasKey, fallbackOptions);
                 }
             }
         };
@@ -176,7 +187,7 @@ export function useDimensionOptions(dimensoes: DimensoesDashboard | null, curren
         return () => {
             cancelled = true;
         };
-    }, [dimensoes, targetPracas, targetPracasKey]);
+    }, [dimensoes, hasScopedDimensions, targetPracas, targetPracasKey, userHasFullAccess]);
 
     if (baseOptions) {
         return baseOptions;

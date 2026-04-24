@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
+import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 
 const HEARTBEAT_INTERVAL_MS = 60000;
 
@@ -11,33 +12,11 @@ export function UserActivityTracker() {
     const visitIdRef = useRef<string | null>(null);
     const startTimeRef = useRef<number | null>(null);
     const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
-    const [authUserId, setAuthUserId] = useState<string | null | undefined>(undefined);
+    const { currentUser, hasResolved } = useAppBootstrap();
+    const authUserId = currentUser?.id ?? null;
 
     useEffect(() => {
-        let mounted = true;
-
-        const syncAuthUser = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (mounted) {
-                setAuthUserId(session?.user?.id ?? null);
-            }
-        };
-
-        void syncAuthUser();
-
-        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-            if (!mounted) return;
-            setAuthUserId(session?.user?.id ?? null);
-        });
-
-        return () => {
-            mounted = false;
-            subscription.unsubscribe();
-        };
-    }, []);
-
-    useEffect(() => {
-        if (pathname?.startsWith('/dashboard') || authUserId === undefined) {
+        if (pathname?.startsWith('/dashboard') || !hasResolved) {
             return;
         }
 
@@ -133,7 +112,7 @@ export function UserActivityTracker() {
 
             closeCurrentVisit();
         };
-    }, [authUserId, pathname]);
+    }, [authUserId, hasResolved, pathname]);
 
     return null;
 }
