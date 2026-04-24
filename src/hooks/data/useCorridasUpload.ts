@@ -23,10 +23,10 @@ export function useCorridasUpload({ organizationId, onUploadSuccess }: UseCorrid
   };
 
   const handleUpload = async () => {
-    await processUpload(files, () => {
+    await processUpload(files, async () => {
       clearFiles();
       safeLog.info('[Corridas] Sucesso! Disparando auto-refresh de MVs...');
-      startAutoRefresh(true);
+      await startAutoRefresh(true);
       if (onUploadSuccess) onUploadSuccess();
     });
   };

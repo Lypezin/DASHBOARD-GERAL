@@ -28,20 +28,20 @@ export const performRefresh = async (
             validateParams: false
         });
         safeLog.info(
-            `[performRefresh] Passo 1 concluído: data=${JSON.stringify(
+            `[performRefresh] Passo 1 concluido: data=${JSON.stringify(
                 bulkResult.data
             )}, error=${JSON.stringify(bulkResult.error)}`
         );
 
         if (!isLowUsage && !force) {
-            safeLog.info('[performRefresh] Refresh adiado - não é horário de baixo uso e não foi forçado');
+            safeLog.info('[performRefresh] Refresh adiado - nao e horario de baixo uso e nao foi forcado');
             setRefreshState({ isRefreshing: false, progress: 0, status: '' });
             return;
         }
 
         safeLog.info(
             `[performRefresh] Passo 2: ${timeContext} - Iniciando refresh ${
-                force ? 'imediato (núcleo crítico)' : 'automático (só críticas)'
+                force ? 'imediato (nucleo critico)' : 'automatico (so criticas)'
             }`
         );
 
@@ -49,8 +49,8 @@ export const performRefresh = async (
             ...prev,
             progress: 30,
             status: force
-                ? 'Atualizando views críticas agora...'
-                : 'Atualizando views críticas...'
+                ? 'Atualizando views criticas agora...'
+                : 'Atualizando views criticas...'
         }));
 
         safeLog.info(
@@ -60,12 +60,12 @@ export const performRefresh = async (
             'refresh_mvs_prioritized',
             { refresh_critical_only: true },
             {
-                timeout: 300000,
+                timeout: 900000,
                 validateParams: false
             }
         );
         safeLog.info(
-            `[performRefresh] Passo 3 concluído: success=${data?.success}, error=${
+            `[performRefresh] Passo 3 concluido: success=${data?.success}, error=${
                 error ? JSON.stringify(error) : 'none'
             }`
         );
@@ -73,7 +73,7 @@ export const performRefresh = async (
         setRefreshState(prev => ({
             ...prev,
             progress: 70,
-            status: 'Processando views secundárias...'
+            status: 'Processando views pendentes...'
         }));
 
         if (error) {
@@ -84,7 +84,7 @@ export const performRefresh = async (
                 error?.message?.includes('404');
             if (!is404) {
                 safeLog.warn(
-                    `Refresh prioritário falhou (${errorCode}): ${
+                    `Refresh prioritario falhou (${errorCode}): ${
                         error?.message || 'erro desconhecido'
                     }`
                 );
@@ -93,13 +93,13 @@ export const performRefresh = async (
             logRefreshSuccess(data);
         }
 
-        scheduleBackgroundRefresh(setRefreshState);
+        await finalizePendingRefreshes(setRefreshState);
     } catch (e) {
-        safeLog.warn('Refresh prioritário não disponível, será processado automaticamente', e);
+        safeLog.warn('Refresh prioritario nao disponivel, sera processado automaticamente', e);
         setRefreshState({
             isRefreshing: false,
             progress: 0,
-            status: 'Erro ao atualizar (tentará automaticamente)'
+            status: 'Erro ao atualizar (tentara automaticamente)'
         });
     }
 };
@@ -109,7 +109,7 @@ const logRefreshSuccess = (data: RefreshPrioritizedResult) => {
         ? `${(data.total_duration_seconds / 60).toFixed(1)} min`
         : 'N/A';
     const viewsCount = data.views_refreshed || 0;
-    safeLog.info(`✅ Refresh de MVs críticas concluído: ${viewsCount} MVs em ${duration}`);
+    safeLog.info(`Refresh de MVs criticas concluido: ${viewsCount} MVs em ${duration}`);
 
     if (data.results) {
         data.results.forEach((result) => {
@@ -125,16 +125,35 @@ const logRefreshSuccess = (data: RefreshPrioritizedResult) => {
     }
 };
 
-const scheduleBackgroundRefresh = (setRefreshState: SetRefreshState) => {
-    setTimeout(async () => {
-        try {
-            setRefreshState(prev => ({ ...prev, progress: 90, status: 'Finalizando...' }));
-            await safeRpc('refresh_pending_mvs', {}, { timeout: 600000, validateParams: false });
-            safeLog.info('✅ Refresh de MVs secundárias concluído em background');
-        } catch (e) {
-            safeLog.warn('⚠️ Refresh de MVs secundárias falhou:', e);
-        } finally {
-            setRefreshState({ isRefreshing: false, progress: 100, status: 'Concluído' });
+const finalizePendingRefreshes = async (setRefreshState: SetRefreshState) => {
+    try {
+        setRefreshState(prev => ({
+            ...prev,
+            progress: 90,
+            status: 'Finalizando views pendentes...'
+        }));
+
+        const { data, error } = await safeRpc<
+            Array<{ mv_name: string; success: boolean; message: string }>
+        >('refresh_pending_mvs', {}, { timeout: 900000, validateParams: false });
+
+        if (error) {
+            safeLog.warn('Refresh de MVs pendentes falhou:', error);
+        } else if (Array.isArray(data)) {
+            const failed = data.filter((item) => !item.success);
+            if (failed.length > 0) {
+                safeLog.warn('[performRefresh] Algumas MVs falharam no refresh pendente:', failed);
+            } else {
+                safeLog.info(`Refresh pendente concluido: ${data.length} MVs processadas`);
+            }
         }
-    }, 5000);
+    } catch (e) {
+        safeLog.warn('Refresh de MVs pendentes falhou:', e);
+    } finally {
+        setRefreshState({
+            isRefreshing: false,
+            progress: 100,
+            status: 'Concluido'
+        });
+    }
 };

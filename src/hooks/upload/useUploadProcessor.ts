@@ -22,7 +22,7 @@ export function useUploadProcessor(organizationId?: string) {
         currentFileIndex: 0
     });
 
-    const processUpload = useCallback(async (files: File[], onSuccess: () => void): Promise<boolean> => {
+    const processUpload = useCallback(async (files: File[], onSuccess: () => void | Promise<void>): Promise<boolean> => {
         if (files.length === 0) {
             setState(prev => ({ ...prev, message: 'Por favor, selecione pelo menos um arquivo.' }));
             return false;
@@ -106,7 +106,7 @@ export function useUploadProcessor(organizationId?: string) {
 
         if (errorCount === 0) {
             safeLog.info('[Upload] Upload concluido com sucesso, chamando onSuccess (auto-refresh MVs)...');
-            onSuccess();
+            await onSuccess();
             return true;
         }
 
