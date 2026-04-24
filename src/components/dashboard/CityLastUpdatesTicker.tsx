@@ -50,13 +50,13 @@ export function CityLastUpdatesTicker() {
                   className="flex items-center gap-2.5 shrink-0"
                 >
                   <div className="h-1.5 w-1.5 rounded-full bg-emerald-400/80 dark:bg-emerald-400/60 shrink-0" />
-                  <div className="flex items-baseline gap-2">
+                  <div className="flex items-baseline gap-2.5">
                     <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap">
                       {item.city}
                     </span>
-                    <span className="text-[11px] text-slate-400 dark:text-slate-500 whitespace-nowrap tabular-nums">
+                    <span className="rounded-full bg-slate-100/90 px-2.5 py-1 text-xs font-semibold text-slate-500 dark:bg-slate-800/90 dark:text-slate-300 whitespace-nowrap tabular-nums">
                       {item.last_update_date
-                        ? format(parseISO(item.last_update_date), "dd 'de' MMM, HH:mm", { locale: ptBR })
+                        ? format(parseISO(item.last_update_date), "dd 'de' MMM", { locale: ptBR })
                         : 'N/A'}
                     </span>
                   </div>
