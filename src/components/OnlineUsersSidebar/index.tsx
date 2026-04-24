@@ -8,6 +8,7 @@ import { ChatWindow } from './ChatWindow';
 import { NotificationsToast } from './NotificationsToast';
 import { createSendMessageHandler } from './sendMessageHandler';
 import { SidebarContainer } from './SidebarContainer';
+import type { OnlineUser } from '@/hooks/data/useOnlineUsers';
 
 interface OnlineUsersSidebarProps {
     currentUser: CurrentUser | null;
@@ -30,8 +31,6 @@ export function OnlineUsersSidebar({
         formatTimeOnline, totalUnread, onlineUsers, handleFileUpload
     } = useSidebarController(currentUser, currentTab, initialOpen, preloadRealtime);
 
-    if (!currentUser) return null;
-
     const { setCustomStatus, sendMessage, setTypingTo, reactToMessage, pinMessage } = onlineUsersData;
     const availableCount = useMemo(
         () => onlineUsers.filter((user) => !user.is_idle).length,
@@ -49,10 +48,12 @@ export function OnlineUsersSidebar({
     });
 
     const handleCloseSidebar = useCallback(() => setIsOpen(false), [setIsOpen]);
-    const handleOpenUserChat = useCallback((user: typeof onlineUsers[number]) => {
+    const handleOpenUserChat = useCallback((user: OnlineUser) => {
         setActiveChatUser(user);
         setIsOpen(true);
     }, [setActiveChatUser, setIsOpen]);
+
+    if (!currentUser) return null;
 
     return (
         <>
