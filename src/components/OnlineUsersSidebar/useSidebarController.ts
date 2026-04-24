@@ -3,6 +3,7 @@ import { useOnlineUsers, OnlineUser, ChatMessage } from '@/hooks/data/useOnlineU
 import { CurrentUser } from '@/types';
 import { useChatPersistence } from './hooks/useChatPersistence';
 import { formatTimeOnline } from './utils';
+import { supabase } from '@/lib/supabaseClient';
 
 const NOTIFICATION_LIFETIME_MS = 3000;
 
@@ -16,6 +17,7 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
     const [searchTerm, setSearchTerm] = useState('');
     const [myCustomStatus, setMyCustomStatus] = useState('');
     const [notifications, setNotifications] = useState<{ id: string, message: string }[]>([]);
+    const [avatarOverrides, setAvatarOverrides] = useState<Record<string, string>>({});
 
     const [activeChatUser, setActiveChatUser] = useState<OnlineUser | null>(null);
     const [chatInput, setChatInput] = useState('');
@@ -73,6 +75,81 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
         return () => clearInterval(interval);
     }, []);
 
+    useEffect(() => {
+        const missingAvatarUserIds = onlineUsers
+            .filter((user) => !user.avatar_url && !avatarOverrides[user.id])
+            .map((user) => user.id);
+
+        if (missingAvatarUserIds.length === 0) {
+            return;
+        }
+
+        let isCancelled = false;
+
+        const hydrateMissingAvatars = async () => {
+            const { data, error } = await supabase
+                .from('user_profiles')
+                .select('id, avatar_url')
+                .in('id', missingAvatarUserIds)
+                .not('avatar_url', 'is', null);
+
+            if (isCancelled || error || !data?.length) {
+                return;
+            }
+
+            setAvatarOverrides((prev) => {
+                const next = { ...prev };
+                let hasChanges = false;
+
+                for (const profile of data) {
+                    if (profile.avatar_url && next[profile.id] !== profile.avatar_url) {
+                        next[profile.id] = profile.avatar_url;
+                        hasChanges = true;
+                    }
+                }
+
+                return hasChanges ? next : prev;
+            });
+        };
+
+        void hydrateMissingAvatars();
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [avatarOverrides, onlineUsers]);
+
+    const hydratedOnlineUsers = useMemo(() => (
+        onlineUsers.map((user) => {
+            const hydratedAvatarUrl = avatarOverrides[user.id];
+            if (!hydratedAvatarUrl || user.avatar_url) {
+                return user;
+            }
+
+            return {
+                ...user,
+                avatar_url: hydratedAvatarUrl,
+            };
+        })
+    ), [avatarOverrides, onlineUsers]);
+
+    useEffect(() => {
+        if (!activeChatUser || activeChatUser.avatar_url) {
+            return;
+        }
+
+        const hydratedActiveUser = hydratedOnlineUsers.find((user) => user.id === activeChatUser.id);
+        if (!hydratedActiveUser?.avatar_url) {
+            return;
+        }
+
+        setActiveChatUser((prev) => (
+            prev && prev.id === hydratedActiveUser.id
+                ? { ...prev, avatar_url: hydratedActiveUser.avatar_url }
+                : prev
+        ));
+    }, [activeChatUser, hydratedOnlineUsers]);
+
     const activeMessages = useMemo(() => (
         activeChatUser
             ? messages.filter((message) =>
@@ -84,11 +161,11 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
 
     const filteredUsers = useMemo(() => {
         const normalizedSearch = searchTerm.toLowerCase();
-        return onlineUsers.filter((user: OnlineUser) =>
+        return hydratedOnlineUsers.filter((user: OnlineUser) =>
             user.name?.toLowerCase().includes(normalizedSearch) ||
             user.role?.toLowerCase().includes(normalizedSearch)
         );
-    }, [onlineUsers, searchTerm]);
+    }, [hydratedOnlineUsers, searchTerm]);
 
     const totalUnread = useMemo(() => Object.values(unreadCounts).reduce((a, b) => a + b, 0), [unreadCounts]);
 
@@ -131,7 +208,7 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
         filteredUsers,
         formatTimeOnline,
         totalUnread,
-        onlineUsers,
+        onlineUsers: hydratedOnlineUsers,
         handleFileUpload
     };
 }

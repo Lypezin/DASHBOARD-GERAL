@@ -97,6 +97,36 @@ async function fetchProfileWithRetry(): Promise<BootstrapProfile | null> {
   return null;
 }
 
+async function hydrateAvatarUrl(
+  authUser: User,
+  profile: BootstrapProfile | null
+): Promise<BootstrapProfile | null> {
+  if (!authUser || !profile || profile.avatar_url) {
+    return profile;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('user_profiles')
+      .select('avatar_url')
+      .eq('id', authUser.id)
+      .single();
+
+    if (!error && data?.avatar_url) {
+      return {
+        ...profile,
+        avatar_url: data.avatar_url,
+      };
+    }
+  } catch (error) {
+    if (IS_DEV) {
+      safeLog.warn('[AppBootstrap] Falha ao hidratar avatar_url do perfil:', error);
+    }
+  }
+
+  return profile;
+}
+
 async function resolveOrganization(organizationId: string | null): Promise<Organization | null> {
   if (!organizationId) {
     return null;
@@ -176,7 +206,8 @@ async function resolveBootstrapState(force: boolean = false): Promise<AppBootstr
         return cachedState;
       }
 
-      const profile = await fetchProfileWithRetry();
+      const rawProfile = await fetchProfileWithRetry();
+      const profile = await hydrateAvatarUrl(authUser, rawProfile);
       const organizationId = profile?.organization_id
         || authUser.user_metadata?.organization_id
         || null;
