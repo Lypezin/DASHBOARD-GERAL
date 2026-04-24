@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import type { CurrentUser } from '@/types';
 import { SidebarTrigger } from './SidebarTrigger';
@@ -17,6 +17,40 @@ interface OnlineUsersSidebarLauncherProps {
 
 export function OnlineUsersSidebarLauncher({ currentUser, currentTab }: OnlineUsersSidebarLauncherProps) {
   const [activated, setActivated] = useState(false);
+  const [openOnLoad, setOpenOnLoad] = useState(false);
+
+  useEffect(() => {
+    if (!currentUser || activated) {
+      return;
+    }
+
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let idleId: number | null = null;
+
+    const activateInBackground = () => setActivated(true);
+    const browserWindow = typeof window !== 'undefined'
+      ? window as Window & {
+          requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number;
+          cancelIdleCallback?: (handle: number) => void;
+        }
+      : null;
+
+    if (browserWindow?.requestIdleCallback) {
+      idleId = browserWindow.requestIdleCallback(activateInBackground, { timeout: 1200 });
+    } else {
+      timeoutId = setTimeout(activateInBackground, 800);
+    }
+
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+
+      if (browserWindow?.cancelIdleCallback && idleId !== null) {
+        browserWindow.cancelIdleCallback(idleId);
+      }
+    };
+  }, [activated, currentUser]);
 
   if (!currentUser) return null;
 
@@ -24,12 +58,22 @@ export function OnlineUsersSidebarLauncher({ currentUser, currentTab }: OnlineUs
     return (
       <SidebarTrigger
         isOpen={false}
-        setIsOpen={() => setActivated(true)}
+        setIsOpen={() => {
+          setOpenOnLoad(true);
+          setActivated(true);
+        }}
         onlineCount={0}
         unreadCount={0}
       />
     );
   }
 
-  return <DeferredOnlineUsersSidebar currentUser={currentUser} currentTab={currentTab} initialOpen />;
+  return (
+    <DeferredOnlineUsersSidebar
+      currentUser={currentUser}
+      currentTab={currentTab}
+      initialOpen={openOnLoad}
+      preloadRealtime
+    />
+  );
 }

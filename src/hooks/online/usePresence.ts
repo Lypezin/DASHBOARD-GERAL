@@ -8,6 +8,63 @@ import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 
 const JOIN_NOTIFICATION_COOLDOWN_MS = 15000;
 
+function getPresenceRecency(user: OnlineUser) {
+    const lastActivity = user.last_typed || user.online_at;
+    const parsedDate = lastActivity ? Date.parse(lastActivity) : 0;
+    return Number.isFinite(parsedDate) ? parsedDate : 0;
+}
+
+function normalizePresenceUsers(state: Record<string, OnlineUser[]>) {
+    const uniqueUsers = new Map<string, OnlineUser>();
+
+    for (const key in state) {
+        const presences = state[key];
+        if (!presences?.length) {
+            continue;
+        }
+
+        for (const presence of presences) {
+            if (!presence?.id) {
+                continue;
+            }
+
+            const current = uniqueUsers.get(presence.id);
+            if (!current || getPresenceRecency(presence) >= getPresenceRecency(current)) {
+                uniqueUsers.set(presence.id, presence);
+            }
+        }
+    }
+
+    return [...uniqueUsers.values()].sort((a, b) => {
+        if (!!a.is_idle !== !!b.is_idle) {
+            return a.is_idle ? 1 : -1;
+        }
+
+        return (a.name || '').localeCompare(b.name || '');
+    });
+}
+
+function isSameOnlineUsers(previousUsers: OnlineUser[], nextUsers: OnlineUser[]) {
+    if (previousUsers.length !== nextUsers.length) {
+        return false;
+    }
+
+    return previousUsers.every((previousUser, index) => {
+        const nextUser = nextUsers[index];
+        return (
+            previousUser.id === nextUser.id &&
+            previousUser.name === nextUser.name &&
+            previousUser.avatar_url === nextUser.avatar_url &&
+            previousUser.role === nextUser.role &&
+            previousUser.current_tab === nextUser.current_tab &&
+            previousUser.is_idle === nextUser.is_idle &&
+            previousUser.custom_status === nextUser.custom_status &&
+            previousUser.typing_to === nextUser.typing_to &&
+            previousUser.last_typed === nextUser.last_typed
+        );
+    });
+}
+
 export function usePresence(
     userId: string | null,
     currentUser: CurrentUser | null,
@@ -15,6 +72,7 @@ export function usePresence(
     isIdle: boolean,
     enabled: boolean
 ) {
+    const { authUser, avatarUrl } = useAppBootstrap();
     const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
     const [joinedUsers, setJoinedUsers] = useState<OnlineUser[]>([]);
     const [customStatus, setCustomStatus] = useState<string>('');
@@ -22,22 +80,43 @@ export function usePresence(
     const sessionStartRef = useRef(new Date().toISOString());
     const presenceBaseRef = useRef<OnlineUser | null>(null);
     const recentJoinNotificationsRef = useRef<Map<string, number>>(new Map());
-    const { authUser, avatarUrl } = useAppBootstrap();
+    const authUserRef = useRef(authUser);
+    const currentUserRef = useRef(currentUser);
+    const currentTabRef = useRef(currentTab);
+    const isIdleRef = useRef(isIdle);
+    const customStatusRef = useRef(customStatus);
+    const avatarUrlRef = useRef(avatarUrl);
 
     const clearJoinedUsers = useCallback(() => setJoinedUsers([]), []);
 
+    useEffect(() => {
+        authUserRef.current = authUser;
+        currentUserRef.current = currentUser;
+        currentTabRef.current = currentTab;
+        isIdleRef.current = isIdle;
+        customStatusRef.current = customStatus;
+        avatarUrlRef.current = avatarUrl;
+    }, [authUser, avatarUrl, currentTab, currentUser, customStatus, isIdle]);
+
+    useEffect(() => {
+        presenceBaseRef.current = null;
+    }, [authUser?.id, avatarUrl, currentUser?.id, userId]);
+
     const buildPresencePayload = useCallback(async () => {
-        if (!enabled || !userId || !currentUser || !authUser) return null;
+        const resolvedAuthUser = authUserRef.current;
+        const resolvedCurrentUser = currentUserRef.current;
+
+        if (!enabled || !userId || !resolvedCurrentUser || !resolvedAuthUser) return null;
 
         if (!presenceBaseRef.current) {
             const basePresence = await getPresenceData(
-                authUser,
-                currentUser,
-                currentTab,
-                isIdle,
-                customStatus,
+                resolvedAuthUser,
+                resolvedCurrentUser,
+                currentTabRef.current,
+                isIdleRef.current,
+                customStatusRef.current,
                 sessionStartRef.current,
-                avatarUrl
+                avatarUrlRef.current
             );
 
             if (!basePresence) return null;
@@ -46,11 +125,11 @@ export function usePresence(
 
         return {
             ...presenceBaseRef.current,
-            current_tab: currentTab,
-            is_idle: isIdle,
-            custom_status: customStatus
+            current_tab: currentTabRef.current,
+            is_idle: isIdleRef.current,
+            custom_status: customStatusRef.current
         } as OnlineUser;
-    }, [authUser, avatarUrl, currentTab, currentUser, customStatus, enabled, isIdle, userId]);
+    }, [enabled, userId]);
 
     useEffect(() => {
         if (!enabled) {
@@ -64,7 +143,7 @@ export function usePresence(
             return;
         }
 
-        if (!currentUser || !userId) return;
+        if (!userId) return;
 
         presenceBaseRef.current = null;
         if (channelRef.current) {
@@ -79,16 +158,13 @@ export function usePresence(
         channel
             .on('presence', { event: 'sync' }, () => {
                 const newState = channel.presenceState<OnlineUser>();
-                const users: OnlineUser[] = [];
-
-                for (const key in newState) {
-                    const presences = newState[key];
-                    if (presences && presences.length > 0) users.push(presences[0]);
-                }
-
-                users.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+                const users = normalizePresenceUsers(newState);
 
                 setOnlineUsers((prev) => {
+                    if (isSameOnlineUsers(prev, users)) {
+                        return prev;
+                    }
+
                     if (prev.length > 0) {
                         const prevIds = new Set(prev.map((user) => user.id));
                         const now = Date.now();
@@ -125,7 +201,7 @@ export function usePresence(
                 channelRef.current = null;
             }
         };
-    }, [buildPresencePayload, currentUser, enabled, userId]);
+    }, [buildPresencePayload, enabled, userId]);
 
     useEffect(() => {
         if (!enabled || !channelRef.current || !userId) return;
@@ -138,7 +214,7 @@ export function usePresence(
         };
 
         void updatePresence();
-    }, [buildPresencePayload, currentTab, customStatus, enabled, isIdle, userId]);
+    }, [avatarUrl, buildPresencePayload, currentTab, currentUser?.id, customStatus, enabled, isIdle, userId]);
 
     const setTypingTo = async (targetUserId: string | null) => {
         if (!enabled || !channelRef.current || !userId) return;

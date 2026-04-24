@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { OnlineUser } from '@/hooks/data/useOnlineUsers';
 import { CurrentUser } from '@/types';
 import { UserListItem } from './UserListItem';
@@ -34,11 +35,15 @@ export function UserList({
     onUserClick,
     formatTimeOnline
 }: UserListProps) {
-    const groupedUsers = {
+    const groupedUsers = useMemo(() => ({
         admin: sortUsers(filteredUsers.filter((user) => user.role === 'admin' || user.role === 'master'), unreadCounts, currentUser.id),
         marketing: sortUsers(filteredUsers.filter((user) => user.role === 'marketing'), unreadCounts, currentUser.id),
-        user: sortUsers(filteredUsers.filter((user) => user.role === 'user' || !user.role || (user.role !== 'admin' && user.role !== 'master' && user.role !== 'marketing')), unreadCounts, currentUser.id)
-    };
+        user: sortUsers(
+            filteredUsers.filter((user) => user.role === 'user' || !user.role || (user.role !== 'admin' && user.role !== 'master' && user.role !== 'marketing')),
+            unreadCounts,
+            currentUser.id
+        )
+    }), [currentUser.id, filteredUsers, unreadCounts]);
 
     const hasUsers = filteredUsers.length > 0;
 

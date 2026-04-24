@@ -12,16 +12,22 @@ interface OnlineUsersSidebarProps {
     currentUser: CurrentUser | null;
     currentTab: string;
     initialOpen?: boolean;
+    preloadRealtime?: boolean;
 }
 
-export function OnlineUsersSidebar({ currentUser, currentTab, initialOpen = false }: OnlineUsersSidebarProps) {
+export function OnlineUsersSidebar({
+    currentUser,
+    currentTab,
+    initialOpen = false,
+    preloadRealtime = false
+}: OnlineUsersSidebarProps) {
     const {
         isOpen, setIsOpen, onlineUsersData, searchTerm, setSearchTerm,
         myCustomStatus, setMyCustomStatus, notifications, activeChatUser,
         setActiveChatUser, chatInput, setChatInput, replyingTo, setReplyingTo,
         chatEndRef, unreadCounts, fileInputRef, activeMessages, filteredUsers,
         formatTimeOnline, totalUnread, onlineUsers, handleFileUpload
-    } = useSidebarController(currentUser, currentTab, initialOpen);
+    } = useSidebarController(currentUser, currentTab, initialOpen, preloadRealtime);
 
     if (!currentUser) return null;
 

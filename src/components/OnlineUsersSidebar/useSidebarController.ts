@@ -7,9 +7,14 @@ import { supabase } from '@/lib/supabaseClient';
 
 const NOTIFICATION_LIFETIME_MS = 3000;
 
-export function useSidebarController(currentUser: CurrentUser | null, currentTab: string, initialOpen = false) {
+export function useSidebarController(
+    currentUser: CurrentUser | null,
+    currentTab: string,
+    initialOpen = false,
+    preloadRealtime = false
+) {
     const [isOpen, setIsOpen] = useState(initialOpen);
-    const [hasActivatedRealtime, setHasActivatedRealtime] = useState(initialOpen);
+    const [hasActivatedRealtime, setHasActivatedRealtime] = useState(initialOpen || preloadRealtime);
 
     const onlineUsersData = useOnlineUsers(currentUser, currentTab, hasActivatedRealtime);
     const { onlineUsers, messages, joinedUsers, clearJoinedUsers } = onlineUsersData;
@@ -33,6 +38,12 @@ export function useSidebarController(currentUser: CurrentUser | null, currentTab
             setHasActivatedRealtime(true);
         }
     }, [hasActivatedRealtime, isOpen]);
+
+    useEffect(() => {
+        if (preloadRealtime && !hasActivatedRealtime) {
+            setHasActivatedRealtime(true);
+        }
+    }, [hasActivatedRealtime, preloadRealtime]);
 
     useEffect(() => {
         if (activeChatUser && chatEndRef.current) {
