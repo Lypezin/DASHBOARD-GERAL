@@ -1,3 +1,4 @@
+import React, { memo, useMemo } from 'react';
 import { OnlineUser } from '@/hooks/data/useOnlineUsers';
 import { CurrentUser } from '@/types';
 import { User, X } from 'lucide-react';
@@ -10,11 +11,13 @@ interface ChatHeaderProps {
     onClose: () => void;
 }
 
-export function ChatHeader({ activeChatUser, currentUser, onClose }: ChatHeaderProps) {
-    const lastTypedAt = activeChatUser.last_typed ? new Date(activeChatUser.last_typed).getTime() : NaN;
-    const isTyping = activeChatUser.typing_to === currentUser.id &&
-        !Number.isNaN(lastTypedAt) &&
-        Date.now() - lastTypedAt < 6000;
+function ChatHeaderComponent({ activeChatUser, currentUser, onClose }: ChatHeaderProps) {
+    const isTyping = useMemo(() => {
+        const lastTypedAt = activeChatUser.last_typed ? new Date(activeChatUser.last_typed).getTime() : NaN;
+        return activeChatUser.typing_to === currentUser.id &&
+            !Number.isNaN(lastTypedAt) &&
+            Date.now() - lastTypedAt < 6000;
+    }, [activeChatUser.last_typed, activeChatUser.typing_to, currentUser.id]);
 
     return (
         <div className="p-3 bg-white border-b border-slate-100 flex items-center justify-between shadow-sm z-10">
@@ -43,3 +46,5 @@ export function ChatHeader({ activeChatUser, currentUser, onClose }: ChatHeaderP
         </div>
     );
 }
+
+export const ChatHeader = memo(ChatHeaderComponent);

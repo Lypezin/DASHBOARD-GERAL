@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { OnlineUser } from '@/hooks/data/useOnlineUsers';
 import { CurrentUser } from '@/types';
 import { UserListItem } from './UserListItem';
@@ -27,7 +27,7 @@ function sortUsers(users: OnlineUser[], unreadCounts: Record<string, number>, cu
     });
 }
 
-export function UserList({
+function UserListComponent({
     isOpen,
     currentUser,
     filteredUsers,
@@ -84,3 +84,5 @@ export function UserList({
         </div>
     );
 }
+
+export const UserList = memo(UserListComponent);

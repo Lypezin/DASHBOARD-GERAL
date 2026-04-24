@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { ChatMessage } from './types';
 import { chatService } from './services/chatService';
@@ -9,7 +9,7 @@ export function useChat(userId: string | null, enabled: boolean) {
 
     useChatSubscription({ userId, enabled, setMessages });
 
-    const sendMessage = async (toUser: string, content: string, options?: { replyTo?: string, attachments?: any[] }) => {
+    const sendMessage = useCallback(async (toUser: string, content: string, options?: { replyTo?: string, attachments?: any[] }) => {
         if (!enabled || !userId) return;
 
         const tempId = `temp_${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -51,9 +51,9 @@ export function useChat(userId: string | null, enabled: boolean) {
             safeLog.error('Error sending message:', error);
             setMessages((prev) => prev.filter((message) => message.id !== tempId));
         }
-    };
+    }, [enabled, userId]);
 
-    const reactToMessage = async (msgId: string, emoji: string) => {
+    const reactToMessage = useCallback(async (msgId: string, emoji: string) => {
         if (!enabled || !userId) return;
 
         setMessages((prev) => prev.map((message) => {
@@ -69,9 +69,9 @@ export function useChat(userId: string | null, enabled: boolean) {
         } catch (error) {
             safeLog.error('Error reacting to message:', error);
         }
-    };
+    }, [enabled, userId]);
 
-    const pinMessage = async (msgId: string, isPinned: boolean) => {
+    const pinMessage = useCallback(async (msgId: string, isPinned: boolean) => {
         if (!enabled) return;
 
         setMessages((prev) => prev.map((message) => message.id === msgId ? { ...message, isPinned } : message));
@@ -80,9 +80,9 @@ export function useChat(userId: string | null, enabled: boolean) {
         } catch (error) {
             safeLog.error('Error pinning message:', error);
         }
-    };
+    }, [enabled]);
 
-    const uploadFile = async (file: File) => {
+    const uploadFile = useCallback(async (file: File) => {
         if (!enabled || !userId) return null;
 
         try {
@@ -91,7 +91,7 @@ export function useChat(userId: string | null, enabled: boolean) {
             safeLog.error('Error uploading file:', error);
             return null;
         }
-    };
+    }, [enabled, userId]);
 
     return { messages, sendMessage, reactToMessage, pinMessage, uploadFile };
 }

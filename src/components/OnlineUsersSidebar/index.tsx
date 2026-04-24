@@ -1,3 +1,4 @@
+import { useCallback, useMemo } from 'react';
 import { CurrentUser } from '@/types';
 import { useSidebarController } from './useSidebarController';
 import { SidebarTrigger } from './SidebarTrigger';
@@ -32,7 +33,10 @@ export function OnlineUsersSidebar({
     if (!currentUser) return null;
 
     const { setCustomStatus, sendMessage, setTypingTo, reactToMessage, pinMessage } = onlineUsersData;
-    const availableCount = onlineUsers.filter((user) => !user.is_idle).length;
+    const availableCount = useMemo(
+        () => onlineUsers.filter((user) => !user.is_idle).length,
+        [onlineUsers]
+    );
 
     const handleSendMessage = createSendMessageHandler({
         chatInput,
@@ -44,6 +48,12 @@ export function OnlineUsersSidebar({
         clearTyping: () => setTypingTo(null)
     });
 
+    const handleCloseSidebar = useCallback(() => setIsOpen(false), [setIsOpen]);
+    const handleOpenUserChat = useCallback((user: typeof onlineUsers[number]) => {
+        setActiveChatUser(user);
+        setIsOpen(true);
+    }, [setActiveChatUser, setIsOpen]);
+
     return (
         <>
             <SidebarTrigger
@@ -53,7 +63,7 @@ export function OnlineUsersSidebar({
                 unreadCount={totalUnread}
             />
 
-            <SidebarContainer isOpen={isOpen} onClose={() => setIsOpen(false)}>
+            <SidebarContainer isOpen={isOpen} onClose={handleCloseSidebar}>
                 <input type="file" ref={fileInputRef} className="hidden" accept="image/*,application/pdf" onChange={handleFileUpload} />
 
                 <ChatWindow
@@ -88,7 +98,7 @@ export function OnlineUsersSidebar({
                     myCustomStatus={myCustomStatus}
                     setMyCustomStatus={setMyCustomStatus}
                     onStatusSubmit={setCustomStatus}
-                    onClose={() => setIsOpen(false)}
+                    onClose={handleCloseSidebar}
                 />
 
                 <UserList
@@ -96,10 +106,7 @@ export function OnlineUsersSidebar({
                     currentUser={currentUser}
                     filteredUsers={filteredUsers}
                     unreadCounts={unreadCounts}
-                    onUserClick={(user) => {
-                        setActiveChatUser(user);
-                        setIsOpen(true);
-                    }}
+                    onUserClick={handleOpenUserChat}
                     formatTimeOnline={formatTimeOnline}
                 />
             </SidebarContainer>

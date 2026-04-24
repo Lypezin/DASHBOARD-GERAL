@@ -30,6 +30,7 @@ export function useSidebarController(
     const chatEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const notificationTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
+    const previousScrollKeyRef = useRef<string | null>(null);
 
     const { unreadCounts } = useChatPersistence(currentUser, messages, activeChatUser);
 
@@ -44,12 +45,6 @@ export function useSidebarController(
             setHasActivatedRealtime(true);
         }
     }, [hasActivatedRealtime, preloadRealtime]);
-
-    useEffect(() => {
-        if (activeChatUser && chatEndRef.current) {
-            chatEndRef.current.scrollIntoView({ behavior: 'smooth' });
-        }
-    }, [messages, activeChatUser]);
 
     useEffect(() => {
         if (joinedUsers.length === 0) return;
@@ -169,6 +164,31 @@ export function useSidebarController(
             )
             : []
     ), [activeChatUser, currentUser?.id, messages]);
+
+    const activeChatScrollKey = useMemo(() => {
+        if (!activeChatUser) {
+            return null;
+        }
+
+        const lastMessage = activeMessages[activeMessages.length - 1];
+        return `${activeChatUser.id}:${lastMessage?.id || 'empty'}:${activeMessages.length}`;
+    }, [activeChatUser, activeMessages]);
+
+    useEffect(() => {
+        if (!activeChatUser || !chatEndRef.current || !activeChatScrollKey) {
+            previousScrollKeyRef.current = activeChatScrollKey;
+            return;
+        }
+
+        const previousKey = previousScrollKeyRef.current;
+        const hasSwitchedChat = !previousKey || !previousKey.startsWith(`${activeChatUser.id}:`);
+        previousScrollKeyRef.current = activeChatScrollKey;
+
+        chatEndRef.current.scrollIntoView({
+            behavior: hasSwitchedChat ? 'auto' : 'smooth',
+            block: 'end',
+        });
+    }, [activeChatScrollKey, activeChatUser]);
 
     const filteredUsers = useMemo(() => {
         const normalizedSearch = searchTerm.toLowerCase();

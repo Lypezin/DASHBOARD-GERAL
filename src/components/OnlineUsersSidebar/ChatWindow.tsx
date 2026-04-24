@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { ChatMessage, OnlineUser } from '@/hooks/data/useOnlineUsers';
 import { CurrentUser } from '@/types';
 import { ChatHeader } from './ChatHeader';
@@ -22,7 +23,7 @@ interface ChatWindowProps {
     setTypingTo: (id: string | null) => void;
 }
 
-export function ChatWindow({
+function ChatWindowComponent({
     currentUser, activeChatUser, setActiveChatUser, messages,
     onReact, onPin, onReply, chatEndRef,
     chatInput, setChatInput, handleSendMessage, replyingTo,
@@ -31,7 +32,7 @@ export function ChatWindow({
     if (!activeChatUser) return null;
 
     return (
-        <div className="absolute top-0 -left-80 w-80 h-[500px] bg-white shadow-xl border border-slate-200 rounded-lg flex flex-col z-[120] overflow-hidden animate-in slide-in-from-right-5 font-sans">
+        <div className="absolute top-0 -left-80 z-[120] flex h-[500px] w-80 flex-col overflow-hidden rounded-lg border border-slate-200 bg-white font-sans shadow-xl">
             <ChatHeader activeChatUser={activeChatUser} currentUser={currentUser} onClose={() => setActiveChatUser(null)} />
 
             <MessageList
@@ -57,3 +58,5 @@ export function ChatWindow({
         </div>
     );
 }
+
+export const ChatWindow = memo(ChatWindowComponent);

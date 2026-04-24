@@ -1,13 +1,11 @@
-import React from 'react';
+import React, { memo, useMemo } from 'react';
 import Image from 'next/image';
 import { ChatMessage } from '@/hooks/data/useOnlineUsers';
-import { CurrentUser } from '@/types';
 import { cn } from '@/lib/utils';
 import { Smile, Reply, Pin } from 'lucide-react';
 
 interface MessageItemProps {
     msg: ChatMessage;
-    currentUser: CurrentUser;
     isMe: boolean;
     onReact: (id: string, emoji: string) => void;
     onPin: (id: string, pinned: boolean) => void;
@@ -16,16 +14,20 @@ interface MessageItemProps {
     replyTargetName?: string;
 }
 
-export const MessageItem: React.FC<MessageItemProps> = ({
+export const MessageItem = memo(function MessageItem({
     msg,
-    currentUser,
     isMe,
     onReact,
     onPin,
     onReply,
     replyTarget,
     replyTargetName
-}) => {
+}: MessageItemProps) {
+    const formattedTime = useMemo(
+        () => new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        [msg.timestamp]
+    );
+
     return (
         <div
             className={cn('flex flex-col max-w-[85%] group relative mb-2', isMe ? 'ml-auto items-end' : 'mr-auto items-start')}
@@ -81,7 +83,7 @@ export const MessageItem: React.FC<MessageItemProps> = ({
                 {msg.content}
                 <div className={cn('text-[9px] mt-1 text-right flex items-center justify-end gap-1', isMe ? 'text-blue-100' : 'text-slate-400')}>
                     {msg.isPinned && <Pin size={8} className="fill-current" />}
-                    {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    {formattedTime}
                 </div>
             </div>
 
@@ -94,4 +96,4 @@ export const MessageItem: React.FC<MessageItemProps> = ({
             )}
         </div>
     );
-};
+});

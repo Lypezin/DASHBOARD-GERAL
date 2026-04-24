@@ -1,3 +1,4 @@
+import React, { memo, useMemo } from 'react';
 import { ChatMessage, OnlineUser } from '@/hooks/data/useOnlineUsers';
 import { CurrentUser } from '@/types';
 import { Smile, Pin } from 'lucide-react';
@@ -13,7 +14,30 @@ interface MessageListProps {
     chatEndRef: React.RefObject<HTMLDivElement>;
 }
 
-export function MessageList({ messages, currentUser, onReact, onPin, onReply, onlineUsers, chatEndRef }: MessageListProps) {
+function MessageListComponent({ messages, currentUser, onReact, onPin, onReply, onlineUsers, chatEndRef }: MessageListProps) {
+    const hasPinnedMessages = useMemo(
+        () => messages.some((message) => message.isPinned),
+        [messages]
+    );
+
+    const messageById = useMemo(() => {
+        const next = new Map<string, ChatMessage>();
+        for (const message of messages) {
+            next.set(message.id, message);
+        }
+        return next;
+    }, [messages]);
+
+    const firstNameByUserId = useMemo(() => {
+        const next = new Map<string, string>();
+        for (const user of onlineUsers) {
+            if (user.id && user.name) {
+                next.set(user.id, user.name.split(' ')[0] || 'Alguem');
+            }
+        }
+        return next;
+    }, [onlineUsers]);
+
     return (
         <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-slate-50/50">
             {messages.length === 0 && (
@@ -25,7 +49,7 @@ export function MessageList({ messages, currentUser, onReact, onPin, onReply, on
                 </div>
             )}
 
-            {messages.some(message => message.isPinned) && (
+            {hasPinnedMessages && (
                 <div className="bg-yellow-50 px-3 py-1 border-b border-yellow-100 flex items-center gap-2 text-[10px] text-yellow-700 sticky top-0 z-10 mb-2 rounded shadow-sm">
                     <Pin size={10} className="fill-yellow-600 text-yellow-600" />
                     <span className="truncate flex-1 font-medium">Mensagens fixadas</span>
@@ -34,15 +58,15 @@ export function MessageList({ messages, currentUser, onReact, onPin, onReply, on
 
             {messages.map((message) => {
                 const isMe = message.from === currentUser.id;
-                const replyTarget = messages.find(candidate => candidate.id === message.replyTo?.id);
-                const replyTargetName = replyTarget?.from === currentUser.id ? 'Voce' :
-                    (replyTarget ? (onlineUsers.find(user => user.id === replyTarget.from)?.name?.split(' ')[0] || 'Alguem') : undefined);
+                const replyTarget = message.replyTo?.id ? messageById.get(message.replyTo.id) : undefined;
+                const replyTargetName = replyTarget
+                    ? (replyTarget.from === currentUser.id ? 'Voce' : firstNameByUserId.get(replyTarget.from) || 'Alguem')
+                    : undefined;
 
                 return (
                     <MessageItem
                         key={message.id}
                         msg={message}
-                        currentUser={currentUser}
                         isMe={isMe}
                         onReact={onReact}
                         onPin={onPin}
@@ -56,3 +80,5 @@ export function MessageList({ messages, currentUser, onReact, onPin, onReply, on
         </div>
     );
 }
+
+export const MessageList = memo(MessageListComponent);

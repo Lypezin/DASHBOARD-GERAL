@@ -1,7 +1,7 @@
 import { ChatMessage } from '@/hooks/data/useOnlineUsers';
 import { Image as ImageIcon, ChevronRight, Reply, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import React from 'react';
+import React, { memo, useEffect, useRef } from 'react';
 
 interface MessageInputProps {
     chatInput: string;
@@ -14,10 +14,36 @@ interface MessageInputProps {
     activeUserId: string;
 }
 
-export function MessageInput({
+function MessageInputComponent({
     chatInput, setChatInput, handleSendMessage, replyingTo,
     setReplyingTo, fileInputRef, setTypingTo, activeUserId
 }: MessageInputProps) {
+    const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (typingTimeoutRef.current) {
+                clearTimeout(typingTimeoutRef.current);
+            }
+        };
+    }, []);
+
+    const scheduleTypingUpdate = (value: string) => {
+        if (typingTimeoutRef.current) {
+            clearTimeout(typingTimeoutRef.current);
+        }
+
+        const trimmedValue = value.trim();
+        if (!trimmedValue) {
+            setTypingTo(null);
+            return;
+        }
+
+        typingTimeoutRef.current = setTimeout(() => {
+            setTypingTo(activeUserId);
+        }, 180);
+    };
+
     return (
         <div className="p-3 border-t border-slate-100 bg-white">
             {replyingTo && (
@@ -50,12 +76,20 @@ export function MessageInput({
                         onChange={e => {
                             const nextValue = e.target.value;
                             setChatInput(nextValue);
-                            setTypingTo(nextValue.trim() ? activeUserId : null);
+                            scheduleTypingUpdate(nextValue);
                         }}
-                        onBlur={() => setTypingTo(null)}
+                        onBlur={() => {
+                            if (typingTimeoutRef.current) {
+                                clearTimeout(typingTimeoutRef.current);
+                            }
+                            setTypingTo(null);
+                        }}
                         onKeyDown={e => {
                             if (e.key === 'Enter' && !e.shiftKey) {
                                 e.preventDefault();
+                                if (typingTimeoutRef.current) {
+                                    clearTimeout(typingTimeoutRef.current);
+                                }
                                 handleSendMessage();
                             }
                         }}
@@ -72,3 +106,5 @@ export function MessageInput({
         </div>
     );
 }
+
+export const MessageInput = memo(MessageInputComponent);
