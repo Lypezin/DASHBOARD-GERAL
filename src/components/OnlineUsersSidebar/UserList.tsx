@@ -43,15 +43,15 @@ export function UserList({
     const hasUsers = filteredUsers.length > 0;
 
     return (
-        <div className="flex-1 overflow-y-auto p-2 space-y-4 scrollbar-thin scrollbar-thumb-slate-200">
+        <div className="flex-1 overflow-y-auto px-3 pb-4 pt-3 space-y-5 scrollbar-thin scrollbar-thumb-slate-200">
             {['admin', 'marketing', 'user'].map((group) => {
                 const usersInGroup = groupedUsers[group as keyof typeof groupedUsers];
                 if (usersInGroup.length === 0) return null;
 
                 return (
-                    <div key={group} className="space-y-2">
+                    <div key={group} className="space-y-2.5">
                         {isOpen && (
-                            <h4 className="px-2 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                            <h4 className="px-2 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
                                 {group === 'user' ? 'Geral' : group} ({usersInGroup.length})
                             </h4>
                         )}
@@ -72,7 +72,7 @@ export function UserList({
             })}
 
             {!hasUsers && isOpen && (
-                <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center text-sm text-slate-400 dark:border-slate-800 dark:text-slate-500">
+                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-6 text-center text-sm text-slate-400 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-500">
                     Ninguem encontrado no momento.
                 </div>
             )}
