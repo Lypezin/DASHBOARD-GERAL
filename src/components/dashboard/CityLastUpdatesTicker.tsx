@@ -4,7 +4,6 @@ import React from 'react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { RefreshCw } from 'lucide-react';
-import { Card } from '@/components/ui/card';
 import { useCityLastUpdates } from '@/hooks/data/useCityLastUpdates';
 
 export function CityLastUpdatesTicker() {
@@ -19,49 +18,54 @@ export function CityLastUpdatesTicker() {
 
   return (
     <div className="mb-6 w-full">
-      <Card className="overflow-hidden border border-slate-200/80 bg-white/90 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/90">
-        <div className="flex flex-col gap-4 px-4 py-4 sm:px-5">
-          <div className="flex items-center gap-3">
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
-              <RefreshCw className="h-4 w-4 animate-city-updates-spin" />
-            </span>
-
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-400 dark:text-slate-500">
+      <div className="overflow-hidden rounded-2xl border border-slate-200/40 bg-white/60 backdrop-blur-sm shadow-sm dark:border-slate-800/40 dark:bg-slate-900/60">
+        <div className="flex items-center gap-6 px-5 py-3">
+          {/* Header */}
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10 dark:bg-blue-500/15">
+              <RefreshCw className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400 animate-city-updates-spin" />
+            </div>
+            <div className="hidden sm:block">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 leading-none mb-1">
                 Atualização
               </p>
-              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+              <p className="text-xs font-medium text-slate-600 dark:text-slate-300 leading-none">
                 Últimas praças sincronizadas
               </p>
             </div>
           </div>
 
-          <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-slate-50/70 dark:border-slate-800/70 dark:bg-slate-950/40">
-            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-10 bg-gradient-to-r from-slate-50 via-slate-50/85 to-transparent dark:from-slate-950 dark:via-slate-950/85 dark:to-transparent" />
-            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-10 bg-gradient-to-l from-slate-50 via-slate-50/85 to-transparent dark:from-slate-950 dark:via-slate-950/85 dark:to-transparent" />
+          {/* Divider */}
+          <div className="h-8 w-px bg-slate-200/60 dark:bg-slate-700/60 shrink-0" />
 
-            <div className="city-updates-marquee group flex min-w-max items-center gap-3 px-3 py-3 hover:[animation-play-state:paused]">
+          {/* Marquee */}
+          <div className="relative flex-1 overflow-hidden">
+            <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-white/60 to-transparent dark:from-slate-900/60 dark:to-transparent" />
+            <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-white/60 to-transparent dark:from-slate-900/60 dark:to-transparent" />
+
+            <div className="city-updates-marquee flex min-w-max items-center gap-5 hover:[animation-play-state:paused]">
               {marqueeItems.map((item, index) => (
                 <div
                   key={`${item.city}-${index}`}
-                  className="flex min-w-[220px] shrink-0 items-center gap-3 rounded-2xl border border-slate-200/80 bg-white/90 px-4 py-3 dark:border-slate-800/80 dark:bg-slate-900/80"
+                  className="flex items-center gap-2.5 shrink-0"
                 >
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  <div className="h-1.5 w-1.5 rounded-full bg-emerald-400/80 dark:bg-emerald-400/60 shrink-0" />
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-200 whitespace-nowrap">
                       {item.city}
-                    </p>
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    </span>
+                    <span className="text-[11px] text-slate-400 dark:text-slate-500 whitespace-nowrap tabular-nums">
                       {item.last_update_date
                         ? format(parseISO(item.last_update_date), "dd 'de' MMM, HH:mm", { locale: ptBR })
                         : 'N/A'}
-                    </p>
+                    </span>
                   </div>
                 </div>
               ))}
             </div>
           </div>
         </div>
-      </Card>
+      </div>
 
       <style jsx global>{`
         @keyframes city-updates-marquee {
@@ -83,12 +87,12 @@ export function CityLastUpdatesTicker() {
         }
 
         .city-updates-marquee {
-          animation: city-updates-marquee 34s linear infinite;
+          animation: city-updates-marquee 30s linear infinite;
           will-change: transform;
         }
 
         .animate-city-updates-spin {
-          animation: city-updates-spin 8s linear infinite;
+          animation: city-updates-spin 6s linear infinite;
         }
       `}</style>
     </div>
