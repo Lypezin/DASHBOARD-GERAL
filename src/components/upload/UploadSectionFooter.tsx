@@ -17,7 +17,7 @@ export const UploadSectionFooter: React.FC<UploadSectionFooterProps> = ({
   onUpload, uploading, fileCount, disabled = false, variant, tips, expectedColumns
 }) => {
   return (
-    <div className="mt-auto space-y-6">
+    <div className="mt-auto space-y-4 pt-2">
       <UploadActions 
         onUpload={onUpload} 
         uploading={uploading} 
@@ -27,8 +27,7 @@ export const UploadSectionFooter: React.FC<UploadSectionFooterProps> = ({
         fileCount={fileCount} 
       />
 
-      {/* Informações e Dicas - Less intrusive */}
-      <div className="space-y-3 opacity-80 hover:opacity-100 transition-opacity">
+      <div className="space-y-2">
         <UploadTips tips={tips} />
         <UploadExpectedColumns columns={expectedColumns} />
       </div>

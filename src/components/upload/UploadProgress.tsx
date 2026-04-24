@@ -10,13 +10,19 @@ interface UploadProgressProps {
 
 const variantStyles = {
   default: {
-    gradient: 'from-blue-500 via-indigo-500 to-purple-500',
+    bar: 'bg-blue-500',
+    track: 'bg-blue-100 dark:bg-blue-950/40',
+    text: 'text-blue-600 dark:text-blue-400',
   },
   marketing: {
-    gradient: 'from-purple-500 via-pink-500 to-rose-500',
+    bar: 'bg-purple-500',
+    track: 'bg-purple-100 dark:bg-purple-950/40',
+    text: 'text-purple-600 dark:text-purple-400',
   },
   valores: {
-    gradient: 'from-emerald-500 via-teal-500 to-cyan-500',
+    bar: 'bg-emerald-500',
+    track: 'bg-emerald-100 dark:bg-emerald-950/40',
+    text: 'text-emerald-600 dark:text-emerald-400',
   },
 };
 
@@ -28,20 +34,19 @@ export function UploadProgress({ progress, progressLabel, variant = 'default' }:
   }
 
   return (
-    <div className="mt-6 space-y-3 animate-in fade-in duration-300">
-      <div className="overflow-hidden rounded-full bg-slate-200 shadow-inner dark:bg-slate-800">
+    <div className="space-y-2.5 animate-in fade-in duration-300">
+      <div className={`overflow-hidden rounded-full ${styles.track} h-2`}>
         <div
-          className={`h-3 rounded-full bg-gradient-to-r ${styles.gradient} shadow-lg transition-all duration-500`}
+          className={`h-full rounded-full ${styles.bar} transition-all duration-500 ease-out`}
           style={{ width: `${progress}%` }}
         ></div>
       </div>
-      {progressLabel && (
-        <div className="text-center">
-          <p className="font-semibold text-slate-700 dark:text-slate-300">{progressLabel}</p>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{progress.toFixed(1)}% concluído</p>
-        </div>
-      )}
+      <div className="flex items-center justify-between">
+        {progressLabel && (
+          <p className="text-xs font-medium text-slate-600 dark:text-slate-300 truncate">{progressLabel}</p>
+        )}
+        <p className={`text-xs font-semibold ${styles.text} tabular-nums ml-auto`}>{progress.toFixed(0)}%</p>
+      </div>
     </div>
   );
 }
-
