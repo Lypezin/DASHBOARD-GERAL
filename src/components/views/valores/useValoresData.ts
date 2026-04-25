@@ -65,7 +65,7 @@ export function useValoresData(initialData: ValoresEntregador[] | null, initialL
         totalGeral,
         totalCorridas,
         taxaMediaGeral,
-        totalEntregadores: totalServerItems || totalEntregadores,
+        totalEntregadores: searchTerm.trim() ? totalEntregadores : (totalServerItems || totalEntregadores),
         setSearchTerm,
         handleSort,
         formatarReal,

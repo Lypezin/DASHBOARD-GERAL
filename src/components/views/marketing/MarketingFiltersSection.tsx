@@ -2,10 +2,9 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Filter, Sparkles } from 'lucide-react';
-import { MarketingFilters, MarketingDateFilter } from '@/types';
+import { Filter } from 'lucide-react';
+import { MarketingFilters } from '@/types';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
-import { MarketingCityFilter } from './components/MarketingCityFilter';
 
 interface MarketingFiltersSectionProps {
     filters: MarketingFilters;

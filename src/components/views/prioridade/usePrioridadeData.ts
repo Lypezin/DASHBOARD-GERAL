@@ -16,7 +16,7 @@ export function usePrioridadeData(entregadoresData: EntregadoresData | null) {
     const dataToDisplay = useMemo(() => {
         const baseData = entregadoresData?.entregadores;
         const baseArray = Array.isArray(baseData) ? baseData : [];
-        return (searchTerm.trim() && Array.isArray(searchResults) && searchResults.length > 0) ? searchResults : baseArray;
+        return searchTerm.trim() ? searchResults : baseArray;
     }, [searchTerm, searchResults, entregadoresData]);
 
     // Hook para filtros

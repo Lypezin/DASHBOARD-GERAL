@@ -4,7 +4,6 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Presentation, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { MarketingCityFilter } from './MarketingCityFilter';
 import MarketingDateFilterComponent from '@/components/MarketingDateFilter';
 
 interface PresentationConfigCardProps {

@@ -89,7 +89,7 @@ export async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrDa
         utrData = null;
     }
 
-    if (IS_DEV || true) safeLog.info('[UTR Fetcher] Dados recebidos do RPC:', { utrData: result.data });
+    if (IS_DEV) safeLog.info('[UTR Fetcher] Dados recebidos do RPC:', { utrData: result.data });
 
     return { data: utrData, error: null };
 }

@@ -58,9 +58,6 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
         if (dataInicial && !dataFinal) dataFinal = dataInicial;
         if (dataFinal && !dataInicial) dataInicial = dataFinal;
 
-        if (dataFinal && !dataInicial) dataInicial = dataFinal;
-        if (dataFinal && !dataInicial) dataInicial = dataFinal;
-
         ano = null;
         semana = null;
     } else {
