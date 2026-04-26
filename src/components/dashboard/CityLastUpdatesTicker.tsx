@@ -72,10 +72,10 @@ export function CityLastUpdatesTicker() {
       <style jsx global>{`
         @keyframes city-updates-marquee {
           0% {
-            transform: translate3d(100%, 0, 0);
+            transform: translate3d(0, 0, 0);
           }
           100% {
-            transform: translate3d(-100%, 0, 0);
+            transform: translate3d(-50%, 0, 0);
           }
         }
 
@@ -89,9 +89,13 @@ export function CityLastUpdatesTicker() {
         }
 
         .city-updates-marquee {
-          animation: city-updates-marquee 22s linear infinite !important;
-          transform: translate3d(100%, 0, 0);
+          animation: city-updates-marquee 18s linear infinite !important;
+          transform: translate3d(0, 0, 0);
           will-change: transform;
+        }
+
+        .city-updates-marquee:hover {
+          animation-play-state: paused !important;
         }
 
         .animate-city-updates-spin {
