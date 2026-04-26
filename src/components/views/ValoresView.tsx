@@ -8,8 +8,6 @@ import { useValoresData } from './valores/useValoresData';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { exportarValoresParaExcel } from './valores/ValoresExcelExport';
 import { safeLog } from '@/lib/errorHandler';
-import { motion } from 'framer-motion';
-import { staggerContainer, fadeInItem } from '@/utils/animations';
 import { ValoresHeader } from './valores/ValoresHeader';
 import { ValoresError, ValoresEmpty } from './valores/ValoresStates';
 import { ValoresBreakdownDisplay } from './valores/ValoresBreakdownDisplay';
@@ -55,27 +53,27 @@ const ValoresView = React.memo(function ValoresView({
   }
 
   return (
-    <motion.div className="space-y-6 animate-fade-in w-full max-w-[1800px] mx-auto pb-10" variants={staggerContainer} initial="hidden" animate="show">
-      <motion.div variants={fadeInItem}>
+    <div className="space-y-6 animate-fade-in w-full max-w-[1800px] mx-auto pb-10">
+      <div>
         <ValoresStatsCards totalGeral={totalGeral} totalEntregadores={totalEntregadores} totalCorridas={totalCorridas} taxaMediaGeral={taxaMediaGeral} formatarReal={formatarReal} />
-      </motion.div>
+      </div>
 
       <div className="space-y-4">
-        <ValoresHeader isExporting={isExporting} onExport={handleExport} variants={fadeInItem} isDetailed={filters?.detailed} onToggleDetailed={(checked) => setFilters?.({ ...filters, detailed: checked })} />
+        <ValoresHeader isExporting={isExporting} onExport={handleExport} isDetailed={filters?.detailed} onToggleDetailed={(checked) => setFilters?.({ ...filters, detailed: checked })} />
 
-        <motion.div variants={fadeInItem}>
+        <div>
           <ValoresSearch searchTerm={searchTerm} isSearching={isSearching} totalResults={totalEntregadores} onSearchChange={setSearchTerm} onClearSearch={() => setSearchTerm('')} />
-        </motion.div>
+        </div>
 
-        <motion.div variants={fadeInItem}>
+        <div>
           <ValoresTable sortedValores={paginatedValores} sortField={sortField} sortDirection={sortDirection} onSort={handleSort} formatarReal={formatarReal} isDetailed={filters?.detailed} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} />
-        </motion.div>
+        </div>
 
         {filters?.detailed && (
           <ValoresBreakdownDisplay data={breakdownData} loading={loadingBreakdown} formatarReal={formatarReal} />
         )}
       </div>
-    </motion.div>
+    </div>
   );
 });
 

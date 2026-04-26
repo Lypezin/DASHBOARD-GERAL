@@ -14,7 +14,7 @@ export const OperationalViewToggle: React.FC<OperationalViewToggleProps> = ({ vi
                 <button
                     key={mode}
                     onClick={() => onViewModeChange(mode)}
-                    className={`px-4 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${viewMode === mode
+                    className={`px-4 py-1.5 rounded-md text-xs font-medium transition-[background-color,color,box-shadow] duration-150 ${viewMode === mode
                         ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
                         : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
                         }`}

@@ -25,7 +25,7 @@ export const EntregadoresMainSearch = React.memo(function EntregadoresMainSearch
                         placeholder="Pesquisar por nome ou ID do entregador..."
                         value={searchTerm}
                         onChange={(e) => onSearchChange(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 text-sm rounded-md border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                        className="w-full pl-9 pr-4 py-2 text-sm rounded-md border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-[background-color,border-color,box-shadow] duration-150 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                     />
                 </div>
                 <div className="flex items-center gap-2">

@@ -158,4 +158,15 @@
     background: rgba(15, 23, 42, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.05);
   }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      scroll-behavior: auto !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
 }

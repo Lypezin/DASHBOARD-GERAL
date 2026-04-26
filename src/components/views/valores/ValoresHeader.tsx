@@ -2,14 +2,12 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
-import { motion, Variants } from 'framer-motion';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
 interface ValoresHeaderProps {
     isExporting: boolean;
     onExport: () => void;
-    variants: Variants;
     isDetailed?: boolean;
     onToggleDetailed?: (checked: boolean) => void;
 }
@@ -17,15 +15,11 @@ interface ValoresHeaderProps {
 export const ValoresHeader = React.memo(function ValoresHeader({
     isExporting,
     onExport,
-    variants,
     isDetailed,
     onToggleDetailed
 }: ValoresHeaderProps) {
     return (
-        <motion.div
-            className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4"
-            variants={variants}
-        >
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-3">
                 <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-emerald-500 to-teal-600 shadow-sm" />
                 <div>
@@ -62,6 +56,6 @@ export const ValoresHeader = React.memo(function ValoresHeader({
                     {isExporting ? 'Exportando...' : 'Exportar Excel'}
                 </Button>
             </div>
-        </motion.div>
+        </div>
     );
 });

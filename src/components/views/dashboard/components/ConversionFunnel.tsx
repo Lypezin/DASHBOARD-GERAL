@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import { ArrowRight, TrendingDown } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
@@ -43,11 +42,9 @@ export const ConversionFunnel = React.memo(function ConversionFunnel({ ofertadas
                                 </span>
                             </div>
                             <div className="h-7 bg-slate-100 dark:bg-slate-800 rounded-md overflow-hidden">
-                                <motion.div
-                                    className={`h-full ${stage.color} rounded-md`}
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${widthPct}%` }}
-                                    transition={{ duration: 0.8, delay: i * 0.15, ease: 'easeOut' }}
+                                <div
+                                    className={`h-full ${stage.color} rounded-md transition-[width] duration-700`}
+                                    style={{ width: `${widthPct}%` }}
                                 />
                             </div>
                             {i < stages.length - 1 && (

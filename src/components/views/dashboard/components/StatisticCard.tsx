@@ -42,8 +42,8 @@ export const StatisticCard = React.memo(function StatisticCard({
     sparklineColor
 }: StatisticCardProps) {
     return (
-        <Card className="border border-slate-200/50 dark:border-slate-800/50 shadow-lg hover:shadow-xl transition-all duration-500 bg-white/70 dark:bg-slate-900/70 backdrop-blur-xl group relative overflow-hidden">
-            <div className={`absolute right-0 top-0 w-48 h-48 rounded-full -mr-16 -mt-16 blur-[60px] opacity-40 group-hover:opacity-70 transition-opacity duration-700 ${bgGlowColor} pointer-events-none`}></div>
+        <Card className="border border-slate-200/50 dark:border-slate-800/50 shadow-sm hover:shadow-md transition-[background-color,border-color,box-shadow] duration-200 bg-white/80 dark:bg-slate-900/80 group relative overflow-hidden">
+            <div className={`absolute right-0 top-0 w-48 h-48 rounded-full -mr-16 -mt-16 opacity-15 group-hover:opacity-25 transition-opacity duration-300 ${bgGlowColor} pointer-events-none`}></div>
             <CardContent className="p-8 flex items-start justify-between relative z-10 hover:translate-y-[-2px] transition-transform duration-300">
                 <div className="space-y-2">
                     <div className="flex items-center gap-2 mb-2">
@@ -80,7 +80,7 @@ export const StatisticCard = React.memo(function StatisticCard({
                         </div>
                     )}
                 </div>
-                <div className={`p-4 bg-gradient-to-br ${gradientFrom} ${gradientTo} rounded-2xl group-hover:scale-110 transition-transform duration-300 shadow-sm`}>
+                <div className={`p-4 bg-gradient-to-br ${gradientFrom} ${gradientTo} rounded-2xl group-hover:scale-[1.03] transition-transform duration-200 shadow-sm`}>
                     <Icon className={`w-8 h-8 ${iconColor}`} />
                 </div>
             </CardContent>

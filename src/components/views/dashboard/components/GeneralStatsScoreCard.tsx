@@ -19,8 +19,8 @@ export const GeneralStatsScoreCard: React.FC<GeneralStatsScoreCardProps> = ({ pe
     const { theme } = useTheme();
 
     return (
-        <Card className="lg:col-span-4 border border-slate-200/50 dark:border-slate-800/50 shadow-xl bg-gradient-to-br from-white/90 via-white/80 to-slate-50/90 dark:from-slate-900/90 dark:via-slate-900/80 dark:to-slate-950/90 backdrop-blur-xl overflow-hidden relative group ring-1 ring-slate-100 dark:ring-slate-800/50 transition-all hover:shadow-2xl">
-            <div className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full blur-[80px] opacity-20 group-hover:opacity-40 transition-opacity duration-700 pointer-events-none`} style={{ backgroundColor: progressColor }} />
+        <Card className="lg:col-span-4 border border-slate-200/50 dark:border-slate-800/50 shadow-md bg-gradient-to-br from-white/95 via-white/85 to-slate-50/90 dark:from-slate-900/95 dark:via-slate-900/85 dark:to-slate-950/90 overflow-hidden relative group ring-1 ring-slate-100 dark:ring-slate-800/50 transition-[box-shadow,border-color,background-color] duration-200 hover:shadow-lg">
+            <div className="absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full opacity-10 transition-opacity duration-300 pointer-events-none group-hover:opacity-20" style={{ backgroundColor: progressColor }} />
             <div className="absolute top-0 right-0 p-4 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity duration-500 pointer-events-none">
                 <TrendingUp className="w-48 h-48 text-current transform rotate-12" />
             </div>
@@ -43,7 +43,7 @@ export const GeneralStatsScoreCard: React.FC<GeneralStatsScoreCardProps> = ({ pe
                     <p className="text-xs text-slate-400 font-medium uppercase tracking-wider">Desempenho Consolidado</p>
                 </div>
 
-                <div className="relative scale-110 mb-4 transition-transform duration-500 hover:scale-[1.15]">
+                <div className="relative scale-105 mb-4 transition-transform duration-200 hover:scale-[1.08]">
                     <CircularProgress
                         value={percentual}
                         size={180}

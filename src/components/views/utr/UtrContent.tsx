@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion, Variants } from 'framer-motion';
 import { Building2, Clock, MapPin, Target } from 'lucide-react';
 import { UtrData } from '@/types';
 import { UtrGeral } from './UtrGeral';
@@ -11,7 +10,6 @@ interface UtrContentProps {
     porSubPraca: any[];
     porOrigem: any[];
     porTurno: any[];
-    variants: Variants;
 }
 
 export const UtrContent = React.memo(function UtrContent({
@@ -19,20 +17,19 @@ export const UtrContent = React.memo(function UtrContent({
     porPraca,
     porSubPraca,
     porOrigem,
-    porTurno,
-    variants
+    porTurno
 }: UtrContentProps) {
     return (
         <React.Fragment>
-            <motion.section variants={variants} className="space-y-4">
+            <section className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
-                    <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Visão Consolidada</h2>
+                    <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Visao Consolidada</h2>
                     <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
                 </div>
                 <UtrGeral data={utrData.geral} />
-            </motion.section>
+            </section>
 
-            <motion.section variants={variants} className="space-y-4">
+            <section className="space-y-4">
                 <div className="flex items-center gap-2 mb-4">
                     <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Detalhamento Operacional</h2>
                     <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
@@ -70,7 +67,7 @@ export const UtrContent = React.memo(function UtrContent({
                         getLabel={(item) => item.turno || item.periodo || ''}
                     />
                 </div>
-            </motion.section>
+            </section>
         </React.Fragment>
     );
 });

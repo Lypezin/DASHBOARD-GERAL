@@ -39,7 +39,7 @@ export const AtendenteCard = React.memo(function AtendenteCard({
   const metaAtingida = metaInfoAtendente?.jaAtingiuMeta ?? false;
 
   return (
-    <Card className="border-none shadow-sm hover:shadow-md transition-all duration-300 h-full flex flex-col bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800/50 group relative overflow-hidden">
+    <Card className="border-none shadow-sm hover:shadow-md transition-[background-color,box-shadow] duration-200 h-full flex flex-col bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800/50 group relative overflow-hidden">
 
       <CardContent className="p-5 flex flex-col flex-1 min-h-0 overflow-hidden space-y-4 relative z-10">
         <AtendenteHeader

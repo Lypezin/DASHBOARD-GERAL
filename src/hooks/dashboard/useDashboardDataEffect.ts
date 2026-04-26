@@ -21,8 +21,10 @@ interface UseDashboardDataEffectProps {
     isFirstExecutionRef: React.MutableRefObject<boolean>;
     pendingPayloadKeyRef: React.MutableRefObject<string>;
     setters: {
-        setTotals: (data: Totals | null) => void; setAderenciaSemanal: (data: AderenciaSemanal[]) => void;
-        setAderenciaDia: (data: AderenciaDia[]) => void; setAderenciaTurno: (data: AderenciaTurno[]) => void;
+        setTotals: (data: Totals | null) => void;
+        setAderenciaSemanal: (data: AderenciaSemanal[]) => void;
+        setAderenciaDia: (data: AderenciaDia[]) => void;
+        setAderenciaTurno: (data: AderenciaTurno[]) => void;
         setAderenciaSubPraca: (data: AderenciaSubPraca[]) => void;
         setAderenciaOrigem: (data: AderenciaOrigem[]) => void;
         setAderenciaDiaOrigem: (data: AderenciaDiaOrigem[]) => void;
@@ -31,13 +33,23 @@ interface UseDashboardDataEffectProps {
     shouldFetch?: boolean;
 }
 
-export function useDashboardDataEffect({ filterPayload, fetchDashboardData, checkCache, updateCache, clearCache, previousPayloadRef, isFirstExecutionRef, pendingPayloadKeyRef, setters, shouldFetch = true }: UseDashboardDataEffectProps, payloadKey: string) {
-
+export function useDashboardDataEffect({
+    filterPayload,
+    fetchDashboardData,
+    checkCache,
+    updateCache,
+    clearCache,
+    previousPayloadRef,
+    isFirstExecutionRef,
+    pendingPayloadKeyRef,
+    setters,
+    shouldFetch = true
+}: UseDashboardDataEffectProps, payloadKey: string) {
     useEffect(() => {
         if (!shouldFetch) return;
 
         if (previousPayloadRef.current === payloadKey) {
-            if (IS_DEV) safeLog.info('[useDashboardDataEffect] Payload não mudou, ignorando');
+            if (IS_DEV) safeLog.info('[useDashboardDataEffect] Payload nao mudou, ignorando');
             return;
         }
 
@@ -49,7 +61,9 @@ export function useDashboardDataEffect({ filterPayload, fetchDashboardData, chec
         }
 
         const hasValidFilters = (filterPayload.p_ano != null) || (filterPayload.p_data_inicial != null);
-        const previousPayloadWasInvalid = previousPayloadRef.current && (!previousPayloadRef.current.includes('"p_ano":') || previousPayloadRef.current.includes('"p_ano":null')) && (!previousPayloadRef.current.includes('"p_data_inicial":') || previousPayloadRef.current.includes('"p_data_inicial":null'));
+        const previousPayloadWasInvalid = previousPayloadRef.current
+            && (!previousPayloadRef.current.includes('"p_ano":') || previousPayloadRef.current.includes('"p_ano":null'))
+            && (!previousPayloadRef.current.includes('"p_data_inicial":') || previousPayloadRef.current.includes('"p_data_inicial":null'));
 
         if (previousPayloadWasInvalid && hasValidFilters) {
             clearCache();
@@ -66,26 +80,40 @@ export function useDashboardDataEffect({ filterPayload, fetchDashboardData, chec
         }
 
         const currentPayloadKey = payloadKey;
-
-        const timeoutId = setTimeout(async () => {
+        const runFetch = async () => {
             if (pendingPayloadKeyRef.current !== currentPayloadKey) return;
 
-            const isFirstExecutionInTimeout = isFirstExecutionRef.current;
-            const hasValidFiltersInTimeout = (filterPayload.p_ano !== null && filterPayload.p_ano !== undefined) ||
-                (filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
+            const isFirstExecution = isFirstExecutionRef.current;
+            const hasValidFiltersForFetch = (filterPayload.p_ano !== null && filterPayload.p_ano !== undefined)
+                || (filterPayload.p_data_inicial !== null && filterPayload.p_data_inicial !== undefined);
 
-            if (IS_DEV) safeLog.info('[useDashboardDataEffect] Iniciando fetch com payload válido:', filterPayload);
+            if (IS_DEV) safeLog.info('[useDashboardDataEffect] Iniciando fetch com payload valido:', filterPayload);
 
             const data = await fetchDashboardData(filterPayload);
 
             if (data) {
-                const cacheKeyToUse = isFirstExecutionInTimeout && !hasValidFiltersInTimeout ? '__first_execution_dimensions__' : currentPayloadKey;
-                updateCache(cacheKeyToUse, data); updateDashboardState(data, setters, false);
-                previousPayloadRef.current = currentPayloadKey; isFirstExecutionRef.current = false; pendingPayloadKeyRef.current = '';
+                const cacheKeyToUse = isFirstExecution && !hasValidFiltersForFetch
+                    ? '__first_execution_dimensions__'
+                    : currentPayloadKey;
+                updateCache(cacheKeyToUse, data);
+                updateDashboardState(data, setters, false);
+                previousPayloadRef.current = currentPayloadKey;
+                isFirstExecutionRef.current = false;
+                pendingPayloadKeyRef.current = '';
             } else {
                 clearDashboardState(setters, createEmptyDashboardData());
-                previousPayloadRef.current = currentPayloadKey; isFirstExecutionRef.current = false;
+                previousPayloadRef.current = currentPayloadKey;
+                isFirstExecutionRef.current = false;
             }
+        };
+
+        if (isFirstExecutionRef.current) {
+            void runFetch();
+            return;
+        }
+
+        const timeoutId = setTimeout(() => {
+            void runFetch();
         }, DELAYS.DEBOUNCE);
 
         return () => {

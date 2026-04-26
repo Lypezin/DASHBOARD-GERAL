@@ -10,8 +10,9 @@ import { useDashboardMainData } from './useDashboardMainData';
 
 export function useDashboardPage() {
   const { isCheckingAuth, isAuthenticated, currentUser } = useDashboardAuthWrapper();
-  const chartReady = useChartRegistration();
   const { activeTab, handleTabChange } = useDashboardTabs();
+  const needsChartRuntime = ['evolucao', 'comparacao', 'marketing_comparacao'].includes(activeTab);
+  const chartReady = useChartRegistration(needsChartRuntime);
 
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
   const { filters, setFilters } = useDashboardFilters();

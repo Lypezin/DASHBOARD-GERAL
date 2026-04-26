@@ -18,8 +18,8 @@ export const StatCard: React.FC<StatCardProps> = ({
     bgClass,
     iconBgClass,
 }) => (
-    <Card className={`border-none shadow-sm hover:shadow-lg transition-all duration-300 group overflow-hidden relative ${bgClass}`}>
-        <div className={`absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-opacity transform group-hover:scale-110 duration-500`}>
+    <Card className={`border-none shadow-sm hover:shadow-md transition-[background-color,box-shadow] duration-200 group overflow-hidden relative ${bgClass}`}>
+        <div className={`absolute top-0 right-0 p-3 opacity-10 group-hover:opacity-20 transition-[opacity,transform] transform group-hover:scale-[1.03] duration-200`}>
             <Icon className="w-16 h-16" />
         </div>
 

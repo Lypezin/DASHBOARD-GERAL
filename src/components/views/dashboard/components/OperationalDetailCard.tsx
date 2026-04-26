@@ -49,7 +49,7 @@ export const OperationalDetailCard: React.FC<OperationalDetailCardProps> = ({ da
     return (
         <Tooltip>
             <TooltipTrigger asChild>
-                <Card className={`border border-slate-200/50 dark:border-slate-800/50 shadow-sm hover:shadow-2xl hover:-translate-y-1.5 transition-all duration-500 relative overflow-hidden group ${bgGradient} backdrop-blur-xl cursor-help`}>
+                <Card className={`border border-slate-200/50 dark:border-slate-800/50 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-[background-color,border-color,box-shadow,transform] duration-200 relative overflow-hidden group ${bgGradient} cursor-help`}>
                     <div className={`absolute top-0 right-0 p-3 opacity-[0.05] group-hover:opacity-[0.12] transition-opacity duration-500 pointer-events-none`}>
                         <Icon className="w-28 h-28 text-current transform -rotate-12" />
                     </div>
@@ -74,7 +74,7 @@ export const OperationalDetailCard: React.FC<OperationalDetailCardProps> = ({ da
                                 </div>
                                 <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
                                     <div
-                                        className={`h-full ${barColor} rounded-full shadow-sm transition-all duration-1000 relative`}
+                                        className={`h-full ${barColor} rounded-full shadow-sm transition-[width] duration-700 relative`}
                                         style={{ width: `${Math.min(data.aderencia, 100)}%` }}
                                     >
                                         <div className="absolute inset-0 bg-white/20 animate-pulse"></div>

@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import { Minus, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 import { useWeekComparison } from '../hooks/useWeekComparison';
 import { AderenciaSemanal, CurrentUser } from '@/types';
@@ -57,7 +56,7 @@ export const MonthComparisonCards = React.memo(function MonthComparisonCards({
                 Comparativo: <span className="font-medium text-slate-500 dark:text-slate-300">{currentWeekLabel}</span> vs <span className="font-medium text-slate-500 dark:text-slate-300">{previousWeekLabel}</span>
             </p>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {metrics.map((metric, i) => {
+                {metrics.map((metric) => {
                     const delta = metric.previous !== 0
                         ? ((metric.current - metric.previous) / metric.previous) * 100
                         : 0;
@@ -65,11 +64,8 @@ export const MonthComparisonCards = React.memo(function MonthComparisonCards({
                     const isNeutral = Math.abs(delta) < 0.5;
 
                     return (
-                        <motion.div
+                        <div
                             key={metric.label}
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: i * 0.05, duration: 0.28 }}
                             className="rounded-xl border border-slate-200/50 p-3 shadow-sm transition-[background-color,border-color,box-shadow] duration-200 group dark:border-slate-800/50 bg-white/70 dark:bg-slate-900/50 supports-[backdrop-filter]:backdrop-blur-sm hover:bg-white/85 dark:hover:bg-slate-900/62 hover:shadow-md hover:ring-1 hover:ring-blue-500/10"
                         >
                             <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400 mb-1">{metric.label}</p>
@@ -92,7 +88,7 @@ export const MonthComparisonCards = React.memo(function MonthComparisonCards({
                             <p className="text-[10px] text-slate-400 mt-1">
                                 Antes ({previousWeekLabel}): {formatValue(metric.previous, metric.format)}
                             </p>
-                        </motion.div>
+                        </div>
                     );
                 })}
             </div>

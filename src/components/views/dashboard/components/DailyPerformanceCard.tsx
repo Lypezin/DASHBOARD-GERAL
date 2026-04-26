@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { motion, Variants } from 'framer-motion';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { AderenciaDia } from '@/types';
 import { Tooltip, TooltipTrigger } from "@/components/ui/tooltip";
@@ -12,13 +11,11 @@ import { DailyCorridasMetrics } from './DailyCorridasMetrics';
 interface DailyPerformanceCardProps {
     dia: AderenciaDia;
     index: number;
-    variants: Variants;
 }
 
 export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
     dia,
-    index,
-    variants
+    index
 }: DailyPerformanceCardProps) {
     const aderencia = dia.aderencia_percentual || 0;
     const isToday = new Date().getDay() === (index + 1) % 7;
@@ -34,12 +31,12 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
     return (
         <Tooltip>
             <TooltipTrigger asChild>
-                <motion.div key={`dia-${index}`} variants={variants}>
+                <div key={`dia-${index}`}>
                     <Card
-                        className={`border border-slate-200/50 dark:border-slate-800/50 shadow-sm hover:shadow-xl transition-all duration-300 ${isToday
+                        className={`border border-slate-200/50 dark:border-slate-800/50 shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-200 ${isToday
                             ? 'bg-blue-50/50 dark:bg-blue-900/10 ring-1 ring-blue-200 dark:ring-blue-800'
-                            : 'bg-white/70 dark:bg-slate-900/70 backdrop-blur-md'
-                            } cursor-help hover:-translate-y-1.5`}
+                            : 'bg-white/70 dark:bg-slate-900/70 supports-[backdrop-filter]:backdrop-blur-sm'
+                            } cursor-help hover:-translate-y-0.5 hover:shadow-md`}
                     >
                         <CardContent className="p-4 flex flex-col items-center justify-between h-full min-h-[140px]">
                             <div className="text-center w-full">
@@ -59,7 +56,7 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
                             <div className="w-full space-y-2 mt-3">
                                 <div className="h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                     <div
-                                        className={`h-full ${barColor} rounded-full transition-all duration-1000`}
+                                        className={`h-full ${barColor} rounded-full transition-[width] duration-700`}
                                         style={{ width: `${Math.min(aderencia, 100)}%` }}
                                     ></div>
                                 </div>
@@ -80,7 +77,7 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
                             </div>
                         </CardContent>
                     </Card>
-                </motion.div>
+                </div>
             </TooltipTrigger>
             <DailyPerformanceTooltip dia={dia} />
         </Tooltip>

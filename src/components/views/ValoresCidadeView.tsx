@@ -9,17 +9,6 @@ import { ValoresCidadeFilters } from './valoresCidade/ValoresCidadeFilters';
 import { ValoresCidadeCards } from './valoresCidade/ValoresCidadeCards';
 import { ValoresCidadeHeader } from './valoresCidade/ValoresCidadeHeader';
 import { ValoresCidadeFeedback } from './valoresCidade/ValoresCidadeFeedback';
-import { motion, Variants } from 'framer-motion';
-
-const container: Variants = {
-  hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.1 } }
-};
-
-const item: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-};
 
 const ValoresCidadeView = React.memo(function ValoresCidadeView() {
   const { isAuthenticated, errorMessage, loading: authLoading } = useValoresCidadeAuth();
@@ -40,8 +29,8 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
   }
 
   return (
-    <motion.div className="space-y-6 animate-fade-in pb-8" variants={container} initial="hidden" animate="show">
-      <motion.div variants={item} className="space-y-4">
+    <div className="space-y-6 animate-fade-in pb-8">
+      <div className="space-y-4">
         <ValoresCidadeHeader />
         <ValoresCidadeFilters
           filter={filter}
@@ -49,12 +38,14 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
           onFilterChange={handleFilterChange}
           onFilterEnviadosChange={handleFilterEnviadosChange}
         />
-      </motion.div>
+      </div>
 
-      <motion.div variants={item}>
-        <ValoresCidadeCards totalGeral={totalGeral} custoPorLiberado={custoPorLiberado} cidadesData={cidadesData} />
-      </motion.div>
-    </motion.div>
+      <ValoresCidadeCards
+        totalGeral={totalGeral}
+        custoPorLiberado={custoPorLiberado}
+        cidadesData={cidadesData}
+      />
+    </div>
   );
 });
 

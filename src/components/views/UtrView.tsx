@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { motion, Variants } from 'framer-motion';
 import { Activity } from 'lucide-react';
 import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 import { useTabData } from '@/hooks/data/useTabData';
@@ -55,38 +54,13 @@ const UtrView = React.memo(function UtrView({
   const sectionCount = [porPraca, porSubPraca, porOrigem, porTurno].filter((section) => section.length > 0).length;
   const totalSlices = porPraca.length + porSubPraca.length + porOrigem.length + porTurno.length;
 
-  const container: Variants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.06
-      }
-    }
-  };
-
-  const item: Variants = {
-    hidden: { opacity: 0, y: 14 },
-    show: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.3, ease: 'easeOut' }
-    }
-  };
-
   return (
-    <motion.div
-      className="flex flex-col gap-8 pb-12 pt-4 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10"
-      variants={container}
-      initial="hidden"
-      animate="show"
-    >
+    <div className="flex flex-col gap-8 pb-12 pt-4 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 animate-fade-in">
       <UtrHeader
         isExporting={isExporting}
         onExport={handleExport}
         totalSections={sectionCount}
         totalSlices={totalSlices}
-        variants={item}
       />
 
       <UtrContent
@@ -95,9 +69,8 @@ const UtrView = React.memo(function UtrView({
         porSubPraca={porSubPraca}
         porOrigem={porOrigem}
         porTurno={porTurno}
-        variants={item}
       />
-    </motion.div>
+    </div>
   );
 });
 

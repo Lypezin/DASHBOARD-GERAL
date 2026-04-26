@@ -27,7 +27,7 @@ export const PrioridadeSearch: React.FC<PrioridadeSearchProps> = ({
             placeholder="Pesquisar entregador por nome ou ID..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="w-full pl-9 pr-10 py-2 text-sm rounded-md border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+            className="w-full pl-9 pr-10 py-2 text-sm rounded-md border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-[background-color,border-color,box-shadow] duration-150 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
           />
           {searchTerm && (
             <button

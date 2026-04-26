@@ -4,14 +4,10 @@ import { DashboardDailyPerformance } from './dashboard/DashboardDailyPerformance
 import { DashboardOperationalDetail } from './dashboard/DashboardOperationalDetail';
 import { MonthComparisonCards } from './dashboard/components/MonthComparisonCards';
 import { Button } from '@/components/ui/button';
-// @ts-ignore
 import { Download } from 'lucide-react';
-// @ts-ignore
-import { motion, Variants } from 'framer-motion';
 import { exportarDashboardParaExcel } from './dashboard/DashboardExcelExport';
 import { safeLog } from '@/lib/errorHandler';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
-import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import type {
   DashboardFilters, CurrentUser, Totals, AderenciaSemanal, AderenciaDia,
   AderenciaTurno, AderenciaSubPraca, AderenciaOrigem
@@ -70,7 +66,6 @@ const DashboardView = React.memo(function DashboardView({
           <p className="text-muted-foreground">Monitoramento de aderência e indicadores chave de desempenho.</p>
         </div>
         <Button
-          // @ts-ignore
           variant="outline"
           onClick={handleExport}
           disabled={isExporting}

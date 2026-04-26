@@ -4,15 +4,19 @@
  */
 
 import React from 'react';
+import dynamic from 'next/dynamic';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
-import { Moon, Sun } from 'lucide-react';
-import { useHeaderAuth, UserProfile } from '@/hooks/auth/useHeaderAuth';
+import { Moon, Sun, Trophy } from 'lucide-react';
+import type { UserProfile } from '@/hooks/auth/useHeaderAuth';
 import { DesktopNavLinks } from './Header/DesktopNavLinks';
 import { UserDropdown } from './Header/UserDropdown';
-import { Trophy } from 'lucide-react';
-import { AchievementsDialog } from './achievements/AchievementsDialog';
 import { useState } from 'react';
+
+const DeferredAchievementsDialog = dynamic(
+  () => import('./achievements/AchievementsDialog').then((mod) => ({ default: mod.AchievementsDialog })),
+  { ssr: false }
+);
 
 interface HeaderDesktopMenuProps {
   user: UserProfile | null;
@@ -61,7 +65,9 @@ export const HeaderDesktopMenu = React.memo(function HeaderDesktopMenu({
 
       <UserDropdown user={user} avatarUrl={avatarUrl} onLogout={onLogout} />
 
-      <AchievementsDialog open={showAchievements} onOpenChange={setShowAchievements} />
+      {showAchievements ? (
+        <DeferredAchievementsDialog open={showAchievements} onOpenChange={setShowAchievements} />
+      ) : null}
     </nav>
   );
 });

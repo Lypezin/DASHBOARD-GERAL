@@ -6,7 +6,6 @@ import { ResultadosCards } from './resultados/ResultadosCards';
 import { useResultadosData } from './resultados/useResultadosData';
 import { ResultadosErrorState } from './resultados/ResultadosErrorState';
 import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
-import { motion, Variants } from 'framer-motion';
 import { handleExportExcelResultados } from './resultados/ResultadosExcelExport';
 
 const ResultadosView = React.memo(function ResultadosView() {
@@ -35,37 +34,17 @@ const ResultadosView = React.memo(function ResultadosView() {
     return <ResultadosErrorState error={error} />;
   }
 
-  const container: Variants = {
-    hidden: { opacity: 0 },
-    show: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const item: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-  };
-
   return (
-    <motion.div
-      className="space-y-6 pb-8"
-      variants={container}
-      initial="hidden"
-      animate="show"
-    >
-      <motion.div variants={item} className="space-y-4">
+    <div className="space-y-6 pb-8 animate-fade-in">
+      <div className="space-y-4">
         <div className="flex items-center gap-3 px-2">
           <div className="h-8 w-1.5 rounded-full bg-blue-600 shadow-sm" />
           <div>
             <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
-              Análise de Resultados
+              Analise de Resultados
             </h2>
             <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-              Performance de atendentes e conversão de envios
+              Performance de atendentes e conversao de envios
             </p>
           </div>
         </div>
@@ -79,21 +58,19 @@ const ResultadosView = React.memo(function ResultadosView() {
           onExport={handleExport}
           hasData={atendentesData && atendentesData.length > 0}
         />
-      </motion.div>
+      </div>
 
-      {/* Header com Totais */}
-      <motion.div className="space-y-4" variants={item}>
+      <div className="space-y-4">
         <ResultadosCards
           totalEnviado={totais.totalEnviado}
           totalLiberado={totais.totalLiberado}
           atendentesData={atendentesData}
         />
-      </motion.div>
-    </motion.div>
+      </div>
+    </div>
   );
 });
 
 ResultadosView.displayName = 'ResultadosView';
 
 export default ResultadosView;
-

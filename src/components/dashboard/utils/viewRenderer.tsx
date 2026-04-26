@@ -18,7 +18,7 @@ import type { TabType } from '@/types';
 
 // Helper to determine if a chart is needed
 export const needsChartReady = (tab: TabType) => {
-    return ['dashboard', 'analise', 'evolucao', 'comparacao', 'marketing_comparacao'].includes(tab);
+    return ['evolucao', 'comparacao', 'marketing_comparacao'].includes(tab);
 };
 
 export const renderActiveView = (activeTab: TabType, props: any) => {

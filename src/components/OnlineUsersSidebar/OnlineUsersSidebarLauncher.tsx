@@ -20,14 +20,12 @@ export function OnlineUsersSidebarLauncher({ currentUser, currentTab }: OnlineUs
   const [openOnLoad, setOpenOnLoad] = useState(false);
 
   useEffect(() => {
-    if (!currentUser || activated) {
+    if (!currentUser || activated || typeof window === 'undefined') {
       return;
     }
 
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
     let idleId: number | null = null;
-
-    const activateInBackground = () => setActivated(true);
+    let timeoutId: number | null = null;
     const browserWindow = typeof window !== 'undefined'
       ? window as Window & {
           requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number;
@@ -35,15 +33,20 @@ export function OnlineUsersSidebarLauncher({ currentUser, currentTab }: OnlineUs
         }
       : null;
 
+    // Prefetch only the JS chunk after idle. Realtime/presence starts only after the first open.
     if (browserWindow?.requestIdleCallback) {
-      idleId = browserWindow.requestIdleCallback(activateInBackground, { timeout: 1200 });
+      idleId = browserWindow.requestIdleCallback(() => {
+        void import('./index');
+      }, { timeout: 6000 });
     } else {
-      timeoutId = setTimeout(activateInBackground, 800);
+      timeoutId = window.setTimeout(() => {
+        void import('./index');
+      }, 5000);
     }
 
     return () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
       }
 
       if (browserWindow?.cancelIdleCallback && idleId !== null) {
@@ -73,7 +76,6 @@ export function OnlineUsersSidebarLauncher({ currentUser, currentTab }: OnlineUs
       currentUser={currentUser}
       currentTab={currentTab}
       initialOpen={openOnLoad}
-      preloadRealtime
     />
   );
 }
