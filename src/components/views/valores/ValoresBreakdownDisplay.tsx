@@ -1,9 +1,6 @@
-
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from '@/components/ui/card';
 import { ValoresBreakdown } from '@/types/financeiro';
-import { motion } from 'framer-motion';
-import { fadeInItem } from '@/utils/animations';
 
 interface ValoresBreakdownProps {
     data: ValoresBreakdown | null;
@@ -20,12 +17,11 @@ export const ValoresBreakdownDisplay = React.memo(({ data, loading, formatarReal
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-            {/* Breakdown por Turno */}
-            <motion.div variants={fadeInItem} className="space-y-4">
+            <div className="space-y-4 animate-fade-in">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white px-2">Totais por Turno</h3>
                 <div className="grid gap-4">
-                    {data.by_turno.map((item, idx) => (
-                        <Card key={idx} className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+                    {data.by_turno.map((item, index) => (
+                        <Card key={index} className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
                             <CardContent className="flex items-center justify-between p-6">
                                 <div className="space-y-1">
                                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
@@ -45,14 +41,13 @@ export const ValoresBreakdownDisplay = React.memo(({ data, loading, formatarReal
                         </Card>
                     ))}
                 </div>
-            </motion.div>
+            </div>
 
-            {/* Breakdown por Sub-Praça */}
-            <motion.div variants={fadeInItem} className="space-y-4">
+            <div className="space-y-4 animate-fade-in">
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-white px-2">Totais por Sub-Praça</h3>
                 <div className="grid gap-4">
-                    {data.by_sub_praca.map((item, idx) => (
-                        <Card key={idx} className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+                    {data.by_sub_praca.map((item, index) => (
+                        <Card key={index} className="bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
                             <CardContent className="flex items-center justify-between p-6">
                                 <div className="space-y-1">
                                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
@@ -72,7 +67,7 @@ export const ValoresBreakdownDisplay = React.memo(({ data, loading, formatarReal
                         </Card>
                     ))}
                 </div>
-            </motion.div>
+            </div>
         </div>
     );
 });

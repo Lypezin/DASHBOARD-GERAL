@@ -2,21 +2,33 @@
 
 import React, { useMemo, useState } from 'react';
 import { AderenciaSubPraca } from '@/types';
-import { motion } from 'framer-motion';
 import { BarChart3, ChevronDown } from 'lucide-react';
 
 type BenchmarkMetric = 'aderencia' | 'completadas' | 'ofertadas' | 'aceitacao';
 
-const metricLabels: Record<BenchmarkMetric, string> = { aderencia: 'Aderência %', completadas: 'Completadas', ofertadas: 'Ofertadas', aceitacao: 'Taxa Aceitação' };
+const metricLabels: Record<BenchmarkMetric, string> = {
+    aderencia: 'Aderência %',
+    completadas: 'Completadas',
+    ofertadas: 'Ofertadas',
+    aceitacao: 'Taxa Aceitação'
+};
 
-interface BenchmarkPracasProps { subPracas: AderenciaSubPraca[]; }
+interface BenchmarkPracasProps {
+    subPracas: AderenciaSubPraca[];
+}
 
 function getMetric(sp: AderenciaSubPraca, metric: BenchmarkMetric): number {
     switch (metric) {
-        case 'aderencia': return sp.aderencia_percentual || 0;
-        case 'completadas': return sp.corridas_completadas || 0;
-        case 'ofertadas': return sp.corridas_ofertadas || 0;
-        case 'aceitacao': return (sp.corridas_ofertadas && sp.corridas_ofertadas > 0) ? ((sp.corridas_aceitas || 0) / sp.corridas_ofertadas) * 100 : 0;
+        case 'aderencia':
+            return sp.aderencia_percentual || 0;
+        case 'completadas':
+            return sp.corridas_completadas || 0;
+        case 'ofertadas':
+            return sp.corridas_ofertadas || 0;
+        case 'aceitacao':
+            return sp.corridas_ofertadas && sp.corridas_ofertadas > 0
+                ? ((sp.corridas_aceitas || 0) / sp.corridas_ofertadas) * 100
+                : 0;
     }
 }
 
@@ -60,15 +72,15 @@ export const BenchmarkPracas = React.memo(function BenchmarkPracas({ subPracas }
             </div>
 
             <div className="space-y-2">
-                {ranked.map((sp, i) => {
+                {ranked.map((sp, index) => {
                     const val = getMetric(sp, metric);
                     const widthPct = (val / maxVal) * 100;
-                    const isTop3 = i < 3;
+                    const isTop3 = index < 3;
 
                     return (
                         <div key={sp.sub_praca} className="flex items-center gap-3">
                             <span className={`w-5 text-right text-xs font-bold ${isTop3 ? 'text-amber-500' : 'text-slate-400'}`}>
-                                {i + 1}
+                                {index + 1}
                             </span>
                             <div className="flex-1">
                                 <div className="flex items-center justify-between mb-0.5">
@@ -80,11 +92,9 @@ export const BenchmarkPracas = React.memo(function BenchmarkPracas({ subPracas }
                                     </span>
                                 </div>
                                 <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                    <motion.div
-                                        className={`h-full rounded-full ${isTop3 ? 'bg-blue-500' : 'bg-slate-400 dark:bg-slate-600'}`}
-                                        initial={{ width: 0 }}
-                                        animate={{ width: `${widthPct}%` }}
-                                        transition={{ duration: 0.5, delay: i * 0.03 }}
+                                    <div
+                                        className={`h-full rounded-full transition-[width] duration-500 ${isTop3 ? 'bg-blue-500' : 'bg-slate-400 dark:bg-slate-600'}`}
+                                        style={{ width: `${widthPct}%` }}
                                     />
                                 </div>
                             </div>

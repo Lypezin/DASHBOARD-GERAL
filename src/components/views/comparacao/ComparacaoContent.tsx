@@ -1,7 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
-import { fadeInItem, staggerContainer } from '@/utils/animations';
-import { Calendar } from 'lucide-react';
 import { ComparacaoMetrics } from './ComparacaoMetrics';
 import { ComparacaoOrigemSection } from './ComparacaoOrigemSection';
 import { ComparacaoDailyOverview } from './ComparacaoDailyOverview';
@@ -17,7 +14,6 @@ interface ComparacaoContentProps {
     actions: any;
 }
 
-
 export const ComparacaoContent = React.memo(function ComparacaoContent({
     data,
     state,
@@ -28,18 +24,11 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
     const sv = state.secoesVisiveis;
 
     return (
-        <motion.div
-            className="space-y-4"
-            variants={staggerContainer}
-            initial="hidden"
-            animate="show"
-        >
-            {/* KPI Cards */}
+        <div className="space-y-4 animate-fade-in">
             <Section show={sv.metricas}>
                 <ComparacaoMetrics dadosComparacao={data.dadosComparacao} />
             </Section>
 
-            {/* Detailed Analysis */}
             <Section show={sv.detalhada}>
                 <ComparacaoDetailedCard
                     dadosComparacao={data.dadosComparacao}
@@ -49,7 +38,6 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
                 />
             </Section>
 
-            {/* Daily */}
             <Section show={sv.por_dia}>
                 <ComparacaoDiaTable
                     dadosComparacao={data.dadosComparacao}
@@ -57,10 +45,8 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
                 />
             </Section>
 
-            {/* Stacked: Day + Sub-Praça */}
             <ComparacaoDailyOverview data={data} state={state} actions={actions} sv={sv} />
 
-            {/* Origem */}
             <Section show={sv.por_origem}>
                 <ComparacaoOrigemSection
                     dadosComparacao={data.dadosComparacao}
@@ -72,7 +58,6 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
                 />
             </Section>
 
-            {/* Análise Detalhada por Origem */}
             <Section show={sv.origem_detalhada}>
                 <ComparacaoOrigemDetalhada
                     dadosComparacao={data.dadosComparacao}
@@ -80,13 +65,12 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
                 />
             </Section>
 
-            {/* UTR */}
             <Section show={sv.utr}>
                 <ComparacaoUtrSection
                     utrComparacao={data.utrComparacao}
                     semanasSelecionadas={state.semanasSelecionadas}
                 />
             </Section>
-        </motion.div>
+        </div>
     );
 });

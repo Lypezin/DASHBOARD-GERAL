@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface FilterModeSwitchProps {
@@ -27,12 +26,10 @@ export const FilterModeSwitch: React.FC<FilterModeSwitchProps> = ({ isModoInterv
                 aria-checked={isModoIntervalo}
             >
                 <span className="sr-only">Toggle Filter Mode</span>
-                <motion.span
-                    layout
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                <span
                     className={cn(
-                        "inline-block h-5 w-5 rounded-full bg-white shadow-sm",
-                        isModoIntervalo ? "ml-6" : "ml-1"
+                        "inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-150",
+                        isModoIntervalo ? "translate-x-6" : "translate-x-1"
                     )}
                 />
             </button>

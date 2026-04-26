@@ -6,8 +6,6 @@ import { MarketingStatsCards } from './marketing/MarketingStatsCards';
 import { MarketingCityCards } from './marketing/MarketingCityCards';
 import { useMarketingData } from './marketing/useMarketingData';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
-import { motion, Variants } from 'framer-motion';
-
 import { MarketingDashboardError } from './marketing/components/MarketingDashboardError';
 
 const DashboardSectionHeader = ({ title, subtitle }: { title: string; subtitle: string }) => (
@@ -26,34 +24,20 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
   if (loading) return <DashboardSkeleton contentOnly />;
   if (error) return <MarketingDashboardError error={error} />;
 
-  const container: Variants = {
-    hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
-  };
-
-  const item: Variants = {
-    hidden: { opacity: 0, y: 20 },
-    show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
-  };
-
   return (
-    <motion.div className="space-y-6 pb-8" variants={container} initial="hidden" animate="show">
-      <motion.div variants={item}>
-        <MarketingFiltersSection filters={filters} onFilterChange={handleFilterChange} />
-      </motion.div>
+    <div className="space-y-6 pb-8 animate-fade-in">
+      <MarketingFiltersSection filters={filters} onFilterChange={handleFilterChange} />
 
-      <motion.div variants={item} className="space-y-4">
-        <DashboardSectionHeader 
-          title="Visão Geral de Conversão" 
-          subtitle="Indicadores principais de desempenho do funil" 
+      <div className="space-y-4">
+        <DashboardSectionHeader
+          title="Visão Geral de Conversão"
+          subtitle="Indicadores principais de desempenho do funil"
         />
         <MarketingStatsCards totals={totals} />
-      </motion.div>
+      </div>
 
-      <motion.div variants={item}>
-        <MarketingCityCards citiesData={citiesData} />
-      </motion.div>
-    </motion.div>
+      <MarketingCityCards citiesData={citiesData} />
+    </div>
   );
 });
 

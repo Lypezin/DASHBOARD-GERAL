@@ -1,7 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { useClickOutside } from '@/hooks/ui/useClickOutside';
-import { motion, AnimatePresence } from 'framer-motion';
-import { ChevronDown, X, Check } from 'lucide-react';
+import { ChevronDown, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { FiltroSelectDropdown } from './FiltroSelectDropdown';
 
@@ -45,8 +44,8 @@ const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange,
           disabled={disabled}
           className={cn(
             "w-full text-left appearance-none rounded-xl border border-slate-200/60 dark:border-slate-700/80",
-            "bg-slate-50/80 dark:bg-slate-800/90 backdrop-blur-md px-3 py-2.5 pr-8 text-sm font-medium",
-            "text-slate-700 dark:text-slate-200 shadow-sm transition-all duration-300",
+            "bg-slate-50/80 dark:bg-slate-800/90 supports-[backdrop-filter]:backdrop-blur-sm px-3 py-2.5 pr-8 text-sm font-medium",
+            "text-slate-700 dark:text-slate-200 shadow-sm transition-[background-color,border-color,box-shadow] duration-150",
             "hover:bg-white dark:hover:bg-slate-700/90 hover:border-blue-400/50 dark:hover:border-blue-500/40 hover:shadow-md",
             isOpen ? "ring-2 ring-blue-500/40 border-blue-500 dark:border-blue-500/60" : "hover:ring-2 hover:ring-blue-500/20 dark:hover:ring-blue-500/30",
             "focus:outline-none focus:ring-2 focus:ring-blue-500/40",
@@ -62,13 +61,9 @@ const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange,
           </span>
         </button>
 
-        <motion.div
-          animate={{ rotate: isOpen ? 180 : 0 }}
-          transition={{ type: "spring", stiffness: 300, damping: 20 }}
-          className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2"
-        >
+        <div className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}>
           <ChevronDown className="h-4 w-4 text-slate-400 dark:text-slate-500" />
-        </motion.div>
+        </div>
 
         {value && !disabled && (
           <button
