@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo } from 'react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { RefreshCw } from 'lucide-react';
@@ -8,34 +8,6 @@ import { useCityLastUpdates } from '@/hooks/data/useCityLastUpdates';
 
 export function CityLastUpdatesTicker() {
   const { data, loading } = useCityLastUpdates();
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [isVisible, setIsVisible] = useState(true);
-  const [reducedMotion, setReducedMotion] = useState(false);
-
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
-    const handleChange = () => setReducedMotion(mediaQuery.matches);
-
-    handleChange();
-    mediaQuery.addEventListener?.('change', handleChange);
-
-    return () => mediaQuery.removeEventListener?.('change', handleChange);
-  }, []);
-
-  useEffect(() => {
-    const element = containerRef.current;
-    if (!element || typeof IntersectionObserver === 'undefined') return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => setIsVisible(entry.isIntersecting),
-      { threshold: 0.1 }
-    );
-
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
 
   const visibleItems = useMemo(() => {
     if (!data || data.length === 0) return [];
@@ -47,16 +19,15 @@ export function CityLastUpdatesTicker() {
 
   if (loading || visibleItems.length === 0) return null;
 
-  const shouldAnimate = isVisible && !reducedMotion;
-  const marqueeItems = shouldAnimate ? [...visibleItems, ...visibleItems] : visibleItems;
+  const marqueeItems = [...visibleItems, ...visibleItems];
 
   return (
-    <div ref={containerRef} className="mb-6 w-full">
+    <div className="mb-6 w-full">
       <div className="overflow-hidden rounded-2xl border border-slate-200/40 bg-white/70 shadow-sm dark:border-slate-800/40 dark:bg-slate-900/70 supports-[backdrop-filter]:backdrop-blur-sm">
         <div className="flex items-center gap-6 px-5 py-3">
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10 dark:bg-blue-500/15">
-              <RefreshCw className={`h-3.5 w-3.5 text-blue-500 dark:text-blue-400 ${shouldAnimate ? 'animate-city-updates-spin' : ''}`} />
+            <div className="flex items-center gap-3 shrink-0">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10 dark:bg-blue-500/15">
+              <RefreshCw className="h-3.5 w-3.5 text-blue-500 dark:text-blue-400 animate-city-updates-spin" />
             </div>
             <div className="hidden sm:block">
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500 leading-none mb-1">
@@ -74,7 +45,7 @@ export function CityLastUpdatesTicker() {
             <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-12 bg-gradient-to-r from-white/70 to-transparent dark:from-slate-900/70 dark:to-transparent" />
             <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-12 bg-gradient-to-l from-white/70 to-transparent dark:from-slate-900/70 dark:to-transparent" />
 
-            <div className={`${shouldAnimate ? 'city-updates-marquee min-w-max hover:[animation-play-state:paused]' : 'flex-wrap'} flex items-center gap-5`}>
+            <div className="city-updates-marquee flex min-w-max items-center gap-5 hover:[animation-play-state:paused]">
               {marqueeItems.map((item, index) => (
                 <div
                   key={`${item.city}-${index}`}
@@ -124,13 +95,6 @@ export function CityLastUpdatesTicker() {
 
         .animate-city-updates-spin {
           animation: city-updates-spin 6s linear infinite;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .city-updates-marquee,
-          .animate-city-updates-spin {
-            animation: none !important;
-          }
         }
       `}</style>
     </div>
