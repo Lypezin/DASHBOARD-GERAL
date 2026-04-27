@@ -23,6 +23,8 @@ export interface RefreshMVResult {
   view: string;
   duration_seconds?: number;
   method?: string;
+  skipped?: boolean;
+  reason?: string;
   error?: string;
   warning?: string;
 }
