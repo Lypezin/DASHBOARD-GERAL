@@ -45,7 +45,7 @@ export function SidebarTrigger({ isOpen, setIsOpen, onlineCount, unreadCount }: 
                             : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
                     )}>
                         <MessageSquareMore size={10} />
-                        {unreadCount} msgs
+                        {unreadCount} nao lidas
                     </span>
                 </div>
             </div>

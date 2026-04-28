@@ -5,7 +5,6 @@ import { SidebarTrigger } from './SidebarTrigger';
 import { SidebarHeader } from './SidebarHeader';
 import { UserList } from './UserList';
 import { ChatWindow } from './ChatWindow';
-import { NotificationsToast } from './NotificationsToast';
 import { createSendMessageHandler } from './sendMessageHandler';
 import { SidebarContainer } from './SidebarContainer';
 import type { OnlineUser } from '@/hooks/data/useOnlineUsers';
@@ -25,7 +24,7 @@ export function OnlineUsersSidebar({
 }: OnlineUsersSidebarProps) {
     const {
         isOpen, setIsOpen, onlineUsersData, searchTerm, setSearchTerm,
-        myCustomStatus, setMyCustomStatus, notifications, activeChatUser,
+        myCustomStatus, setMyCustomStatus, activeChatUser,
         setActiveChatUser, chatInput, setChatInput, replyingTo, setReplyingTo,
         chatEndRef, unreadCounts, fileInputRef, activeMessages, filteredUsers,
         formatTimeOnline, totalUnread, onlineUsers, handleFileUpload
@@ -83,10 +82,6 @@ export function OnlineUsersSidebar({
                     fileInputRef={fileInputRef}
                     onlineUsers={onlineUsers}
                     setTypingTo={setTypingTo}
-                />
-
-                <NotificationsToast
-                    notifications={notifications}
                 />
 
                 <SidebarHeader

@@ -39,13 +39,22 @@ export const chatService = {
         return data;
     },
 
-    async reactToMessage(msgId: string, userId: string, emoji: string) {
-        const { error } = await supabase.rpc('toggle_chat_reaction', {
-            message_id: msgId,
-            emoji: emoji
+    async reactToMessage(msgId: string, _userId: string, emoji: string) {
+        const response = await fetch('/api/chat/reaction', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                messageId: msgId,
+                emoji,
+            }),
         });
 
-        if (error) throw error;
+        if (!response.ok) {
+            const payload = await response.json().catch(() => null);
+            throw new Error(payload?.error || 'Falha ao salvar reacao.');
+        }
     },
 
     async pinMessage(msgId: string, isPinned: boolean) {

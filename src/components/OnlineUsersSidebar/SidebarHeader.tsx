@@ -62,7 +62,7 @@ export function SidebarHeader({
                         <div className="rounded-2xl border border-slate-200/80 bg-white px-3.5 py-3 shadow-sm dark:border-slate-700 dark:bg-slate-950">
                             <div className="flex items-center gap-1 text-[10px] uppercase tracking-[0.18em] text-slate-400">
                                 <BellRing size={10} />
-                                Msgs
+                                Nao lidas
                             </div>
                             <p className="mt-1 text-2xl font-semibold leading-none text-slate-900 dark:text-slate-100">{unreadCount}</p>
                         </div>

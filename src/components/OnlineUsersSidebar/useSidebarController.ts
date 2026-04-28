@@ -5,8 +5,20 @@ import { useChatPersistence } from './hooks/useChatPersistence';
 import { formatTimeOnline } from './utils';
 import { supabase } from '@/lib/supabaseClient';
 
-const NOTIFICATION_LIFETIME_MS = 3000;
-const MAX_JOIN_NOTIFICATIONS = 3;
+function shouldSyncActiveChatUser(current: OnlineUser, next: OnlineUser) {
+    return (
+        current.name !== next.name ||
+        current.avatar_url !== next.avatar_url ||
+        current.role !== next.role ||
+        current.current_tab !== next.current_tab ||
+        current.device !== next.device ||
+        current.is_idle !== next.is_idle ||
+        current.custom_status !== next.custom_status ||
+        current.last_typed !== next.last_typed ||
+        current.typing_to !== next.typing_to ||
+        current.online_at !== next.online_at
+    );
+}
 
 export function useSidebarController(
     currentUser: CurrentUser | null,
@@ -22,7 +34,6 @@ export function useSidebarController(
 
     const [searchTerm, setSearchTerm] = useState('');
     const [myCustomStatus, setMyCustomStatus] = useState('');
-    const [notifications, setNotifications] = useState<{ id: string, message: string }[]>([]);
     const [avatarOverrides, setAvatarOverrides] = useState<Record<string, string>>({});
 
     const [activeChatUser, setActiveChatUser] = useState<OnlineUser | null>(null);
@@ -30,8 +41,8 @@ export function useSidebarController(
     const [replyingTo, setReplyingTo] = useState<ChatMessage | null>(null);
     const chatEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const notificationTimeoutsRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
     const previousScrollKeyRef = useRef<string | null>(null);
+    const avatarLookupAttemptedRef = useRef<Set<string>>(new Set());
 
     const { unreadCounts } = useChatPersistence(currentUser, messages, activeChatUser);
 
@@ -49,32 +60,9 @@ export function useSidebarController(
 
     useEffect(() => {
         if (joinedUsers.length === 0) return;
-
-        const newNotifications = joinedUsers.map((user) => ({
-            id: `${user.id}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-            message: `${user.name?.split(' ')[0]} entrou!`
-        }));
-
-        setNotifications((prev) => [...prev, ...newNotifications].slice(-MAX_JOIN_NOTIFICATIONS));
+        // Presence now starts in background, so join toasts become noisy and misleading.
         clearJoinedUsers();
-
-        newNotifications.forEach((notification) => {
-            const timeout = setTimeout(() => {
-                setNotifications((prev) => prev.filter((item) => item.id !== notification.id));
-                notificationTimeoutsRef.current.delete(notification.id);
-            }, NOTIFICATION_LIFETIME_MS);
-
-            notificationTimeoutsRef.current.set(notification.id, timeout);
-        });
     }, [joinedUsers, clearJoinedUsers]);
-
-    useEffect(() => {
-        const activeTimeouts = notificationTimeoutsRef.current;
-        return () => {
-            activeTimeouts.forEach((timeout) => clearTimeout(timeout));
-            activeTimeouts.clear();
-        };
-    }, []);
 
     const [, setTick] = useState(0);
     useEffect(() => {
@@ -84,7 +72,7 @@ export function useSidebarController(
 
     useEffect(() => {
         const missingAvatarUserIds = onlineUsers
-            .filter((user) => !user.avatar_url && !avatarOverrides[user.id])
+            .filter((user) => !user.avatar_url && !avatarOverrides[user.id] && !avatarLookupAttemptedRef.current.has(user.id))
             .map((user) => user.id);
 
         if (missingAvatarUserIds.length === 0) {
@@ -94,6 +82,10 @@ export function useSidebarController(
         let isCancelled = false;
 
         const hydrateMissingAvatars = async () => {
+            missingAvatarUserIds.forEach((userId) => {
+                avatarLookupAttemptedRef.current.add(userId);
+            });
+
             const { data, error } = await supabase
                 .from('user_profiles')
                 .select('id, avatar_url')
@@ -141,18 +133,18 @@ export function useSidebarController(
     ), [avatarOverrides, onlineUsers]);
 
     useEffect(() => {
-        if (!activeChatUser || activeChatUser.avatar_url) {
+        if (!activeChatUser) {
             return;
         }
 
-        const hydratedActiveUser = hydratedOnlineUsers.find((user) => user.id === activeChatUser.id);
-        if (!hydratedActiveUser?.avatar_url) {
+        const latestActiveUser = hydratedOnlineUsers.find((user) => user.id === activeChatUser.id);
+        if (!latestActiveUser) {
             return;
         }
 
         setActiveChatUser((prev) => (
-            prev && prev.id === hydratedActiveUser.id
-                ? { ...prev, avatar_url: hydratedActiveUser.avatar_url }
+            prev && prev.id === latestActiveUser.id && shouldSyncActiveChatUser(prev, latestActiveUser)
+                ? { ...prev, ...latestActiveUser }
                 : prev
         ));
     }, [activeChatUser, hydratedOnlineUsers]);
@@ -226,7 +218,6 @@ export function useSidebarController(
         setSearchTerm,
         myCustomStatus,
         setMyCustomStatus,
-        notifications,
         activeChatUser,
         setActiveChatUser,
         chatInput,

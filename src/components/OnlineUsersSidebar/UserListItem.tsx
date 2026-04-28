@@ -99,6 +99,7 @@ export function UserListItem({
                         <div className="mt-4 grid grid-cols-2 gap-2.5">
                             <Link
                                 href={profileHref}
+                                prefetch={false}
                                 className="flex items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-[12px] font-medium text-slate-700 transition-colors hover:bg-slate-100 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800"
                                 title={isCurrentUser ? 'Abrir meu perfil' : 'Abrir perfil'}
                             >

@@ -33,18 +33,32 @@ export function OnlineUsersSidebarLauncher({ currentUser, currentTab }: OnlineUs
         }
       : null;
 
-    // Prefetch only the JS chunk after idle. Realtime/presence starts only after the first open.
+    let cancelled = false;
+
+    const warmRealtime = () => {
+      void import('./index')
+        .catch(() => null)
+        .finally(() => {
+          if (!cancelled) {
+            setActivated(true);
+          }
+        });
+    };
+
+    // Warm the sidebar chunk after idle and activate lightweight presence in background.
     if (browserWindow?.requestIdleCallback) {
       idleId = browserWindow.requestIdleCallback(() => {
-        void import('./index');
+        warmRealtime();
       }, { timeout: 6000 });
     } else {
       timeoutId = window.setTimeout(() => {
-        void import('./index');
-      }, 5000);
+        warmRealtime();
+      }, 2500);
     }
 
     return () => {
+      cancelled = true;
+
       if (timeoutId !== null) {
         window.clearTimeout(timeoutId);
       }
@@ -76,6 +90,7 @@ export function OnlineUsersSidebarLauncher({ currentUser, currentTab }: OnlineUs
       currentUser={currentUser}
       currentTab={currentTab}
       initialOpen={openOnLoad}
+      preloadRealtime
     />
   );
 }
