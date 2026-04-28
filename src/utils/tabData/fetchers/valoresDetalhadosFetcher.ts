@@ -1,10 +1,12 @@
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
+import { is500Error, isTimeoutError } from '@/lib/rpcErrorHandler';
 import { ValoresEntregador } from '@/types';
 import { RPC_TIMEOUTS } from '@/constants/config';
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
 import { buildFilterPayload } from './fetcherUtils';
+import { fetchValoresFallback } from '../fallbacks';
 
 export interface FetchOptions {
     filterPayload: FilterPayload;
@@ -28,6 +30,23 @@ export async function fetchValoresDetalhados(options: FetchOptions): Promise<{ d
     });
 
     if (result.error) {
+        if (is500Error(result.error) || isTimeoutError(result.error)) {
+            try {
+                const fallbackData = await fetchValoresFallback(filterPayload);
+                const limit = Number(listarValoresPayload.p_limit) || 25;
+                const offset = Number(listarValoresPayload.p_offset) || 0;
+                const paginatedData = fallbackData.slice(offset, offset + limit);
+
+                return {
+                    data: paginatedData,
+                    total: fallbackData.length,
+                    error: null
+                };
+            } catch (fallbackError) {
+                safeLog.error('Erro no fallback ao buscar valores detalhados:', fallbackError);
+            }
+        }
+
         safeLog.error('Erro ao buscar valores detalhados:', result.error);
         return { data: [], total: 0, error: result.error };
     }

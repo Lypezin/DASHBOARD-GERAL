@@ -1,6 +1,6 @@
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
-import { is500Error, isRateLimitError } from '@/lib/rpcErrorHandler';
+import { is500Error, isRateLimitError, isTimeoutError } from '@/lib/rpcErrorHandler';
 import { EntregadoresData, Entregador } from '@/types';
 import { RPC_TIMEOUTS } from '@/constants/config';
 import { fetchEntregadoresFallback } from '../fallbacks';
@@ -34,16 +34,22 @@ export async function fetchEntregadoresData(options: FetchOptions): Promise<{ da
     if (result.error) {
         const is500 = is500Error(result.error);
         const isRateLimit = isRateLimitError(result.error);
+        const isTimeout = isTimeoutError(result.error);
 
-        if (is500) {
+        if (is500 || isTimeout) {
             try {
                 const fallbackData = await fetchEntregadoresFallback(listarEntregadoresPayload);
-                if (fallbackData && fallbackData.entregadores.length > 0) {
+                if (fallbackData) {
                     return { data: fallbackData, error: null };
                 }
             } catch (fallbackError) {
                 safeLog.error('Erro no fallback ao buscar entregadores:', fallbackError);
             }
+
+            if (isTimeout) {
+                return { data: { entregadores: [], total: 0 }, error: result.error };
+            }
+
             throw new Error('RETRY_500');
         }
 

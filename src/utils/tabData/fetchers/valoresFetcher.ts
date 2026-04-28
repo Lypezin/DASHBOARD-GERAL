@@ -1,6 +1,6 @@
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
-import { is500Error, isRateLimitError } from '@/lib/rpcErrorHandler';
+import { is500Error, isRateLimitError, isTimeoutError } from '@/lib/rpcErrorHandler';
 import { ValoresEntregador } from '@/types';
 import { RPC_TIMEOUTS } from '@/constants/config';
 import { fetchValoresFallback } from '../fallbacks';
@@ -39,11 +39,18 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
     if (result.error) {
         const is500 = is500Error(result.error);
         const isRateLimit = isRateLimitError(result.error);
-        if (is500) {
+        const isTimeout = isTimeoutError(result.error);
+
+        if (is500 || isTimeout) {
             try {
-                const fallbackData = await fetchValoresFallback(listarValoresPayload);
-                if (fallbackData && fallbackData.length > 0) return { data: fallbackData, error: null };
+                const fallbackData = await fetchValoresFallback(filterPayload);
+                if (fallbackData) return { data: fallbackData, error: null };
             } catch (fallbackError) { safeLog.error('Erro no fallback ao buscar valores:', fallbackError); }
+
+            if (isTimeout) {
+                return { data: [], error: result.error };
+            }
+
             throw new Error('RETRY_500');
         }
 
@@ -55,7 +62,7 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
         if (errorCode === '42883' || errorCode === 'PGRST116' || errorMessage.includes('does not exist')) {
             try {
                 const fallbackData = await fetchValoresFallback(listarValoresPayload);
-                if (fallbackData && fallbackData.length > 0) return { data: fallbackData, error: null };
+                if (fallbackData) return { data: fallbackData, error: null };
             } catch (fallbackError) { safeLog.error('Erro no fallback ao buscar valores:', fallbackError); }
             return { data: [], error: { message: 'A função não está disponível.', code: 'FUNCTION_NOT_FOUND' } };
         }

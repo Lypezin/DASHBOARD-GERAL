@@ -1,5 +1,6 @@
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
+import { is500Error, isTimeoutError } from '@/lib/rpcErrorHandler';
 import { RPC_TIMEOUTS } from '@/constants/config';
 import { ValoresBreakdown } from '@/types/financeiro';
 import type { FilterPayload } from '@/types/filters';
@@ -25,6 +26,10 @@ export async function fetchValoresBreakdown(options: FetchOptions): Promise<{ da
     });
 
     if (result.error) {
+        if (is500Error(result.error) || isTimeoutError(result.error)) {
+            return { data: null, error: null };
+        }
+
         safeLog.error('Erro ao buscar breakdown de valores:', result.error);
         return { data: null, error: result.error };
     }
