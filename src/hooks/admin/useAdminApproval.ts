@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { executeAdminRpc } from '@/utils/adminHelpers';
 import { User } from '@/hooks/auth/useAdminData';
@@ -7,7 +6,7 @@ import { UserProfile } from '@/hooks/auth/types';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
-export function useAdminApproval(currentUser: UserProfile | null, fetchData: () => void) {
+export function useAdminApproval(_currentUser: UserProfile | null, fetchData: () => void) {
     const [selectedUser, setSelectedUser] = useState<User | null>(null);
     const [selectedPracas, setSelectedPracas] = useState<string[]>([]);
     const [selectedRole, setSelectedRole] = useState<'admin' | 'marketing' | 'user' | 'master'>('user');
@@ -36,23 +35,7 @@ export function useAdminApproval(currentUser: UserProfile | null, fetchData: () 
         try {
             const { error } = await executeAdminRpc(
                 'approve_user',
-                { user_id: selectedUser.id, pracas: selectedPracas, p_role: selectedRole, p_organization_id: selectedOrganizationId },
-                async () => {
-                    const updateData: any = {
-                        is_approved: true,
-                        assigned_pracas: selectedRole === 'marketing' ? [] : selectedPracas,
-                        approved_at: new Date().toISOString(),
-                        approved_by: currentUser?.id || null,
-                        organization_id: selectedOrganizationId || null
-                    };
-
-                    if (selectedRole) {
-                        updateData.role = selectedRole;
-                        updateData.is_admin = (selectedRole === 'admin' || selectedRole === 'master');
-                    }
-
-                    return supabase.from('user_profiles').update(updateData).eq('id', selectedUser.id);
-                }
+                { user_id: selectedUser.id, pracas: selectedPracas, p_role: selectedRole, p_organization_id: selectedOrganizationId }
             );
 
             if (error) throw error;

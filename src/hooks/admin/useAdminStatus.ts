@@ -1,4 +1,3 @@
-import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { executeAdminRpc } from '@/utils/adminHelpers';
 
@@ -12,11 +11,7 @@ export function useAdminStatus(fetchData: () => void) {
         try {
             const { error } = await executeAdminRpc(
                 'revoke_user_access',
-                { user_id: userId },
-                async () => supabase
-                    .from('user_profiles')
-                    .update({ is_approved: false, status: 'pending', role: 'user', assigned_pracas: [] })
-                    .eq('id', userId)
+                { user_id: userId }
             );
 
             if (error) throw error;

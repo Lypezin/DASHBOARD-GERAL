@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { executeAdminRpc } from '@/utils/adminHelpers';
 import { User } from '@/hooks/auth/useAdminData';
-import { buildUserUpdatePayload } from './utils/adminEditPayload';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -41,10 +39,6 @@ export function useAdminEdit(fetchData: () => void) {
                     pracas: selectedPracas,
                     p_role: selectedRole,
                     p_organization_id: selectedOrganizationId,
-                },
-                async () => {
-                    const updateData = buildUserUpdatePayload(selectedRole, selectedPracas, selectedOrganizationId);
-                    return supabase.from('user_profiles').update(updateData).eq('id', editingUser.id);
                 }
             );
 
