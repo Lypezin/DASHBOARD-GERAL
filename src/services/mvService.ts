@@ -1,43 +1,82 @@
-import { safeRpc } from '@/lib/rpcWrapper';
 import { safeLog } from '@/lib/errorHandler';
 import type {
-    RefreshMVResult,
     PendingMV,
+    RefreshMVResult,
     RetryFailedMVsResult,
 } from '@/types/upload';
 
+type ServiceResponse<T> = {
+    data: T | null;
+    error: { message: string } | null;
+};
+
+async function parseRefreshResponse<T>(response: Response): Promise<ServiceResponse<T>> {
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok || payload?.success === false) {
+        return {
+            data: null,
+            error: { message: payload?.error || `Erro HTTP ${response.status}` }
+        };
+    }
+
+    return { data: payload as T, error: null };
+}
+
 export const mvService = {
-    async refreshSingleMV(mvName: string) {
-        return await safeRpc<RefreshMVResult>(
-            'refresh_single_mv_with_progress',
-            { mv_name_param: mvName },
-            {
-                timeout: 600000, // 10 minutos por MV
-                validateParams: false
-            }
-        );
+    async enqueueRefresh(reason = 'manual', includeSecondary = true, requireAdmin = false) {
+        const response = await fetch('/api/mvs/refresh', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'same-origin',
+            body: JSON.stringify({ reason, includeSecondary, requireAdmin })
+        });
+
+        return parseRefreshResponse<{
+            success: boolean;
+            queued: boolean;
+            pending: PendingMV[];
+            queue_result?: unknown;
+        }>(response);
     },
 
-    async getPendingMVs() {
-        return await safeRpc<PendingMV[]>(
-            'get_pending_mvs',
-            {},
-            {
-                timeout: 30000,
-                validateParams: false
-            }
-        );
+    async refreshSingleMV(mvName: string): Promise<ServiceResponse<RefreshMVResult>> {
+        safeLog.warn(`Refresh direto de ${mvName} foi desabilitado. Usando fila segura.`);
+        const { data, error } = await this.enqueueRefresh(`manual:${mvName}`, true, true);
+
+        return {
+            data: data
+                ? { success: true, view: mvName, reason: 'queued' }
+                : null,
+            error
+        };
     },
 
-    async retryFailedMVs(mvNames: string[]) {
-        return await safeRpc<RetryFailedMVsResult>(
-            'retry_failed_mvs',
-            { mv_names: mvNames },
-            {
-                timeout: 600000, // 10 minutos
-                validateParams: false
-            }
-        );
+    async getPendingMVs(): Promise<ServiceResponse<PendingMV[]>> {
+        const response = await fetch('/api/mvs/refresh', {
+            method: 'GET',
+            credentials: 'same-origin'
+        });
+        const parsed = await parseRefreshResponse<{ pending: PendingMV[] }>(response);
+
+        return {
+            data: parsed.data?.pending || null,
+            error: parsed.error
+        };
+    },
+
+    async retryFailedMVs(mvNames: string[]): Promise<ServiceResponse<RetryFailedMVsResult>> {
+        const { data, error } = await this.enqueueRefresh(`retry:${mvNames.length}`, true, true);
+
+        return {
+            data: data
+                ? {
+                    success: true,
+                    views_processed: data.pending?.length || 0
+                }
+                : null,
+            error
+        };
     },
 
     processRefreshResult(
@@ -46,52 +85,15 @@ export const mvService = {
         mvName: string
     ): { success: boolean; message: string; isTimeout: boolean } {
         if (refreshError) {
-            const errorCode = refreshError?.code;
             const errorMessage = String(refreshError?.message || '');
-            const isTimeout =
-                errorCode === 'TIMEOUT' ||
-                errorMessage.includes('timeout') ||
-                errorMessage.includes('demorou muito');
-
-            if (isTimeout) {
-                safeLog.warn(
-                    `Timeout ao atualizar ${mvName}(verificando se foi atualizada mesmo assim)`
-                );
-                return { success: false, message: 'Timeout', isTimeout: true };
-            } else {
-                safeLog.error(`Erro ao atualizar ${mvName}: `, refreshError);
-                return { success: false, message: errorMessage, isTimeout: false };
-            }
-        } else if (refreshData) {
-            // A função RPC retorna o resultado dentro de uma propriedade com o nome da função
-            const result = (refreshData as unknown as { refresh_single_mv_with_progress?: RefreshMVResult })
-                ?.refresh_single_mv_with_progress || refreshData;
-
-            const success = result?.success === true;
-            const viewName = result?.view || mvName;
-            const duration = result?.duration_seconds;
-            const method = result?.method;
-            const warning = result?.warning;
-            const error = result?.error;
-
-            // Se success = true OU se tem warning de fallback (que significa que funcionou), considerar sucesso
-            const isSuccess =
-                success ||
-                (warning && (warning.includes('fallback') || warning.includes('CONCURRENTLY falhou')));
-
-            if (isSuccess) {
-                const durationStr = duration ? `${duration.toFixed(1)}s` : 'N/A';
-                const methodStr = method || (warning ? 'FALLBACK' : 'NORMAL');
-                safeLog.info(`✅ ${viewName} atualizada em ${durationStr}(${methodStr})`);
-                return { success: true, message: `Atualizada em ${durationStr}`, isTimeout: false };
-            } else {
-                const errorMsg = error || 'Erro desconhecido';
-                safeLog.warn(`Falha ao atualizar ${mvName}: ${errorMsg}`);
-                return { success: false, message: errorMsg, isTimeout: false };
-            }
-        } else {
-            safeLog.warn(`Resposta vazia ao atualizar ${mvName}`);
-            return { success: false, message: 'Resposta vazia', isTimeout: false };
+            safeLog.error(`Erro ao enfileirar ${mvName}: `, refreshError);
+            return { success: false, message: errorMessage, isTimeout: false };
         }
+
+        if (refreshData?.success) {
+            return { success: true, message: 'Enfileirada para atualizacao', isTimeout: false };
+        }
+
+        return { success: false, message: 'Resposta vazia', isTimeout: false };
     }
 };

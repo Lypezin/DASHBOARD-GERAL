@@ -9,7 +9,7 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
     const totalRows = data.length, errors: string[] = [];
     let insertedRows = 0;
     const useRpc = table === 'dados_marketing' || table === 'dados_corridas';
-    const rpcName = useRpc ? (table === 'dados_marketing' ? 'insert_dados_marketing_batch' : 'insert_dados_corridas_batch') : null;
+    const rpcName = useRpc && table === 'dados_marketing' ? 'insert_dados_marketing_batch' : null;
 
     safeLog.info(`Iniciando inserção em lotes na tabela ${table}...`);
 
@@ -22,7 +22,9 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
         }
 
         try {
-            if (useRpc && rpcName) await insertViaRpc(table, batch, rpcName, batchNumber, errors);
+            if (table === 'dados_corridas') {
+                await insertCorridasViaApi(batch, organizationId, batchNumber, errors);
+            } else if (useRpc && rpcName) await insertViaRpc(table, batch, rpcName, batchNumber, errors);
             else {
                 const query = supabase.from(table).insert(batch as any, { count: 'exact' });
                 if (returnData) query.select();
@@ -41,6 +43,28 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
     safeLog.info(`Inserção concluída: ${insertedRows}/${totalRows}`);
     if (errors.length > 0) safeLog.warn(`Erros encontrados: ${errors.length}`);
     return { inserted: insertedRows, errors };
+}
+
+async function insertCorridasViaApi(batch: any[], organizationId: string | undefined, batchNum: number, errors: string[]) {
+    const dadosJsonb = batch.map(item => Object.fromEntries(Object.entries(item).map(([k, v]) => [k, v ?? null])));
+    const response = await fetch('/api/upload/corridas-batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        body: JSON.stringify({ dados: dadosJsonb, organizationId })
+    });
+
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+        throw new Error(payload?.error || payload?.message || `Erro HTTP ${response.status} no lote ${batchNum}`);
+    }
+
+    const { errors: errCount, error_messages } = (payload || {}) as any;
+    if (Number(errCount || 0) > 0) {
+        error_messages?.forEach((msg: string) => errors.push(`Lote ${batchNum}: ${msg}`));
+        throw new Error(error_messages?.[0] || `Erro tratado no lote ${batchNum}`);
+    }
 }
 
 async function insertViaRpc(table: string, batch: any[], rpcName: string, batchNum: number, errors: string[]) {

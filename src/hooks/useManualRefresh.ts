@@ -1,81 +1,85 @@
 import { useState, useCallback } from 'react';
 import { safeLog } from '@/lib/errorHandler';
-import type { RefreshMVState, PendingMV } from '@/types/upload';
+import type { RefreshMVState } from '@/types/upload';
 import { mvService } from '@/services/mvService';
-import { processMVBatch } from '@/utils/refresh/batchProcessor';
+
+const RESET_DELAY_MS = 5000;
 
 export function useManualRefresh() {
     const [state, setState] = useState<RefreshMVState>({
-        refreshing: false, message: '', progress: 0, progressLabel: '', total: 0, completed: 0, failedMVs: [],
+        refreshing: false,
+        message: '',
+        progress: 0,
+        progressLabel: '',
+        total: 0,
+        completed: 0,
+        failedMVs: [],
     });
 
-    const runBatch = useCallback(async (mvs: PendingMV[], isRetry = false) => {
-        const startTime = Date.now();
-        const totalMVs = mvs.length;
-
+    const enqueueRefresh = useCallback(async (reason: string, retryCount = 0) => {
         setState(prev => ({
             ...prev,
             refreshing: true,
-            total: totalMVs,
-            message: isRetry ? `🔄 Tentando atualizar novamente ${totalMVs} MVs...` : `🔄 Atualizando ${totalMVs} Materialized Views...`,
-            progressLabel: `0 / ${totalMVs} atualizadas`,
-            failedMVs: prev.failedMVs // Keep existing failed initially? Or clear? Usually clear for new run.
+            message: retryCount > 0
+                ? `Enfileirando nova tentativa de atualizacao (${retryCount} item/ns)...`
+                : 'Enfileirando atualizacao das views...',
+            progress: 35,
+            progressLabel: 'Aguardando worker em segundo plano',
+            failedMVs: retryCount > 0 ? prev.failedMVs : []
         }));
 
-        const { successCount, failCount, failedViews } = await processMVBatch(mvs, (prog) => {
+        try {
+            const { data, error } = await mvService.enqueueRefresh(reason, true, false);
+
+            if (error) {
+                throw new Error(error.message || 'Falha ao enfileirar MVs.');
+            }
+
+            const pending = data?.pending || [];
+            const pendingCount = pending.length;
+
             setState(prev => ({
                 ...prev,
-                progressLabel: `Atualizando ${prog.current}/${prog.total}: ${prog.currentMv}`,
-                progress: (prog.current / prog.total) * 100,
-                completed: prog.completed,
+                refreshing: false,
+                progress: 100,
+                total: pendingCount,
+                completed: 0,
+                failedMVs: [],
+                progressLabel: pendingCount > 0
+                    ? `${pendingCount} MV(s) aguardando processamento`
+                    : 'Fila conferida',
+                message: pendingCount > 0
+                    ? `${pendingCount} MV(s) em fila. O Supabase vai atualizar uma por vez automaticamente.`
+                    : 'Nenhuma MV pendente no momento.'
             }));
-        });
 
-        const totalDuration = ((Date.now() - startTime) / 1000 / 60).toFixed(1);
-        const finalText = failCount === 0
-            ? `✅ Todas as ${totalMVs} MVs atualizadas com sucesso em ${totalDuration} min!`
-            : `✅ ${successCount}/${totalMVs} MVs atualizadas. ${failCount} falharam: ${failedViews.slice(0, 3).join(', ')}${failedViews.length > 3 ? '...' : ''}.`;
-
-        setState(prev => ({
-            ...prev,
-            refreshing: false,
-            progress: 100,
-            completed: totalMVs,
-            failedMVs: failedViews,
-            message: finalText
-        }));
-
-        safeLog.info(`✅ Refresh concluído: ${successCount}/${totalMVs} em ${totalDuration} min`);
-        setTimeout(() => setState(p => ({ ...p, progress: 0, progressLabel: '', total: 0, completed: 0 })), 5000);
+            setTimeout(() => {
+                setState(prev => ({ ...prev, progress: 0, progressLabel: '', total: 0, completed: 0 }));
+            }, RESET_DELAY_MS);
+        } catch (err: unknown) {
+            const msg = err instanceof Error ? err.message : 'Erro desconhecido';
+            setState(prev => ({
+                ...prev,
+                refreshing: false,
+                progress: 0,
+                message: `Erro ao enfileirar atualizacao: ${msg}`
+            }));
+            safeLog.error('Erro ao enfileirar refresh:', err);
+        }
     }, []);
 
     const refreshAllMVs = useCallback(async () => {
-        setState(p => ({ ...p, refreshing: true, message: '🔄 Preparando...', progress: 0 }));
-
-        try {
-            const { data, error } = await mvService.getPendingMVs();
-
-            if (error) {
-                throw new Error(error.message || 'Falha ao buscar MVs pendentes.');
-            }
-
-            const mvs = data && data.length > 0 ? data : [{ mv_name: 'mv_dashboard_resumo', priority: 1 } as unknown as PendingMV];
-
-            await runBatch(mvs);
-        } catch (err: unknown) {
-            const msg = err instanceof Error ? err.message : 'Erro desconhecido';
-            setState(p => ({ ...p, refreshing: false, message: `❌ Erro: ${msg}` }));
-            safeLog.error('Erro refresh all:', err);
-        }
-    }, [runBatch]);
+        await enqueueRefresh('manual');
+    }, [enqueueRefresh]);
 
     const retryFailedMVs = useCallback(async () => {
-        if (state.failedMVs.length === 0) return setState(p => ({ ...p, message: 'ℹ️ Nenhuma MV falhou.' }));
+        if (state.failedMVs.length === 0) {
+            setState(prev => ({ ...prev, message: 'Nenhuma MV falhou localmente. Reenfileire a atualizacao se precisar.' }));
+            return;
+        }
 
-        // Convert string[] to PendingMV[]
-        const mvs = state.failedMVs.map(name => ({ mv_name: name, priority: 1 } as unknown as PendingMV));
-        await runBatch(mvs, true);
-    }, [state.failedMVs, runBatch]);
+        await enqueueRefresh('retry', state.failedMVs.length);
+    }, [enqueueRefresh, state.failedMVs.length]);
 
     return { state, refreshAllMVs, retryFailedMVs };
 }

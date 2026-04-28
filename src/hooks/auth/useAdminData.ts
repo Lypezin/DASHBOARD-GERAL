@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
-import { safeRpc } from '@/lib/rpcWrapper';
+import { adminRpc } from '@/services/adminRpcClient';
 import { fetchPracasWithFallback } from '@/hooks/admin/utils/pracasFetcher';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -24,8 +24,8 @@ export function useAdminData() {
 
     try {
       const [usersPromise, pendingPromise, pracasPromise, profilesPromise] = await Promise.allSettled([
-        safeRpc<User[]>('list_all_users', {}, { timeout: 30000, validateParams: false }),
-        safeRpc<User[]>('list_pending_users', {}, { timeout: 30000, validateParams: false }),
+        adminRpc<User[]>('list_all_users'),
+        adminRpc<User[]>('list_pending_users'),
         fetchPracasWithFallback(),
         supabase.from('user_profiles').select('id, avatar_url')
       ]);
