@@ -97,6 +97,7 @@ export async function POST(request: Request) {
             success: true,
             queued: true,
             queue_result: queueResult,
+            worker_result: queueResult?.worker_result ?? null,
             pending
         });
     } catch (error) {
