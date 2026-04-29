@@ -17,7 +17,8 @@ export const ATENDENTES_FOTOS: { [key: string]: string | null } = {
 export const ATENDENTE_TO_ID: { [key: string]: string | string[] } = {
   'Carolini Braguini': '6905',
   'Beatriz Angelo': ['6976', '2387'],
-  'Fernanda Raphaelly': ['5447', '4182'],
+  'Fernanda Raphaelly': '4182',
+  'Mariane Zocoli': '5447',
 };
 
 export const CIDADE_TO_REGIAO: { [key: string]: string } = {

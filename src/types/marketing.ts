@@ -103,7 +103,7 @@ export interface ValoresCidadePorCidade {
 }
 
 export const MAPEAMENTO_ATENDENTES: { [key: string]: string } = {
-  '6905': 'Carol', '4182': 'Mellisa', '6976': 'Beatriz', '5447': 'Fernanda',
+  '6905': 'Carol', '4182': 'Mellisa', '6976': 'Beatriz', '5447': 'Mariane',
 };
 
 export interface MarketingCostData {

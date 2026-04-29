@@ -26,11 +26,11 @@ export interface ResultadosRpcRow {
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const resultadosCache = new Map<string, { timestamp: number; data: ResultadosRpcRow[] }>();
 const resultadosRequests = new Map<string, Promise<ResultadosRpcRow[]>>();
-const RESULTADOS_RESPONSAVEIS = ['Henrique Oliveira', '5447'] as const;
+const RESULTADOS_RESPONSAVEIS = ['Henrique Oliveira', 'Mariane Zocoli'] as const;
 const RESULTADOS_RESPONSAVEIS_SET = new Set<string>(RESULTADOS_RESPONSAVEIS);
 const RESULTADOS_RESPONSAVEIS_FOTOS: Record<(typeof RESULTADOS_RESPONSAVEIS)[number], string | null> = {
   'Henrique Oliveira': null,
-  '5447': null,
+  'Mariane Zocoli': null,
 };
 
 export function buildCacheKey(
@@ -107,10 +107,16 @@ export function normalizeResultados(rows: ResultadosRpcRow[]) {
   }
 
   for (const row of rows) {
-    if (!row.responsavel || !RESULTADOS_RESPONSAVEIS_SET.has(row.responsavel)) continue;
+    let responsavel = row.responsavel;
+    // Map Mariane's code to her display name
+    if (responsavel === '5447') {
+      responsavel = 'Mariane Zocoli';
+    }
 
-    const atendenteData = atendentesMap.get(row.responsavel) || {
-      nome: row.responsavel,
+    if (!responsavel || !RESULTADOS_RESPONSAVEIS_SET.has(responsavel)) continue;
+
+    const atendenteData = atendentesMap.get(responsavel) || {
+      nome: responsavel,
       enviado: 0,
       liberado: 0,
       fotoUrl: null,
@@ -126,7 +132,7 @@ export function normalizeResultados(rows: ResultadosRpcRow[]) {
     const cidades = atendenteData.cidades || [];
     const cityIndex = cidades.findIndex((cidade) => cidade.cidade === row.cidade);
     const cityPayload = {
-      atendente: row.responsavel,
+      atendente: responsavel,
       cidade: row.cidade,
       enviado: Number(row.cidade_enviado) || 0,
       liberado: Number(row.cidade_liberado) || 0,
@@ -142,7 +148,7 @@ export function normalizeResultados(rows: ResultadosRpcRow[]) {
     }
 
     atendenteData.cidades = cidades;
-    atendentesMap.set(row.responsavel, atendenteData);
+    atendentesMap.set(responsavel, atendenteData);
   }
 
   const atendentes = RESULTADOS_RESPONSAVEIS.map((atendente) => atendentesMap.get(atendente)!);
