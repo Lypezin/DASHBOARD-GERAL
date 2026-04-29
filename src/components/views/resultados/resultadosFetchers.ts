@@ -26,11 +26,11 @@ export interface ResultadosRpcRow {
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const resultadosCache = new Map<string, { timestamp: number; data: ResultadosRpcRow[] }>();
 const resultadosRequests = new Map<string, Promise<ResultadosRpcRow[]>>();
-const RESULTADOS_RESPONSAVEIS = ['Henrique Oliveira', 'Mariane Zocoli'] as const;
+const RESULTADOS_RESPONSAVEIS = ['Henrique Oliveira', '5447'] as const;
 const RESULTADOS_RESPONSAVEIS_SET = new Set<string>(RESULTADOS_RESPONSAVEIS);
 const RESULTADOS_RESPONSAVEIS_FOTOS: Record<(typeof RESULTADOS_RESPONSAVEIS)[number], string | null> = {
   'Henrique Oliveira': null,
-  'Mariane Zocoli': null,
+  '5447': null,
 };
 
 export function buildCacheKey(
