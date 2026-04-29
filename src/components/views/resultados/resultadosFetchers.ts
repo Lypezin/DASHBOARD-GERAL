@@ -2,7 +2,6 @@ import { MarketingDateFilter } from '@/types';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { CIDADES } from '@/constants/marketing';
 import { AtendenteData } from './AtendenteCard';
-import { ATENDENTES, ATENDENTES_FOTOS } from '@/utils/atendenteMappers';
 
 export interface TotaisData {
   totalEnviado: number;
@@ -27,6 +26,12 @@ export interface ResultadosRpcRow {
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const resultadosCache = new Map<string, { timestamp: number; data: ResultadosRpcRow[] }>();
 const resultadosRequests = new Map<string, Promise<ResultadosRpcRow[]>>();
+const RESULTADOS_RESPONSAVEIS = ['Henrique Oliveira', 'Mariane Zocoli'] as const;
+const RESULTADOS_RESPONSAVEIS_SET = new Set<string>(RESULTADOS_RESPONSAVEIS);
+const RESULTADOS_RESPONSAVEIS_FOTOS: Record<(typeof RESULTADOS_RESPONSAVEIS)[number], string | null> = {
+  'Henrique Oliveira': null,
+  'Mariane Zocoli': null,
+};
 
 export function buildCacheKey(
   organizationId: string | null | undefined,
@@ -86,12 +91,12 @@ export async function fetchResultados(cacheKey: string, params: Record<string, u
 export function normalizeResultados(rows: ResultadosRpcRow[]) {
   const atendentesMap = new Map<string, AtendenteData>();
 
-  for (const atendente of ATENDENTES) {
+  for (const atendente of RESULTADOS_RESPONSAVEIS) {
     atendentesMap.set(atendente, {
       nome: atendente,
       enviado: 0,
       liberado: 0,
-      fotoUrl: ATENDENTES_FOTOS[atendente] || null,
+      fotoUrl: RESULTADOS_RESPONSAVEIS_FOTOS[atendente] || null,
       cidades: CIDADES.map((cidade) => ({
         atendente,
         cidade,
@@ -102,13 +107,13 @@ export function normalizeResultados(rows: ResultadosRpcRow[]) {
   }
 
   for (const row of rows) {
-    if (!row.responsavel) continue;
+    if (!row.responsavel || !RESULTADOS_RESPONSAVEIS_SET.has(row.responsavel)) continue;
 
     const atendenteData = atendentesMap.get(row.responsavel) || {
       nome: row.responsavel,
       enviado: 0,
       liberado: 0,
-      fotoUrl: ATENDENTES_FOTOS[row.responsavel] || null,
+      fotoUrl: null,
       cidades: [],
     };
 
@@ -140,9 +145,7 @@ export function normalizeResultados(rows: ResultadosRpcRow[]) {
     atendentesMap.set(row.responsavel, atendenteData);
   }
 
-  const atendentes = ATENDENTES.map((atendente) => atendentesMap.get(atendente)!).concat(
-    Array.from(atendentesMap.values()).filter((item) => !ATENDENTES.includes(item.nome as typeof ATENDENTES[number]))
-  );
+  const atendentes = RESULTADOS_RESPONSAVEIS.map((atendente) => atendentesMap.get(atendente)!);
 
   const totais = atendentes.reduce<TotaisData>((acc, curr) => ({
     totalEnviado: acc.totalEnviado + curr.enviado,
