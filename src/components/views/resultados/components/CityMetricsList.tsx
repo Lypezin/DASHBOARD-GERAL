@@ -21,25 +21,25 @@ export const CityMetricsList: React.FC<CityMetricsListProps> = ({ cidades, atend
     if (activeCidades.length === 0) return null;
 
     return (
-        <div className="space-y-0.5">
+        <div>
             {/* Table header */}
-            <div className="flex items-center gap-3 px-3 py-1.5">
-                <div className="w-1 shrink-0" />
+            <div className="flex items-center gap-3.5 px-4 py-2">
+                <div className="w-1.5 shrink-0" />
                 <div className="flex-1">
-                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                    <span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
                         Cidade
                     </span>
                 </div>
-                <div className="flex items-center gap-4 shrink-0 text-right">
-                    <div className="w-8"><span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Env.</span></div>
-                    <div className="w-8"><span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Lib.</span></div>
-                    <div className="w-[80px]"><span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">CPL</span></div>
-                    <div className="w-10"><span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Conv.</span></div>
+                <div className="flex items-center gap-5 shrink-0 text-right">
+                    <div><span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Env.</span></div>
+                    <div><span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Lib.</span></div>
+                    <div className="w-[90px]"><span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">CPL</span></div>
+                    <div className="w-12"><span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Conv.</span></div>
                 </div>
             </div>
 
             {/* Divider */}
-            <div className="mx-3 h-px bg-slate-100 dark:bg-slate-800" />
+            <div className="mx-4 h-px bg-slate-100 dark:bg-slate-800" />
 
             {/* Rows */}
             <div className="divide-y divide-slate-50 dark:divide-slate-800/50">

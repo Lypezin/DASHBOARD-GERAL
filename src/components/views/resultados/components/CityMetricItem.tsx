@@ -29,52 +29,52 @@ export const CityMetricItem = React.memo(function CityMetricItem({ cidadeData }:
         : '—';
 
     return (
-        <div className="group flex items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40">
+        <div className="group flex items-center gap-3.5 rounded-lg px-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/40">
             {/* Conversion bar indicator */}
-            <div className="flex shrink-0 flex-col items-center gap-1">
-                <div className="h-8 w-1 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+            <div className="flex shrink-0 flex-col items-center">
+                <div className="h-9 w-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden flex flex-col justify-end">
                     <div
                         className={`w-full rounded-full transition-all duration-500 ${barColor}`}
-                        style={{ height: `${Math.min(conversaoCidade, 100)}%`, marginTop: 'auto' }}
+                        style={{ height: `${Math.min(conversaoCidade, 100)}%` }}
                     />
                 </div>
             </div>
 
             {/* City name */}
             <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-slate-800 dark:text-slate-100" title={cidadeData.cidade}>
+                <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-100" title={cidadeData.cidade}>
                     {cidadeData.cidade}
                 </p>
                 {metaInfoCidade?.jaAtingiuMeta && (
-                    <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                    <span className="text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
                         ✓ Meta
                     </span>
                 )}
             </div>
 
             {/* Metrics inline */}
-            <div className="flex items-center gap-4 shrink-0 text-right">
+            <div className="flex items-center gap-5 shrink-0 text-right">
                 <div>
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-none mb-0.5">Env.</p>
-                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 font-mono tabular-nums">
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-none mb-0.5">Env.</p>
+                    <p className="text-base font-bold text-slate-700 dark:text-slate-200 font-mono tabular-nums">
                         {cidadeData.enviado.toLocaleString('pt-BR')}
                     </p>
                 </div>
                 <div>
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-none mb-0.5">Lib.</p>
-                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200 font-mono tabular-nums">
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-none mb-0.5">Lib.</p>
+                    <p className="text-base font-bold text-slate-700 dark:text-slate-200 font-mono tabular-nums">
                         {cidadeData.liberado.toLocaleString('pt-BR')}
                     </p>
                 </div>
                 <div>
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-none mb-0.5">CPL</p>
-                    <p className="truncate text-sm font-semibold text-slate-700 dark:text-slate-200 font-mono tabular-nums max-w-[80px]" title={custoPorLiberado}>
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-none mb-0.5">CPL</p>
+                    <p className="truncate text-base font-bold text-slate-700 dark:text-slate-200 font-mono tabular-nums max-w-[90px]" title={custoPorLiberado}>
                         {custoPorLiberado}
                     </p>
                 </div>
-                <div className="w-10">
-                    <p className="text-[10px] text-slate-400 dark:text-slate-500 leading-none mb-0.5">Conv.</p>
-                    <p className={`text-sm font-semibold font-mono tabular-nums ${
+                <div className="w-12">
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-none mb-0.5">Conv.</p>
+                    <p className={`text-base font-bold font-mono tabular-nums ${
                         conversaoCidade >= 50 ? 'text-emerald-600 dark:text-emerald-400' :
                         conversaoCidade >= 25 ? 'text-amber-600 dark:text-amber-400' :
                         'text-rose-500 dark:text-rose-400'

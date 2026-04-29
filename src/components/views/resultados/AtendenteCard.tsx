@@ -37,9 +37,9 @@ export const AtendenteCard = React.memo(function AtendenteCard({
   const metaAtingida = metaInfoAtendente?.jaAtingiuMeta ?? false;
 
   return (
-    <div className="rounded-xl border border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-900 overflow-hidden">
+    <div className="rounded-xl border border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-900 overflow-hidden transition-shadow hover:shadow-md dark:hover:shadow-slate-950/40">
       {/* Top section: Profile + summary metrics */}
-      <div className="p-5 pb-4">
+      <div className="p-6">
         <AtendenteHeader
           atendenteData={atendenteData}
           metaAtingida={metaAtingida}
@@ -47,7 +47,7 @@ export const AtendenteCard = React.memo(function AtendenteCard({
           onImageError={() => setImageError(true)}
         />
 
-        <div className="mt-4">
+        <div className="mt-5">
           <AtendenteMetrics atendenteData={atendenteData} />
         </div>
 
@@ -57,9 +57,9 @@ export const AtendenteCard = React.memo(function AtendenteCard({
         />
       </div>
 
-      {/* Bottom section: City breakdown — full width, no padding sides */}
+      {/* Bottom section: City breakdown */}
       {atendenteData.cidades && atendenteData.cidades.some(c => c.enviado > 0 || c.liberado > 0) && (
-        <div className="border-t border-slate-100 dark:border-slate-800 py-2">
+        <div className="border-t border-slate-100 dark:border-slate-800 py-3">
           <CityMetricsList cidades={atendenteData.cidades} atendenteNome={atendenteData.nome} />
         </div>
       )}
