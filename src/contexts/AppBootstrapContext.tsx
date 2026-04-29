@@ -1,172 +1,30 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
-import { safeRpc } from '@/lib/rpcWrapper';
-import type { CurrentUser } from '@/types';
-import type { UserProfile } from '@/hooks/auth/types';
 import { checkSupabaseMock } from '@/utils/auth/headerAuthHelpers';
-import { fetchOrganizationData } from './hooks/organizationDataHelper';
 import type { Organization } from './organizationTypes';
 
+import { 
+  type AppBootstrapState, 
+  type AppBootstrapContextValue, 
+  EMPTY_STATE 
+} from './bootstrap/types';
+
+import { 
+  fetchProfileWithRetry, 
+  hydrateAvatarUrl, 
+  resolveOrganization, 
+  buildSnapshot 
+} from './bootstrap/helpers';
+
 const IS_DEV = process.env.NODE_ENV === 'development';
-
-type BootstrapProfile = UserProfile & {
-  assigned_pracas?: string[];
-};
-
-interface AppBootstrapState {
-  authUser: User | null;
-  profile: BootstrapProfile | null;
-  currentUser: CurrentUser | null;
-  organization: Organization | null;
-  avatarUrl: string | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  hasResolved: boolean;
-  error: string | null;
-}
-
-interface AppBootstrapContextValue extends AppBootstrapState {
-  refresh: (force?: boolean) => Promise<void>;
-  handleLogout: () => Promise<void>;
-}
-
-const EMPTY_STATE: AppBootstrapState = {
-  authUser: null,
-  profile: null,
-  currentUser: null,
-  organization: null,
-  avatarUrl: null,
-  isAuthenticated: false,
-  isLoading: true,
-  hasResolved: false,
-  error: null,
-};
-
 const AppBootstrapContext = createContext<AppBootstrapContextValue | undefined>(undefined);
 
 let cachedState: AppBootstrapState | null = null;
 let inFlightBootstrap: Promise<AppBootstrapState> | null = null;
 let cachedOrganization: { id: string; value: Organization | null } | null = null;
-
-function createCurrentUser(profile: BootstrapProfile | null): CurrentUser | null {
-  if (!profile || profile.is_approved === false) {
-    return null;
-  }
-
-  return {
-    id: profile.id,
-    is_admin: profile.is_admin || false,
-    assigned_pracas: profile.assigned_pracas || [],
-    role: profile.role || 'user',
-    organization_id: profile.organization_id || null,
-  };
-}
-
-async function fetchProfileWithRetry(): Promise<BootstrapProfile | null> {
-  let lastError: unknown = null;
-
-  for (let attempt = 0; attempt < 2; attempt += 1) {
-    try {
-      const { data, error } = await safeRpc<BootstrapProfile>('get_current_user_profile', {}, {
-        timeout: 10000,
-        validateParams: false,
-      });
-
-      if (!error && data) {
-        return data;
-      }
-
-      lastError = error;
-    } catch (error) {
-      lastError = error;
-    }
-
-    if (attempt === 0) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-  }
-
-  if (IS_DEV && lastError) {
-    safeLog.warn('[AppBootstrap] Falha ao carregar perfil:', lastError);
-  }
-
-  return null;
-}
-
-async function hydrateAvatarUrl(
-  authUser: User,
-  profile: BootstrapProfile | null
-): Promise<BootstrapProfile | null> {
-  if (!authUser || !profile || profile.avatar_url) {
-    return profile;
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('avatar_url')
-      .eq('id', authUser.id)
-      .single();
-
-    if (!error && data?.avatar_url) {
-      return {
-        ...profile,
-        avatar_url: data.avatar_url,
-      };
-    }
-  } catch (error) {
-    if (IS_DEV) {
-      safeLog.warn('[AppBootstrap] Falha ao hidratar avatar_url do perfil:', error);
-    }
-  }
-
-  return profile;
-}
-
-async function resolveOrganization(organizationId: string | null): Promise<Organization | null> {
-  if (!organizationId) {
-    return null;
-  }
-
-  if (cachedOrganization?.id === organizationId) {
-    return cachedOrganization.value;
-  }
-
-  try {
-    const organization = await fetchOrganizationData(organizationId);
-    cachedOrganization = { id: organizationId, value: organization };
-    return organization;
-  } catch (error) {
-    if (IS_DEV) {
-      safeLog.warn('[AppBootstrap] Falha ao carregar organizacao:', error);
-    }
-    cachedOrganization = { id: organizationId, value: null };
-    return null;
-  }
-}
-
-function buildSnapshot(authUser: User | null, profile: BootstrapProfile | null, organization: Organization | null, error: string | null): AppBootstrapState {
-  const avatarUrl = profile?.avatar_url
-    || authUser?.user_metadata?.avatar_url
-    || authUser?.user_metadata?.picture
-    || null;
-
-  return {
-    authUser,
-    profile,
-    currentUser: createCurrentUser(profile),
-    organization,
-    avatarUrl,
-    isAuthenticated: !!authUser,
-    isLoading: false,
-    hasResolved: true,
-    error,
-  };
-}
 
 function clearBootstrapCache() {
   cachedState = null;
@@ -211,7 +69,12 @@ async function resolveBootstrapState(force: boolean = false): Promise<AppBootstr
       const organizationId = profile?.organization_id
         || authUser.user_metadata?.organization_id
         || null;
-      const organization = await resolveOrganization(organizationId);
+        
+      const organization = await resolveOrganization(
+        organizationId, 
+        cachedOrganization,
+        (cache) => { cachedOrganization = cache; }
+      );
 
       const nextState = buildSnapshot(authUser, profile, organization, profile ? null : 'profile_unavailable');
       cachedState = nextState;
@@ -277,13 +140,13 @@ export function AppBootstrapProvider({ children }: { children: React.ReactNode }
       if (event === 'TOKEN_REFRESHED' && nextUserId && cachedState?.authUser?.id === nextUserId) {
         setState((prev) => {
           const nextState = {
-          ...prev,
-          authUser: session?.user || prev.authUser,
-          avatarUrl: prev.avatarUrl
-            || session?.user?.user_metadata?.avatar_url
-            || session?.user?.user_metadata?.picture
-            || null,
-          isAuthenticated: true,
+            ...prev,
+            authUser: session?.user || prev.authUser,
+            avatarUrl: prev.avatarUrl
+              || session?.user?.user_metadata?.avatar_url
+              || session?.user?.user_metadata?.picture
+              || null,
+            isAuthenticated: true,
           };
           cachedState = nextState;
           return nextState;

@@ -1,100 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
-import { FilterOption, CurrentUser, hasFullCityAccess, DimensoesDashboard, Filters } from '@/types';
+import { CurrentUser, hasFullCityAccess, DimensoesDashboard, Filters } from '@/types';
+import { toUniqueOptions, createPracasKey, createDimensionCacheKey, processFallbackSubPracas } from './dimensionHelpers';
+import { DimensionCacheEntry, readCachedOptions, writeCachedOptions } from './dimensionCache';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
-const CACHE_DURATION = 1000 * 60 * 30;
-const dimensionMemoryCache = new Map<string, DimensionCacheEntry>();
-
-interface DimensionCacheEntry {
-    timestamp: number;
-    subPracas: FilterOption[];
-    origens: FilterOption[];
-    turnos: FilterOption[];
-}
 
 interface DimensionOptionsRpcRow {
     sub_pracas?: unknown[];
     origens?: unknown[];
     turnos?: unknown[];
-}
-
-function toUniqueOptions(arr: unknown): FilterOption[] {
-    if (!Array.isArray(arr)) return [];
-
-    const values = arr
-        .map((item) => {
-            if (typeof item === 'string') return item;
-            if (item && typeof item === 'object') {
-                const record = item as Record<string, unknown>;
-                return record.value || record.label || record.nome || record.name || Object.values(record)[0];
-            }
-            return item;
-        })
-        .filter((value): value is string | number => typeof value === 'string' || typeof value === 'number')
-        .map(String)
-        .filter(Boolean);
-
-    return Array.from(new Set(values))
-        .sort((a, b) => a.localeCompare(b, 'pt-BR'))
-        .map((value) => ({ value, label: value }));
-}
-
-function createPracasKey(pracas: string[]) {
-    return pracas.map((praca) => praca.trim().toUpperCase()).filter(Boolean).sort().join('|');
-}
-
-function createDimensionCacheKey(pracasKey: string, organizationId?: string | null) {
-    return `${organizationId || 'no-org'}::${pracasKey}`;
-}
-
-function processFallbackSubPracas(dimensoes: DimensoesDashboard, activePracas: string[]) {
-    return toUniqueOptions(dimensoes.sub_pracas).filter((subPraca) =>
-        activePracas.some((praca) => {
-            const upperSubPraca = subPraca.value.toUpperCase();
-            const upperPraca = praca.toUpperCase();
-            return upperSubPraca.includes(upperPraca) || upperSubPraca.startsWith(upperPraca);
-        })
-    );
-}
-
-function isValidCacheEntry(entry?: DimensionCacheEntry | null): entry is DimensionCacheEntry {
-    return !!entry && Date.now() - entry.timestamp < CACHE_DURATION;
-}
-
-function getStorageKey(key: string) {
-    return `dashboard_dimension_options_v1_${key}`;
-}
-
-function readCachedOptions(key: string): DimensionCacheEntry | null {
-    const memoryEntry = dimensionMemoryCache.get(key);
-    if (isValidCacheEntry(memoryEntry)) return memoryEntry;
-
-    try {
-        const raw = sessionStorage.getItem(getStorageKey(key));
-        if (!raw) return null;
-
-        const entry = JSON.parse(raw) as DimensionCacheEntry;
-        if (isValidCacheEntry(entry)) {
-            dimensionMemoryCache.set(key, entry);
-            return entry;
-        }
-    } catch {
-        sessionStorage.removeItem(getStorageKey(key));
-    }
-
-    return null;
-}
-
-function writeCachedOptions(key: string, entry: DimensionCacheEntry) {
-    dimensionMemoryCache.set(key, entry);
-
-    try {
-        sessionStorage.setItem(getStorageKey(key), JSON.stringify(entry));
-    } catch {
-        // Cache local e opcional.
-    }
 }
 
 export function useDimensionOptions(
