@@ -1,5 +1,5 @@
 import React from 'react';
-import { MapPin, ChevronDown } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { AtendenteCidadeData } from '@/types';
 import { CityMetricItem } from './CityMetricItem';
@@ -10,45 +10,49 @@ interface CityMetricsListProps {
 }
 
 export const CityMetricsList: React.FC<CityMetricsListProps> = ({ cidades, atendenteNome }) => {
-    const activeCidades = cidades.filter(c => c.enviado > 0 || c.liberado > 0);
+    const activeCidades = cidades
+        .filter(c => c.enviado > 0 || c.liberado > 0)
+        .sort((a, b) => {
+            const liberadoDiff = (b.liberado || 0) - (a.liberado || 0);
+            if (liberadoDiff !== 0) return liberadoDiff;
+
+            const enviadoDiff = (b.enviado || 0) - (a.enviado || 0);
+            if (enviadoDiff !== 0) return enviadoDiff;
+
+            return a.cidade.localeCompare(b.cidade, 'pt-BR');
+        });
 
     if (activeCidades.length === 0) return null;
 
     return (
-        <div className="space-y-2 pt-3 border-t border-slate-100 dark:border-slate-800 flex-1 min-h-0 flex flex-col overflow-hidden">
-            {/* Header */}
-            <div className="flex items-center justify-between flex-shrink-0">
+        <div className="space-y-3 rounded-2xl border border-slate-100 bg-white/70 p-3 dark:border-slate-800 dark:bg-slate-900/40">
+            <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                    <div className="p-1 rounded-md bg-slate-100 dark:bg-slate-800">
-                        <MapPin className="h-3 w-3 text-slate-600 dark:text-slate-400" />
+                    <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800">
+                        <MapPin className="h-3.5 w-3.5 text-slate-600 dark:text-slate-400" />
                     </div>
-                    <h4 className="text-[11px] font-semibold text-slate-700 dark:text-slate-300">
-                        Por Cidade
-                    </h4>
-                    <Badge variant="secondary" className="px-1.5 py-0 text-[9px] font-medium">
-                        {activeCidades.length}
-                    </Badge>
+                    <div>
+                        <h4 className="text-xs font-semibold text-slate-800 dark:text-slate-100">
+                            Resultados por cidade
+                        </h4>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                            Tudo visível sem rolagem interna
+                        </p>
+                    </div>
                 </div>
-                <ChevronDown className="h-3 w-3 text-slate-400" />
+                <Badge variant="secondary" className="px-2 py-0.5 text-[10px] font-medium">
+                    {activeCidades.length} cidades
+                </Badge>
             </div>
 
-            {/* Lista de cidades com fade */}
-            <div className="relative flex-1 min-h-0">
-                {/* Fade superior */}
-                <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-b from-white dark:from-slate-900 to-transparent z-10 pointer-events-none" />
-
-                <div className="space-y-2 overflow-y-auto pr-1 max-h-48 scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-slate-700 py-1">
-                    {activeCidades.map((cidadeData) => (
-                        <CityMetricItem
-                            key={`${atendenteNome}-${cidadeData.cidade}`}
-                            cidadeData={cidadeData}
-                            atendenteNome={atendenteNome}
-                        />
-                    ))}
-                </div>
-
-                {/* Fade inferior */}
-                <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-white dark:from-slate-900 to-transparent z-10 pointer-events-none" />
+            <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2">
+                {activeCidades.map((cidadeData) => (
+                    <CityMetricItem
+                        key={`${atendenteNome}-${cidadeData.cidade}`}
+                        cidadeData={cidadeData}
+                        atendenteNome={atendenteNome}
+                    />
+                ))}
             </div>
         </div>
     );
