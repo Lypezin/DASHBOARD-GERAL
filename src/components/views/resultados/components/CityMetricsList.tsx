@@ -1,5 +1,4 @@
 import React from 'react';
-import { MapPin } from 'lucide-react';
 import { AtendenteCidadeData } from '@/types';
 import { CityMetricItem } from './CityMetricItem';
 
@@ -22,19 +21,28 @@ export const CityMetricsList: React.FC<CityMetricsListProps> = ({ cidades, atend
     if (activeCidades.length === 0) return null;
 
     return (
-        <div className="space-y-2.5 rounded-lg border border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900/40 p-3">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                    <MapPin className="h-3.5 w-3.5 text-slate-400 dark:text-slate-500" />
-                    <span className="text-xs font-semibold text-slate-700 dark:text-slate-200">
-                        Detalhamento por cidade
+        <div className="space-y-0.5">
+            {/* Table header */}
+            <div className="flex items-center gap-3 px-3 py-1.5">
+                <div className="w-1 shrink-0" />
+                <div className="flex-1">
+                    <span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                        Cidade
                     </span>
                 </div>
-                <span className="text-[10px] font-medium text-slate-400 dark:text-slate-500 tabular-nums">
-                    {activeCidades.length} ativas
-                </span>
+                <div className="flex items-center gap-4 shrink-0 text-right">
+                    <div className="w-8"><span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Env.</span></div>
+                    <div className="w-8"><span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Lib.</span></div>
+                    <div className="w-[80px]"><span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">CPL</span></div>
+                    <div className="w-10"><span className="text-[10px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Conv.</span></div>
+                </div>
             </div>
-            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+
+            {/* Divider */}
+            <div className="mx-3 h-px bg-slate-100 dark:bg-slate-800" />
+
+            {/* Rows */}
+            <div className="divide-y divide-slate-50 dark:divide-slate-800/50">
                 {activeCidades.map((cidadeData) => (
                     <CityMetricItem
                         key={`${atendenteNome}-${cidadeData.cidade}`}
