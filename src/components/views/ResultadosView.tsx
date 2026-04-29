@@ -36,24 +36,24 @@ const ResultadosView = React.memo(function ResultadosView() {
   }
 
   return (
-    <div className="space-y-6 pb-8 animate-fade-in">
+    <div className="space-y-8 pb-8 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 shadow-sm">
-            <BarChart3 className="h-5 w-5 text-white" />
+        <div className="flex items-center gap-4">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-600 shadow-md shadow-blue-600/20">
+            <BarChart3 className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white leading-tight">
+            <h2 className="text-xl font-bold text-slate-900 dark:text-white leading-tight">
               Análise de Resultados
             </h2>
-            <p className="text-[13px] text-slate-500 dark:text-slate-400">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
               Performance e conversão por responsável
             </p>
           </div>
         </div>
         {atendentesData.length > 0 && (
-          <span className="hidden sm:inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-1 text-xs font-medium text-slate-600 dark:text-slate-300">
+          <span className="hidden sm:inline-flex items-center rounded-full bg-slate-100 dark:bg-slate-800 px-4 py-1.5 text-sm font-semibold text-slate-600 dark:text-slate-300">
             {atendentesData.length} responsáveis
           </span>
         )}
