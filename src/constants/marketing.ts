@@ -28,6 +28,18 @@ export const CIDADES = [
 ] as const;
 
 /**
+ * Cidades usadas apenas nos slides de Análise Temporal da apresentação.
+ */
+export const MARKETING_PRESENTATION_WEEKLY_CITIES = [
+  'São Paulo 2.0',
+  'Salvador 2.0',
+  'Guarulhos 2.0',
+  'Manaus 2.0',
+  'Sorocaba 2.0',
+  'ABC 2.0',
+] as const;
+
+/**
  * Mapeamento de nomes de exibição para valores do banco de dados
  */
 export const CITY_DB_MAPPING: Record<string, string> = {

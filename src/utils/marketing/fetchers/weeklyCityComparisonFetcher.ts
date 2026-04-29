@@ -76,10 +76,8 @@ function isItemFromCity(item: any, city: string) {
     }
 
     if (city === 'ABC 2.0') {
-        // ABC 2.0 exclui Santo André e São Bernardo específicos
         const isABC = itemRegion === 'ABC 2.0' || itemCity === 'ABC 2.0';
-        const excludedSubPracas = [...SANTO_ANDRE_SUB_PRACAS, ...SAO_BERNARDO_SUB_PRACAS];
-        return isABC && !excludedSubPracas.includes(subPracaAbc as any);
+        return isABC && [...SANTO_ANDRE_SUB_PRACAS, ...SAO_BERNARDO_SUB_PRACAS].includes(subPracaAbc as any);
     }
 
     // Fallback genérico para as outras cidades

@@ -6,7 +6,7 @@ import { MarketingReportSlides } from './components/MarketingReportSlides';
 import { createClient } from '@/utils/supabase/server';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { redirect } from 'next/navigation';
-import { CIDADES } from '@/constants/marketing';
+import { MARKETING_PRESENTATION_WEEKLY_CITIES } from '@/constants/marketing';
 
 import { Metadata } from 'next';
 
@@ -80,7 +80,13 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
     ]);
 
     // Buscar comparativo semanal para todas as cidades em lote (Otimizado!)
-    const weeklyDataByCity = await fetchMarketingWeeklyComparisonByCity(orgId, CIDADES as unknown as string[], dateInicial, dateFinal, supabase);
+    const weeklyDataByCity = await fetchMarketingWeeklyComparisonByCity(
+        orgId,
+        MARKETING_PRESENTATION_WEEKLY_CITIES as unknown as string[],
+        dateInicial,
+        dateFinal,
+        supabase
+    );
 
     const pageStyle = generatePrintStyles();
     
