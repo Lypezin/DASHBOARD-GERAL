@@ -66,9 +66,9 @@ export const CityMetricItem = React.memo(function CityMetricItem({ cidadeData }:
                         {cidadeData.liberado.toLocaleString('pt-BR')}
                     </p>
                 </div>
-                <div>
+                <div className="w-[100px]">
                     <p className="text-[11px] text-slate-400 dark:text-slate-500 leading-none mb-0.5">CPL</p>
-                    <p className="truncate text-base font-bold text-slate-700 dark:text-slate-200 font-mono tabular-nums max-w-[90px]" title={custoPorLiberado}>
+                    <p className="text-base font-bold text-slate-700 dark:text-slate-200 font-mono tabular-nums">
                         {custoPorLiberado}
                     </p>
                 </div>

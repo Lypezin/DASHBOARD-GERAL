@@ -33,7 +33,7 @@ export const CityMetricsList: React.FC<CityMetricsListProps> = ({ cidades, atend
                 <div className="flex items-center gap-5 shrink-0 text-right">
                     <div><span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Env.</span></div>
                     <div><span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Lib.</span></div>
-                    <div className="w-[90px]"><span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">CPL</span></div>
+                    <div className="w-[100px]"><span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">CPL</span></div>
                     <div className="w-12"><span className="text-[11px] font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">Conv.</span></div>
                 </div>
             </div>
