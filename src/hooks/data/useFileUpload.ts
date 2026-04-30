@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { uploadRateLimiter } from '@/lib/rateLimiter';
-import { deleteAllRecords, BatchInsertOptions } from '@/utils/dbHelpers';
+import { deleteAllRecords, BatchInsertOptions, isNonRetryableBatchInsertError } from '@/utils/dbHelpers';
 import { ExcelProcessConfig } from '@/utils/excelProcessor';
 import { processUploadFile } from '@/utils/fileProcessing/fileProcessor';
 import { triggerConcurrentRefresh } from '@/utils/fileProcessing/viewRefresher';
@@ -103,6 +103,11 @@ export function useFileUpload(options: FileUploadOptions) {
           lastError = err instanceof Error ? err.message : String(err);
           setState(p => ({ ...p, message: `Erro em ${file.name}: ${lastError}` }));
           safeLog.error(`Erro arquivo ${file.name}`, err);
+
+          if (isNonRetryableBatchInsertError(err)) {
+            errorCount += totalFiles - i - 1;
+            break;
+          }
         }
       }
 

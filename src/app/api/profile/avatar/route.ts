@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { createServiceRoleClient } from '@/utils/supabase/admin';
+import {
+    createServiceRoleClient,
+    getServiceRoleConfigErrorPayload,
+    isServiceRoleConfigError
+} from '@/utils/supabase/admin';
 
 export const runtime = 'nodejs';
 
@@ -53,6 +57,11 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ success: true });
     } catch (error) {
+        if (isServiceRoleConfigError(error)) {
+            const payload = getServiceRoleConfigErrorPayload();
+            return NextResponse.json({ error: payload.error, code: payload.code }, { status: 503 });
+        }
+
         const message = error instanceof Error ? error.message : 'Erro ao atualizar avatar.';
         return NextResponse.json({ error: message }, { status: 500 });
     }

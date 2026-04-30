@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { createServiceRoleClient } from '@/utils/supabase/admin';
+import {
+    createServiceRoleClient,
+    getServiceRoleConfigErrorPayload,
+    isServiceRoleConfigError
+} from '@/utils/supabase/admin';
 import type { PendingMV } from '@/types/upload';
 
 export const runtime = 'nodejs';
@@ -60,6 +64,10 @@ export async function GET() {
         const pending = await fetchPendingMVs();
         return NextResponse.json({ success: true, pending });
     } catch (error) {
+        if (isServiceRoleConfigError(error)) {
+            return NextResponse.json({ ...getServiceRoleConfigErrorPayload(), pending: [] }, { status: 503 });
+        }
+
         const message = error instanceof Error ? error.message : 'Erro ao consultar fila de atualizacao.';
         return NextResponse.json({ success: false, error: message, pending: [] }, { status: 500 });
     }
@@ -101,6 +109,10 @@ export async function POST(request: Request) {
             pending
         });
     } catch (error) {
+        if (isServiceRoleConfigError(error)) {
+            return NextResponse.json(getServiceRoleConfigErrorPayload(), { status: 503 });
+        }
+
         const message = error instanceof Error ? error.message : 'Erro ao enfileirar atualizacao.';
         return NextResponse.json({ success: false, error: message }, { status: 500 });
     }

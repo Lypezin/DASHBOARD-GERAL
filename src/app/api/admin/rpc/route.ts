@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { createServiceRoleClient } from '@/utils/supabase/admin';
+import {
+    createServiceRoleClient,
+    getServiceRoleConfigErrorPayload,
+    isServiceRoleConfigError
+} from '@/utils/supabase/admin';
 import {
     listAllUsers,
     listPendingUsers,
@@ -121,6 +125,11 @@ export async function POST(request: Request) {
 
         return NextResponse.json({ data, error: null });
     } catch (error) {
+        if (isServiceRoleConfigError(error)) {
+            const payload = getServiceRoleConfigErrorPayload();
+            return NextResponse.json({ data: null, ...payload }, { status: 503 });
+        }
+
         const message = error instanceof Error ? error.message : 'Erro desconhecido na API administrativa.';
         return NextResponse.json({ data: null, error: message }, { status: 500 });
     }

@@ -4,6 +4,25 @@ import { BATCH_SIZE } from '@/constants/upload';
 
 export interface BatchInsertOptions { batchSize?: number; onProgress?: (inserted: number, total: number) => void; returnData?: boolean; organizationId?: string; }
 
+export class NonRetryableBatchInsertError extends Error {
+    readonly nonRetryable = true;
+    readonly code?: string;
+
+    constructor(message: string, code?: string) {
+        super(message);
+        this.name = 'NonRetryableBatchInsertError';
+        this.code = code;
+    }
+}
+
+export function isNonRetryableBatchInsertError(error: unknown): error is NonRetryableBatchInsertError {
+    return error instanceof NonRetryableBatchInsertError ||
+        (typeof error === 'object' &&
+            error !== null &&
+            ((error as { nonRetryable?: unknown }).nonRetryable === true ||
+                (error as { code?: unknown }).code === 'SERVER_SUPABASE_SERVICE_ROLE_MISSING'));
+}
+
 export async function insertInBatches<T extends Record<string, unknown> = Record<string, unknown>>(table: string, data: T[], options: BatchInsertOptions = {}): Promise<{ inserted: number; errors: string[] }> {
     const { batchSize = BATCH_SIZE, onProgress, returnData = false, organizationId } = options;
     const totalRows = data.length, errors: string[] = [];
@@ -34,6 +53,11 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
             insertedRows += batch.length;
             if (onProgress) onProgress(insertedRows, totalRows);
         } catch (error: any) {
+            if (isNonRetryableBatchInsertError(error)) {
+                safeLog.error(`Erro nao recuperavel no lote ${batchNumber}:`, error);
+                throw error;
+            }
+
             errors.push(error?.message || `Erro desconhecido lote ${batchNumber}`);
             safeLog.error(`Erro no lote ${batchNumber}:`, error);
             if (error?.code === '23505' || error?.code === '23503') throw error;
@@ -57,7 +81,14 @@ async function insertCorridasViaApi(batch: any[], organizationId: string | undef
     const payload = await response.json().catch(() => null);
 
     if (!response.ok) {
-        throw new Error(payload?.error || payload?.message || `Erro HTTP ${response.status} no lote ${batchNum}`);
+        const message = payload?.error || payload?.message || `Erro HTTP ${response.status} no lote ${batchNum}`;
+        const code = typeof payload?.code === 'string' ? payload.code : undefined;
+
+        if (response.status === 503 || code === 'SERVER_SUPABASE_SERVICE_ROLE_MISSING') {
+            throw new NonRetryableBatchInsertError(message, code || 'UPLOAD_SERVER_UNAVAILABLE');
+        }
+
+        throw new Error(message);
     }
 
     const { errors: errCount, error_messages } = (payload || {}) as any;

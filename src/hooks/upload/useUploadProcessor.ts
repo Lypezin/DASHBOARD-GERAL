@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { uploadRateLimiter } from '@/lib/rateLimiter';
 import { processCorridasFile } from '@/utils/processors/corridasProcessor';
-import { insertInBatches } from '@/utils/dbHelpers';
+import { insertInBatches, isNonRetryableBatchInsertError } from '@/utils/dbHelpers';
 import { BATCH_SIZE } from '@/constants/upload';
 
 export interface UploadState {
@@ -87,6 +87,15 @@ export function useUploadProcessor(organizationId?: string) {
                 safeLog.error(`Erro no arquivo ${file.name}:`, error);
                 finalErrorMessageParts.push(`${file.name}: ${errorMessage}`);
                 errorCount++;
+
+                if (isNonRetryableBatchInsertError(error)) {
+                    const remainingFiles = totalFiles - fileIdx - 1;
+                    if (remainingFiles > 0) {
+                        finalErrorMessageParts.push(`Upload interrompido: ${remainingFiles} arquivo(s) restante(s) nao foram enviados para evitar novas falhas.`);
+                        errorCount += remainingFiles;
+                    }
+                    break;
+                }
             }
         }
 

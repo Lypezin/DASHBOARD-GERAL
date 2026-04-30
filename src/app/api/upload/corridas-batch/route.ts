@@ -1,6 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/utils/supabase/server';
-import { createServiceRoleClient } from '@/utils/supabase/admin';
+import {
+    createServiceRoleClient,
+    getServiceRoleConfigErrorPayload,
+    isServiceRoleConfigError
+} from '@/utils/supabase/admin';
 
 export const runtime = 'nodejs';
 
@@ -86,6 +90,10 @@ export async function POST(request: Request) {
 
         return NextResponse.json(data || { success: true, inserted: rows.length, errors: 0 });
     } catch (error) {
+        if (isServiceRoleConfigError(error)) {
+            return NextResponse.json(getServiceRoleConfigErrorPayload(), { status: 503 });
+        }
+
         const message = error instanceof Error ? error.message : 'Erro desconhecido no upload.';
         return NextResponse.json({ success: false, error: message }, { status: 500 });
     }
