@@ -4,6 +4,10 @@ import type { RefreshMVState } from '@/types/upload';
 import { mvService } from '@/services/mvService';
 
 const RESET_DELAY_MS = 5000;
+const POLL_INTERVAL_MS = 5000;
+const MAX_MONITORING_MS = 60 * 60 * 1000;
+
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export function useManualRefresh() {
     const [state, setState] = useState<RefreshMVState>({
@@ -35,22 +39,42 @@ export function useManualRefresh() {
                 throw new Error(error.message || 'Falha ao enfileirar MVs.');
             }
 
-            const pending = data?.pending || [];
-            const pendingCount = pending.length;
+            let remaining = data?.pending?.length || 0;
+            const total = Math.max(remaining, 1);
+            const startedAt = Date.now();
 
+            while (remaining > 0 && Date.now() - startedAt < MAX_MONITORING_MS) {
+                const completed = Math.max(0, total - remaining);
+                setState(prev => ({
+                    ...prev,
+                    refreshing: true,
+                    progress: Math.min(95, Math.max(35, Math.round((completed / total) * 100))),
+                    total,
+                    completed,
+                    failedMVs: [],
+                    progressLabel: `${completed}/${total} MV(s) concluidas`,
+                    message: `Atualizando MVs em segundo plano: ${remaining} pendente(s).`
+                }));
+
+                await wait(POLL_INTERVAL_MS);
+
+                const { data: pendingData, error: pendingError } = await mvService.getPendingMVs();
+                if (pendingError) throw new Error(pendingError.message || 'Falha ao acompanhar fila de MVs.');
+                remaining = pendingData?.length || 0;
+            }
+
+            const completed = Math.max(0, total - remaining);
             setState(prev => ({
                 ...prev,
                 refreshing: false,
-                progress: 100,
-                total: pendingCount,
-                completed: 0,
+                progress: remaining === 0 ? 100 : 95,
+                total,
+                completed,
                 failedMVs: [],
-                progressLabel: pendingCount > 0
-                    ? `${pendingCount} MV(s) aguardando processamento`
-                    : 'Fila conferida',
-                message: pendingCount > 0
-                    ? `${pendingCount} MV(s) em fila. O Supabase vai atualizar uma por vez automaticamente.`
-                    : 'Nenhuma MV pendente no momento.'
+                progressLabel: remaining === 0 ? 'Fila concluida' : `${remaining} MV(s) ainda pendente(s)`,
+                message: remaining === 0
+                    ? 'Atualizacao das MVs concluida.'
+                    : 'Atualizacao ainda em andamento no Supabase. Voce pode continuar usando o sistema.'
             }));
 
             setTimeout(() => {
