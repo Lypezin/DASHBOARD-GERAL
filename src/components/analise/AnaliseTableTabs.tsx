@@ -21,7 +21,6 @@ export const AnaliseTableTabs = React.memo(function AnaliseTableTabs({
     { id: 'turno', label: 'Por Turno' },
     { id: 'sub_praca', label: 'Por Sub Praça' },
     { id: 'origem', label: 'Por Origem' },
-    { id: 'dia_origem', label: 'Dia x Origem' },
   ];
 
   return (

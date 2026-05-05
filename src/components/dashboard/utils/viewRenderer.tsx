@@ -90,7 +90,15 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
         case 'marketing':
             return <MarketingView />;
         case 'dedicado':
-            return <DedicadoView filterPayload={props.filterPayload} currentUser={props.currentUser} />;
+            return (
+                <DedicadoView
+                    filterPayload={props.filterPayload}
+                    currentUser={props.currentUser}
+                    aderenciaOrigem={props.aderenciaOrigem}
+                    aderenciaDiaOrigem={props.aderenciaDiaOrigem}
+                    aderenciaDia={props.aderenciaDia}
+                />
+            );
         default:
             return <DashboardSkeleton contentOnly />; 
     }

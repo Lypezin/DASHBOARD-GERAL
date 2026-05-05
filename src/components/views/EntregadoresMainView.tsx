@@ -16,7 +16,7 @@ import { formatarHorasParaHMS } from '@/utils/formatters';
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
 import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
-import type { CurrentUser } from '@/types';
+import type { CurrentUser, EntregadoresData } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 
 const DeferredTopBottomPerformers = dynamic(
@@ -29,29 +29,18 @@ const DeferredEntregadorProfileDialog = dynamic(
   { ssr: false }
 );
 
-const EntregadoresMainView = React.memo(function EntregadoresMainView({
-  filterPayload,
-  currentUser,
-  variant = 'entregadores',
-}: {
-  filterPayload: FilterPayload;
-  currentUser: CurrentUser | null;
+interface EntregadoresMainContentProps {
+  entregadoresData: EntregadoresData | null;
+  loading: boolean;
   variant?: 'entregadores' | 'dedicado';
-}) {
-  const isDedicado = variant === 'dedicado';
-  const dedicatedPayload = React.useMemo<FilterPayload>(() => {
-    if (!isDedicado) return filterPayload;
+}
 
-    return {
-      ...filterPayload,
-      p_origem: null,
-      p_origens: null,
-      p_only_dedicados: true,
-    };
-  }, [filterPayload, isDedicado]);
-  const activeTab = isDedicado ? 'dedicado' : 'entregadores';
-  const { data: tabData, loading } = useTabData(activeTab, dedicatedPayload, currentUser);
-  const { entregadoresData } = useTabDataMapper({ activeTab, tabData });
+export const EntregadoresMainContent = React.memo(function EntregadoresMainContent({
+  entregadoresData,
+  loading,
+  variant = 'entregadores',
+}: EntregadoresMainContentProps) {
+  const isDedicado = variant === 'dedicado';
   const {
     sortedEntregadores,
     sortField,
@@ -125,6 +114,41 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
         />
       ) : null}
     </div>
+  );
+});
+
+EntregadoresMainContent.displayName = 'EntregadoresMainContent';
+
+const EntregadoresMainView = React.memo(function EntregadoresMainView({
+  filterPayload,
+  currentUser,
+  variant = 'entregadores',
+}: {
+  filterPayload: FilterPayload;
+  currentUser: CurrentUser | null;
+  variant?: 'entregadores' | 'dedicado';
+}) {
+  const isDedicado = variant === 'dedicado';
+  const dedicatedPayload = React.useMemo<FilterPayload>(() => {
+    if (!isDedicado) return filterPayload;
+
+    return {
+      ...filterPayload,
+      p_origem: null,
+      p_origens: null,
+      p_only_dedicados: true,
+    };
+  }, [filterPayload, isDedicado]);
+  const activeTab = isDedicado ? 'dedicado' : 'entregadores';
+  const { data: tabData, loading } = useTabData(activeTab, dedicatedPayload, currentUser);
+  const { entregadoresData } = useTabDataMapper({ activeTab, tabData });
+
+  return (
+    <EntregadoresMainContent
+      entregadoresData={entregadoresData}
+      loading={loading}
+      variant={variant}
+    />
   );
 });
 
