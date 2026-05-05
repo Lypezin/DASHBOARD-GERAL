@@ -48,7 +48,7 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
   useEffect(() => {
     const interactionMap = {
       comparacao: 'view_comparacao',
-      resumo: 'view_resumo',
+      dedicado: 'view_entregadores',
       entregadores: 'view_entregadores',
       evolucao: 'view_evolucao',
     } as const;

@@ -32,12 +32,26 @@ const DeferredEntregadorProfileDialog = dynamic(
 const EntregadoresMainView = React.memo(function EntregadoresMainView({
   filterPayload,
   currentUser,
+  variant = 'entregadores',
 }: {
   filterPayload: FilterPayload;
   currentUser: CurrentUser | null;
+  variant?: 'entregadores' | 'dedicado';
 }) {
-  const { data: tabData, loading } = useTabData('entregadores', filterPayload, currentUser);
-  const { entregadoresData } = useTabDataMapper({ activeTab: 'entregadores', tabData });
+  const isDedicado = variant === 'dedicado';
+  const dedicatedPayload = React.useMemo<FilterPayload>(() => {
+    if (!isDedicado) return filterPayload;
+
+    return {
+      ...filterPayload,
+      p_origem: null,
+      p_origens: null,
+      p_only_dedicados: true,
+    };
+  }, [filterPayload, isDedicado]);
+  const activeTab = isDedicado ? 'dedicado' : 'entregadores';
+  const { data: tabData, loading } = useTabData(activeTab, dedicatedPayload, currentUser);
+  const { entregadoresData } = useTabDataMapper({ activeTab, tabData });
   const {
     sortedEntregadores,
     sortField,
@@ -68,6 +82,8 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
       <EntregadoresHeader
         onExport={handleExport}
         isExporting={isExporting}
+        title={isDedicado ? 'Dedicados' : undefined}
+        description={isDedicado ? 'Performance dos entregadores em origens de frota dedicada' : undefined}
         periodoResolvido={entregadoresData.periodo_resolvido}
       />
 
@@ -77,6 +93,10 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
         rejeicaoMedia={stats.rejeicaoMedia}
         totalCorridas={stats.totalCorridasCompletadas}
         totalHoras={formatarHorasParaHMS(stats.totalSegundos / 3600)}
+        totalTitle={isDedicado ? 'Total de Dedicados' : undefined}
+        totalSubtext={isDedicado ? 'Entregadores com origem dedicada' : undefined}
+        corridasTitle={isDedicado ? 'Completadas Dedicado' : undefined}
+        corridasSubtext={isDedicado ? 'Total completado em dedicados' : undefined}
       />
 
       <EntregadoresMainSearch

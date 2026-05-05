@@ -2,15 +2,35 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Users, CheckCircle2, XCircle, Truck, Clock } from 'lucide-react';
 
-interface EntregadoresMainStatsCardsProps { totalEntregadores: number; aderenciaMedia: number; rejeicaoMedia: number; totalCorridas: number; totalHoras: string; }
+interface EntregadoresMainStatsCardsProps {
+    totalEntregadores: number;
+    aderenciaMedia: number;
+    rejeicaoMedia: number;
+    totalCorridas: number;
+    totalHoras: string;
+    totalTitle?: string;
+    totalSubtext?: string;
+    corridasTitle?: string;
+    corridasSubtext?: string;
+}
 
-export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainStatsCards({ totalEntregadores, aderenciaMedia, rejeicaoMedia, totalCorridas, totalHoras }: EntregadoresMainStatsCardsProps) {
+export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainStatsCards({
+    totalEntregadores,
+    aderenciaMedia,
+    rejeicaoMedia,
+    totalCorridas,
+    totalHoras,
+    totalTitle = 'Total de Entregadores',
+    totalSubtext = 'Entregadores listados',
+    corridasTitle = 'Corridas Completas',
+    corridasSubtext = 'Total completado',
+}: EntregadoresMainStatsCardsProps) {
     return (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
             {/* Total Entregadores */}
             <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">Total de Entregadores</CardTitle>
+                    <CardTitle className="text-sm font-medium text-muted-foreground">{totalTitle}</CardTitle>
                     <Users className="h-4 w-4 text-blue-500" />
                 </CardHeader>
                 <CardContent>
@@ -18,7 +38,7 @@ export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainSt
                         {totalEntregadores.toLocaleString('pt-BR')}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                        Entregadores listados
+                        {totalSubtext}
                     </p>
                 </CardContent>
             </Card>
@@ -62,7 +82,7 @@ export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainSt
             {/* Total Corridas */}
             <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">Corridas Completas</CardTitle>
+                    <CardTitle className="text-sm font-medium text-muted-foreground">{corridasTitle}</CardTitle>
                     <Truck className="h-4 w-4 text-indigo-500" />
                 </CardHeader>
                 <CardContent>
@@ -70,7 +90,7 @@ export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainSt
                         {totalCorridas.toLocaleString('pt-BR')}
                     </div>
                     <p className="text-xs text-muted-foreground mt-1">
-                        Total completado
+                        {corridasSubtext}
                     </p>
                 </CardContent>
             </Card>

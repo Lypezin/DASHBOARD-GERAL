@@ -7,10 +7,11 @@ import type { FilterPayload } from '@/types/filters';
 import { fetchTabData } from '@/utils/tabData/fetchTabData';
 import { processTabSuccessData, getTabFallbackData, TabData } from './tabDataHelpers';
 
-const SELF_MANAGED_TABS = ['evolucao', 'dashboard', 'analise', 'comparacao', 'marketing', 'resumo'];
+const SELF_MANAGED_TABS = ['evolucao', 'dashboard', 'analise', 'comparacao', 'marketing'];
 const SHARED_TAB_SCOPES: Record<string, string> = {
   entregadores: 'entregadores_shared',
   prioridade: 'entregadores_shared',
+  dedicado: 'dedicado_shared',
 };
 const SHARED_TAB_REQUESTS = new Map<string, Promise<TabData>>();
 
@@ -19,6 +20,7 @@ function getTabScope(tab: string) {
 }
 
 function getRequestTab(tab: string) {
+  if (tab === 'dedicado') return 'dedicado';
   return tab === 'prioridade' ? 'entregadores' : tab;
 }
 

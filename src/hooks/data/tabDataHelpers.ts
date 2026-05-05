@@ -15,7 +15,7 @@ export const processTabSuccessData = (tab: string, result: any): TabData => {
 };
 
 export const getTabFallbackData = (tab: string): TabData => {
-    if (tab === 'entregadores' || tab === 'prioridade') return { entregadores: [], total: 0 };
+    if (tab === 'entregadores' || tab === 'prioridade' || tab === 'dedicado') return { entregadores: [], total: 0 };
     if (tab === 'valores') return [];
     return null;
 };

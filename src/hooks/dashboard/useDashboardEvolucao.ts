@@ -64,7 +64,7 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
   useEffect(() => {
     if (isOrgLoading) return;
 
-    const needsEvolucao = activeTab === 'evolucao' || activeTab === 'dashboard' || activeTab === 'utr' || activeTab === 'resumo';
+    const needsEvolucao = activeTab === 'evolucao' || activeTab === 'dashboard' || activeTab === 'utr';
     if (!needsEvolucao) return;
     if (!anoEvolucao) return;
 

@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect, startTransition } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { TabType } from '@/types';
 
-const VALID_TABS = ['dashboard', 'analise', 'utr', 'entregadores', 'valores', 'evolucao', 'prioridade', 'comparacao', 'marketing', 'marketing_comparacao', 'resumo'];
+const VALID_TABS = ['dashboard', 'analise', 'utr', 'entregadores', 'valores', 'evolucao', 'prioridade', 'comparacao', 'marketing', 'marketing_comparacao', 'dedicado'];
 
 export function useDashboardTabs() {
     const router = useRouter();

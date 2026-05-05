@@ -27,4 +27,4 @@ export const EntregadoresMainView = dynamic(() => import('@/components/views/Ent
 export const PrioridadePromoView = dynamic(() => import('@/components/views/PrioridadePromoView').then(mod => ({ default: mod.default })), { ssr: false, loading: () => defaultLoading });
 export const ComparacaoView = dynamic(() => import('@/components/views/ComparacaoView').then(mod => ({ default: mod.default })), { ssr: false, loading: () => defaultLoading });
 export const MarketingComparacaoView = dynamic(() => import('@/components/views/marketing/MarketingComparacaoView').then(mod => ({ default: mod.default })), { ssr: false, loading: () => defaultLoading });
-export const ResumoSemanalView = dynamic(() => import('@/components/views/ResumoSemanalView').then(mod => ({ default: mod.ResumoSemanalView })), { ssr: false, loading: () => defaultLoading });
+export const DedicadoView = dynamic(() => import('@/components/views/DedicadoView').then(mod => ({ default: mod.default })), { ssr: false, loading: () => defaultLoading });

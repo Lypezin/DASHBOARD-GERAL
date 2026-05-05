@@ -21,7 +21,7 @@ export function useTabDataMapper({ activeTab, tabData }: TabDataMapperProps) {
   }, [activeTab, tabData]);
 
   const entregadoresData = useMemo(() => {
-    return activeTab === 'entregadores' ? (tabData as EntregadoresData) : null;
+    return activeTab === 'entregadores' || activeTab === 'dedicado' ? (tabData as EntregadoresData) : null;
   }, [activeTab, tabData]);
 
   const valoresData = useMemo(() => {

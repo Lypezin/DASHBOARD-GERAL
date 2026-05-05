@@ -28,6 +28,9 @@ export async function fetchTabData(options: FetchOptions): Promise<{ data: TabDa
             case 'entregadores':
                 return await fetchEntregadoresData({ filterPayload });
 
+            case 'dedicado':
+                return await fetchEntregadoresData({ filterPayload: { ...filterPayload, p_only_dedicados: true } });
+
             case 'valores':
                 if (filterPayload.detailed) {
                     const result = await fetchValoresDetalhados({ filterPayload });
@@ -44,7 +47,6 @@ export async function fetchTabData(options: FetchOptions): Promise<{ data: TabDa
             case 'comparacao':
             case 'marketing':
             case 'marketing_comparacao':
-            case 'resumo':
                 return { data: null, error: null };
 
             default:

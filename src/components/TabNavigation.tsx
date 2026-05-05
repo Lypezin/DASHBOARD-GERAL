@@ -26,7 +26,7 @@ const TABS: { label: string; value: TabType }[] = [
   { label: 'Comparacao', value: 'comparacao' },
   { label: 'Operacional | Marketing', value: 'marketing_comparacao' },
   { label: 'Marketing', value: 'marketing' },
-  { label: 'Resumo', value: 'resumo' },
+  { label: 'DEDICADO', value: 'dedicado' },
 ];
 
 export function TabNavigation({ activeTab, onTabChange, variant = 'default' }: TabNavigationProps) {

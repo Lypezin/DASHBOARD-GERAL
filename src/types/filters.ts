@@ -25,6 +25,7 @@ export interface FilterPayload {
   p_data_inicial?: string | null;
   p_data_final?: string | null;
   p_organization_id?: string | null;
+  p_only_dedicados?: boolean | null;
   detailed?: boolean;
   [key: string]: unknown;
 }

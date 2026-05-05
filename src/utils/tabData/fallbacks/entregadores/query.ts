@@ -50,5 +50,9 @@ export function buildEntregadoresQuery(safePayload: FilterPayload) {
         entregadoresQuery = entregadoresQuery.in('origem', origens);
     }
 
+    if (safePayload.p_only_dedicados) {
+        entregadoresQuery = entregadoresQuery.ilike('origem', '%dedic%');
+    }
+
     return entregadoresQuery;
 }

@@ -11,7 +11,7 @@ import {
     PrioridadePromoView,
     ComparacaoView,
     MarketingComparacaoView,
-    ResumoSemanalView,
+    DedicadoView,
 } from '@/config/dynamicImports';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import type { TabType } from '@/types';
@@ -89,16 +89,8 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
             return <MarketingComparacaoView filters={props.filters} />;
         case 'marketing':
             return <MarketingView />;
-        case 'resumo':
-            return (
-                <ResumoSemanalView
-                    filterPayload={props.filterPayload}
-                    pracasDisponiveis={props.pracas?.map((p: { value: string }) => p.value) || []}
-                    anoSelecionado={props.anoEvolucao || new Date().getFullYear()}
-                    aderenciaSemanal={props.aderenciaSemanal}
-                    aderenciaDia={props.aderenciaDia}
-                />
-            );
+        case 'dedicado':
+            return <DedicadoView filterPayload={props.filterPayload} currentUser={props.currentUser} />;
         default:
             return <DashboardSkeleton contentOnly />; 
     }
