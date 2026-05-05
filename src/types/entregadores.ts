@@ -13,4 +13,9 @@ export interface Entregador {
 export interface EntregadoresData {
     entregadores: Entregador[];
     total: number;
+    periodo_resolvido?: {
+        ano?: number | null;
+        semana?: number | null;
+        auto_semana?: boolean;
+    };
 }

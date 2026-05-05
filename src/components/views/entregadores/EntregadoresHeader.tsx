@@ -5,12 +5,20 @@ import { Download } from 'lucide-react';
 interface EntregadoresHeaderProps {
     onExport: () => void;
     isExporting: boolean;
+    periodoResolvido?: {
+        ano?: number | null;
+        semana?: number | null;
+        auto_semana?: boolean;
+    };
 }
 
 export const EntregadoresHeader = React.memo(function EntregadoresHeader({
     onExport,
     isExporting,
+    periodoResolvido,
 }: EntregadoresHeaderProps) {
+    const autoSemana = periodoResolvido?.auto_semana && periodoResolvido.semana;
+
     return (
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div>
@@ -18,7 +26,9 @@ export const EntregadoresHeader = React.memo(function EntregadoresHeader({
                     Entregadores Operacional
                 </h2>
                 <p className="text-sm text-muted-foreground mt-1">
-                    Performance e aderência da frota
+                    {autoSemana
+                        ? `Performance da frota na semana ${periodoResolvido.semana} de ${periodoResolvido.ano}`
+                        : 'Performance e aderencia da frota'}
                 </p>
             </div>
             <Button

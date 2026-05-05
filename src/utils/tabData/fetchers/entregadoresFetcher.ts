@@ -85,6 +85,7 @@ export async function fetchEntregadoresData(options: FetchOptions): Promise<{ da
             if ('entregadores' in result.data && Array.isArray(result.data.entregadores)) {
                 entregadores = result.data.entregadores;
                 total = result.data.total !== undefined ? result.data.total : result.data.entregadores.length;
+                processedData.periodo_resolvido = result.data.periodo_resolvido as EntregadoresData['periodo_resolvido'];
             } else {
                 safeLog.warn('[fetchEntregadoresData] Estrutura de dados inesperada:', result.data);
                 entregadores = [];
@@ -95,7 +96,11 @@ export async function fetchEntregadoresData(options: FetchOptions): Promise<{ da
             total = result.data.length;
         }
 
-        processedData = { entregadores: entregadores as unknown as Entregador[], total };
+        processedData = {
+            ...processedData,
+            entregadores: entregadores as unknown as Entregador[],
+            total
+        };
     }
 
     return { data: processedData, error: null };

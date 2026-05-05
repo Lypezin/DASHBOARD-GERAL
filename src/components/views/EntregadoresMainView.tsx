@@ -68,6 +68,7 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
       <EntregadoresHeader
         onExport={handleExport}
         isExporting={isExporting}
+        periodoResolvido={entregadoresData.periodo_resolvido}
       />
 
       <EntregadoresMainStatsCards
