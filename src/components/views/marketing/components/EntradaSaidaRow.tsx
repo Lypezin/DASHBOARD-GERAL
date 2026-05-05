@@ -10,9 +10,11 @@ import { EntradaSaidaRetomadaDialog } from './EntradaSaidaRetomadaDialog';
 interface EntradaSaidaRowProps {
     item: WeeklyData;
     isFirst: boolean;
+    organizationId?: string;
+    praca?: string | null;
 }
 
-export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst }) => {
+export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst, organizationId, praca }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     const hasOrigins = item.retomada_origins && Object.keys(item.retomada_origins).length > 0;
@@ -75,7 +77,17 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst 
                 </div>
             </div>
             <AnimatePresence>
-                {isExpanded && <EntradaSaidaExpanded item={item} totalRetomada={totalRetomada} entradas_ops={entradas_ops} saidas_ops={saidas_ops} retomada_ops={retomada_ops} />}
+                {isExpanded && (
+                    <EntradaSaidaExpanded
+                        item={item}
+                        totalRetomada={totalRetomada}
+                        entradas_ops={entradas_ops}
+                        saidas_ops={saidas_ops}
+                        retomada_ops={retomada_ops}
+                        organizationId={organizationId}
+                        praca={praca}
+                    />
+                )}
             </AnimatePresence>
         </motion.div>
     );

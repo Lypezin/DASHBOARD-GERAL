@@ -7,6 +7,7 @@ import { WeeklyData } from './EntradaSaidaCard';
 
 interface Props {
     item: WeeklyData; totalRetomada: number; entradas_ops: number; saidas_ops: number; retomada_ops: number;
+    organizationId?: string; praca?: string | null;
 }
 
 const MetricBox = ({ icon: Icon, title, value, mkt, ops, borderClass, textClass, colorClass }: any) => (
@@ -20,7 +21,7 @@ const MetricBox = ({ icon: Icon, title, value, mkt, ops, borderClass, textClass,
     </div>
 );
 
-export const EntradaSaidaExpanded: React.FC<Props> = ({ item, totalRetomada, entradas_ops, saidas_ops, retomada_ops }) => {
+export const EntradaSaidaExpanded: React.FC<Props> = ({ item, totalRetomada, entradas_ops, saidas_ops, retomada_ops, organizationId, praca }) => {
     return (
         <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25, ease: 'easeInOut' }} className="overflow-hidden">
             <div className="border-t border-slate-100 dark:border-slate-800 bg-gradient-to-b from-slate-50/80 to-white dark:from-slate-800/30 dark:to-slate-900">
@@ -42,13 +43,13 @@ export const EntradaSaidaExpanded: React.FC<Props> = ({ item, totalRetomada, ent
                     <div className="flex items-center gap-3 pt-1">
                         <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mr-1"><Eye className="w-3.5 h-3.5 inline-block mr-1 -mt-0.5" />Ver nomes:</span>
                         {(item.entradas > 0 || (item.entradas_total || 0) > 0) && (
-                            <MetricDetailDialog type="entradas" weekLabel={formatWeekLabel(item.semana)} count={item.entradas_total || item.entradas} marketingNames={item.nomes_entradas_marketing || []} operacionalNames={item.nomes_entradas_operacional || []} />
+                            <MetricDetailDialog type="entradas" weekLabel={formatWeekLabel(item.semana)} semanaIso={item.semana} organizationId={organizationId} praca={praca} count={item.entradas_total || item.entradas} marketingNames={item.nomes_entradas_marketing || []} operacionalNames={item.nomes_entradas_operacional || []} />
                         )}
                         {(item.retomada_total || 0) > 0 && (
-                            <MetricDetailDialog type="retomada" weekLabel={formatWeekLabel(item.semana)} count={item.retomada_total || 0} marketingNames={item.nomes_retomada_marketing || []} operacionalNames={item.nomes_retomada_operacional || []} />
+                            <MetricDetailDialog type="retomada" weekLabel={formatWeekLabel(item.semana)} semanaIso={item.semana} organizationId={organizationId} praca={praca} count={item.retomada_total || 0} marketingNames={item.nomes_retomada_marketing || []} operacionalNames={item.nomes_retomada_operacional || []} />
                         )}
                         {(item.saidas > 0 || (item.saidas_total || 0) > 0) && (
-                            <MetricDetailDialog type="saidas" weekLabel={formatWeekLabel(item.semana)} count={item.saidas_total || item.saidas} marketingNames={item.nomes_saidas_marketing || []} operacionalNames={item.nomes_saidas_operacional || []} marketingNovosNames={item.nomes_saidas_novos_marketing || []} operacionalNovosNames={item.nomes_saidas_novos_operacional || []} />
+                            <MetricDetailDialog type="saidas" weekLabel={formatWeekLabel(item.semana)} semanaIso={item.semana} organizationId={organizationId} praca={praca} count={item.saidas_total || item.saidas} marketingNames={item.nomes_saidas_marketing || []} operacionalNames={item.nomes_saidas_operacional || []} marketingNovosNames={item.nomes_saidas_novos_marketing || []} operacionalNovosNames={item.nomes_saidas_novos_operacional || []} />
                         )}
                     </div>
                 </div>

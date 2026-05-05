@@ -26,6 +26,12 @@ export const MarketingDateRangeFilter: React.FC<MarketingDateRangeFilterProps> =
     filters,
     setFilters
 }) => {
+    const currentYear = new Date().getFullYear();
+    const yearOptions = Array.from(
+        { length: currentYear - 2022 + 1 },
+        (_, index) => currentYear - index
+    );
+
     return (
         <>
             {/* Filtro de Ano */}
@@ -50,8 +56,11 @@ export const MarketingDateRangeFilter: React.FC<MarketingDateRangeFilterProps> =
                         <SelectValue placeholder="Selecione o ano" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="2024">2024</SelectItem>
-                        <SelectItem value="2025">2025</SelectItem>
+                        {yearOptions.map((year) => (
+                            <SelectItem key={year} value={String(year)}>
+                                {year}
+                            </SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
             </div>

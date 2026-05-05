@@ -83,7 +83,11 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
             </div>
 
             <EntradaSaidaStatsCards data={data} />
-            <EntradaSaidaWeeklyGrid data={data} />
+            <EntradaSaidaWeeklyGrid
+                data={data}
+                organizationId={organizationId}
+                praca={praca}
+            />
         </div>
     );
 };

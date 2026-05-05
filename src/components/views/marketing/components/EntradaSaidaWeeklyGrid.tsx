@@ -8,9 +8,11 @@ import { WeeklyData } from './EntradaSaidaCard';
 
 interface EntradaSaidaWeeklyGridProps {
     data: WeeklyData[];
+    organizationId?: string;
+    praca?: string | null;
 }
 
-export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ data }) => {
+export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ data, organizationId, praca }) => {
     // Ordenar dados por semana (mais recente primeiro)
     const sortedWeeklyData = useMemo(() => {
         return [...data].sort((a, b) => b.semana.localeCompare(a.semana));
@@ -54,6 +56,8 @@ export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ 
                                 key={item.semana}
                                 item={item}
                                 isFirst={index === 0}
+                                organizationId={organizationId}
+                                praca={praca}
                             />
                         ))}
                     </div>

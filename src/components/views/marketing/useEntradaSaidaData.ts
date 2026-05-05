@@ -65,7 +65,8 @@ export function useEntradaSaidaData({
                     p_data_inicial: start,
                     p_data_final: end,
                     p_organization_id: organizationId,
-                    p_praca: dbPraca
+                    p_praca: dbPraca,
+                    p_include_names: false
                 });
 
                 if (cancelled) return;
@@ -134,7 +135,7 @@ async function fetchFluxoWithDedupe(cacheKey: string, params: Record<string, unk
 async function fetchFluxo(cacheKey: string, params: Record<string, unknown>) {
     const { data: rpcData, error: rpcError } = await safeRpc<any[]>('get_fluxo_semanal', params, {
         timeout: RPC_TIMEOUTS.LONG,
-        validateParams: true
+        validateParams: false
     });
 
     if (rpcError) throw rpcError;
