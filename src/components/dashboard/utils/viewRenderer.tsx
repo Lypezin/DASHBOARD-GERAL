@@ -94,9 +94,6 @@ export const renderActiveView = (activeTab: TabType, props: any) => {
                 <DedicadoView
                     filterPayload={props.filterPayload}
                     currentUser={props.currentUser}
-                    aderenciaOrigem={props.aderenciaOrigem}
-                    aderenciaDiaOrigem={props.aderenciaDiaOrigem}
-                    aderenciaDia={props.aderenciaDia}
                 />
             );
         default:

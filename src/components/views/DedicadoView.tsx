@@ -6,12 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AnaliseTable } from '@/components/analise/AnaliseTable';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { cn } from '@/lib/utils';
+import { safeLog } from '@/lib/errorHandler';
+import { safeRpc } from '@/lib/rpcWrapper';
+import { RPC_TIMEOUTS } from '@/constants/config';
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { AnaliseDiaOrigemTable } from './analise/components/AnaliseDiaOrigemTable';
 import { EntregadoresMainContent } from './EntregadoresMainView';
-import type { AderenciaDia, AderenciaDiaOrigem, AderenciaOrigem, CurrentUser } from '@/types';
+import type { AderenciaDiaOrigem, AderenciaOrigem, CurrentUser } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 
 type DedicadoSubTab = 'dashboard' | 'entregadores' | 'resumo' | 'dia_origem';
@@ -23,16 +26,31 @@ const SUB_TABS: { id: DedicadoSubTab; label: string; icon: React.ComponentType<{
   { id: 'dia_origem', label: 'Dia x Origem', icon: Table2 },
 ];
 
-function isDedicatedOrigin(value?: string | null) {
-  return String(value || '').toLowerCase().includes('dedic');
+type DedicadoOrigemRow = AderenciaOrigem & {
+  segundos_realizados?: number;
+};
+
+interface DedicadoOrigensPayload {
+  origem?: DedicadoOrigemRow[];
+  dia_origem?: AderenciaDiaOrigem[];
+  periodo_resolvido?: {
+    ano?: number | null;
+    semana?: number | null;
+    auto_semana?: boolean;
+  };
 }
 
-function buildDayDateMap(aderenciaDia: AderenciaDia[], filterPayload: FilterPayload) {
+function normalizeNumber(value: unknown) {
+  const parsed = Number(value || 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function buildDayDateMap(diaOrigem: AderenciaDiaOrigem[], filterPayload: FilterPayload) {
   const map: Record<string, string> = {};
 
-  aderenciaDia.forEach((dia) => {
-    const dayName = dia.dia || dia.dia_semana || dia.dia_da_semana;
-    const rawDate = dia.data || (dia as any).data_do_periodo;
+  diaOrigem.forEach((dia) => {
+    const dayName = dia.dia || (dia as any).dia_semana || (dia as any).dia_da_semana;
+    const rawDate = (dia as any).data || (dia as any).data_do_periodo;
     if (!dayName || !rawDate || typeof rawDate !== 'string') return;
 
     const normalizedKey = dayName.split('-')[0].trim().toLowerCase()
@@ -76,41 +94,108 @@ function buildDayDateMap(aderenciaDia: AderenciaDia[], filterPayload: FilterPayl
 const DedicadoView = React.memo(function DedicadoView({
   filterPayload,
   currentUser,
-  aderenciaOrigem = [],
-  aderenciaDiaOrigem = [],
-  aderenciaDia = [],
 }: {
   filterPayload: FilterPayload;
   currentUser: CurrentUser | null;
-  aderenciaOrigem?: AderenciaOrigem[];
-  aderenciaDiaOrigem?: AderenciaDiaOrigem[];
-  aderenciaDia?: AderenciaDia[];
 }) {
   const [activeSubTab, setActiveSubTab] = React.useState<DedicadoSubTab>('dashboard');
+  const [dedicadoData, setDedicadoData] = React.useState<DedicadoOrigensPayload>({ origem: [], dia_origem: [] });
+  const [dedicadoLoading, setDedicadoLoading] = React.useState(false);
   const dedicatedPayload = React.useMemo<FilterPayload>(() => ({
     ...filterPayload,
-    p_origem: null,
-    p_origens: null,
-    p_only_dedicados: true,
   }), [filterPayload]);
   const { data: tabData, loading } = useTabData('dedicado', dedicatedPayload, currentUser);
   const { entregadoresData } = useTabDataMapper({ activeTab: 'dedicado', tabData });
+  const origemPayload = React.useMemo(() => {
+    const allowed = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_data_inicial', 'p_data_final', 'p_organization_id'] as const;
+    const payload: Record<string, unknown> = {};
+
+    allowed.forEach((key) => {
+      const value = dedicatedPayload[key];
+      if (value !== null && value !== undefined && value !== '') {
+        payload[key] = value;
+      }
+    });
+
+    return payload;
+  }, [dedicatedPayload]);
+  const origemPayloadKey = React.useMemo(() => JSON.stringify(origemPayload), [origemPayload]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+
+    async function fetchDedicadoOrigens() {
+      setDedicadoLoading(true);
+
+      try {
+        const { data, error } = await safeRpc<DedicadoOrigensPayload>('dashboard_dedicado_origens', origemPayload, {
+          timeout: RPC_TIMEOUTS.DEFAULT,
+          validateParams: false,
+        });
+
+        if (cancelled) return;
+
+        if (error) {
+          safeLog.error('Erro ao carregar resumo dedicado por origem:', error);
+          setDedicadoData({ origem: [], dia_origem: [] });
+          return;
+        }
+
+        setDedicadoData({
+          origem: Array.isArray(data?.origem) ? data.origem : [],
+          dia_origem: Array.isArray(data?.dia_origem) ? data.dia_origem : [],
+          periodo_resolvido: data?.periodo_resolvido,
+        });
+      } catch (error) {
+        if (!cancelled) {
+          safeLog.error('Erro inesperado ao carregar dedicado por origem:', error);
+          setDedicadoData({ origem: [], dia_origem: [] });
+        }
+      } finally {
+        if (!cancelled) setDedicadoLoading(false);
+      }
+    }
+
+    void fetchDedicadoOrigens();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [origemPayload, origemPayloadKey]);
 
   const entregadores = React.useMemo(
     () => entregadoresData?.entregadores || [],
     [entregadoresData?.entregadores]
   );
   const dedicatedOrigem = React.useMemo(
-    () => (aderenciaOrigem || []).filter((item) => isDedicatedOrigin(item.origem)),
-    [aderenciaOrigem]
+    () => (dedicadoData.origem || [])
+      .map((item) => ({
+        ...item,
+        corridas_ofertadas: normalizeNumber(item.corridas_ofertadas),
+        corridas_aceitas: normalizeNumber(item.corridas_aceitas),
+        corridas_rejeitadas: normalizeNumber(item.corridas_rejeitadas),
+        corridas_completadas: normalizeNumber(item.corridas_completadas),
+        segundos_realizados: normalizeNumber(item.segundos_realizados),
+        aderencia_percentual: normalizeNumber(item.aderencia_percentual),
+      })),
+    [dedicadoData.origem]
   );
   const dedicatedDiaOrigem = React.useMemo(
-    () => (aderenciaDiaOrigem || []).filter((item) => isDedicatedOrigin(item.origem)),
-    [aderenciaDiaOrigem]
+    () => (dedicadoData.dia_origem || [])
+      .map((item) => ({
+        ...item,
+        corridas_ofertadas: normalizeNumber(item.corridas_ofertadas),
+        corridas_aceitas: normalizeNumber(item.corridas_aceitas),
+        corridas_rejeitadas: normalizeNumber(item.corridas_rejeitadas),
+        corridas_completadas: normalizeNumber(item.corridas_completadas),
+        segundos_realizados: normalizeNumber(item.segundos_realizados),
+        aderencia_percentual: normalizeNumber(item.aderencia_percentual),
+      })),
+    [dedicadoData.dia_origem]
   );
   const dayDateMap = React.useMemo(
-    () => buildDayDateMap(aderenciaDia || [], filterPayload),
-    [aderenciaDia, filterPayload]
+    () => buildDayDateMap(dedicatedDiaOrigem, filterPayload),
+    [dedicatedDiaOrigem, filterPayload]
   );
 
   const stats = React.useMemo(() => {
@@ -148,13 +233,13 @@ const DedicadoView = React.memo(function DedicadoView({
           <div>
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/80 px-3 py-1 text-[11px] font-black uppercase tracking-[0.28em] text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300">
               <BarChart3 className="h-3.5 w-3.5" />
-              Origens dedicadas
+              Origem
             </div>
             <h2 className="text-3xl font-black tracking-tight text-slate-950 dark:text-white">
               DEDICADO
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
-              Visão separada para restaurantes/origens de frota dedicada, com entregadores, resumo por origem e matriz Dia x Origem no mesmo lugar.
+              Visão separada para restaurantes/origens, com entregadores, resumo por origem e matriz Dia x Origem no mesmo lugar.
             </p>
           </div>
 
@@ -184,7 +269,7 @@ const DedicadoView = React.memo(function DedicadoView({
       </div>
 
       {activeSubTab === 'dashboard' ? (
-        <DedicadoDashboard loading={loading} stats={stats} topOrigens={dedicatedOrigem.slice(0, 8)} />
+        <DedicadoDashboard loading={loading || dedicadoLoading} stats={stats} topOrigens={dedicatedOrigem.slice(0, 8)} />
       ) : null}
 
       {activeSubTab === 'entregadores' ? (
@@ -196,11 +281,11 @@ const DedicadoView = React.memo(function DedicadoView({
       ) : null}
 
       {activeSubTab === 'resumo' ? (
-        <DedicadoResumo rows={resumoOrigemRows} />
+        <DedicadoResumo rows={resumoOrigemRows} loading={dedicadoLoading} />
       ) : null}
 
       {activeSubTab === 'dia_origem' ? (
-        <DedicadoDiaOrigem data={dedicatedDiaOrigem} dayDateMap={dayDateMap} />
+        <DedicadoDiaOrigem data={dedicatedDiaOrigem} dayDateMap={dayDateMap} loading={dedicadoLoading} />
       ) : null}
     </div>
   );
@@ -234,7 +319,7 @@ function DedicadoDashboard({
 
   const cards = [
     { title: 'Entregadores', value: stats.entregadores.toLocaleString('pt-BR'), sub: 'ativos no filtro dedicado', icon: Users, color: 'text-blue-500' },
-    { title: 'Origens', value: stats.origens.toLocaleString('pt-BR'), sub: 'restaurantes dedicados', icon: BarChart3, color: 'text-indigo-500' },
+    { title: 'Origens', value: stats.origens.toLocaleString('pt-BR'), sub: 'restaurantes/origens no filtro', icon: BarChart3, color: 'text-indigo-500' },
     { title: 'Ofertadas', value: stats.ofertadas.toLocaleString('pt-BR'), sub: `${stats.taxaAceitacao.toFixed(1)}% aceitas`, icon: Truck, color: 'text-sky-500' },
     { title: 'Aceitas', value: stats.aceitas.toLocaleString('pt-BR'), sub: `${stats.taxaCompletude.toFixed(1)}% completadas`, icon: CheckCircle2, color: 'text-emerald-500' },
     { title: 'Rejeitadas', value: stats.rejeitadas.toLocaleString('pt-BR'), sub: `${stats.taxaRejeicao.toFixed(1)}% rejeição`, icon: XCircle, color: 'text-rose-500' },
@@ -266,7 +351,7 @@ function DedicadoDashboard({
 
       <Card className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <CardHeader>
-          <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Top origens dedicadas</CardTitle>
+          <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Top origens</CardTitle>
         </CardHeader>
         <CardContent>
           {topOrigens.length > 0 ? (
@@ -289,7 +374,7 @@ function DedicadoDashboard({
             </div>
           ) : (
             <p className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
-              Nenhuma origem dedicada encontrada no resumo do período atual.
+              Nenhuma origem encontrada no resumo do período atual.
             </p>
           )}
         </CardContent>
@@ -298,13 +383,15 @@ function DedicadoDashboard({
   );
 }
 
-function DedicadoResumo({ rows }: { rows: any[] }) {
+function DedicadoResumo({ rows, loading }: { rows: any[]; loading: boolean }) {
+  if (loading) return <DashboardSkeleton contentOnly />;
+
   return (
     <Card className="overflow-hidden border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <CardHeader>
         <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Resumo por Origem</CardTitle>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Apenas origens com identificação de frota dedicada.
+          Dados agrupados por origem, respeitando os filtros atuais de período, cidade e organização.
         </p>
       </CardHeader>
       <CardContent className="p-0">
@@ -317,16 +404,20 @@ function DedicadoResumo({ rows }: { rows: any[] }) {
 function DedicadoDiaOrigem({
   data,
   dayDateMap,
+  loading,
 }: {
   data: AderenciaDiaOrigem[];
   dayDateMap: Record<string, string>;
+  loading: boolean;
 }) {
+  if (loading) return <DashboardSkeleton contentOnly />;
+
   return (
     <Card className="overflow-hidden border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <CardHeader>
         <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Dia x Origem</CardTitle>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Matriz migrada da guia Análise e filtrada para origens dedicadas.
+          Matriz migrada da guia Análise e filtrada para as origens do período atual.
         </p>
       </CardHeader>
       <CardContent>

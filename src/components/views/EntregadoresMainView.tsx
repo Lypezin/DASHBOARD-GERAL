@@ -71,8 +71,8 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
       <EntregadoresHeader
         onExport={handleExport}
         isExporting={isExporting}
-        title={isDedicado ? 'Dedicados' : undefined}
-        description={isDedicado ? 'Performance dos entregadores em origens de frota dedicada' : undefined}
+        title={isDedicado ? 'Entregadores por Origem' : undefined}
+        description={isDedicado ? 'Performance dos entregadores nas origens do filtro atual' : undefined}
         periodoResolvido={entregadoresData.periodo_resolvido}
       />
 
@@ -82,10 +82,10 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
         rejeicaoMedia={stats.rejeicaoMedia}
         totalCorridas={stats.totalCorridasCompletadas}
         totalHoras={formatarHorasParaHMS(stats.totalSegundos / 3600)}
-        totalTitle={isDedicado ? 'Total de Dedicados' : undefined}
-        totalSubtext={isDedicado ? 'Entregadores com origem dedicada' : undefined}
-        corridasTitle={isDedicado ? 'Completadas Dedicado' : undefined}
-        corridasSubtext={isDedicado ? 'Total completado em dedicados' : undefined}
+        totalTitle={isDedicado ? 'Total de Entregadores' : undefined}
+        totalSubtext={isDedicado ? 'Entregadores nas origens do filtro' : undefined}
+        corridasTitle={isDedicado ? 'Completadas' : undefined}
+        corridasSubtext={isDedicado ? 'Total completado nas origens' : undefined}
       />
 
       <EntregadoresMainSearch

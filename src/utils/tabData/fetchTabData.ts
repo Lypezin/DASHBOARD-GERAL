@@ -29,7 +29,7 @@ export async function fetchTabData(options: FetchOptions): Promise<{ data: TabDa
                 return await fetchEntregadoresData({ filterPayload });
 
             case 'dedicado':
-                return await fetchEntregadoresData({ filterPayload: { ...filterPayload, p_only_dedicados: true } });
+                return await fetchEntregadoresData({ filterPayload });
 
             case 'valores':
                 if (filterPayload.detailed) {
