@@ -134,9 +134,6 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
 
     return {
       ...filterPayload,
-      p_origem: null,
-      p_origens: null,
-      p_only_dedicados: true,
     };
   }, [filterPayload, isDedicado]);
   const activeTab = isDedicado ? 'dedicado' : 'entregadores';

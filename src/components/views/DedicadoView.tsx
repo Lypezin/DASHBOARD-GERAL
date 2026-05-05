@@ -31,6 +31,15 @@ type DedicadoOrigemRow = AderenciaOrigem & {
 };
 
 interface DedicadoOrigensPayload {
+  totais?: {
+    total_entregadores?: number;
+    total_origens?: number;
+    corridas_ofertadas?: number;
+    corridas_aceitas?: number;
+    corridas_rejeitadas?: number;
+    corridas_completadas?: number;
+    segundos_realizados?: number;
+  };
   origem?: DedicadoOrigemRow[];
   dia_origem?: AderenciaDiaOrigem[];
   periodo_resolvido?: {
@@ -104,7 +113,8 @@ const DedicadoView = React.memo(function DedicadoView({
   const dedicatedPayload = React.useMemo<FilterPayload>(() => ({
     ...filterPayload,
   }), [filterPayload]);
-  const { data: tabData, loading } = useTabData('dedicado', dedicatedPayload, currentUser);
+  const shouldLoadEntregadores = activeSubTab === 'entregadores';
+  const { data: tabData, loading } = useTabData(shouldLoadEntregadores ? 'dedicado' : 'dashboard', dedicatedPayload, currentUser);
   const { entregadoresData } = useTabDataMapper({ activeTab: 'dedicado', tabData });
   const origemPayload = React.useMemo(() => {
     const allowed = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_data_inicial', 'p_data_final', 'p_organization_id'] as const;
@@ -142,6 +152,7 @@ const DedicadoView = React.memo(function DedicadoView({
         }
 
         setDedicadoData({
+          totais: data?.totais || {},
           origem: Array.isArray(data?.origem) ? data.origem : [],
           dia_origem: Array.isArray(data?.dia_origem) ? data.dia_origem : [],
           periodo_resolvido: data?.periodo_resolvido,
@@ -193,13 +204,22 @@ const DedicadoView = React.memo(function DedicadoView({
       })),
     [dedicadoData.dia_origem]
   );
+  const dedicatedTotals = React.useMemo(() => ({
+    totalEntregadores: normalizeNumber(dedicadoData.totais?.total_entregadores),
+    totalOrigens: normalizeNumber(dedicadoData.totais?.total_origens),
+    ofertadas: normalizeNumber(dedicadoData.totais?.corridas_ofertadas),
+    aceitas: normalizeNumber(dedicadoData.totais?.corridas_aceitas),
+    rejeitadas: normalizeNumber(dedicadoData.totais?.corridas_rejeitadas),
+    completadas: normalizeNumber(dedicadoData.totais?.corridas_completadas),
+    segundos: normalizeNumber(dedicadoData.totais?.segundos_realizados),
+  }), [dedicadoData.totais]);
   const dayDateMap = React.useMemo(
     () => buildDayDateMap(dedicatedDiaOrigem, filterPayload),
     [dedicatedDiaOrigem, filterPayload]
   );
 
   const stats = React.useMemo(() => {
-    const totals = entregadores.reduce((acc, entregador) => {
+    const entregadoresTotals = entregadores.reduce((acc, entregador) => {
       acc.ofertadas += entregador.corridas_ofertadas || 0;
       acc.aceitas += entregador.corridas_aceitas || 0;
       acc.rejeitadas += entregador.corridas_rejeitadas || 0;
@@ -207,16 +227,23 @@ const DedicadoView = React.memo(function DedicadoView({
       acc.segundos += entregador.total_segundos || 0;
       return acc;
     }, { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0, segundos: 0 });
+    const totals = {
+      ofertadas: dedicatedTotals.ofertadas || entregadoresTotals.ofertadas,
+      aceitas: dedicatedTotals.aceitas || entregadoresTotals.aceitas,
+      rejeitadas: dedicatedTotals.rejeitadas || entregadoresTotals.rejeitadas,
+      completadas: dedicatedTotals.completadas || entregadoresTotals.completadas,
+      segundos: dedicatedTotals.segundos || entregadoresTotals.segundos,
+    };
 
     return {
       ...totals,
-      entregadores: entregadores.length,
-      origens: dedicatedOrigem.length,
+      entregadores: dedicatedTotals.totalEntregadores || entregadores.length,
+      origens: dedicatedTotals.totalOrigens || dedicatedOrigem.length,
       taxaAceitacao: totals.ofertadas > 0 ? (totals.aceitas / totals.ofertadas) * 100 : 0,
       taxaRejeicao: totals.ofertadas > 0 ? (totals.rejeitadas / totals.ofertadas) * 100 : 0,
       taxaCompletude: totals.aceitas > 0 ? (totals.completadas / totals.aceitas) * 100 : 0,
     };
-  }, [dedicatedOrigem.length, entregadores]);
+  }, [dedicatedOrigem.length, dedicatedTotals, entregadores]);
 
   const resumoOrigemRows = React.useMemo(() => {
     return dedicatedOrigem.map((item) => ({
