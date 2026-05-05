@@ -99,20 +99,44 @@ export async function POST(request: Request) {
         let incrementalResult: unknown = null;
         let incrementalError: string | null = null;
         let incrementalSucceeded = !isUploadRefresh;
+        let incrementalWorkerResult: unknown = null;
+        let incrementalWorkerError: string | null = null;
 
         if (isUploadRefresh) {
             const { data, error } = await admin.rpc('process_incremental_refresh_impacts', {
-                p_limit: 1000,
-                p_include_corridas: true
+                p_limit: 100,
+                p_include_corridas: false
             });
 
             incrementalResult = data ?? null;
             incrementalError = error?.message || null;
             incrementalSucceeded = !incrementalError && (data as { success?: boolean } | null)?.success !== false;
+
+            if (!incrementalSucceeded) {
+                throw new Error(incrementalError || 'Falha ao aplicar atualizacao incremental pos-upload.');
+            }
+
+            const { data: workerData, error: workerError } = await admin.rpc('ensure_incremental_refresh_worker_scheduled');
+            incrementalWorkerResult = workerData ?? null;
+            incrementalWorkerError = workerError?.message || null;
+
+            return NextResponse.json({
+                success: true,
+                queued: false,
+                incremental_mode: true,
+                incremental_result: incrementalResult,
+                incremental_error: incrementalError,
+                incremental_succeeded: incrementalSucceeded,
+                incremental_worker_result: incrementalWorkerResult,
+                incremental_worker_error: incrementalWorkerError,
+                queue_reason: reason,
+                queue_result: null,
+                worker_result: null,
+                pending: []
+            });
         }
 
-        // If the incremental path fails, fall back to the full queue instead of skipping covered MVs.
-        const queueReason = isUploadRefresh && !incrementalSucceeded ? 'prioritized_rpc' : reason;
+        const queueReason = reason;
         const { data: queueResult, error: queueError } = await admin.rpc('enqueue_mv_refresh', {
             include_secondary: includeSecondary,
             reason: queueReason

@@ -122,6 +122,18 @@ export const performRefresh = async (
             throw new Error(payload?.error || `Erro HTTP ${response.status} ao enfileirar refresh.`);
         }
 
+        if (payload?.incremental_mode === true) {
+            const secondaryPending = payload?.incremental_worker_result?.pending_count;
+            setRefreshState({
+                isRefreshing: false,
+                progress: 100,
+                status: secondaryPending > 0
+                    ? 'Dados principais atualizados. Entrada/Saida finaliza em segundo plano.'
+                    : 'Dados agregados atualizados para a importacao.'
+            });
+            return;
+        }
+
         const pendingCount = getPendingCount(payload);
         await monitorRefreshQueue(pendingCount, setRefreshState);
     } catch (e) {
