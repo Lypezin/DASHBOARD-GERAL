@@ -101,6 +101,8 @@ export async function POST(request: Request) {
         let incrementalSucceeded = !isUploadRefresh;
         let incrementalWorkerResult: unknown = null;
         let incrementalWorkerError: string | null = null;
+        let staleCleanupResult: unknown = null;
+        let queueState: unknown = null;
 
         if (isUploadRefresh) {
             const { data, error } = await admin.rpc('process_incremental_refresh_impacts', {
@@ -120,6 +122,17 @@ export async function POST(request: Request) {
             incrementalWorkerResult = workerData ?? null;
             incrementalWorkerError = workerError?.message || null;
 
+            const pendingIncrementals = (workerData as { pending_count?: number } | null)?.pending_count ?? 0;
+            if (incrementalWorkerError && pendingIncrementals > 0) {
+                throw new Error(incrementalWorkerError);
+            }
+
+            const { data: cleanupData } = await admin.rpc('clear_stale_full_mv_refresh_flags');
+            staleCleanupResult = cleanupData ?? null;
+
+            const { data: stateData } = await admin.rpc('get_mv_refresh_queue_state');
+            queueState = stateData ?? null;
+
             return NextResponse.json({
                 success: true,
                 queued: false,
@@ -129,6 +142,8 @@ export async function POST(request: Request) {
                 incremental_succeeded: incrementalSucceeded,
                 incremental_worker_result: incrementalWorkerResult,
                 incremental_worker_error: incrementalWorkerError,
+                stale_cleanup_result: staleCleanupResult,
+                queue_state: queueState,
                 queue_reason: reason,
                 queue_result: null,
                 worker_result: null,
@@ -147,6 +162,8 @@ export async function POST(request: Request) {
         }
 
         const pending = await fetchPendingMVs(admin);
+        const { data: stateData } = await admin.rpc('get_mv_refresh_queue_state');
+        queueState = stateData ?? null;
 
         return NextResponse.json({
             success: true,
@@ -157,6 +174,7 @@ export async function POST(request: Request) {
             queue_reason: queueReason,
             queue_result: queueResult,
             worker_result: queueResult?.worker_result ?? null,
+            queue_state: queueState,
             pending
         });
     } catch (error) {
