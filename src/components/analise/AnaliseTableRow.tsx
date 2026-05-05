@@ -23,21 +23,23 @@ export const AnaliseTableRow = React.memo(function AnaliseTableRow({
       transition-colors duration-150
     ">
       <td className="py-3.5 pl-6 pr-4 text-sm font-medium text-slate-900 dark:text-white">
-        {item.label}
+        <div className="max-w-[300px] truncate" title={item.label}>
+          {item.label}
+        </div>
       </td>
-      <td className="py-3.5 px-4 text-sm font-mono text-slate-500 dark:text-slate-400 tabular-nums">
+      <td className="whitespace-nowrap px-4 py-3.5 font-mono text-sm tabular-nums text-slate-500 dark:text-slate-400">
         {item.horas_entregues || '00:00:00'}
       </td>
-      <td className="py-3.5 px-4 text-sm text-slate-600 dark:text-slate-300 tabular-nums">
+      <td className="whitespace-nowrap px-4 py-3.5 text-sm tabular-nums text-slate-600 dark:text-slate-300">
         {(item.corridas_ofertadas || 0).toLocaleString('pt-BR')}
       </td>
-      <td className="py-3.5 px-4 text-sm font-medium text-emerald-600 dark:text-emerald-400 text-right tabular-nums">
+      <td className="whitespace-nowrap px-4 py-3.5 text-right text-sm font-medium tabular-nums text-emerald-600 dark:text-emerald-400">
         {(item.corridas_aceitas || 0).toLocaleString('pt-BR')}
       </td>
-      <td className="py-3.5 px-4 text-sm font-medium text-rose-600 dark:text-rose-400 text-right tabular-nums">
+      <td className="whitespace-nowrap px-4 py-3.5 text-right text-sm font-medium tabular-nums text-rose-600 dark:text-rose-400">
         {(item.corridas_rejeitadas || 0).toLocaleString('pt-BR')}
       </td>
-      <td className="py-3.5 px-4 text-sm font-medium text-violet-600 dark:text-violet-400 text-right tabular-nums">
+      <td className="whitespace-nowrap px-4 py-3.5 text-right text-sm font-medium tabular-nums text-violet-600 dark:text-violet-400">
         {(item.corridas_completadas || 0).toLocaleString('pt-BR')}
       </td>
       <td className="py-3.5 px-4 text-center">

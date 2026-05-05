@@ -28,22 +28,22 @@ export const AnaliseTable = React.memo(function AnaliseTable({
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-left">
+    <div className="w-full max-w-full overflow-x-auto">
+      <table className="w-full min-w-[980px] text-left">
         <thead>
           <tr className="
             border-b border-slate-200 dark:border-slate-700/50
             bg-slate-50 dark:bg-slate-800/50
           ">
-            <th className="py-3.5 pl-6 pr-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">{labelColumn}</th>
-            <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Horas</th>
-            <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Ofertadas</th>
-            <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Aceitas</th>
-            <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Rejeitadas</th>
-            <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-right">Completadas</th>
-            <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">% Aceit.</th>
-            <th className="py-3.5 px-4 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">% Rej.</th>
-            <th className="py-3.5 px-4 pr-6 text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider text-center">% Comp.</th>
+            <th className="min-w-[260px] py-3.5 pl-6 pr-4 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{labelColumn}</th>
+            <th className="whitespace-nowrap px-4 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Horas</th>
+            <th className="whitespace-nowrap px-4 py-3.5 text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Ofertadas</th>
+            <th className="whitespace-nowrap px-4 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Aceitas</th>
+            <th className="whitespace-nowrap px-4 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Rejeitadas</th>
+            <th className="whitespace-nowrap px-4 py-3.5 text-right text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Completadas</th>
+            <th className="whitespace-nowrap px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">% Aceit.</th>
+            <th className="whitespace-nowrap px-4 py-3.5 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">% Rej.</th>
+            <th className="whitespace-nowrap py-3.5 pl-4 pr-6 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">% Comp.</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-100 dark:divide-slate-700/30">

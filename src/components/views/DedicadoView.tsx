@@ -254,15 +254,15 @@ const DedicadoView = React.memo(function DedicadoView({
   }, [dedicatedOrigem]);
 
   return (
-    <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-6 px-4 pb-10 sm:px-6 lg:px-10 animate-fade-in">
-      <div className="overflow-hidden rounded-3xl border border-blue-200/70 bg-gradient-to-br from-blue-50 via-white to-slate-50 p-5 shadow-sm dark:border-blue-900/40 dark:from-blue-950/30 dark:via-slate-950 dark:to-slate-950">
+    <div className="mx-auto flex w-full max-w-[1500px] min-w-0 flex-col gap-6 overflow-hidden px-3 pb-10 sm:px-6 lg:px-8 animate-fade-in">
+      <div className="min-w-0 overflow-hidden rounded-3xl border border-blue-200/70 bg-gradient-to-br from-blue-50 via-white to-slate-50 p-5 shadow-sm dark:border-blue-900/40 dark:from-blue-950/30 dark:via-slate-950 dark:to-slate-950">
         <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div>
+          <div className="min-w-0">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/80 px-3 py-1 text-[11px] font-black uppercase tracking-[0.28em] text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300">
               <BarChart3 className="h-3.5 w-3.5" />
               Origem
             </div>
-            <h2 className="text-3xl font-black tracking-tight text-slate-950 dark:text-white">
+            <h2 className="break-words text-3xl font-black tracking-tight text-slate-950 dark:text-white">
               DEDICADO
             </h2>
             <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
@@ -270,7 +270,7 @@ const DedicadoView = React.memo(function DedicadoView({
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-white/85 p-1 shadow-sm dark:border-slate-800 dark:bg-slate-900/80">
+          <div className="flex max-w-full gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-white/85 p-1 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 lg:max-w-[58%]">
             {SUB_TABS.map((tab) => {
               const Icon = tab.icon;
               const active = activeSubTab === tab.id;
@@ -280,7 +280,7 @@ const DedicadoView = React.memo(function DedicadoView({
                   key={tab.id}
                   onClick={() => setActiveSubTab(tab.id)}
                   className={cn(
-                    'inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-xs font-bold transition-all',
+                    'inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-xs font-bold transition-all',
                     active
                       ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/20'
                       : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
@@ -355,21 +355,21 @@ function DedicadoDashboard({
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-6">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         {cards.map((card) => {
           const Icon = card.icon;
 
           return (
-            <Card key={card.title} className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <Card key={card.title} className="min-w-0 border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-semibold text-slate-500 dark:text-slate-400">{card.title}</CardTitle>
-                <Icon className={cn('h-4 w-4', card.color)} />
+                <CardTitle className="min-w-0 truncate text-sm font-semibold text-slate-500 dark:text-slate-400">{card.title}</CardTitle>
+                <Icon className={cn('h-4 w-4 shrink-0', card.color)} />
               </CardHeader>
               <CardContent>
-                <div className="truncate font-mono text-2xl font-black text-slate-950 dark:text-white" title={card.value}>
+                <div className="truncate font-mono text-xl font-black text-slate-950 dark:text-white 2xl:text-2xl" title={card.value}>
                   {card.value}
                 </div>
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{card.sub}</p>
+                <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400" title={card.sub}>{card.sub}</p>
               </CardContent>
             </Card>
           );
@@ -382,19 +382,19 @@ function DedicadoDashboard({
         </CardHeader>
         <CardContent>
           {topOrigens.length > 0 ? (
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-3 lg:grid-cols-2">
               {topOrigens.map((origem) => (
-                <div key={origem.origem} className="rounded-2xl border border-slate-200 p-4 dark:border-slate-800">
+                <div key={origem.origem} className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 p-4 dark:border-slate-800">
                   <div className="flex items-start justify-between gap-4">
-                    <p className="text-sm font-bold text-slate-800 dark:text-slate-100">{origem.origem}</p>
-                    <span className="rounded-full bg-blue-50 px-2.5 py-1 text-xs font-black text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+                    <p className="min-w-0 break-words text-sm font-bold text-slate-800 dark:text-slate-100">{origem.origem}</p>
+                    <span className="shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-black text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
                       {(origem.aderencia_percentual || 0).toFixed(1)}%
                     </span>
                   </div>
-                  <div className="mt-3 grid grid-cols-3 gap-2 text-xs text-slate-500 dark:text-slate-400">
-                    <span>Ofertadas: <b>{(origem.corridas_ofertadas || 0).toLocaleString('pt-BR')}</b></span>
-                    <span>Aceitas: <b>{(origem.corridas_aceitas || 0).toLocaleString('pt-BR')}</b></span>
-                    <span>Completadas: <b>{(origem.corridas_completadas || 0).toLocaleString('pt-BR')}</b></span>
+                  <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-500 dark:text-slate-400 sm:grid-cols-3">
+                    <span className="min-w-0 truncate">Ofertadas: <b>{(origem.corridas_ofertadas || 0).toLocaleString('pt-BR')}</b></span>
+                    <span className="min-w-0 truncate">Aceitas: <b>{(origem.corridas_aceitas || 0).toLocaleString('pt-BR')}</b></span>
+                    <span className="min-w-0 truncate">Completadas: <b>{(origem.corridas_completadas || 0).toLocaleString('pt-BR')}</b></span>
                   </div>
                 </div>
               ))}
@@ -414,14 +414,14 @@ function DedicadoResumo({ rows, loading }: { rows: any[]; loading: boolean }) {
   if (loading) return <DashboardSkeleton contentOnly />;
 
   return (
-    <Card className="overflow-hidden border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <Card className="min-w-0 overflow-hidden border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <CardHeader>
         <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Resumo por Origem</CardTitle>
         <p className="text-sm text-slate-500 dark:text-slate-400">
           Dados agrupados por origem, respeitando os filtros atuais de período, cidade e organização.
         </p>
       </CardHeader>
-      <CardContent className="p-0">
+      <CardContent className="max-w-full overflow-hidden p-0">
         <AnaliseTable data={rows} labelColumn="Origem" />
       </CardContent>
     </Card>
@@ -440,14 +440,14 @@ function DedicadoDiaOrigem({
   if (loading) return <DashboardSkeleton contentOnly />;
 
   return (
-    <Card className="overflow-hidden border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <Card className="min-w-0 overflow-hidden border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <CardHeader>
         <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Dia x Origem</CardTitle>
         <p className="text-sm text-slate-500 dark:text-slate-400">
           Matriz migrada da guia Análise e filtrada para as origens do período atual.
         </p>
       </CardHeader>
-      <CardContent>
+      <CardContent className="min-w-0 p-3 sm:p-6">
         <AnaliseDiaOrigemTable data={data} dayDateMap={dayDateMap} />
       </CardContent>
     </Card>
