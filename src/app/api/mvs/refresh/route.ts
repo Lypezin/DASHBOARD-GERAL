@@ -84,15 +84,38 @@ export async function POST(request: Request) {
             : 'manual';
         const includeSecondary = body?.includeSecondary !== false;
         const requireAdmin = body?.requireAdmin === true;
+        const normalizedReason = reason.toLowerCase();
+        const isUploadRefresh =
+            normalizedReason === 'upload' ||
+            normalizedReason === 'bulk_insert' ||
+            normalizedReason.startsWith('upload:') ||
+            normalizedReason.startsWith('bulk_insert:');
 
         if (requireAdmin && !canRefresh(auth.profile)) {
             return NextResponse.json({ success: false, error: 'Apenas administradores podem executar esta atualizacao.' }, { status: 403 });
         }
 
         const admin = createServiceRoleClient();
+        let incrementalResult: unknown = null;
+        let incrementalError: string | null = null;
+        let incrementalSucceeded = !isUploadRefresh;
+
+        if (isUploadRefresh) {
+            const { data, error } = await admin.rpc('process_incremental_refresh_impacts', {
+                p_limit: 1000,
+                p_include_corridas: true
+            });
+
+            incrementalResult = data ?? null;
+            incrementalError = error?.message || null;
+            incrementalSucceeded = !incrementalError && (data as { success?: boolean } | null)?.success !== false;
+        }
+
+        // If the incremental path fails, fall back to the full queue instead of skipping covered MVs.
+        const queueReason = isUploadRefresh && !incrementalSucceeded ? 'prioritized_rpc' : reason;
         const { data: queueResult, error: queueError } = await admin.rpc('enqueue_mv_refresh', {
             include_secondary: includeSecondary,
-            reason
+            reason: queueReason
         });
 
         if (queueError) {
@@ -104,6 +127,10 @@ export async function POST(request: Request) {
         return NextResponse.json({
             success: true,
             queued: true,
+            incremental_result: incrementalResult,
+            incremental_error: incrementalError,
+            incremental_succeeded: incrementalSucceeded,
+            queue_reason: queueReason,
             queue_result: queueResult,
             worker_result: queueResult?.worker_result ?? null,
             pending
