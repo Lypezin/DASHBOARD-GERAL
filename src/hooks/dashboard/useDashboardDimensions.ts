@@ -4,9 +4,9 @@ import { safeRpc } from '@/lib/rpcWrapper';
 import type { DimensoesDashboard } from '@/types';
 import { fetchAllWeeks, primeAllWeeksCache } from '@/hooks/data/allWeeksCache';
 
-const CACHE_KEY = 'dashboard_dimensions_cache_v4';
+const CACHE_KEY = 'dashboard_dimensions_cache_v5';
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hora
-const DEFAULT_YEARS = [2024, 2025, 2026];
+export const DEFAULT_YEARS = [2026, 2025, 2024];
 const EMPTY_DIMENSIONS: DimensoesDashboard = {
   anos: DEFAULT_YEARS,
   semanas: [],

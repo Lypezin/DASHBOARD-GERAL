@@ -4,7 +4,7 @@ import { useDashboardFilters } from './useDashboardFilters';
 import { useChartRegistration } from './useChartRegistration';
 import { useDashboardAuthWrapper } from './useDashboardAuthWrapper';
 import { useDashboardTabs } from './useDashboardTabs';
-import { useDashboardDimensions, writeCachedDimensions } from './useDashboardDimensions';
+import { DEFAULT_YEARS, useDashboardDimensions, writeCachedDimensions } from './useDashboardDimensions';
 import { useDashboardFilterOptions } from './useDashboardFilterOptions';
 import { useDashboardMainData } from './useDashboardMainData';
 
@@ -39,7 +39,9 @@ export function useDashboardPage() {
 
   const anosDisponiveisFinais = useMemo(() => {
     const mainYears = mainData.dimensoes?.anos || [];
-    return mainYears.length > 0 ? mainYears : anosDisponiveis;
+    return Array.from(new Set([...DEFAULT_YEARS, ...anosDisponiveis, ...mainYears]))
+      .filter((ano) => Number.isFinite(ano))
+      .sort((a, b) => b - a);
   }, [mainData.dimensoes?.anos, anosDisponiveis]);
 
   const semanasDisponiveisFinais = useMemo(() => {
