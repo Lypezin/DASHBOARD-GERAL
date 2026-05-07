@@ -1,4 +1,4 @@
-import { fetchUtrData, fetchEntregadoresData, fetchValoresData, fetchValoresDetalhados } from '@/utils/tabData/fetchers';
+import { fetchUtrData, fetchEntregadoresData, fetchDedicadoEntregadoresData, fetchValoresData, fetchValoresDetalhados } from '@/utils/tabData/fetchers';
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
 import { UtrData, EntregadoresData, ValoresEntregador } from '@/types';
@@ -29,7 +29,7 @@ export async function fetchTabData(options: FetchOptions): Promise<{ data: TabDa
                 return await fetchEntregadoresData({ filterPayload });
 
             case 'dedicado':
-                return await fetchEntregadoresData({ filterPayload });
+                return await fetchDedicadoEntregadoresData({ filterPayload });
 
             case 'valores':
                 if (filterPayload.detailed) {

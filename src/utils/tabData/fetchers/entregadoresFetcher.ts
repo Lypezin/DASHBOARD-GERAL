@@ -11,13 +11,43 @@ interface FetchOptions {
     filterPayload: FilterPayload;
 }
 
-/**
- * Busca dados de Entregadores
- */
-export async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: EntregadoresData | null; error: RpcError | null }> {
-    const { filterPayload } = options;
+function parseEntregadoresResponse(resultData: unknown): EntregadoresData {
+    const processedData: EntregadoresData = { entregadores: [], total: 0 };
 
-    const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_only_dedicados'];
+    if (!resultData) return processedData;
+
+    let entregadores: Record<string, unknown>[] = [];
+    let total = 0;
+
+    if (typeof resultData === 'object' && !Array.isArray(resultData)) {
+        const dataObject = resultData as Record<string, unknown>;
+        if (Array.isArray(dataObject.entregadores)) {
+            entregadores = dataObject.entregadores as Record<string, unknown>[];
+            total = dataObject.total !== undefined ? Number(dataObject.total) : dataObject.entregadores.length;
+            processedData.periodo_resolvido = dataObject.periodo_resolvido as EntregadoresData['periodo_resolvido'];
+        } else {
+            safeLog.warn('[fetchEntregadoresData] Estrutura de dados inesperada:', resultData);
+        }
+    } else if (Array.isArray(resultData)) {
+        entregadores = resultData;
+        total = resultData.length;
+    }
+
+    return {
+        ...processedData,
+        entregadores: entregadores as unknown as Entregador[],
+        total: Number.isFinite(total) ? total : entregadores.length
+    };
+}
+
+async function fetchEntregadoresByRpc(
+    rpcName: 'listar_entregadores_v2' | 'listar_entregadores_origens',
+    filterPayload: FilterPayload,
+    options: { fallbackOnError: boolean }
+): Promise<{ data: EntregadoresData | null; error: RpcError | null }> {
+    const allowedParams = rpcName === 'listar_entregadores_origens'
+        ? ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_data_inicial', 'p_data_final', 'p_organization_id']
+        : ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_only_dedicados'];
     const listarEntregadoresPayload: FilterPayload = {};
 
     for (const key of allowedParams) {
@@ -26,7 +56,7 @@ export async function fetchEntregadoresData(options: FetchOptions): Promise<{ da
         }
     }
 
-    const result = await safeRpc<any>('listar_entregadores_v2', listarEntregadoresPayload, {
+    const result = await safeRpc<any>(rpcName, listarEntregadoresPayload, {
         timeout: RPC_TIMEOUTS.LONG,
         validateParams: false
     });
@@ -36,7 +66,7 @@ export async function fetchEntregadoresData(options: FetchOptions): Promise<{ da
         const isRateLimit = isRateLimitError(result.error);
         const isTimeout = isTimeoutError(result.error);
 
-        if (is500 || isTimeout) {
+        if ((is500 || isTimeout) && options.fallbackOnError) {
             try {
                 const fallbackData = await fetchEntregadoresFallback(listarEntregadoresPayload);
                 if (fallbackData) {
@@ -45,11 +75,9 @@ export async function fetchEntregadoresData(options: FetchOptions): Promise<{ da
             } catch (fallbackError) {
                 safeLog.error('Erro no fallback ao buscar entregadores:', fallbackError);
             }
+        }
 
-            if (isTimeout) {
-                return { data: { entregadores: [], total: 0 }, error: result.error };
-            }
-
+        if (is500 && options.fallbackOnError) {
             throw new Error('RETRY_500');
         }
 
@@ -57,10 +85,14 @@ export async function fetchEntregadoresData(options: FetchOptions): Promise<{ da
             throw new Error('RETRY_RATE_LIMIT');
         }
 
+        if (isTimeout) {
+            return { data: { entregadores: [], total: 0 }, error: result.error };
+        }
+
         const errorCode = result.error?.code || '';
         const errorMessage = result.error?.message || '';
 
-        if (errorCode === '42883' || errorCode === 'PGRST116' || errorMessage.includes('does not exist')) {
+        if (options.fallbackOnError && (errorCode === '42883' || errorCode === 'PGRST116' || errorMessage.includes('does not exist'))) {
             try {
                 const fallbackData = await fetchEntregadoresFallback(listarEntregadoresPayload);
                 if (fallbackData) {
@@ -71,37 +103,23 @@ export async function fetchEntregadoresData(options: FetchOptions): Promise<{ da
             }
         }
 
-        safeLog.error('Erro ao buscar entregadores:', result.error);
+        safeLog.error(`Erro ao buscar entregadores via ${rpcName}:`, result.error);
         return { data: { entregadores: [], total: 0 }, error: result.error };
     }
 
-    let processedData: EntregadoresData = { entregadores: [], total: 0 };
+    return { data: parseEntregadoresResponse(result.data), error: null };
+}
 
-    if (result && result.data) {
-        let entregadores: Record<string, unknown>[] = [];
-        let total = 0;
+/**
+ * Busca dados de Entregadores
+ */
+export async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: EntregadoresData | null; error: RpcError | null }> {
+    return fetchEntregadoresByRpc('listar_entregadores_v2', options.filterPayload, { fallbackOnError: true });
+}
 
-        if (typeof result.data === 'object' && !Array.isArray(result.data)) {
-            if ('entregadores' in result.data && Array.isArray(result.data.entregadores)) {
-                entregadores = result.data.entregadores;
-                total = result.data.total !== undefined ? result.data.total : result.data.entregadores.length;
-                processedData.periodo_resolvido = result.data.periodo_resolvido as EntregadoresData['periodo_resolvido'];
-            } else {
-                safeLog.warn('[fetchEntregadoresData] Estrutura de dados inesperada:', result.data);
-                entregadores = [];
-                total = 0;
-            }
-        } else if (Array.isArray(result.data)) {
-            entregadores = result.data;
-            total = result.data.length;
-        }
-
-        processedData = {
-            ...processedData,
-            entregadores: entregadores as unknown as Entregador[],
-            total
-        };
-    }
-
-    return { data: processedData, error: null };
+/**
+ * Busca dados da subguia DEDICADO, mantendo apenas entregadores com origem/restaurante.
+ */
+export async function fetchDedicadoEntregadoresData(options: FetchOptions): Promise<{ data: EntregadoresData | null; error: RpcError | null }> {
+    return fetchEntregadoresByRpc('listar_entregadores_origens', options.filterPayload, { fallbackOnError: false });
 }

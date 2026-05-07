@@ -33,12 +33,14 @@ interface EntregadoresMainContentProps {
   entregadoresData: EntregadoresData | null;
   loading: boolean;
   variant?: 'entregadores' | 'dedicado';
+  filterPayload?: FilterPayload;
 }
 
 export const EntregadoresMainContent = React.memo(function EntregadoresMainContent({
   entregadoresData,
   loading,
   variant = 'entregadores',
+  filterPayload,
 }: EntregadoresMainContentProps) {
   const isDedicado = variant === 'dedicado';
   const {
@@ -111,6 +113,9 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
           entregador={selectedEntregador}
           open={profileOpen}
           onOpenChange={setProfileOpen}
+          organizationId={typeof filterPayload?.p_organization_id === 'string' ? filterPayload.p_organization_id : undefined}
+          variant={variant}
+          filterPayload={filterPayload}
         />
       ) : null}
     </div>
@@ -145,6 +150,7 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
       entregadoresData={entregadoresData}
       loading={loading}
       variant={variant}
+      filterPayload={dedicatedPayload}
     />
   );
 });

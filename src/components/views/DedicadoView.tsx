@@ -307,6 +307,7 @@ const DedicadoView = React.memo(function DedicadoView({
           entregadoresData={entregadoresData}
           loading={loading}
           variant="dedicado"
+          filterPayload={dedicatedPayload}
         />
       ) : null}
 
@@ -353,7 +354,7 @@ function DedicadoDashboard({
     { title: 'Ofertadas', value: stats.ofertadas.toLocaleString('pt-BR'), sub: `${stats.taxaAceitacao.toFixed(1)}% aceitas`, icon: Truck, color: 'text-sky-500' },
     { title: 'Aceitas', value: stats.aceitas.toLocaleString('pt-BR'), sub: `${stats.taxaCompletude.toFixed(1)}% completadas`, icon: CheckCircle2, color: 'text-emerald-500' },
     { title: 'Rejeitadas', value: stats.rejeitadas.toLocaleString('pt-BR'), sub: `${stats.taxaRejeicao.toFixed(1)}% rejeição`, icon: XCircle, color: 'text-rose-500' },
-    { title: 'Horas', value: formatarHorasParaHMS(stats.segundos / 3600), sub: 'tempo entregue', icon: Clock, color: 'text-orange-500' },
+    { title: 'Horas', value: formatarHorasParaHMS(stats.segundos / 3600), sub: 'tempo entregue', icon: Clock, color: 'text-orange-500', compact: true },
   ];
 
   return (
@@ -369,7 +370,15 @@ function DedicadoDashboard({
                 <Icon className={cn('h-4 w-4 shrink-0', card.color)} />
               </CardHeader>
               <CardContent>
-                <div className="truncate font-mono text-xl font-black text-slate-950 dark:text-white 2xl:text-2xl" title={card.value}>
+                <div
+                  className={cn(
+                    'font-mono font-black text-slate-950 dark:text-white',
+                    card.compact
+                      ? 'whitespace-nowrap text-lg tracking-tighter sm:text-xl 2xl:text-xl'
+                      : 'truncate text-xl 2xl:text-2xl'
+                  )}
+                  title={card.value}
+                >
                   {card.value}
                 </div>
                 <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400" title={card.sub}>{card.sub}</p>
