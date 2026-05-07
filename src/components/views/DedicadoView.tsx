@@ -110,9 +110,11 @@ const DedicadoView = React.memo(function DedicadoView({
   const [activeSubTab, setActiveSubTab] = React.useState<DedicadoSubTab>('dashboard');
   const [dedicadoData, setDedicadoData] = React.useState<DedicadoOrigensPayload>({ origem: [], dia_origem: [] });
   const [dedicadoLoading, setDedicadoLoading] = React.useState(false);
-  const dedicatedPayload = React.useMemo<FilterPayload>(() => ({
-    ...filterPayload,
-  }), [filterPayload]);
+  const filterPayloadKey = React.useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
+  const dedicatedPayload = React.useMemo<FilterPayload>(
+    () => JSON.parse(filterPayloadKey) as FilterPayload,
+    [filterPayloadKey]
+  );
   const shouldLoadEntregadores = activeSubTab === 'entregadores';
   const { data: tabData, loading } = useTabData(shouldLoadEntregadores ? 'dedicado' : 'dashboard', dedicatedPayload, currentUser);
   const { entregadoresData } = useTabDataMapper({ activeTab: 'dedicado', tabData });
@@ -138,7 +140,8 @@ const DedicadoView = React.memo(function DedicadoView({
       setDedicadoLoading(true);
 
       try {
-        const { data, error } = await safeRpc<DedicadoOrigensPayload>('dashboard_dedicado_origens', origemPayload, {
+        const requestPayload = JSON.parse(origemPayloadKey) as Record<string, unknown>;
+        const { data, error } = await safeRpc<DedicadoOrigensPayload>('dashboard_dedicado_origens', requestPayload, {
           timeout: RPC_TIMEOUTS.DEFAULT,
           validateParams: false,
         });
@@ -172,7 +175,7 @@ const DedicadoView = React.memo(function DedicadoView({
     return () => {
       cancelled = true;
     };
-  }, [origemPayload, origemPayloadKey]);
+  }, [origemPayloadKey]);
 
   const entregadores = React.useMemo(
     () => entregadoresData?.entregadores || [],
