@@ -111,10 +111,21 @@ const DedicadoView = React.memo(function DedicadoView({
   const [dedicadoData, setDedicadoData] = React.useState<DedicadoOrigensPayload>({ origem: [], dia_origem: [] });
   const [dedicadoLoading, setDedicadoLoading] = React.useState(false);
   const filterPayloadKey = React.useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
-  const dedicatedPayload = React.useMemo<FilterPayload>(
-    () => JSON.parse(filterPayloadKey) as FilterPayload,
-    [filterPayloadKey]
-  );
+  const dedicatedPayload = React.useMemo<FilterPayload>(() => {
+    const payload = JSON.parse(filterPayloadKey) as FilterPayload;
+    const isIntervalMode = payload.p_filtro_modo === 'intervalo';
+    const hasDateRange = Boolean(payload.p_data_inicial || payload.p_data_final);
+    const hasExplicitWeek = payload.p_semana !== null && payload.p_semana !== undefined;
+    const hasMultiWeekFilter = Array.isArray(payload.p_semanas) && payload.p_semanas.length > 0;
+
+    if (!isIntervalMode && !hasDateRange && !hasExplicitWeek && !hasMultiWeekFilter && payload.p_ano) {
+      // Na guia DEDICADO, Semana "Todas" precisa significar ano inteiro.
+      // O valor 0 é um marcador interno entendido só pelas RPCs desta guia.
+      payload.p_semana = 0;
+    }
+
+    return payload;
+  }, [filterPayloadKey]);
   const shouldLoadEntregadores = activeSubTab === 'entregadores';
   const { data: tabData, loading } = useTabData(shouldLoadEntregadores ? 'dedicado' : 'dashboard', dedicatedPayload, currentUser);
   const { entregadoresData } = useTabDataMapper({ activeTab: 'dedicado', tabData });
