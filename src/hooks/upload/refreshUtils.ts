@@ -128,8 +128,8 @@ export const performRefresh = async (
                 isRefreshing: false,
                 progress: 100,
                 status: secondaryPending > 0
-                    ? 'Dados principais atualizados. Entrada/Saida finaliza em segundo plano.'
-                    : 'Dados agregados atualizados para a importacao.'
+                    ? 'Dados importados. Dashboard, UTR e Entrada/Saida finalizam em segundo plano.'
+                    : 'Dados agregados, Dashboard e UTR atualizados para a importacao.'
             });
             return;
         }

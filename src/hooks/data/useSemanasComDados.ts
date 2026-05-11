@@ -9,7 +9,7 @@ const IS_DEV = process.env.NODE_ENV === 'development';
 /**
  * Hook que busca as semanas que possuem dados para um ano específico
  * Evita mostrar semanas sem dados no filtro
- * Usa a mesma fonte de dados que listar_todas_semanas() (mv_dashboard_resumo)
+ * Usa a mesma fonte de dados que listar_todas_semanas() (view atual com overlay incremental)
  */
 export function useSemanasComDados(ano: number | null) {
     const { organization } = useOrganization();
