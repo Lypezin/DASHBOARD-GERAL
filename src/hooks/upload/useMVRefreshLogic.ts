@@ -39,6 +39,7 @@ export function useMVRefreshLogic() {
 
     return {
         refreshState,
+        setRefreshState,
         triggerRefresh
     };
 }

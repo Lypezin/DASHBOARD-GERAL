@@ -15,6 +15,15 @@ const MAX_MONITORING_MS = 60 * 60 * 1000;
 
 const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+export interface RefreshQueueState {
+    success?: boolean;
+    full_pending_count?: number;
+    full_in_progress_count?: number;
+    incremental_pending_count?: number;
+    full_worker_scheduled?: boolean;
+    incremental_worker_scheduled?: boolean;
+}
+
 function getPendingCount(payload: any) {
     if (Array.isArray(payload?.pending)) return payload.pending.length;
 
@@ -27,7 +36,44 @@ function getPendingCount(payload: any) {
     return 0;
 }
 
-async function fetchPendingCount() {
+function getIncrementalPendingCount(payload: any) {
+    const queueState = payload?.queue_state as RefreshQueueState | undefined;
+    return Number(queueState?.incremental_pending_count || 0);
+}
+
+export function getTotalRefreshPendingCount(queueState: RefreshQueueState | null | undefined) {
+    return Number(queueState?.full_pending_count || 0) + Number(queueState?.incremental_pending_count || 0);
+}
+
+export function buildRefreshStatusFromQueue(queueState: RefreshQueueState | null | undefined): RefreshState {
+    const fullPending = Number(queueState?.full_pending_count || 0);
+    const incrementalPending = Number(queueState?.incremental_pending_count || 0);
+    const totalPending = fullPending + incrementalPending;
+
+    if (totalPending <= 0) {
+        return {
+            isRefreshing: false,
+            progress: 100,
+            status: ''
+        };
+    }
+
+    if (incrementalPending > 0 && fullPending === 0) {
+        return {
+            isRefreshing: true,
+            progress: 65,
+            status: `Atualizando Dashboard, UTR e Entrada/Saida em segundo plano: ${incrementalPending} impacto(s) pendente(s).`
+        };
+    }
+
+    return {
+        isRefreshing: true,
+        progress: 45,
+        status: `Atualizando dados agregados em segundo plano: ${totalPending} item(ns) pendente(s).`
+    };
+}
+
+export async function fetchRefreshQueueSnapshot() {
     const response = await fetch('/api/mvs/refresh', {
         method: 'GET',
         credentials: 'same-origin'
@@ -39,7 +85,17 @@ async function fetchPendingCount() {
         throw new Error(payload?.error || `Erro HTTP ${response.status} ao acompanhar refresh.`);
     }
 
-    return getPendingCount(payload);
+    return {
+        payload,
+        pendingCount: getPendingCount(payload),
+        incrementalPendingCount: getIncrementalPendingCount(payload),
+        queueState: payload?.queue_state as RefreshQueueState | null | undefined,
+    };
+}
+
+async function fetchPendingCount() {
+    const snapshot = await fetchRefreshQueueSnapshot();
+    return snapshot.pendingCount + snapshot.incrementalPendingCount;
 }
 
 async function monitorRefreshQueue(initialPendingCount: number, setRefreshState: SetRefreshState) {
@@ -61,7 +117,7 @@ async function monitorRefreshQueue(initialPendingCount: number, setRefreshState:
         setRefreshState({
             isRefreshing: true,
             progress: Math.min(95, Math.max(35, Math.round((completed / total) * 100))),
-            status: `Atualizando MVs em segundo plano: ${completed}/${total} concluidas (${remaining} pendente(s)).`
+            status: `Atualizando dados em segundo plano: ${completed}/${total} concluidos (${remaining} pendente(s)).`
         });
 
         await wait(POLL_INTERVAL_MS);
@@ -124,12 +180,18 @@ export const performRefresh = async (
 
         if (payload?.incremental_mode === true) {
             const secondaryPending = payload?.incremental_worker_result?.pending_count;
+            const queuePending = getIncrementalPendingCount(payload);
+            const pendingCount = Math.max(Number(secondaryPending || 0), queuePending);
+
+            if (pendingCount > 0) {
+                await monitorRefreshQueue(pendingCount, setRefreshState);
+                return;
+            }
+
             setRefreshState({
                 isRefreshing: false,
                 progress: 100,
-                status: secondaryPending > 0
-                    ? 'Dados importados. Dashboard, UTR e Entrada/Saida finalizam em segundo plano.'
-                    : 'Dados agregados, Dashboard e UTR atualizados para a importacao.'
+                status: 'Dados agregados, Dashboard e UTR atualizados para a importacao.'
             });
             return;
         }

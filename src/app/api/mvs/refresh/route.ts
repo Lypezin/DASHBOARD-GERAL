@@ -61,8 +61,11 @@ export async function GET() {
         const auth = await requireApprovedUser();
         if ('error' in auth) return auth.error;
 
-        const pending = await fetchPendingMVs();
-        return NextResponse.json({ success: true, pending });
+        const admin = createServiceRoleClient();
+        const pending = await fetchPendingMVs(admin);
+        const { data: stateData } = await admin.rpc('get_mv_refresh_queue_state');
+
+        return NextResponse.json({ success: true, pending, queue_state: stateData ?? null });
     } catch (error) {
         if (isServiceRoleConfigError(error)) {
             return NextResponse.json({ ...getServiceRoleConfigErrorPayload(), pending: [] }, { status: 503 });
