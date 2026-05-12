@@ -50,6 +50,12 @@ function normalizeNumber(value: unknown) {
     return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function calculateNormalAderencia(completadas: unknown, ofertadas: unknown) {
+    const totalOfertadas = normalizeNumber(ofertadas);
+    if (totalOfertadas <= 0) return 0;
+    return (normalizeNumber(completadas) / totalOfertadas) * 100;
+}
+
 export const EntregadorProfileDialog = React.memo(function EntregadorProfileDialog({
     entregador,
     open,
@@ -132,7 +138,7 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
                             corridas_rejeitadas: normalizeNumber(row.corridas_rejeitadas),
                             corridas_completadas: normalizeNumber(row.corridas_completadas),
                             segundos_realizados: normalizeNumber(row.segundos_realizados),
-                            aderencia_percentual: normalizeNumber(row.aderencia_percentual),
+                            aderencia_percentual: calculateNormalAderencia(row.corridas_completadas, row.corridas_ofertadas),
                             rejeicao_percentual: normalizeNumber(row.rejeicao_percentual),
                             completude_percentual: normalizeNumber(row.completude_percentual),
                         }))

@@ -29,6 +29,9 @@ const SUB_TABS: { id: DedicadoSubTab; label: string; icon: React.ComponentType<{
 
 type DedicadoOrigemRow = AderenciaOrigem & {
   segundos_realizados?: number;
+  segundos_planejados?: number;
+  taxa_aceitacao?: number;
+  taxa_completude?: number;
 };
 
 interface DedicadoOrigensPayload {
@@ -40,6 +43,7 @@ interface DedicadoOrigensPayload {
     corridas_rejeitadas?: number;
     corridas_completadas?: number;
     segundos_realizados?: number;
+    segundos_planejados?: number;
   };
   origem?: DedicadoOrigemRow[];
   dia_origem?: AderenciaDiaOrigem[];
@@ -53,6 +57,28 @@ interface DedicadoOrigensPayload {
 function normalizeNumber(value: unknown) {
   const parsed = Number(value || 0);
   return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function calculateHourlyAderencia(realizados: unknown, planejados: unknown) {
+  const totalPlanejados = normalizeNumber(planejados);
+  if (totalPlanejados <= 0) return 0;
+  return (normalizeNumber(realizados) / totalPlanejados) * 100;
+}
+
+function calculateAcceptanceRate(aceitas: unknown, ofertadas: unknown) {
+  const totalOfertadas = normalizeNumber(ofertadas);
+  if (totalOfertadas <= 0) return 0;
+  return (normalizeNumber(aceitas) / totalOfertadas) * 100;
+}
+
+function calculateCompletionRate(completadas: unknown, aceitas: unknown) {
+  const totalAceitas = normalizeNumber(aceitas);
+  if (totalAceitas <= 0) return 0;
+  return (normalizeNumber(completadas) / totalAceitas) * 100;
+}
+
+function formatPercentOrNA(value: unknown, hasBase: boolean) {
+  return hasBase ? `${normalizeNumber(value).toFixed(1)}%` : 'N/D';
 }
 
 function buildDayDateMap(diaOrigem: AderenciaDiaOrigem[], filterPayload: FilterPayload) {
@@ -229,28 +255,50 @@ const DedicadoView = React.memo(function DedicadoView({
   );
   const dedicatedOrigem = React.useMemo(
     () => (dedicadoData.origem || [])
-      .map((item) => ({
-        ...item,
-        corridas_ofertadas: normalizeNumber(item.corridas_ofertadas),
-        corridas_aceitas: normalizeNumber(item.corridas_aceitas),
-        corridas_rejeitadas: normalizeNumber(item.corridas_rejeitadas),
-        corridas_completadas: normalizeNumber(item.corridas_completadas),
-        segundos_realizados: normalizeNumber(item.segundos_realizados),
-        aderencia_percentual: normalizeNumber(item.aderencia_percentual),
-      })),
+      .map((item) => {
+        const corridasOfertadas = normalizeNumber(item.corridas_ofertadas);
+        const corridasAceitas = normalizeNumber(item.corridas_aceitas);
+        const corridasCompletadas = normalizeNumber(item.corridas_completadas);
+        const segundosRealizados = normalizeNumber(item.segundos_realizados);
+        const segundosPlanejados = normalizeNumber(item.segundos_planejados);
+
+        return {
+          ...item,
+          corridas_ofertadas: corridasOfertadas,
+          corridas_aceitas: corridasAceitas,
+          corridas_rejeitadas: normalizeNumber(item.corridas_rejeitadas),
+          corridas_completadas: corridasCompletadas,
+          segundos_realizados: segundosRealizados,
+          segundos_planejados: segundosPlanejados,
+          aderencia_percentual: calculateHourlyAderencia(segundosRealizados, segundosPlanejados),
+          taxa_aceitacao: calculateAcceptanceRate(corridasAceitas, corridasOfertadas),
+          taxa_completude: calculateCompletionRate(corridasCompletadas, corridasAceitas),
+        };
+      }),
     [dedicadoData.origem]
   );
   const dedicatedDiaOrigem = React.useMemo(
     () => (dedicadoData.dia_origem || [])
-      .map((item) => ({
-        ...item,
-        corridas_ofertadas: normalizeNumber(item.corridas_ofertadas),
-        corridas_aceitas: normalizeNumber(item.corridas_aceitas),
-        corridas_rejeitadas: normalizeNumber(item.corridas_rejeitadas),
-        corridas_completadas: normalizeNumber(item.corridas_completadas),
-        segundos_realizados: normalizeNumber(item.segundos_realizados),
-        aderencia_percentual: normalizeNumber(item.aderencia_percentual),
-      })),
+      .map((item) => {
+        const corridasOfertadas = normalizeNumber(item.corridas_ofertadas);
+        const corridasAceitas = normalizeNumber(item.corridas_aceitas);
+        const corridasCompletadas = normalizeNumber(item.corridas_completadas);
+        const segundosRealizados = normalizeNumber(item.segundos_realizados);
+        const segundosPlanejados = normalizeNumber(item.segundos_planejados);
+
+        return {
+          ...item,
+          corridas_ofertadas: corridasOfertadas,
+          corridas_aceitas: corridasAceitas,
+          corridas_rejeitadas: normalizeNumber(item.corridas_rejeitadas),
+          corridas_completadas: corridasCompletadas,
+          segundos_realizados: segundosRealizados,
+          segundos_planejados: segundosPlanejados,
+          aderencia_percentual: calculateHourlyAderencia(segundosRealizados, segundosPlanejados),
+          taxa_aceitacao: calculateAcceptanceRate(corridasAceitas, corridasOfertadas),
+          taxa_completude: calculateCompletionRate(corridasCompletadas, corridasAceitas),
+        };
+      }),
     [dedicadoData.dia_origem]
   );
   const dedicatedTotals = React.useMemo(() => ({
@@ -261,6 +309,7 @@ const DedicadoView = React.memo(function DedicadoView({
     rejeitadas: normalizeNumber(dedicadoData.totais?.corridas_rejeitadas),
     completadas: normalizeNumber(dedicadoData.totais?.corridas_completadas),
     segundos: normalizeNumber(dedicadoData.totais?.segundos_realizados),
+    segundosPlanejados: normalizeNumber(dedicadoData.totais?.segundos_planejados),
   }), [dedicadoData.totais]);
   const dayDateMap = React.useMemo(
     () => buildDayDateMap(dedicatedDiaOrigem, filterPayload),
@@ -409,6 +458,7 @@ function DedicadoDashboard({
     rejeitadas: number;
     completadas: number;
     segundos: number;
+    segundosPlanejados?: number;
     taxaAceitacao: number;
     taxaRejeicao: number;
     taxaCompletude: number;
@@ -469,13 +519,14 @@ function DedicadoDashboard({
                   <div className="flex items-start justify-between gap-4">
                     <p className="min-w-0 break-words text-sm font-bold text-slate-800 dark:text-slate-100">{origem.origem}</p>
                     <span className="shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-black text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
-                      {(origem.aderencia_percentual || 0).toFixed(1)}%
+                      Aderência {formatPercentOrNA(origem.aderencia_percentual, Boolean(origem.segundos_planejados))}
                     </span>
                   </div>
-                  <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-500 dark:text-slate-400 sm:grid-cols-3">
+                  <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-500 dark:text-slate-400 sm:grid-cols-2 xl:grid-cols-4">
                     <span className="min-w-0 truncate">Ofertadas: <b>{(origem.corridas_ofertadas || 0).toLocaleString('pt-BR')}</b></span>
-                    <span className="min-w-0 truncate">Aceitas: <b>{(origem.corridas_aceitas || 0).toLocaleString('pt-BR')}</b></span>
-                    <span className="min-w-0 truncate">Completadas: <b>{(origem.corridas_completadas || 0).toLocaleString('pt-BR')}</b></span>
+                    <span className="min-w-0 truncate">Aceitas: <b>{(origem.corridas_aceitas || 0).toLocaleString('pt-BR')}</b> <b className="text-emerald-600 dark:text-emerald-400">({formatPercentOrNA(origem.taxa_aceitacao, Boolean(origem.corridas_ofertadas))})</b></span>
+                    <span className="min-w-0 truncate">Completadas: <b>{(origem.corridas_completadas || 0).toLocaleString('pt-BR')}</b> <b className="text-indigo-600 dark:text-indigo-400">({formatPercentOrNA(origem.taxa_completude, Boolean(origem.corridas_aceitas))})</b></span>
+                    <span className="min-w-0 truncate">Horas: <b>{formatarHorasParaHMS((origem.segundos_realizados || 0) / 3600)}</b>{origem.segundos_planejados ? ` / ${formatarHorasParaHMS((origem.segundos_planejados || 0) / 3600)}` : ''}</span>
                   </div>
                 </div>
               ))}

@@ -40,6 +40,28 @@ function parseEntregadoresResponse(resultData: unknown): EntregadoresData {
     };
 }
 
+function normalizeNumber(value: unknown) {
+    const parsed = Number(value || 0);
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function normalizeDedicadoAderencia(data: EntregadoresData | null): EntregadoresData | null {
+    if (!data) return data;
+
+    return {
+        ...data,
+        entregadores: data.entregadores.map((entregador) => {
+            const ofertadas = normalizeNumber(entregador.corridas_ofertadas);
+            return {
+                ...entregador,
+                aderencia_percentual: ofertadas > 0
+                    ? (normalizeNumber(entregador.corridas_completadas) / ofertadas) * 100
+                    : 0,
+            };
+        }),
+    };
+}
+
 async function fetchEntregadoresByRpc(
     rpcName: 'listar_entregadores_v2' | 'listar_entregadores_origens' | 'listar_entregadores_origens_v2',
     filterPayload: FilterPayload,
@@ -129,8 +151,9 @@ export async function fetchDedicadoEntregadoresData(options: FetchOptions): Prom
     if (errorCode === '42883' || errorCode === 'PGRST202' || errorMessage.includes('listar_entregadores_origens_v2')) {
         const legacyPayload = { ...options.filterPayload };
         delete legacyPayload.p_semanas;
-        return fetchEntregadoresByRpc('listar_entregadores_origens', legacyPayload, { fallbackOnError: false });
+        const legacyResult = await fetchEntregadoresByRpc('listar_entregadores_origens', legacyPayload, { fallbackOnError: false });
+        return { ...legacyResult, data: normalizeDedicadoAderencia(legacyResult.data) };
     }
 
-    return result;
+    return { ...result, data: normalizeDedicadoAderencia(result.data) };
 }

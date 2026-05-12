@@ -172,7 +172,7 @@ begin
             sum(corridas_completadas) as corridas_completadas,
             sum(total_segundos) as segundos_realizados,
             case
-                when sum(corridas_ofertadas) > 0 then round((sum(corridas_aceitas)::numeric / nullif(sum(corridas_ofertadas), 0)) * 100, 2)
+                when sum(corridas_ofertadas) > 0 then round((sum(corridas_completadas)::numeric / nullif(sum(corridas_ofertadas), 0)) * 100, 2)
                 else 0
             end as aderencia_percentual
         from filtered_data

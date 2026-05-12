@@ -15,6 +15,7 @@ interface DedicadoExportPayload {
     corridas_rejeitadas?: number;
     corridas_completadas?: number;
     segundos_realizados?: number;
+    segundos_planejados?: number;
   };
   origem?: Array<Record<string, unknown>>;
   dia_origem?: Array<Record<string, unknown>>;
@@ -34,6 +35,28 @@ function normalizeNumber(value: unknown) {
 
 function formatPercent(value: unknown) {
   return `${normalizeNumber(value).toFixed(1)}%`;
+}
+
+function calculateHourlyAderencia(realizados: unknown, planejados: unknown) {
+  const totalPlanejados = normalizeNumber(planejados);
+  if (totalPlanejados <= 0) return 0;
+  return (normalizeNumber(realizados) / totalPlanejados) * 100;
+}
+
+function calculateAcceptanceRate(aceitas: unknown, ofertadas: unknown) {
+  const totalOfertadas = normalizeNumber(ofertadas);
+  if (totalOfertadas <= 0) return 0;
+  return (normalizeNumber(aceitas) / totalOfertadas) * 100;
+}
+
+function calculateCompletionRate(completadas: unknown, aceitas: unknown) {
+  const totalAceitas = normalizeNumber(aceitas);
+  if (totalAceitas <= 0) return 0;
+  return (normalizeNumber(completadas) / totalAceitas) * 100;
+}
+
+function formatPercentOrDash(value: unknown, hasBase: boolean) {
+  return hasBase ? formatPercent(value) : '-';
 }
 
 function buildRpcPayload(filterPayload: FilterPayload) {
@@ -107,6 +130,8 @@ export async function exportarDedicadoParaExcel(filterPayload: FilterPayload): P
       { Indicador: 'Rejeitadas', Valor: normalizeNumber(totals.corridas_rejeitadas) },
       { Indicador: 'Completadas', Valor: normalizeNumber(totals.corridas_completadas) },
       { Indicador: 'Horas', Valor: formatarHorasParaHMS(normalizeNumber(totals.segundos_realizados) / 3600) },
+      { Indicador: 'Horas Planejadas', Valor: formatarHorasParaHMS(normalizeNumber(totals.segundos_planejados) / 3600) },
+      { Indicador: 'Aderencia Horas', Valor: formatPercentOrDash(calculateHourlyAderencia(totals.segundos_realizados, totals.segundos_planejados), normalizeNumber(totals.segundos_planejados) > 0) },
     ], 'Resumo');
 
     appendSheet(XLSX, workbook, origemRows.map((row) => ({
@@ -114,9 +139,12 @@ export async function exportarDedicadoParaExcel(filterPayload: FilterPayload): P
       Horas: formatarHorasParaHMS(normalizeNumber(row.segundos_realizados) / 3600),
       Ofertadas: normalizeNumber(row.corridas_ofertadas),
       Aceitas: normalizeNumber(row.corridas_aceitas),
+      '% Aceitas': formatPercent(calculateAcceptanceRate(row.corridas_aceitas, row.corridas_ofertadas)),
       Rejeitadas: normalizeNumber(row.corridas_rejeitadas),
       Completadas: normalizeNumber(row.corridas_completadas),
-      Aderencia: formatPercent(row.aderencia_percentual),
+      '% Completadas': formatPercent(calculateCompletionRate(row.corridas_completadas, row.corridas_aceitas)),
+      'Horas Planejadas': formatarHorasParaHMS(normalizeNumber(row.segundos_planejados) / 3600),
+      Aderencia: formatPercentOrDash(calculateHourlyAderencia(row.segundos_realizados, row.segundos_planejados), normalizeNumber(row.segundos_planejados) > 0),
     })), 'Origens');
 
     appendSheet(XLSX, workbook, entregadores.map((entregador) => ({
@@ -125,8 +153,10 @@ export async function exportarDedicadoParaExcel(filterPayload: FilterPayload): P
       Horas: formatarHorasParaHMS((entregador.total_segundos || 0) / 3600),
       Ofertadas: entregador.corridas_ofertadas || 0,
       Aceitas: entregador.corridas_aceitas || 0,
+      '% Aceitas': formatPercent(calculateAcceptanceRate(entregador.corridas_aceitas, entregador.corridas_ofertadas)),
       Rejeitadas: entregador.corridas_rejeitadas || 0,
       Completadas: entregador.corridas_completadas || 0,
+      '% Completadas': formatPercent(calculateCompletionRate(entregador.corridas_completadas, entregador.corridas_aceitas)),
       Aderencia: formatPercent(entregador.aderencia_percentual),
       Rejeicao: formatPercent(entregador.rejeicao_percentual),
     })), 'Entregadores');
@@ -138,9 +168,12 @@ export async function exportarDedicadoParaExcel(filterPayload: FilterPayload): P
       Horas: formatarHorasParaHMS(normalizeNumber(row.segundos_realizados) / 3600),
       Ofertadas: normalizeNumber(row.corridas_ofertadas),
       Aceitas: normalizeNumber(row.corridas_aceitas),
+      '% Aceitas': formatPercent(calculateAcceptanceRate(row.corridas_aceitas, row.corridas_ofertadas)),
       Rejeitadas: normalizeNumber(row.corridas_rejeitadas),
       Completadas: normalizeNumber(row.corridas_completadas),
-      Aderencia: formatPercent(row.aderencia_percentual),
+      '% Completadas': formatPercent(calculateCompletionRate(row.corridas_completadas, row.corridas_aceitas)),
+      'Horas Planejadas': formatarHorasParaHMS(normalizeNumber(row.segundos_planejados) / 3600),
+      Aderencia: formatPercentOrDash(calculateHourlyAderencia(row.segundos_realizados, row.segundos_planejados), normalizeNumber(row.segundos_planejados) > 0),
     })), 'Dia x Origem');
 
     appendSheet(XLSX, workbook, formatFilters(rpcPayload), 'Filtros');
