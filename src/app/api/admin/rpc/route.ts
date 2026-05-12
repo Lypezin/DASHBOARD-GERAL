@@ -27,6 +27,7 @@ const ADMIN_RPC_ALLOWLIST = new Set([
     'approve_user',
     'create_organization',
     'list_all_organizations',
+    'list_pracas_disponiveis',
     'list_all_users',
     'list_pending_users',
     'revoke_user_access',
@@ -84,6 +85,8 @@ async function executeAdminOperation(
             return updateUserOrganization(admin, params);
         case 'list_all_organizations':
             return listAllOrganizations(admin);
+        case 'list_pracas_disponiveis':
+            return admin.rpc('list_pracas_disponiveis');
         case 'create_organization':
             return createOrganization(admin, params);
         case 'update_organization':
