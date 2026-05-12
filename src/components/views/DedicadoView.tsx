@@ -113,20 +113,12 @@ const DedicadoView = React.memo(function DedicadoView({
   const filterPayloadKey = React.useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
   const dedicatedPayload = React.useMemo<FilterPayload>(() => {
     const payload = JSON.parse(filterPayloadKey) as FilterPayload;
-    const isIntervalMode = payload.p_filtro_modo === 'intervalo';
-    const hasDateRange = Boolean(payload.p_data_inicial || payload.p_data_final);
-    const hasExplicitWeek = payload.p_semana !== null && payload.p_semana !== undefined;
-    const hasMultiWeekFilter = Array.isArray(payload.p_semanas) && payload.p_semanas.length > 0;
-
-    if (!isIntervalMode && !hasDateRange && !hasExplicitWeek && !hasMultiWeekFilter && payload.p_ano) {
-      // Na guia DEDICADO, Semana "Todas" precisa significar ano inteiro.
-      // O valor 0 é um marcador interno entendido só pelas RPCs desta guia.
-      payload.p_semana = 0;
-    }
 
     return payload;
   }, [filterPayloadKey]);
   const shouldLoadEntregadores = activeSubTab === 'entregadores';
+  const shouldLoadOrigemSummary = activeSubTab === 'dashboard' || activeSubTab === 'resumo';
+  const shouldLoadDiaOrigem = activeSubTab === 'dia_origem';
   const { data: tabData, loading } = useTabData(shouldLoadEntregadores ? 'dedicado' : 'dashboard', dedicatedPayload, currentUser);
   const { entregadoresData } = useTabDataMapper({ activeTab: 'dedicado', tabData });
   const origemPayload = React.useMemo(() => {
@@ -148,33 +140,61 @@ const DedicadoView = React.memo(function DedicadoView({
     let cancelled = false;
 
     async function fetchDedicadoOrigens() {
+      if (!shouldLoadOrigemSummary && !shouldLoadDiaOrigem) {
+        setDedicadoLoading(false);
+        return;
+      }
+
+      if (typeof origemPayload.p_organization_id !== 'string' || origemPayload.p_organization_id.trim().length === 0) {
+        setDedicadoLoading(true);
+        return;
+      }
+
       setDedicadoLoading(true);
 
       try {
         const requestPayload = JSON.parse(origemPayloadKey) as Record<string, unknown>;
-        const { data, error } = await safeRpc<DedicadoOrigensPayload>('dashboard_dedicado_origens', requestPayload, {
+        const preferredRpc = shouldLoadDiaOrigem ? 'dashboard_dedicado_origens' : 'dashboard_dedicado_origens_summary';
+        let { data, error } = await safeRpc<DedicadoOrigensPayload>(preferredRpc, requestPayload, {
           timeout: RPC_TIMEOUTS.DEFAULT,
           validateParams: false,
         });
+
+        const errorMessage = String(error?.message || '');
+        const canFallbackToLegacy = !shouldLoadDiaOrigem
+          && error
+          && (
+            error?.code === '42883'
+            || error?.code === 'PGRST202'
+            || errorMessage.includes('dashboard_dedicado_origens_summary')
+            || errorMessage.includes('Could not find the function')
+          );
+
+        if (canFallbackToLegacy) {
+          const fallback = await safeRpc<DedicadoOrigensPayload>('dashboard_dedicado_origens', requestPayload, {
+            timeout: RPC_TIMEOUTS.DEFAULT,
+            validateParams: false,
+          });
+          data = fallback.data;
+          error = fallback.error;
+        }
 
         if (cancelled) return;
 
         if (error) {
           safeLog.error('Erro ao carregar resumo dedicado por origem:', error);
-          setDedicadoData({ origem: [], dia_origem: [] });
           return;
         }
 
         setDedicadoData({
           totais: data?.totais || {},
           origem: Array.isArray(data?.origem) ? data.origem : [],
-          dia_origem: Array.isArray(data?.dia_origem) ? data.dia_origem : [],
+          dia_origem: shouldLoadDiaOrigem && Array.isArray(data?.dia_origem) ? data.dia_origem : [],
           periodo_resolvido: data?.periodo_resolvido,
         });
       } catch (error) {
         if (!cancelled) {
           safeLog.error('Erro inesperado ao carregar dedicado por origem:', error);
-          setDedicadoData({ origem: [], dia_origem: [] });
         }
       } finally {
         if (!cancelled) setDedicadoLoading(false);
@@ -186,7 +206,7 @@ const DedicadoView = React.memo(function DedicadoView({
     return () => {
       cancelled = true;
     };
-  }, [origemPayloadKey]);
+  }, [origemPayload, origemPayloadKey, shouldLoadDiaOrigem, shouldLoadOrigemSummary]);
 
   const entregadores = React.useMemo(
     () => entregadoresData?.entregadores || [],

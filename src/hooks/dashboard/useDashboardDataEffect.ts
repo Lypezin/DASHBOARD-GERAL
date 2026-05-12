@@ -101,9 +101,13 @@ export function useDashboardDataEffect({
                 isFirstExecutionRef.current = false;
                 pendingPayloadKeyRef.current = '';
             } else {
-                clearDashboardState(setters, createEmptyDashboardData());
-                previousPayloadRef.current = currentPayloadKey;
+                if (isFirstExecution) {
+                    clearDashboardState(setters, createEmptyDashboardData());
+                } else if (IS_DEV) {
+                    safeLog.warn('[useDashboardDataEffect] Fetch falhou; mantendo ultimo estado valido do dashboard');
+                }
                 isFirstExecutionRef.current = false;
+                pendingPayloadKeyRef.current = '';
             }
         };
 

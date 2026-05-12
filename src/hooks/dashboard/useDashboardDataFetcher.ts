@@ -60,8 +60,10 @@ export function useDashboardDataFetcher({
                     return null;
                 }
                 safeLog.error('Erro ao carregar dashboard_resumo:', rpcError);
+                setError(errorMessage || 'Erro ao carregar dados do dashboard');
+                if (onError) onError(rpcError);
                 setLoading(false);
-                return createEmptyDashboardData();
+                return null;
             }
 
             if (!data) {

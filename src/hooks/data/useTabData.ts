@@ -24,6 +24,16 @@ function getRequestTab(tab: string) {
   return tab === 'prioridade' ? 'entregadores' : tab;
 }
 
+function hasLoadedData(data: TabData) {
+  if (data === null || data === undefined) return false;
+  if (Array.isArray(data)) return data.length > 0;
+  if (typeof data === 'object' && 'entregadores' in data) {
+    const entregadores = (data as { entregadores?: unknown }).entregadores;
+    return Array.isArray(entregadores) ? entregadores.length > 0 : true;
+  }
+  return true;
+}
+
 export function useTabData(activeTab: string, filterPayload: object, _currentUser?: CurrentUser | null) {
   const [data, setData] = useState<TabData>(null);
   const [loading, setLoading] = useState(false);
@@ -92,7 +102,10 @@ export function useTabData(activeTab: string, filterPayload: object, _currentUse
         return;
       }
 
-      setData(getTabFallbackData(tab));
+      setData((previousData) => {
+        if (hasLoadedData(previousData)) return previousData;
+        return getTabFallbackData(tab);
+      });
       setLoading(false);
     }
   }, [getCached, setCached]);
@@ -105,6 +118,9 @@ export function useTabData(activeTab: string, filterPayload: object, _currentUse
 
     if (isOrgLoading) return;
 
+    const payload = filterPayload as FilterPayload;
+    const hasOrganizationContext = typeof payload.p_organization_id === 'string' && payload.p_organization_id.trim().length > 0;
+
     if (SELF_MANAGED_TABS.includes(activeTab)) {
       fetchIdRef.current++;
       setData(null);
@@ -112,8 +128,15 @@ export function useTabData(activeTab: string, filterPayload: object, _currentUse
       return;
     }
 
+    if (!hasOrganizationContext) {
+      fetchIdRef.current++;
+      setData(null);
+      setLoading(true);
+      return;
+    }
+
     const currentFetchId = ++fetchIdRef.current;
-    void fetchData(activeTab, filterPayload as FilterPayload, filterPayloadStr, currentFetchId);
+    void fetchData(activeTab, payload, filterPayloadStr, currentFetchId);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);

@@ -32,6 +32,10 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     () => filterPayloadKey || JSON.stringify(filterPayload),
     [filterPayload, filterPayloadKey]
   );
+  const hasOrganizationContext = useMemo(
+    () => typeof filterPayload.p_organization_id === 'string' && filterPayload.p_organization_id.trim().length > 0,
+    [filterPayload.p_organization_id]
+  );
 
   const initialCache = getInitialCacheData(payloadKey);
   const cachedTotals: Totals | null = initialCache?.totais ? {
@@ -74,7 +78,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     isFirstExecutionRef,
     pendingPayloadKeyRef,
     setters,
-    shouldFetch: !isOrgLoading
+    shouldFetch: !isOrgLoading && hasOrganizationContext
   }, payloadKey);
 
   return {
@@ -86,7 +90,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     aderenciaOrigem,
     aderenciaDiaOrigem,
     dimensoes,
-    loading: loading || isOrgLoading,
+    loading: loading || isOrgLoading || !hasOrganizationContext,
     error
   };
 }
