@@ -41,12 +41,13 @@ function parseEntregadoresResponse(resultData: unknown): EntregadoresData {
 }
 
 async function fetchEntregadoresByRpc(
-    rpcName: 'listar_entregadores_v2' | 'listar_entregadores_origens',
+    rpcName: 'listar_entregadores_v2' | 'listar_entregadores_origens' | 'listar_entregadores_origens_v2',
     filterPayload: FilterPayload,
     options: { fallbackOnError: boolean }
 ): Promise<{ data: EntregadoresData | null; error: RpcError | null }> {
-    const allowedParams = rpcName === 'listar_entregadores_origens'
-        ? ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_data_inicial', 'p_data_final', 'p_organization_id']
+    const isDedicadoRpc = rpcName === 'listar_entregadores_origens' || rpcName === 'listar_entregadores_origens_v2';
+    const allowedParams = isDedicadoRpc
+        ? ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_data_inicial', 'p_data_final', 'p_organization_id']
         : ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_only_dedicados'];
     const listarEntregadoresPayload: FilterPayload = {};
 
@@ -121,5 +122,15 @@ export async function fetchEntregadoresData(options: FetchOptions): Promise<{ da
  * Busca dados da subguia DEDICADO, mantendo apenas entregadores com origem/restaurante.
  */
 export async function fetchDedicadoEntregadoresData(options: FetchOptions): Promise<{ data: EntregadoresData | null; error: RpcError | null }> {
-    return fetchEntregadoresByRpc('listar_entregadores_origens', options.filterPayload, { fallbackOnError: false });
+    const result = await fetchEntregadoresByRpc('listar_entregadores_origens_v2', options.filterPayload, { fallbackOnError: false });
+    const errorCode = result.error?.code || '';
+    const errorMessage = result.error?.message || '';
+
+    if (errorCode === '42883' || errorCode === 'PGRST202' || errorMessage.includes('listar_entregadores_origens_v2')) {
+        const legacyPayload = { ...options.filterPayload };
+        delete legacyPayload.p_semanas;
+        return fetchEntregadoresByRpc('listar_entregadores_origens', legacyPayload, { fallbackOnError: false });
+    }
+
+    return result;
 }

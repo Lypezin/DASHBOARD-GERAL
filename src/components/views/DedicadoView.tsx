@@ -113,6 +113,15 @@ const DedicadoView = React.memo(function DedicadoView({
   const filterPayloadKey = React.useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
   const dedicatedPayload = React.useMemo<FilterPayload>(() => {
     const payload = JSON.parse(filterPayloadKey) as FilterPayload;
+    const isIntervalMode = payload.p_filtro_modo === 'intervalo';
+    const hasDateRange = Boolean(payload.p_data_inicial || payload.p_data_final);
+    const hasExplicitWeek = payload.p_semana !== null && payload.p_semana !== undefined;
+    const hasMultiWeekFilter = Array.isArray(payload.p_semanas) && payload.p_semanas.length > 0;
+
+    if (!isIntervalMode && !hasDateRange && !hasExplicitWeek && !hasMultiWeekFilter && payload.p_ano) {
+      // Marcador entendido apenas pelas RPCs v2 do DEDICADO: semana "Todas" = ano inteiro.
+      payload.p_semana = 0;
+    }
 
     return payload;
   }, [filterPayloadKey]);
@@ -122,7 +131,7 @@ const DedicadoView = React.memo(function DedicadoView({
   const { data: tabData, loading } = useTabData(shouldLoadEntregadores ? 'dedicado' : 'dashboard', dedicatedPayload, currentUser);
   const { entregadoresData } = useTabDataMapper({ activeTab: 'dedicado', tabData });
   const origemPayload = React.useMemo(() => {
-    const allowed = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_data_inicial', 'p_data_final', 'p_organization_id'] as const;
+    const allowed = ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_data_inicial', 'p_data_final', 'p_organization_id'] as const;
     const payload: Record<string, unknown> = {};
 
     allowed.forEach((key) => {
@@ -154,8 +163,11 @@ const DedicadoView = React.memo(function DedicadoView({
 
       try {
         const requestPayload = JSON.parse(origemPayloadKey) as Record<string, unknown>;
-        const preferredRpc = shouldLoadDiaOrigem ? 'dashboard_dedicado_origens' : 'dashboard_dedicado_origens_summary';
-        let { data, error } = await safeRpc<DedicadoOrigensPayload>(preferredRpc, requestPayload, {
+        const requestWithMode = {
+          ...requestPayload,
+          p_include_dia_origem: shouldLoadDiaOrigem,
+        };
+        let { data, error } = await safeRpc<DedicadoOrigensPayload>('dashboard_dedicado_origens_v2', requestWithMode, {
           timeout: RPC_TIMEOUTS.DEFAULT,
           validateParams: false,
         });
@@ -166,11 +178,12 @@ const DedicadoView = React.memo(function DedicadoView({
           && (
             error?.code === '42883'
             || error?.code === 'PGRST202'
-            || errorMessage.includes('dashboard_dedicado_origens_summary')
+            || errorMessage.includes('dashboard_dedicado_origens_v2')
             || errorMessage.includes('Could not find the function')
           );
 
         if (canFallbackToLegacy) {
+          delete requestPayload.p_semanas;
           const fallback = await safeRpc<DedicadoOrigensPayload>('dashboard_dedicado_origens', requestPayload, {
             timeout: RPC_TIMEOUTS.DEFAULT,
             validateParams: false,
@@ -304,7 +317,7 @@ const DedicadoView = React.memo(function DedicadoView({
             </p>
           </div>
 
-          <div className="flex max-w-full gap-2 overflow-x-auto rounded-2xl border border-slate-200 bg-white/85 p-1 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 lg:max-w-[58%]">
+          <div className="grid w-full grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white/85 p-1 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 sm:grid-cols-4 lg:w-auto lg:min-w-[520px]">
             {SUB_TABS.map((tab) => {
               const Icon = tab.icon;
               const active = activeSubTab === tab.id;
@@ -314,7 +327,7 @@ const DedicadoView = React.memo(function DedicadoView({
                   key={tab.id}
                   onClick={() => setActiveSubTab(tab.id)}
                   className={cn(
-                    'inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-xs font-bold transition-all',
+                    'inline-flex min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-xs font-bold transition-all',
                     active
                       ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/20'
                       : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'

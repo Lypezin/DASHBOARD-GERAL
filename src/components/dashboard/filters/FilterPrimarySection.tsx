@@ -1,5 +1,6 @@
 import React from 'react';
 import FiltroDateRange from '@/components/FiltroDateRange';
+import FiltroMultiSelect from '@/components/FiltroMultiSelect';
 import FiltroSelect from '@/components/FiltroSelect';
 import { Filters } from '@/types';
 
@@ -54,6 +55,12 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
         );
     }
 
+    const selectedWeeks = filters.semanas?.length
+        ? filters.semanas.map(String)
+        : filters.semana !== null && filters.semana !== undefined
+            ? [String(filters.semana)]
+            : [];
+
     return (
         <>
             <div className="flex-1 min-w-[120px]">
@@ -66,18 +73,22 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
                 />
             </div>
             <div className="flex-1 min-w-[120px]">
-                <FiltroSelect
+                <FiltroMultiSelect
                     label="Semana"
-                    value={filters.semana !== null ? String(filters.semana) : ''}
+                    selected={selectedWeeks}
                     options={semanasOptions}
                     placeholder="Todas"
-                    onChange={(value) => {
+                    onSelectionChange={(values) => {
                         setFilters(prev => {
-                            const newSemana = value ? parseInt(value, 10) : null;
+                            const semanas = values
+                                .map((value) => parseInt(value, 10))
+                                .filter((value) => Number.isFinite(value))
+                                .sort((a, b) => a - b);
+
                             return {
                                 ...prev,
-                                semana: newSemana,
-                                semanas: newSemana ? [newSemana] : []
+                                semana: semanas.length === 1 ? semanas[0] : null,
+                                semanas
                             };
                         });
                     }}

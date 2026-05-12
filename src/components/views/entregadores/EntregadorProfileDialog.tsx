@@ -58,14 +58,14 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
     variant = 'entregadores',
     filterPayload,
 }: Props) {
-    const { detail, loading, loadDetail } = useEntregadorDetail(entregador, open, organizationId);
     const isDedicado = variant === 'dedicado';
+    const { detail, loading, loadDetail } = useEntregadorDetail(entregador, open, organizationId, !isDedicado);
     const [origemBreakdown, setOrigemBreakdown] = React.useState<OrigemBreakdownRow[]>([]);
     const [origemLoading, setOrigemLoading] = React.useState(false);
     const origemPayloadKey = React.useMemo(() => {
         if (!entregador || !isDedicado) return '';
 
-        const allowed = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_data_inicial', 'p_data_final', 'p_organization_id'] as const;
+        const allowed = ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_data_inicial', 'p_data_final', 'p_organization_id'] as const;
         const payload: Record<string, unknown> = { p_entregador_id: entregador.id_entregador };
 
         allowed.forEach((key) => {
@@ -91,10 +91,29 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
 
             try {
                 const payload = JSON.parse(origemPayloadKey) as Record<string, unknown>;
-                const { data, error } = await safeRpc<OrigemBreakdownPayload>('dedicado_entregador_origens', payload, {
+                let { data, error } = await safeRpc<OrigemBreakdownPayload>('dedicado_entregador_origens_v2', payload, {
                     timeout: RPC_TIMEOUTS.DEFAULT,
                     validateParams: false,
                 });
+
+                const errorMessage = String(error?.message || '');
+                if (
+                    error
+                    && (
+                        error?.code === '42883'
+                        || error?.code === 'PGRST202'
+                        || errorMessage.includes('dedicado_entregador_origens_v2')
+                        || errorMessage.includes('Could not find the function')
+                    )
+                ) {
+                    delete payload.p_semanas;
+                    const fallback = await safeRpc<OrigemBreakdownPayload>('dedicado_entregador_origens', payload, {
+                        timeout: RPC_TIMEOUTS.DEFAULT,
+                        validateParams: false,
+                    });
+                    data = fallback.data;
+                    error = fallback.error;
+                }
 
                 if (cancelled) return;
 
@@ -158,9 +177,9 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
 
                 <div className="grid grid-cols-2 gap-3 mt-2">
                     {metrics.map(m => (
-                        <div key={m.label} className="rounded-lg border border-slate-200 p-3 bg-slate-50">
-                            <div className="flex items-center gap-2 mb-1"><m.icon className={`h-3.5 w-3.5 ${m.color}`} /><span className="text-[11px] font-medium text-slate-500">{m.label}</span></div>
-                            <p className="text-base font-bold text-slate-900">{m.value}</p>
+                        <div key={m.label} className="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/80">
+                            <div className="flex items-center gap-2 mb-1"><m.icon className={`h-3.5 w-3.5 ${m.color}`} /><span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">{m.label}</span></div>
+                            <p className="text-base font-bold text-slate-900 dark:text-slate-100">{m.value}</p>
                         </div>
                     ))}
                 </div>
@@ -215,6 +234,8 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
                     </div>
                 ) : null}
 
+                {!isDedicado ? (
+                    <>
                 <div className="mt-4"><p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Tags</p><TagManager entregadorId={entregador.id_entregador} organizationId={organizationId} onUpdate={loadDetail} /></div>
                 <div className="mt-4"><p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Metas</p><MetaEditor entregadorId={entregador.id_entregador} organizationId={organizationId} metas={detail?.metas || []} onUpdate={loadDetail} /></div>
 
@@ -224,14 +245,17 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
                         <div className="space-y-1.5 max-h-40 overflow-y-auto">
                             {detail.history.map(h => (
                                 <div key={h.id} className="flex items-center gap-2 text-xs">
-                                    <span className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" /><span className="text-slate-600">{h.event_type.replace(/_/g, ' ')}</span><span className="text-slate-400 ml-auto text-[10px]">{new Date(h.created_at).toLocaleDateString('pt-BR')}</span>
+                                    <span className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" /><span className="text-slate-600 dark:text-slate-300">{h.event_type.replace(/_/g, ' ')}</span><span className="text-slate-400 ml-auto text-[10px]">{new Date(h.created_at).toLocaleDateString('pt-BR')}</span>
                                 </div>
                             ))}
                         </div>
                     ) : <span className="text-xs text-slate-400">Sem registros</span>}
                 </div>
 
-                {loading && <div className="absolute inset-0 bg-white/50 flex flex-col items-center justify-center rounded-lg"><div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-500 border-t-transparent" /></div>}
+                    </>
+                ) : null}
+
+                {loading && <div className="absolute inset-0 bg-white/50 flex flex-col items-center justify-center rounded-lg dark:bg-slate-950/50"><div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-500 border-t-transparent" /></div>}
             </DialogContent>
         </Dialog>
     );
