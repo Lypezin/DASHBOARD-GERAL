@@ -515,18 +515,37 @@ function DedicadoDashboard({
           {topOrigens.length > 0 ? (
             <div className="grid gap-3 lg:grid-cols-2">
               {topOrigens.map((origem) => (
-                <div key={origem.origem} className="min-w-0 overflow-hidden rounded-2xl border border-slate-200 p-4 dark:border-slate-800">
-                  <div className="flex items-start justify-between gap-4">
-                    <p className="min-w-0 break-words text-sm font-bold text-slate-800 dark:text-slate-100">{origem.origem}</p>
-                    <span className="shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-black text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+                <div key={origem.origem} className="min-w-0 rounded-2xl border border-slate-200 p-4 dark:border-slate-800">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                    <p className="min-w-0 break-words pr-1 text-sm font-bold leading-snug text-slate-800 dark:text-slate-100">{origem.origem}</p>
+                    <span className="w-fit shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-black text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
                       Aderência {formatPercentOrNA(origem.aderencia_percentual, Boolean(origem.segundos_planejados))}
                     </span>
                   </div>
-                  <div className="mt-3 grid grid-cols-1 gap-2 text-xs text-slate-500 dark:text-slate-400 sm:grid-cols-2 xl:grid-cols-4">
-                    <span className="min-w-0 truncate">Ofertadas: <b>{(origem.corridas_ofertadas || 0).toLocaleString('pt-BR')}</b></span>
-                    <span className="min-w-0 truncate">Aceitas: <b>{(origem.corridas_aceitas || 0).toLocaleString('pt-BR')}</b> <b className="text-emerald-600 dark:text-emerald-400">({formatPercentOrNA(origem.taxa_aceitacao, Boolean(origem.corridas_ofertadas))})</b></span>
-                    <span className="min-w-0 truncate">Completadas: <b>{(origem.corridas_completadas || 0).toLocaleString('pt-BR')}</b> <b className="text-indigo-600 dark:text-indigo-400">({formatPercentOrNA(origem.taxa_completude, Boolean(origem.corridas_aceitas))})</b></span>
-                    <span className="min-w-0 truncate">Horas: <b>{formatarHorasParaHMS((origem.segundos_realizados || 0) / 3600)}</b>{origem.segundos_planejados ? ` / ${formatarHorasParaHMS((origem.segundos_planejados || 0) / 3600)}` : ''}</span>
+                  <div className="mt-4 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
+                    <div className="rounded-xl bg-slate-50 px-3 py-2 dark:bg-slate-950/60">
+                      <span className="block font-bold uppercase tracking-wide text-slate-400 dark:text-slate-500">Ofertadas</span>
+                      <span className="mt-0.5 block font-mono font-black text-slate-700 dark:text-slate-200">{(origem.corridas_ofertadas || 0).toLocaleString('pt-BR')}</span>
+                    </div>
+                    <div className="rounded-xl bg-emerald-50 px-3 py-2 dark:bg-emerald-950/20">
+                      <span className="block font-bold uppercase tracking-wide text-emerald-500 dark:text-emerald-400">Aceitas</span>
+                      <span className="mt-0.5 block break-words font-mono font-black text-emerald-700 dark:text-emerald-300">
+                        {(origem.corridas_aceitas || 0).toLocaleString('pt-BR')} ({formatPercentOrNA(origem.taxa_aceitacao, Boolean(origem.corridas_ofertadas))})
+                      </span>
+                    </div>
+                    <div className="rounded-xl bg-indigo-50 px-3 py-2 dark:bg-indigo-950/20">
+                      <span className="block font-bold uppercase tracking-wide text-indigo-500 dark:text-indigo-400">Completadas</span>
+                      <span className="mt-0.5 block break-words font-mono font-black text-indigo-700 dark:text-indigo-300">
+                        {(origem.corridas_completadas || 0).toLocaleString('pt-BR')} ({formatPercentOrNA(origem.taxa_completude, Boolean(origem.corridas_aceitas))})
+                      </span>
+                    </div>
+                    <div className="rounded-xl bg-orange-50 px-3 py-2 dark:bg-orange-950/20">
+                      <span className="block font-bold uppercase tracking-wide text-orange-500 dark:text-orange-400">Horas</span>
+                      <span className="mt-0.5 block break-words font-mono font-black text-orange-700 dark:text-orange-300">
+                        {formatarHorasParaHMS((origem.segundos_realizados || 0) / 3600)}
+                        {origem.segundos_planejados ? ` / ${formatarHorasParaHMS((origem.segundos_planejados || 0) / 3600)}` : ''}
+                      </span>
+                    </div>
                   </div>
                 </div>
               ))}
