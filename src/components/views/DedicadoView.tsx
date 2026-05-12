@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { BarChart3, CheckCircle2, Clock, LayoutDashboard, ListChecks, Table2, Truck, Users, XCircle } from 'lucide-react';
+import { BarChart3, CheckCircle2, Clock, Download, LayoutDashboard, ListChecks, Table2, Truck, Users, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AnaliseTable } from '@/components/analise/AnaliseTable';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
@@ -14,6 +14,7 @@ import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { AnaliseDiaOrigemTable } from './analise/components/AnaliseDiaOrigemTable';
 import { EntregadoresMainContent } from './EntregadoresMainView';
+import { exportarDedicadoParaExcel } from './dedicado/DedicadoExcelExport';
 import type { AderenciaDiaOrigem, AderenciaOrigem, CurrentUser } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 
@@ -110,6 +111,7 @@ const DedicadoView = React.memo(function DedicadoView({
   const [activeSubTab, setActiveSubTab] = React.useState<DedicadoSubTab>('dashboard');
   const [dedicadoData, setDedicadoData] = React.useState<DedicadoOrigensPayload>({ origem: [], dia_origem: [] });
   const [dedicadoLoading, setDedicadoLoading] = React.useState(false);
+  const [isExporting, setIsExporting] = React.useState(false);
   const filterPayloadKey = React.useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
   const dedicatedPayload = React.useMemo<FilterPayload>(() => {
     const payload = JSON.parse(filterPayloadKey) as FilterPayload;
@@ -292,6 +294,17 @@ const DedicadoView = React.memo(function DedicadoView({
     };
   }, [dedicatedOrigem.length, dedicatedTotals, entregadores]);
 
+  const handleExportDedicado = React.useCallback(async () => {
+    if (isExporting) return;
+
+    try {
+      setIsExporting(true);
+      await exportarDedicadoParaExcel(dedicatedPayload);
+    } finally {
+      setIsExporting(false);
+    }
+  }, [dedicatedPayload, isExporting]);
+
   const resumoOrigemRows = React.useMemo(() => {
     return dedicatedOrigem.map((item) => ({
       ...item,
@@ -317,27 +330,39 @@ const DedicadoView = React.memo(function DedicadoView({
             </p>
           </div>
 
-          <div className="grid w-full grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white/85 p-1 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 sm:grid-cols-4 lg:w-auto lg:min-w-[520px]">
-            {SUB_TABS.map((tab) => {
-              const Icon = tab.icon;
-              const active = activeSubTab === tab.id;
+          <div className="flex w-full flex-col gap-3 lg:w-auto lg:items-end">
+            <button
+              type="button"
+              onClick={handleExportDedicado}
+              disabled={isExporting}
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-200 bg-blue-600 px-4 py-2.5 text-xs font-black uppercase tracking-[0.18em] text-white shadow-sm shadow-blue-600/20 transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:border-blue-500/40 lg:w-auto"
+            >
+              <Download className="h-4 w-4" />
+              {isExporting ? 'Exportando...' : 'Baixar Excel'}
+            </button>
 
-              return (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveSubTab(tab.id)}
-                  className={cn(
-                    'inline-flex min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-xs font-bold transition-all',
-                    active
-                      ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/20'
-                      : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
-                  )}
-                >
-                  <Icon className="h-4 w-4" />
-                  {tab.label}
-                </button>
-              );
-            })}
+            <div className="grid w-full grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white/85 p-1 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 sm:grid-cols-4 lg:w-auto lg:min-w-[520px]">
+              {SUB_TABS.map((tab) => {
+                const Icon = tab.icon;
+                const active = activeSubTab === tab.id;
+
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveSubTab(tab.id)}
+                    className={cn(
+                      'inline-flex min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-xs font-bold transition-all',
+                      active
+                        ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/20'
+                        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
+                    )}
+                  >
+                    <Icon className="h-4 w-4" />
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
