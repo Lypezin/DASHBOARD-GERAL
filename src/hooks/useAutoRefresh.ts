@@ -2,9 +2,9 @@
 import { useEffect, useRef } from 'react';
 import { useMVRefreshLogic } from '@/hooks/upload/useMVRefreshLogic';
 import {
-    buildRefreshStatusFromQueue,
+    buildIncrementalRefreshStatusFromQueue,
     fetchRefreshQueueSnapshot,
-    getTotalRefreshPendingCount
+    getIncrementalRefreshPendingCount
 } from '@/hooks/upload/refreshUtils';
 
 const POLL_INTERVAL_MS = 5000;
@@ -27,21 +27,26 @@ export function useAutoRefresh() {
                 if (cancelled || !mountedRef.current) return;
 
                 const queueState = snapshot.queueState;
-                const pendingCount = getTotalRefreshPendingCount(queueState);
+                const pendingCount = getIncrementalRefreshPendingCount(queueState);
 
                 if (pendingCount <= 0) {
                     setRefreshState((prev) => {
-                        if (!prev.isRefreshing) return prev;
+                        if (!prev.isRefreshing) {
+                            const hasStaleSyncMessage = /Atualizando|Sincronizando|pendente/i.test(prev.status || '');
+                            return hasStaleSyncMessage
+                                ? { isRefreshing: false, progress: 0, status: '' }
+                                : prev;
+                        }
                         return {
                             isRefreshing: false,
                             progress: 100,
-                            status: 'Dados agregados, Dashboard e UTR atualizados.'
+                            status: 'Dados agregados, Dashboard, Comparacao e UTR atualizados.'
                         };
                     });
                     return;
                 }
 
-                setRefreshState(buildRefreshStatusFromQueue(queueState));
+                setRefreshState(buildIncrementalRefreshStatusFromQueue(queueState));
 
                 if (Date.now() - startedAt < MAX_RESUME_MONITORING_MS) {
                     timeoutId = setTimeout(pollQueue, POLL_INTERVAL_MS);

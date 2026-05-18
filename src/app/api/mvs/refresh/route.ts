@@ -56,14 +56,48 @@ async function fetchPendingMVs(admin = createServiceRoleClient()) {
     return (Array.isArray(data) ? data : []) as PendingMV[];
 }
 
+type QueueStatePayload = {
+    full_pending_count?: number;
+    full_in_progress_count?: number;
+    incremental_pending_count?: number;
+    full_worker_scheduled?: boolean;
+    incremental_worker_scheduled?: boolean;
+};
+
+async function fetchQueueState(admin = createServiceRoleClient()) {
+    const { data } = await admin.rpc('get_mv_refresh_queue_state');
+    return (data ?? null) as QueueStatePayload | null;
+}
+
+async function healRefreshQueueSnapshot(admin = createServiceRoleClient()) {
+    let state = await fetchQueueState(admin);
+
+    const incrementalPending = Number(state?.incremental_pending_count || 0);
+    const incrementalWorkerScheduled = state?.incremental_worker_scheduled === true;
+    if (incrementalPending > 0 && !incrementalWorkerScheduled) {
+        await admin.rpc('ensure_incremental_refresh_worker_scheduled');
+        state = await fetchQueueState(admin);
+    }
+
+    const fullPending = Number(state?.full_pending_count || 0);
+    const fullInProgress = Number(state?.full_in_progress_count || 0);
+    const fullWorkerScheduled = state?.full_worker_scheduled === true;
+    if (fullPending > 0 && fullInProgress === 0 && !fullWorkerScheduled) {
+        await admin.rpc('clear_stale_full_mv_refresh_flags');
+        state = await fetchQueueState(admin);
+    }
+
+    return state;
+}
+
 export async function GET() {
     try {
         const auth = await requireApprovedUser();
         if ('error' in auth) return auth.error;
 
         const admin = createServiceRoleClient();
+        const stateData = await healRefreshQueueSnapshot(admin);
         const pending = await fetchPendingMVs(admin);
-        const { data: stateData } = await admin.rpc('get_mv_refresh_queue_state');
 
         return NextResponse.json({ success: true, pending, queue_state: stateData ?? null });
     } catch (error) {

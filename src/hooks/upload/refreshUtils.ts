@@ -20,6 +20,10 @@ export interface RefreshQueueState {
     full_pending_count?: number;
     full_in_progress_count?: number;
     incremental_pending_count?: number;
+    incremental_dashboard_pending?: number;
+    incremental_entregadores_pending?: number;
+    incremental_comparison_pending?: number;
+    incremental_corridas_pending?: number;
     full_worker_scheduled?: boolean;
     incremental_worker_scheduled?: boolean;
 }
@@ -43,6 +47,10 @@ function getIncrementalPendingCount(payload: any) {
 
 export function getTotalRefreshPendingCount(queueState: RefreshQueueState | null | undefined) {
     return Number(queueState?.full_pending_count || 0) + Number(queueState?.incremental_pending_count || 0);
+}
+
+export function getIncrementalRefreshPendingCount(queueState: RefreshQueueState | null | undefined) {
+    return Number(queueState?.incremental_pending_count || 0);
 }
 
 export function buildRefreshStatusFromQueue(queueState: RefreshQueueState | null | undefined): RefreshState {
@@ -73,6 +81,35 @@ export function buildRefreshStatusFromQueue(queueState: RefreshQueueState | null
     };
 }
 
+export function buildIncrementalRefreshStatusFromQueue(queueState: RefreshQueueState | null | undefined): RefreshState {
+    const incrementalPending = getIncrementalRefreshPendingCount(queueState);
+
+    if (incrementalPending <= 0) {
+        return {
+            isRefreshing: false,
+            progress: 100,
+            status: ''
+        };
+    }
+
+    const dashboardPending = Number(queueState?.incremental_dashboard_pending || 0);
+    const entregadoresPending = Number(queueState?.incremental_entregadores_pending || 0);
+    const comparisonPending = Number(queueState?.incremental_comparison_pending || 0);
+    const corridasPending = Number(queueState?.incremental_corridas_pending || 0);
+    const pendingAreas = [
+        dashboardPending > 0 ? 'Dashboard/UTR' : null,
+        entregadoresPending > 0 ? 'Entregadores/Valores' : null,
+        comparisonPending > 0 ? 'Comparacao' : null,
+        corridasPending > 0 ? 'Entrada/Saida' : null,
+    ].filter(Boolean).join(', ');
+
+    return {
+        isRefreshing: true,
+        progress: 65,
+        status: `Atualizando ${pendingAreas || 'dados agregados'} em segundo plano: ${incrementalPending} impacto(s) pendente(s).`
+    };
+}
+
 export async function fetchRefreshQueueSnapshot() {
     const response = await fetch('/api/mvs/refresh', {
         method: 'GET',
@@ -93,12 +130,20 @@ export async function fetchRefreshQueueSnapshot() {
     };
 }
 
-async function fetchPendingCount() {
+async function fetchPendingCount(incrementalOnly = false) {
     const snapshot = await fetchRefreshQueueSnapshot();
+    if (incrementalOnly) {
+        return snapshot.incrementalPendingCount;
+    }
+
     return snapshot.pendingCount + snapshot.incrementalPendingCount;
 }
 
-async function monitorRefreshQueue(initialPendingCount: number, setRefreshState: SetRefreshState) {
+async function monitorRefreshQueue(
+    initialPendingCount: number,
+    setRefreshState: SetRefreshState,
+    incrementalOnly = false
+) {
     if (initialPendingCount <= 0) {
         setRefreshState({
             isRefreshing: false,
@@ -121,7 +166,7 @@ async function monitorRefreshQueue(initialPendingCount: number, setRefreshState:
         });
 
         await wait(POLL_INTERVAL_MS);
-        remaining = await fetchPendingCount();
+        remaining = await fetchPendingCount(incrementalOnly);
         total = Math.max(total, remaining);
     }
 
@@ -184,7 +229,7 @@ export const performRefresh = async (
             const pendingCount = Math.max(Number(secondaryPending || 0), queuePending);
 
             if (pendingCount > 0) {
-                await monitorRefreshQueue(pendingCount, setRefreshState);
+                await monitorRefreshQueue(pendingCount, setRefreshState, true);
                 return;
             }
 
