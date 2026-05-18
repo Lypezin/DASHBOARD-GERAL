@@ -133,8 +133,8 @@ export async function POST(request: Request) {
         }
 
         const admin = createServiceRoleClient();
-        let incrementalResult: unknown = null;
-        let incrementalError: string | null = null;
+        const incrementalResult: unknown = null;
+        const incrementalError: string | null = null;
         let incrementalSucceeded = !isUploadRefresh;
         let incrementalWorkerResult: unknown = null;
         let incrementalWorkerError: string | null = null;
@@ -142,24 +142,18 @@ export async function POST(request: Request) {
         let queueState: unknown = null;
 
         if (isUploadRefresh) {
-            const { data, error } = await admin.rpc('process_incremental_refresh_impacts', {
-                p_limit: 100,
-                p_include_corridas: false
-            });
-
-            incrementalResult = data ?? null;
-            incrementalError = error?.message || null;
-            incrementalSucceeded = !incrementalError && (data as { success?: boolean } | null)?.success !== false;
-
-            if (!incrementalSucceeded) {
-                throw new Error(incrementalError || 'Falha ao aplicar atualizacao incremental pos-upload.');
-            }
+            const { data: stateBefore } = await admin.rpc('get_mv_refresh_queue_state');
+            const pendingBefore = Number((stateBefore as QueueStatePayload | null)?.incremental_pending_count || 0);
+            incrementalSucceeded = true;
 
             const { data: workerData, error: workerError } = await admin.rpc('ensure_incremental_refresh_worker_scheduled');
             incrementalWorkerResult = workerData ?? null;
             incrementalWorkerError = workerError?.message || null;
 
-            const pendingIncrementals = (workerData as { pending_count?: number } | null)?.pending_count ?? 0;
+            const pendingIncrementals = Math.max(
+                pendingBefore,
+                Number((workerData as { pending_count?: number } | null)?.pending_count || 0)
+            );
             if (incrementalWorkerError && pendingIncrementals > 0) {
                 throw new Error(incrementalWorkerError);
             }
