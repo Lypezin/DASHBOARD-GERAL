@@ -9,7 +9,6 @@ import { EntregadoresMainTable } from './entregadores/EntregadoresMainTable';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { useEntregadoresMainSort } from './entregadores/hooks/useEntregadoresMainSort';
 import { useEntregadoresMainStats } from './entregadores/hooks/useEntregadoresMainStats';
-import { EntregadoresEmptyState } from './entregadores/EntregadoresEmptyState';
 import { EntregadoresHeader } from './entregadores/EntregadoresHeader';
 import { useEntregadoresExport } from './entregadores/hooks/useEntregadoresExport';
 import { useEntregadorProfile } from './entregadores/hooks/useEntregadorProfile';
@@ -65,10 +64,6 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
 
   if (loading) return <DashboardSkeleton contentOnly />;
 
-  if (!entregadoresData?.entregadores?.length) {
-    return <EntregadoresEmptyState />;
-  }
-
   return (
     <div className="space-y-6 animate-fade-in">
       <EntregadoresHeader
@@ -76,7 +71,7 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
         isExporting={isExporting}
         title={isDedicado ? 'Entregadores por Origem' : undefined}
         description={isDedicado ? 'Performance dos entregadores nas origens do filtro atual' : undefined}
-        periodoResolvido={entregadoresData.periodo_resolvido}
+        periodoResolvido={entregadoresData?.periodo_resolvido}
       />
 
       <EntregadoresMainStatsCards
@@ -137,10 +132,19 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
   const isDedicado = variant === 'dedicado';
   const searchParams = useSearchParams();
   const searchFromUrl = searchParams.get('ent_search')?.trim() || '';
-  const deferredSearch = React.useDeferredValue(searchFromUrl);
+  const [serverSearch, setServerSearch] = React.useState(searchFromUrl);
+
+  React.useEffect(() => {
+    const timeout = window.setTimeout(() => {
+      setServerSearch(searchFromUrl);
+    }, 350);
+
+    return () => window.clearTimeout(timeout);
+  }, [searchFromUrl]);
+
   const dedicatedPayload = React.useMemo<FilterPayload>(() => {
     if (!isDedicado) {
-      const search = deferredSearch.trim();
+      const search = serverSearch.trim();
       if (search.length < 3) return filterPayload;
 
       return {
@@ -152,7 +156,7 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
     return {
       ...filterPayload,
     };
-  }, [deferredSearch, filterPayload, isDedicado]);
+  }, [filterPayload, isDedicado, serverSearch]);
   const activeTab = isDedicado ? 'dedicado' : 'entregadores';
   const { data: tabData, loading } = useTabData(activeTab, dedicatedPayload, currentUser);
   const { entregadoresData } = useTabDataMapper({ activeTab, tabData });
