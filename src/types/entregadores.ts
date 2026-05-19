@@ -17,5 +17,6 @@ export interface EntregadoresData {
         ano?: number | null;
         semana?: number | null;
         auto_semana?: boolean;
+        search?: string | null;
     };
 }

@@ -133,6 +133,11 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
   const searchParams = useSearchParams();
   const searchFromUrl = searchParams.get('ent_search')?.trim() || '';
   const [serverSearch, setServerSearch] = React.useState(searchFromUrl);
+  const normalizedSearchFromUrl = searchFromUrl.trim();
+  const normalizedServerSearch = serverSearch.trim();
+  const isSearchSyncing = !isDedicado
+    && normalizedSearchFromUrl !== normalizedServerSearch
+    && (normalizedSearchFromUrl.length >= 3 || normalizedServerSearch.length >= 3);
 
   React.useEffect(() => {
     const timeout = window.setTimeout(() => {
@@ -144,7 +149,7 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
 
   const dedicatedPayload = React.useMemo<FilterPayload>(() => {
     if (!isDedicado) {
-      const search = serverSearch.trim();
+      const search = normalizedServerSearch;
       if (search.length < 3) return filterPayload;
 
       return {
@@ -156,7 +161,7 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
     return {
       ...filterPayload,
     };
-  }, [filterPayload, isDedicado, serverSearch]);
+  }, [filterPayload, isDedicado, normalizedServerSearch]);
   const activeTab = isDedicado ? 'dedicado' : 'entregadores';
   const { data: tabData, loading } = useTabData(activeTab, dedicatedPayload, currentUser);
   const { entregadoresData } = useTabDataMapper({ activeTab, tabData });
@@ -164,7 +169,7 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
   return (
     <EntregadoresMainContent
       entregadoresData={entregadoresData}
-      loading={loading}
+      loading={loading || isSearchSyncing}
       variant={variant}
       filterPayload={dedicatedPayload}
     />

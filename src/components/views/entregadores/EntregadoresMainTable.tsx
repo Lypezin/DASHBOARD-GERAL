@@ -56,9 +56,9 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                     <div className="max-h-[600px] overflow-y-auto overflow-x-auto">
                         {currentItems.length > 0 ? (
                             <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                                {currentItems.map((entregador) => (
+                                {currentItems.map((entregador, index) => (
                                     <EntregadoresMainTableRow
-                                        key={entregador.id_entregador}
+                                        key={`${entregador.id_entregador}-${index}`}
                                         entregador={entregador}
                                         onClick={onRowClick}
                                     />

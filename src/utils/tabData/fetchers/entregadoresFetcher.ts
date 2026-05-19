@@ -11,38 +11,94 @@ interface FetchOptions {
     filterPayload: FilterPayload;
 }
 
+function normalizeNumber(value: unknown) {
+    const parsed = Number(value || 0);
+    return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function isMojibakeName(name: string) {
+    return /[ÃÂ]/.test(name);
+}
+
+function chooseDisplayName(current: string, next: string) {
+    const cleanCurrent = current.trim();
+    const cleanNext = next.trim();
+
+    if (!cleanCurrent) return cleanNext;
+    if (!cleanNext) return cleanCurrent;
+    if (isMojibakeName(cleanCurrent) && !isMojibakeName(cleanNext)) return cleanNext;
+    if (!isMojibakeName(cleanCurrent) && isMojibakeName(cleanNext)) return cleanCurrent;
+    return cleanNext.length > cleanCurrent.length ? cleanNext : cleanCurrent;
+}
+
+function mergeEntregadoresById(entregadores: Entregador[]) {
+    const merged = new Map<string, Entregador>();
+
+    for (const entregador of entregadores) {
+        const id = String(entregador.id_entregador || '').trim();
+        if (!id) continue;
+
+        const current = merged.get(id);
+        if (!current) {
+            merged.set(id, {
+                ...entregador,
+                id_entregador: id,
+                nome_entregador: String(entregador.nome_entregador || id).trim() || id,
+                corridas_ofertadas: normalizeNumber(entregador.corridas_ofertadas),
+                corridas_aceitas: normalizeNumber(entregador.corridas_aceitas),
+                corridas_rejeitadas: normalizeNumber(entregador.corridas_rejeitadas),
+                corridas_completadas: normalizeNumber(entregador.corridas_completadas),
+                total_segundos: normalizeNumber(entregador.total_segundos),
+                aderencia_percentual: normalizeNumber(entregador.aderencia_percentual),
+                rejeicao_percentual: normalizeNumber(entregador.rejeicao_percentual),
+            });
+            continue;
+        }
+
+        current.nome_entregador = chooseDisplayName(current.nome_entregador, String(entregador.nome_entregador || id));
+        current.corridas_ofertadas += normalizeNumber(entregador.corridas_ofertadas);
+        current.corridas_aceitas += normalizeNumber(entregador.corridas_aceitas);
+        current.corridas_rejeitadas += normalizeNumber(entregador.corridas_rejeitadas);
+        current.corridas_completadas += normalizeNumber(entregador.corridas_completadas);
+        current.total_segundos += normalizeNumber(entregador.total_segundos);
+
+        current.aderencia_percentual = current.corridas_ofertadas > 0
+            ? (current.corridas_aceitas / current.corridas_ofertadas) * 100
+            : 0;
+        current.rejeicao_percentual = current.corridas_ofertadas > 0
+            ? (current.corridas_rejeitadas / current.corridas_ofertadas) * 100
+            : 0;
+    }
+
+    return Array.from(merged.values());
+}
+
 function parseEntregadoresResponse(resultData: unknown): EntregadoresData {
     const processedData: EntregadoresData = { entregadores: [], total: 0 };
 
     if (!resultData) return processedData;
 
     let entregadores: Record<string, unknown>[] = [];
-    let total = 0;
 
     if (typeof resultData === 'object' && !Array.isArray(resultData)) {
         const dataObject = resultData as Record<string, unknown>;
         if (Array.isArray(dataObject.entregadores)) {
             entregadores = dataObject.entregadores as Record<string, unknown>[];
-            total = dataObject.total !== undefined ? Number(dataObject.total) : dataObject.entregadores.length;
             processedData.periodo_resolvido = dataObject.periodo_resolvido as EntregadoresData['periodo_resolvido'];
         } else {
             safeLog.warn('[fetchEntregadoresData] Estrutura de dados inesperada:', resultData);
         }
     } else if (Array.isArray(resultData)) {
         entregadores = resultData;
-        total = resultData.length;
     }
+
+    const normalizedEntregadores = mergeEntregadoresById(entregadores as unknown as Entregador[]);
 
     return {
         ...processedData,
-        entregadores: entregadores as unknown as Entregador[],
-        total: Number.isFinite(total) ? total : entregadores.length
+        entregadores: normalizedEntregadores,
+        total: normalizedEntregadores.length
     };
-}
-
-function normalizeNumber(value: unknown) {
-    const parsed = Number(value || 0);
-    return Number.isFinite(parsed) ? parsed : 0;
 }
 
 function normalizeDedicadoAderencia(data: EntregadoresData | null): EntregadoresData | null {

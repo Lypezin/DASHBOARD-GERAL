@@ -34,7 +34,7 @@ export async function exportarEntregadoresMainParaExcel(entregadores: Entregador
 
             // Ajustar colunas
             const colWidths = [
-                { wch: 15 }, // ID
+                { wch: 40 }, // ID
                 { wch: 35 }, // Nome
                 { wch: 15 }, // Horas
                 { wch: 10 }, // Ofertadas
