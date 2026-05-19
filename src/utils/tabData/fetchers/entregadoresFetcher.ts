@@ -70,7 +70,7 @@ async function fetchEntregadoresByRpc(
     const isDedicadoRpc = rpcName === 'listar_entregadores_origens' || rpcName === 'listar_entregadores_origens_v2';
     const allowedParams = isDedicadoRpc
         ? ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_data_inicial', 'p_data_final', 'p_organization_id']
-        : ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_only_dedicados'];
+        : ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_only_dedicados', 'p_search'];
     const listarEntregadoresPayload: FilterPayload = {};
 
     for (const key of allowedParams) {

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import dynamic from 'next/dynamic';
+import { useSearchParams } from 'next/navigation';
 import { EntregadoresMainStatsCards } from './entregadores/EntregadoresMainStatsCards';
 import { EntregadoresMainSearch } from './entregadores/EntregadoresMainSearch';
 import { EntregadoresMainTable } from './entregadores/EntregadoresMainTable';
@@ -134,13 +135,24 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
   variant?: 'entregadores' | 'dedicado';
 }) {
   const isDedicado = variant === 'dedicado';
+  const searchParams = useSearchParams();
+  const searchFromUrl = searchParams.get('ent_search')?.trim() || '';
+  const deferredSearch = React.useDeferredValue(searchFromUrl);
   const dedicatedPayload = React.useMemo<FilterPayload>(() => {
-    if (!isDedicado) return filterPayload;
+    if (!isDedicado) {
+      const search = deferredSearch.trim();
+      if (search.length < 3) return filterPayload;
+
+      return {
+        ...filterPayload,
+        p_search: search,
+      };
+    }
 
     return {
       ...filterPayload,
     };
-  }, [filterPayload, isDedicado]);
+  }, [deferredSearch, filterPayload, isDedicado]);
   const activeTab = isDedicado ? 'dedicado' : 'entregadores';
   const { data: tabData, loading } = useTabData(activeTab, dedicatedPayload, currentUser);
   const { entregadoresData } = useTabDataMapper({ activeTab, tabData });
