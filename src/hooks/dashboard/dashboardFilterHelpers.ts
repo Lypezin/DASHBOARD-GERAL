@@ -5,9 +5,12 @@ export function getInitialFiltersFromUrl(searchParams: URLSearchParams): Filters
     const currentYear = new Date().getFullYear();
 
     if (searchParams.size > 0) {
+        const anoParam = searchParams.get('ano');
+        const isAllYears = anoParam === 'todos';
+
         return {
-            ano: parseNumberParam(searchParams.get('ano')) ?? currentYear,
-            semana: parseNumberParam(searchParams.get('semana')),
+            ano: isAllYears ? null : parseNumberParam(anoParam) ?? currentYear,
+            semana: isAllYears ? null : parseNumberParam(searchParams.get('semana')),
             praca: searchParams.get('praca'),
             subPraca: searchParams.get('subPraca'),
             origem: searchParams.get('origem'),
@@ -15,7 +18,7 @@ export function getInitialFiltersFromUrl(searchParams: URLSearchParams): Filters
             subPracas: parseArrayParam(searchParams.get('subPracas')),
             origens: parseArrayParam(searchParams.get('origens')),
             turnos: parseArrayParam(searchParams.get('turnos')),
-            semanas: parseNumberArrayParam(searchParams.get('semanas')),
+            semanas: isAllYears ? [] : parseNumberArrayParam(searchParams.get('semanas')),
             filtroModo: (searchParams.get('filtroModo') as 'ano_semana' | 'intervalo') || 'ano_semana',
             dataInicial: searchParams.get('dataInicial'),
             dataFinal: searchParams.get('dataFinal'),
@@ -32,9 +35,14 @@ export function getInitialFiltersFromUrl(searchParams: URLSearchParams): Filters
 export function buildFilterQueryParams(filters: Filters, currentParams: URLSearchParams): string {
     const params = new URLSearchParams(currentParams.toString());
     const update = (k: string, v: string | null | undefined) => v ? params.set(k, v) : params.delete(k);
+    const isAllYears = filters.filtroModo === 'ano_semana' && filters.ano === null;
 
-    update('ano', filters.ano ? String(filters.ano) : null);
-    update('semana', filters.semana ? String(filters.semana) : null);
+    if (isAllYears) {
+        params.set('ano', 'todos');
+    } else {
+        update('ano', filters.ano ? String(filters.ano) : null);
+    }
+    update('semana', !isAllYears && filters.semana ? String(filters.semana) : null);
     update('praca', filters.praca);
     update('subPraca', filters.subPraca);
     update('origem', filters.origem);
@@ -42,7 +50,7 @@ export function buildFilterQueryParams(filters: Filters, currentParams: URLSearc
     update('subPracas', filters.subPracas.length > 0 ? filters.subPracas.join(',') : null);
     update('origens', filters.origens.length > 0 ? filters.origens.join(',') : null);
     update('turnos', filters.turnos.length > 0 ? filters.turnos.join(',') : null);
-    update('semanas', filters.semanas.length > 0 ? filters.semanas.join(',') : null);
+    update('semanas', !isAllYears && filters.semanas.length > 0 ? filters.semanas.join(',') : null);
 
     if (filters.filtroModo !== 'ano_semana') params.set('filtroModo', filters.filtroModo);
     else params.delete('filtroModo');

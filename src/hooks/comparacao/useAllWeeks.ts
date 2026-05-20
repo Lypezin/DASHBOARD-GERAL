@@ -16,18 +16,12 @@ export function useAllWeeks(fallbackWeeks?: string[], anoSelecionado?: number) {
       return;
     }
 
-    if (!anoSelecionado && fallbackWeeks && fallbackWeeks.length > 0) {
-      primeAllWeeksCache(fallbackWeeks);
-      setTodasSemanas(fallbackWeeks);
-      return;
-    }
-
     if (anoSelecionado && loadingSemanasComDados) {
       return;
     }
 
     async function fetchFallback() {
-      const cached = getAllWeeksCache();
+      const cached = getAllWeeksCache(true);
       if (cached) {
         setTodasSemanas(cached);
         return;
@@ -38,6 +32,7 @@ export function useAllWeeks(fallbackWeeks?: string[], anoSelecionado?: number) {
         if (processedWeeks.length > 0) {
           setTodasSemanas(processedWeeks);
         } else if (fallbackWeeks && fallbackWeeks.length > 0) {
+          primeAllWeeksCache(fallbackWeeks);
           setTodasSemanas(fallbackWeeks);
         }
       } catch (err) {

@@ -1,6 +1,7 @@
 import { Filters, CurrentUser, hasFullCityAccess } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { LIMITS, VALIDATION } from '@/constants/config';
+import { getAllYearsDateRange } from './allYearsRange';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -82,7 +83,16 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
 
     const organizationId = passedOrganizationId !== undefined ? passedOrganizationId : (currentUser?.organization_id || null);
 
-    const semanasFiltered = filters.semanas?.map(Number).filter(n => !isNaN(n));
+    const isAllYearsMode = filters.filtroModo !== 'intervalo' && ano === null;
+
+    if (isAllYearsMode) {
+        const range = getAllYearsDateRange();
+        semana = null;
+        dataInicial = range.dataInicial;
+        dataFinal = range.dataFinal;
+    }
+
+    const semanasFiltered = isAllYearsMode ? [] : filters.semanas?.map(Number).filter(n => !isNaN(n));
     const p_semanas = (semanasFiltered && semanasFiltered.length > 0) ? semanasFiltered : null;
 
     return {

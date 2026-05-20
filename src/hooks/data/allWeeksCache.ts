@@ -4,6 +4,10 @@ const ALL_WEEKS_CACHE_KEY = 'all-weeks';
 const allWeeksCache = new Map<string, string[]>();
 const allWeeksRequests = new Map<string, Promise<string[]>>();
 
+function hasYearQualifiedWeeks(weeks: string[]) {
+  return weeks.some((week) => /^\d{4}-W\d{1,2}$/.test(week));
+}
+
 function normalizeAllWeeks(data: unknown): string[] {
   let semanasArray: unknown[] = [];
 
@@ -52,12 +56,15 @@ export function primeAllWeeksCache(weeks: string[]) {
   }
 }
 
-export function getAllWeeksCache() {
-  return allWeeksCache.get(ALL_WEEKS_CACHE_KEY) || null;
+export function getAllWeeksCache(requireYearQualified = false) {
+  const cached = allWeeksCache.get(ALL_WEEKS_CACHE_KEY) || null;
+  if (!cached) return null;
+  if (requireYearQualified && !hasYearQualifiedWeeks(cached)) return null;
+  return cached;
 }
 
 export async function fetchAllWeeks(): Promise<string[]> {
-  const cached = getAllWeeksCache();
+  const cached = getAllWeeksCache(true);
   if (cached) return cached;
 
   const activeRequest = allWeeksRequests.get(ALL_WEEKS_CACHE_KEY);

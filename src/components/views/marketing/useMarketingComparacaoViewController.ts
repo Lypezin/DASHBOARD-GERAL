@@ -4,6 +4,7 @@ import { useMarketingComparacao } from './useMarketingComparacao';
 import { useAuth } from '@/hooks/auth/useAuth';
 import { DashboardFilters } from '@/types';
 import { getDateRangeFromWeek } from '@/utils/timeHelpers';
+import { getAllYearsDateRange } from '@/utils/filters/allYearsRange';
 
 export function useMarketingComparacaoViewController(filters: DashboardFilters) {
     const { user } = useAuth();
@@ -31,10 +32,9 @@ export function useMarketingComparacaoViewController(filters: DashboardFilters) 
                 dataFinal = `${filters.ano}-12-31`;
             }
         } else {
-            const year = new Date().getFullYear();
-            const isoWeek1Start = getDateRangeFromWeek(year, 1);
-            dataInicial = isoWeek1Start.start;
-            dataFinal = new Date().toISOString().split('T')[0];
+            const range = getAllYearsDateRange();
+            dataInicial = range.dataInicial;
+            dataFinal = range.dataFinal;
         }
     }
 

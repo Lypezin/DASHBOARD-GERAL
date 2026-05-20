@@ -23,6 +23,16 @@ export function useFiltroBar({
                     processedValue = rawValue;
                 }
             }
+
+            if (key === 'ano' && processedValue === null) {
+                return {
+                    ...prev,
+                    ano: null,
+                    semana: null,
+                    semanas: [],
+                };
+            }
+
             return { ...prev, [key]: processedValue };
         });
     }, [setFilters]);

@@ -22,6 +22,12 @@ export function useDashboardPage() {
   const mainData = useDashboardMainData({ filterPayload, filterPayloadKey });
 
   useEffect(() => {
+    if (typeof filters.ano === 'number' && filters.ano !== anoEvolucao) {
+      setAnoEvolucao(filters.ano);
+    }
+  }, [anoEvolucao, filters.ano]);
+
+  useEffect(() => {
     if (
       mainData.dimensoes &&
       (
