@@ -16,6 +16,7 @@ import { formatarHorasParaHMS } from '@/utils/formatters';
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
 import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
+import { VALIDATION } from '@/constants/config';
 import type { CurrentUser, EntregadoresData } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 
@@ -28,6 +29,40 @@ const DeferredEntregadorProfileDialog = dynamic(
   () => import('./entregadores/EntregadorProfileDialog').then((mod) => ({ default: mod.EntregadorProfileDialog })),
   { ssr: false }
 );
+
+function getTodayDateString() {
+  const today = new Date();
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, '0');
+  const day = String(today.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
+function buildEntregadoresSearchPayload(filterPayload: FilterPayload, search: string): FilterPayload {
+  const shouldSearchAllYears =
+    search.length >= 3
+    && filterPayload.p_filtro_modo !== 'intervalo'
+    && filterPayload.p_ano == null
+    && !filterPayload.p_data_inicial
+    && !filterPayload.p_data_final;
+
+  if (!shouldSearchAllYears) {
+    return {
+      ...filterPayload,
+      p_search: search,
+    };
+  }
+
+  return {
+    ...filterPayload,
+    p_search: search,
+    p_semana: null,
+    p_semanas: null,
+    p_data_inicial: VALIDATION.MIN_DATE,
+    p_data_final: getTodayDateString(),
+  };
+}
 
 interface EntregadoresMainContentProps {
   entregadoresData: EntregadoresData | null;
@@ -196,11 +231,7 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
     if (!isDedicado) {
       const search = normalizedServerSearch;
       if (search.length < 3) return filterPayload;
-
-      return {
-        ...filterPayload,
-        p_search: search,
-      };
+      return buildEntregadoresSearchPayload(filterPayload, search);
     }
 
     return {
