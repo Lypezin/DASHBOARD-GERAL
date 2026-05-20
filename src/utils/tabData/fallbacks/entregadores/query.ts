@@ -7,7 +7,15 @@ export function buildEntregadoresQuery(safePayload: FilterPayload) {
         .select('id_da_pessoa_entregadora, pessoa_entregadora')
         .not('id_da_pessoa_entregadora', 'is', null);
 
-    if (safePayload.p_semana && safePayload.p_ano) {
+    const semanas = Array.isArray(safePayload.p_semanas)
+        ? safePayload.p_semanas.map(Number).filter(Number.isFinite)
+        : [];
+
+    if (safePayload.p_ano && semanas.length > 0) {
+        entregadoresQuery = entregadoresQuery
+            .eq('ano_iso', safePayload.p_ano)
+            .in('semana_numero', semanas);
+    } else if (safePayload.p_semana && safePayload.p_ano) {
         const dataInicio = new Date(safePayload.p_ano, 0, 1);
         const diaSemana = dataInicio.getDay();
         const diasParaSegunda = (diaSemana === 0 ? -6 : 1) - diaSemana;
@@ -52,6 +60,19 @@ export function buildEntregadoresQuery(safePayload: FilterPayload) {
 
     if (safePayload.p_only_dedicados) {
         entregadoresQuery = entregadoresQuery.ilike('origem', '%dedic%');
+    }
+
+    const search = typeof safePayload.p_search === 'string' ? safePayload.p_search.trim() : '';
+    if (search.length >= 3) {
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(search);
+        if (isUuid) {
+            entregadoresQuery = entregadoresQuery.eq('id_da_pessoa_entregadora', search);
+        } else {
+            const safeSearch = search.replace(/[%,()]/g, ' ').trim();
+            if (safeSearch.length >= 3) {
+                entregadoresQuery = entregadoresQuery.ilike('pessoa_entregadora', `%${safeSearch}%`);
+            }
+        }
     }
 
     return entregadoresQuery;

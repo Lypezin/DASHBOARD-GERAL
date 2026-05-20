@@ -31,11 +31,39 @@ export async function fetchEntregadoresStats(
             .select('id_da_pessoa_entregadora, numero_de_corridas_ofertadas, numero_de_corridas_aceitas, numero_de_corridas_rejeitadas, numero_de_corridas_completadas, tempo_disponivel_escalado')
             .in('id_da_pessoa_entregadora', batchIds);
 
-        // Date filters reuse (simplified for brevity, potentially duplicated logic from query builder currently)
-        // ... (Filter logic here matches original file) 
-        // NOTE: In a perfect world we share filter logic. 
+        const semanas = Array.isArray(safePayload.p_semanas)
+            ? safePayload.p_semanas.map(Number).filter(Number.isFinite)
+            : [];
+
+        if (safePayload.p_ano && semanas.length > 0) {
+            statsQuery = statsQuery.eq('ano_iso', safePayload.p_ano).in('semana_numero', semanas);
+        } else if (safePayload.p_ano && safePayload.p_semana) {
+            statsQuery = statsQuery.eq('ano_iso', safePayload.p_ano).eq('semana_numero', safePayload.p_semana);
+        } else if (safePayload.p_ano) {
+            statsQuery = statsQuery.eq('ano_iso', safePayload.p_ano);
+        }
+
         if (safePayload.p_data_inicial) statsQuery = statsQuery.gte('data_do_periodo', safePayload.p_data_inicial);
-        // ... etc (omitting for brevity, handled by caller mostly but specific period filtering logic needs to be robust)
+        if (safePayload.p_data_final) statsQuery = statsQuery.lte('data_do_periodo', safePayload.p_data_final);
+
+        if (safePayload.p_praca) {
+            const pracas = String(safePayload.p_praca).split(',').map((p) => p.trim()).filter(Boolean);
+            if (pracas.length > 0) statsQuery = statsQuery.in('praca', pracas);
+        }
+
+        if (safePayload.p_sub_praca) {
+            const subPracas = String(safePayload.p_sub_praca).split(',').map((p) => p.trim()).filter(Boolean);
+            if (subPracas.length > 0) statsQuery = statsQuery.in('sub_praca', subPracas);
+        }
+
+        if (safePayload.p_origem) {
+            const origens = String(safePayload.p_origem).split(',').map((o) => o.trim()).filter(Boolean);
+            if (origens.length > 0) statsQuery = statsQuery.in('origem', origens);
+        }
+
+        if (safePayload.p_only_dedicados) {
+            statsQuery = statsQuery.ilike('origem', '%dedic%');
+        }
 
         statsQuery = statsQuery.limit(QUERY_LIMITS.AGGREGATION_MAX);
 

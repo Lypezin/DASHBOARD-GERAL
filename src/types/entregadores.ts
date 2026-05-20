@@ -16,6 +16,7 @@ export interface EntregadoresData {
     periodo_resolvido?: {
         ano?: number | null;
         semana?: number | null;
+        semanas?: number[] | null;
         auto_semana?: boolean;
         search?: string | null;
     };

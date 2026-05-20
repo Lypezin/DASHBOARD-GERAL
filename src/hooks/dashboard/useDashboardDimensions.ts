@@ -4,9 +4,10 @@ import { safeRpc } from '@/lib/rpcWrapper';
 import type { DimensoesDashboard } from '@/types';
 import { fetchAllWeeks, primeAllWeeksCache } from '@/hooks/data/allWeeksCache';
 
-const CACHE_KEY = 'dashboard_dimensions_cache_v5';
+const IS_DEV = process.env.NODE_ENV === 'development';
+const CACHE_KEY = 'dashboard_dimensions_cache_v6';
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hora
-export const DEFAULT_YEARS = [2026, 2025, 2024];
+export const DEFAULT_YEARS = [2026, 2025, 2024, 2023, 2022];
 const EMPTY_DIMENSIONS: DimensoesDashboard = {
   anos: DEFAULT_YEARS,
   semanas: [],
@@ -30,6 +31,36 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
   useEffect(() => {
     let cancelled = false;
 
+    const refreshYearsOnly = async (baseDimensions: DimensoesDashboard) => {
+      try {
+        const anosResult = await safeRpc<number[]>('listar_anos_disponiveis', {}, {
+          timeout: 10000,
+          validateParams: false,
+        });
+
+        if (cancelled) return;
+
+        const anosData = Array.isArray(anosResult.data) ? anosResult.data : [];
+        const mergedYears = Array.from(new Set([...DEFAULT_YEARS, ...anosData]))
+          .filter((ano) => Number.isFinite(ano))
+          .sort((a, b) => b - a);
+
+        if (mergedYears.length === 0) return;
+
+        setAnosDisponiveis(mergedYears);
+        setOutrasDimensoes((current) => {
+          const nextDimensions = {
+            ...(current || baseDimensions),
+            anos: mergedYears,
+          };
+          writeCachedDimensions(nextDimensions);
+          return nextDimensions;
+        });
+      } catch (err) {
+        if (IS_DEV) safeLog.error('Erro ao atualizar anos disponiveis:', err);
+      }
+    };
+
     const fetchInitialDimensions = async () => {
       setLoading(true);
 
@@ -41,6 +72,7 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
           setSemanasDisponiveis(cached.semanas);
           setOutrasDimensoes(cached);
           setLoading(false);
+          void refreshYearsOnly(cached);
           return;
         }
 
@@ -49,6 +81,7 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
           setSemanasDisponiveis([]);
           setOutrasDimensoes(EMPTY_DIMENSIONS);
           setLoading(false);
+          void refreshYearsOnly(EMPTY_DIMENSIONS);
           return;
         }
 

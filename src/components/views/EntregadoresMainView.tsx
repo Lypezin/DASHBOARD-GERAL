@@ -2,7 +2,7 @@
 
 import React from 'react';
 import dynamic from 'next/dynamic';
-import { useSearchParams } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { EntregadoresMainStatsCards } from './entregadores/EntregadoresMainStatsCards';
 import { EntregadoresMainSearch } from './entregadores/EntregadoresMainSearch';
 import { EntregadoresMainTable } from './entregadores/EntregadoresMainTable';
@@ -32,6 +32,9 @@ const DeferredEntregadorProfileDialog = dynamic(
 interface EntregadoresMainContentProps {
   entregadoresData: EntregadoresData | null;
   loading: boolean;
+  isRefreshing?: boolean;
+  searchTerm?: string;
+  onSearchChange?: (term: string) => void;
   variant?: 'entregadores' | 'dedicado';
   filterPayload?: FilterPayload;
 }
@@ -39,20 +42,30 @@ interface EntregadoresMainContentProps {
 export const EntregadoresMainContent = React.memo(function EntregadoresMainContent({
   entregadoresData,
   loading,
+  isRefreshing = false,
+  searchTerm = '',
+  onSearchChange,
   variant = 'entregadores',
   filterPayload,
 }: EntregadoresMainContentProps) {
   const isDedicado = variant === 'dedicado';
+  const [localSearchTerm, setLocalSearchTerm] = React.useState('');
+  const effectiveSearchTerm = onSearchChange ? searchTerm : localSearchTerm;
+  const handleSearchChange = React.useCallback((term: string) => {
+    if (!onSearchChange) {
+      setLocalSearchTerm(term);
+    }
+
+    onSearchChange?.(term);
+  }, [onSearchChange]);
   const {
     sortedEntregadores,
     sortField,
     sortDirection,
-    searchTerm,
-    setSearchTerm,
     showInactiveOnly,
     setShowInactiveOnly,
     handleSort
-  } = useEntregadoresMainSort(entregadoresData);
+  } = useEntregadoresMainSort(entregadoresData, effectiveSearchTerm);
 
   const { isExporting, handleExport } = useEntregadoresExport(sortedEntregadores);
   const { selectedEntregador, profileOpen, setProfileOpen, handleRowClick } = useEntregadorProfile();
@@ -62,13 +75,15 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
     timeoutMs: 800,
   });
 
-  if (loading) return <DashboardSkeleton contentOnly />;
+  if (loading && !entregadoresData) return <DashboardSkeleton contentOnly />;
 
   return (
     <div className="space-y-6 animate-fade-in">
       <EntregadoresHeader
         onExport={handleExport}
         isExporting={isExporting}
+        disableExport={loading || isRefreshing}
+        exportDisabledReason="Aguarde a busca terminar para exportar os dados corretos."
         title={isDedicado ? 'Entregadores por Origem' : undefined}
         description={isDedicado ? 'Performance dos entregadores nas origens do filtro atual' : undefined}
         periodoResolvido={entregadoresData?.periodo_resolvido}
@@ -87,18 +102,25 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
       />
 
       <EntregadoresMainSearch
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
+        searchTerm={effectiveSearchTerm}
+        onSearchChange={handleSearchChange}
         showInactiveOnly={showInactiveOnly}
         onShowInactiveOnlyChange={setShowInactiveOnly}
+        isSearching={loading || isRefreshing}
       />
+
+      {loading || isRefreshing ? (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-200">
+          Atualizando a busca com os filtros atuais...
+        </div>
+      ) : null}
 
       <EntregadoresMainTable
         sortedEntregadores={sortedEntregadores}
         sortField={sortField}
         sortDirection={sortDirection}
         onSort={handleSort}
-        searchTerm={searchTerm}
+        searchTerm={effectiveSearchTerm}
         onRowClick={handleRowClick}
       />
 
@@ -130,22 +152,45 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
   variant?: 'entregadores' | 'dedicado';
 }) {
   const isDedicado = variant === 'dedicado';
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
-  const searchFromUrl = searchParams.get('ent_search')?.trim() || '';
+  const searchFromUrl = searchParams.get('ent_search') || '';
+  const [searchTerm, setSearchTerm] = React.useState(searchFromUrl);
   const [serverSearch, setServerSearch] = React.useState(searchFromUrl);
-  const normalizedSearchFromUrl = searchFromUrl.trim();
+  const normalizedSearchTerm = searchTerm.trim();
   const normalizedServerSearch = serverSearch.trim();
   const isSearchSyncing = !isDedicado
-    && normalizedSearchFromUrl !== normalizedServerSearch
-    && (normalizedSearchFromUrl.length >= 3 || normalizedServerSearch.length >= 3);
+    && normalizedSearchTerm !== normalizedServerSearch
+    && (normalizedSearchTerm.length >= 3 || normalizedServerSearch.length >= 3);
+
+  React.useEffect(() => {
+    setSearchTerm(searchFromUrl);
+  }, [searchFromUrl]);
 
   React.useEffect(() => {
     const timeout = window.setTimeout(() => {
-      setServerSearch(searchFromUrl);
+      setServerSearch(searchTerm);
     }, 350);
 
     return () => window.clearTimeout(timeout);
-  }, [searchFromUrl]);
+  }, [searchTerm]);
+
+  const handleSearchChange = React.useCallback((term: string) => {
+    setSearchTerm(term);
+
+    const params = new URLSearchParams(searchParams.toString());
+    const normalized = term.trim();
+
+    if (normalized) {
+      params.set('ent_search', term);
+    } else {
+      params.delete('ent_search');
+    }
+
+    const nextQuery = params.toString();
+    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams]);
 
   const dedicatedPayload = React.useMemo<FilterPayload>(() => {
     if (!isDedicado) {
@@ -169,7 +214,10 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
   return (
     <EntregadoresMainContent
       entregadoresData={entregadoresData}
-      loading={loading || isSearchSyncing}
+      loading={loading}
+      isRefreshing={isSearchSyncing}
+      searchTerm={searchTerm}
+      onSearchChange={handleSearchChange}
       variant={variant}
       filterPayload={dedicatedPayload}
     />

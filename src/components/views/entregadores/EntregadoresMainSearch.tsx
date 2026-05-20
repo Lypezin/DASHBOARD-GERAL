@@ -7,6 +7,7 @@ interface EntregadoresMainSearchProps {
     onSearchChange: (term: string) => void;
     showInactiveOnly: boolean;
     onShowInactiveOnlyChange: (show: boolean) => void;
+    isSearching?: boolean;
 }
 
 export const EntregadoresMainSearch = React.memo(function EntregadoresMainSearch({
@@ -14,6 +15,7 @@ export const EntregadoresMainSearch = React.memo(function EntregadoresMainSearch
     onSearchChange,
     showInactiveOnly,
     onShowInactiveOnlyChange,
+    isSearching = false,
 }: EntregadoresMainSearchProps) {
     return (
         <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
@@ -25,8 +27,13 @@ export const EntregadoresMainSearch = React.memo(function EntregadoresMainSearch
                         placeholder="Pesquisar por nome ou ID do entregador..."
                         value={searchTerm}
                         onChange={(e) => onSearchChange(e.target.value)}
-                        className="w-full pl-9 pr-4 py-2 text-sm rounded-md border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-[background-color,border-color,box-shadow] duration-150 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                        className="w-full pl-9 pr-28 py-2 text-sm rounded-md border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-[background-color,border-color,box-shadow] duration-150 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
                     />
+                    {isSearching ? (
+                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-blue-600 dark:text-blue-300">
+                            Atualizando...
+                        </span>
+                    ) : null}
                 </div>
                 <div className="flex items-center gap-2">
                     <button

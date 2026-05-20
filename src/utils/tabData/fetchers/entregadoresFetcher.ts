@@ -17,7 +17,7 @@ function normalizeNumber(value: unknown) {
 }
 
 function isMojibakeName(name: string) {
-    return /[ÃÂ]/.test(name);
+    return /[\u00C2\u00C3]/.test(name);
 }
 
 function chooseDisplayName(current: string, next: string) {
@@ -126,7 +126,7 @@ async function fetchEntregadoresByRpc(
     const isDedicadoRpc = rpcName === 'listar_entregadores_origens' || rpcName === 'listar_entregadores_origens_v2';
     const allowedParams = isDedicadoRpc
         ? ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_data_inicial', 'p_data_final', 'p_organization_id']
-        : ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_only_dedicados', 'p_search'];
+        : ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_only_dedicados', 'p_search'];
     const listarEntregadoresPayload: FilterPayload = {};
 
     for (const key of allowedParams) {
@@ -141,6 +141,21 @@ async function fetchEntregadoresByRpc(
     });
 
     if (result.error) {
+        const search = typeof listarEntregadoresPayload.p_search === 'string'
+            ? listarEntregadoresPayload.p_search.trim()
+            : '';
+        const hasSearch = search.length >= 3;
+        const emptySearchData: EntregadoresData = {
+            entregadores: [],
+            total: 0,
+            periodo_resolvido: {
+                ano: typeof listarEntregadoresPayload.p_ano === 'number' ? listarEntregadoresPayload.p_ano : null,
+                semana: typeof listarEntregadoresPayload.p_semana === 'number' ? listarEntregadoresPayload.p_semana : null,
+                semanas: Array.isArray(listarEntregadoresPayload.p_semanas) ? listarEntregadoresPayload.p_semanas : null,
+                auto_semana: false,
+                search
+            }
+        };
         const is500 = is500Error(result.error);
         const isRateLimit = isRateLimitError(result.error);
         const isTimeout = isTimeoutError(result.error);
@@ -154,6 +169,11 @@ async function fetchEntregadoresByRpc(
             } catch (fallbackError) {
                 safeLog.error('Erro no fallback ao buscar entregadores:', fallbackError);
             }
+        }
+
+        if (hasSearch && (is500 || isTimeout)) {
+            safeLog.error(`Busca de entregadores falhou via ${rpcName}; retornando estado vazio controlado.`, result.error);
+            return { data: emptySearchData, error: null };
         }
 
         if (is500 && options.fallbackOnError) {
