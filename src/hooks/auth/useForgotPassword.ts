@@ -43,7 +43,7 @@ export function useForgotPassword() {
         try {
             // Garantir que a URL de redirecionamento esteja correta
             const origin = window.location.origin.replace(/\/$/, '');
-            const redirectTo = `${origin}/auth/confirm?next=/redefinir-senha`;
+            const redirectTo = `${origin}/redefinir-senha`;
             
             if (IS_DEV) safeLog.info(`[Auth] Enviando reset para: ${email}`, { redirectTo });
 
