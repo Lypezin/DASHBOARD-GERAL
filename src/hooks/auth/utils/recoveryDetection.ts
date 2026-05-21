@@ -12,9 +12,10 @@ export function isPasswordRecoveryFlow(): boolean {
     const hasRecoveryHash = window.location.hash.includes('type=recovery');
     const hasRecoveryQuery = window.location.search.includes('type=recovery');
     const hasRecoveryCode = window.location.pathname === '/redefinir-senha' && searchParams.has('code');
+    const hasRecoveryTokenHash = window.location.pathname === '/redefinir-senha' && searchParams.has('token_hash');
     const hasRecoveryError = window.location.pathname === '/redefinir-senha' && searchParams.has('error');
 
-    return hasRecoveryHash || hasRecoveryQuery || hasRecoveryCode || hasRecoveryError;
+    return hasRecoveryHash || hasRecoveryQuery || hasRecoveryCode || hasRecoveryTokenHash || hasRecoveryError;
 }
 
 /**

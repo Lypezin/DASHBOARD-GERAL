@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
 import { safeLog } from '@/lib/errorHandler';
 import { supabase } from '@/lib/supabaseClient';
 
@@ -9,6 +10,26 @@ interface ForgotPasswordState {
 }
 
 const IS_DEV = process.env.NODE_ENV === 'development';
+
+function createPasswordResetClient() {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+        return supabase;
+    }
+
+    // Password recovery links must work even when the email is opened from a
+    // different browser. Using implicit flow avoids the PKCE code_verifier trap.
+    return createClient(supabaseUrl, supabaseAnonKey, {
+        auth: {
+            flowType: 'implicit',
+            detectSessionInUrl: false,
+            persistSession: false,
+            autoRefreshToken: false,
+        },
+    });
+}
 
 export function useForgotPassword() {
     const [state, setState] = useState<ForgotPasswordState>({
@@ -26,7 +47,8 @@ export function useForgotPassword() {
             
             if (IS_DEV) safeLog.info(`[Auth] Enviando reset para: ${email}`, { redirectTo });
 
-            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            const passwordResetClient = createPasswordResetClient();
+            const { error } = await passwordResetClient.auth.resetPasswordForEmail(email, {
                 redirectTo,
             });
 

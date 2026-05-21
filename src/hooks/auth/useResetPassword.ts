@@ -31,6 +31,12 @@ function clearRecoveryUrl() {
     window.history.replaceState({}, document.title, window.location.pathname);
 }
 
+function isMissingCodeVerifierError(error: unknown) {
+    const message = error instanceof Error ? error.message : String(error || '');
+    return message.toLowerCase().includes('code verifier')
+        || message.toLowerCase().includes('both auth code and code verifier');
+}
+
 export function useResetPassword() {
     const [state, setState] = useState<ResetPasswordState>({
         loading: false,
@@ -49,6 +55,7 @@ export function useResetPassword() {
             const params = new URLSearchParams(window.location.search);
             const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
             const code = params.get('code');
+            const tokenHash = params.get('token_hash') || hashParams.get('token_hash');
             const accessToken = hashParams.get('access_token');
             const refreshToken = hashParams.get('refresh_token');
             const hasRecoveryMarker = params.get('type') === 'recovery' || hashParams.get('type') === 'recovery';
@@ -58,16 +65,28 @@ export function useResetPassword() {
                     throw new Error(getRecoveryErrorMessage(params));
                 }
 
-                if (code) {
-                    const { error } = await supabase.auth.exchangeCodeForSession(code);
-                    if (error) throw error;
-                    clearRecoveryUrl();
-                } else if (accessToken && refreshToken) {
+                if (accessToken && refreshToken) {
                     const { error } = await supabase.auth.setSession({
                         access_token: accessToken,
                         refresh_token: refreshToken,
                     });
                     if (error) throw error;
+                    clearRecoveryUrl();
+                } else if (tokenHash) {
+                    const { error } = await supabase.auth.verifyOtp({
+                        token_hash: tokenHash,
+                        type: 'recovery',
+                    });
+                    if (error) throw error;
+                    clearRecoveryUrl();
+                } else if (code) {
+                    const { error } = await supabase.auth.exchangeCodeForSession(code);
+                    if (error) {
+                        if (isMissingCodeVerifierError(error)) {
+                            throw new Error('Este link antigo de redefinicao depende de uma verificacao que nao esta mais disponivel neste navegador. Solicite um novo link em "Esqueci minha senha" e abra o email novamente.');
+                        }
+                        throw error;
+                    }
                     clearRecoveryUrl();
                 } else {
                     const { data: { session }, error } = await supabase.auth.getSession();
