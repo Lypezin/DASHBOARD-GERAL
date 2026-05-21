@@ -54,6 +54,7 @@ export function useResetPassword() {
 
             const params = new URLSearchParams(window.location.search);
             const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+            const authError = params.get('auth_error');
             const code = params.get('code');
             const tokenHash = params.get('token_hash') || hashParams.get('token_hash');
             const accessToken = hashParams.get('access_token');
@@ -63,6 +64,10 @@ export function useResetPassword() {
             try {
                 if (params.has('error')) {
                     throw new Error(getRecoveryErrorMessage(params));
+                }
+
+                if (authError) {
+                    throw new Error(authError);
                 }
 
                 if (accessToken && refreshToken) {
