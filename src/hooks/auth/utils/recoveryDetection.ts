@@ -5,14 +5,16 @@
  */
 export function isPasswordRecoveryFlow(): boolean {
     if (typeof window === 'undefined') return false;
-    
+
+    const searchParams = new URLSearchParams(window.location.search);
+
     // Checks for Supabase specific recovery markers in both hash (implicit) and query (PKCE)
     const hasRecoveryHash = window.location.hash.includes('type=recovery');
     const hasRecoveryQuery = window.location.search.includes('type=recovery');
-    
-    // Also check for the presence of recovery tokens/codes if needed, 
-    // but the 'type=recovery' is the standard Supabase indicator.
-    return hasRecoveryHash || hasRecoveryQuery;
+    const hasRecoveryCode = window.location.pathname === '/redefinir-senha' && searchParams.has('code');
+    const hasRecoveryError = window.location.pathname === '/redefinir-senha' && searchParams.has('error');
+
+    return hasRecoveryHash || hasRecoveryQuery || hasRecoveryCode || hasRecoveryError;
 }
 
 /**
@@ -24,7 +26,9 @@ export function ensureRecoveryRedirect(router: any): boolean {
     if (isPasswordRecoveryFlow()) {
         const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
         if (pathname !== '/redefinir-senha') {
-            router.push('/redefinir-senha');
+            const search = window.location.search || '';
+            const hash = window.location.hash || '';
+            router.push(`/redefinir-senha${search}${hash}`);
             return true;
         }
     }
