@@ -1,12 +1,7 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { DashboardGeneralStats } from './dashboard/DashboardGeneralStats';
 import { DashboardDailyPerformance } from './dashboard/DashboardDailyPerformance';
 import { DashboardOperationalDetail } from './dashboard/DashboardOperationalDetail';
-import { MonthComparisonCards } from './dashboard/components/MonthComparisonCards';
-import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
-import { exportarDashboardParaExcel } from './dashboard/DashboardExcelExport';
-import { safeLog } from '@/lib/errorHandler';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
 import type {
   DashboardFilters, CurrentUser, Totals, AderenciaSemanal, AderenciaDia,
@@ -15,9 +10,7 @@ import type {
 import type { FilterPayload } from '@/types/filters';
 
 const DashboardView = React.memo(function DashboardView({
-  filters, 
   filterPayload,
-  currentUser,
   totals,
   aderenciaSemanal,
   aderenciaDia,
@@ -36,57 +29,9 @@ const DashboardView = React.memo(function DashboardView({
   aderenciaOrigem: AderenciaOrigem[];
 }) {
   const aderenciaGeral = useMemo(() => calculateAderenciaGeral(aderenciaSemanal), [aderenciaSemanal]);
-  const [isExporting, setIsExporting] = useState(false);
-
-  const handleExport = useCallback(async () => {
-    try {
-      setIsExporting(true);
-      await exportarDashboardParaExcel(
-        aderenciaGeral,
-        aderenciaDia,
-        aderenciaTurno,
-        aderenciaSubPraca,
-        aderenciaOrigem
-      );
-    } catch (error) {
-      safeLog.error('Erro ao exportar dashboard:', error);
-      alert('Erro ao exportar dados. Tente novamente.');
-    } finally {
-      setIsExporting(false);
-    }
-  }, [aderenciaGeral, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem]);
 
   return (
     <div className="space-y-8 animate-fade-in pb-12 pt-4">
-
-      {/* Page Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-100">Visão Geral da Operação</h1>
-          <p className="text-muted-foreground">Monitoramento de aderência e indicadores chave de desempenho.</p>
-        </div>
-        <Button
-          variant="outline"
-          onClick={handleExport}
-          disabled={isExporting}
-          className="gap-2 shadow-sm hover:shadow-md transition-shadow bg-white dark:bg-slate-900"
-        >
-          <Download className="h-4 w-4" />
-          {isExporting ? 'Exportando...' : 'Exportar Dados Completos'}
-        </Button>
-      </div>
-
-      {/* #2 — Comparativo Semanal (Última Selecionada vs Anterior) */}
-      {aderenciaSemanal.length > 0 && (
-        <section>
-          <MonthComparisonCards
-            aderenciaSemanal={aderenciaSemanal}
-            filters={filters}
-            currentUser={currentUser}
-          />
-        </section>
-      )}
-
       {/* Aderência Geral - Design Profissional Clean */}
       <section>
         <DashboardGeneralStats aderenciaGeral={aderenciaGeral} aderenciaDia={aderenciaDia} />
