@@ -31,10 +31,10 @@ const TABS: { label: string; value: TabType }[] = [
 
 export function TabNavigation({ activeTab, onTabChange, variant = 'default' }: TabNavigationProps) {
   return (
-    <div className="w-full flex overflow-x-auto pb-4 sm:pb-0 scrollbar-hide">
+    <div className="flex w-full overflow-x-auto pb-3 sm:pb-1 scrollbar-hide">
       <div
         className={cn(
-          'mx-auto flex min-w-max items-center gap-1 rounded-2xl border border-slate-200/80 bg-white/95 px-2 py-2 shadow-sm transition-[background-color,border-color,transform] duration-200 dark:border-slate-800/80 dark:bg-slate-900/95 sm:gap-2',
+          'mx-auto flex min-w-max items-center gap-1 rounded-[1.35rem] border border-slate-200/70 bg-white/80 p-1.5 shadow-[0_16px_50px_-42px_rgba(15,23,42,0.8)] transition-[background-color,border-color,transform] duration-200 dark:border-slate-800/70 dark:bg-slate-950/75 supports-[backdrop-filter]:backdrop-blur-xl sm:gap-1.5',
           variant === 'compact' ? 'origin-center sm:scale-[0.98]' : ''
         )}
       >
@@ -46,14 +46,14 @@ export function TabNavigation({ activeTab, onTabChange, variant = 'default' }: T
               key={tab.value}
               onClick={() => onTabChange(tab.value)}
               className={cn(
-                'relative cursor-pointer whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium transition-[color,background-color,box-shadow,transform] duration-200',
-                'text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/80 dark:hover:text-slate-100',
-                isActive && 'bg-slate-100 text-slate-900 shadow-sm dark:bg-slate-800 dark:text-white'
+                'relative cursor-pointer whitespace-nowrap rounded-2xl px-4 py-2.5 text-sm font-bold transition-[color,background-color,box-shadow,transform] duration-200',
+                'text-slate-500 hover:bg-slate-100/80 hover:text-slate-950 dark:text-slate-400 dark:hover:bg-slate-800/80 dark:hover:text-slate-100',
+                isActive && 'bg-gradient-to-r from-blue-600 to-sky-500 text-white shadow-[0_12px_28px_-18px_rgba(37,99,235,0.9)] hover:text-white'
               )}
             >
               <span>{tab.label}</span>
               {isActive && (
-                <span className="pointer-events-none absolute inset-x-4 -bottom-0.5 h-0.5 rounded-full bg-blue-600 dark:bg-blue-400" />
+                <span className="pointer-events-none absolute inset-x-5 -bottom-1 h-1 rounded-full bg-blue-400/80 blur-[1px]" />
               )}
             </button>
           );

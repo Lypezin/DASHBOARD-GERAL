@@ -54,7 +54,9 @@ function DashboardShellContent() {
   if (!auth.isAuthenticated) return null;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-blue-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-blue-950/20">
+    <div className="relative min-h-screen isolate overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_34rem),linear-gradient(180deg,#f8fbff_0%,#ffffff_42%,#f1f6ff_100%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.16),transparent_34rem),linear-gradient(180deg,#020617_0%,#0f172a_48%,#061329_100%)]">
+      <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-80 bg-[radial-gradient(circle_at_78%_12%,rgba(14,165,233,0.14),transparent_24rem)] dark:bg-[radial-gradient(circle_at_78%_12%,rgba(14,165,233,0.18),transparent_24rem)]" />
+      <div className="pointer-events-none fixed bottom-[-10rem] right-[-8rem] -z-10 h-96 w-96 rounded-full bg-blue-200/30 blur-3xl dark:bg-blue-900/20" />
       {showActivityTracker ? (
         <DeferredActivityTracker
           activeTab={ui.activeTab}
@@ -63,12 +65,12 @@ function DashboardShellContent() {
         />
       ) : null}
 
-      <div className="mx-auto max-w-[1920px] px-4 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10">
+      <div className="relative z-10 mx-auto max-w-[1880px] px-4 py-5 sm:px-6 sm:py-7 lg:px-8 lg:py-9">
         {ui.loading && <DashboardLoadingState />}
         {ui.error && <DashboardErrorState error={ui.error} />}
 
         {!ui.loading && !ui.error && (
-          <div className="space-y-4 animate-fade-in">
+          <div className="space-y-5 animate-fade-in">
             {ui.activeTab === 'dashboard' && showDashboardWidgets ? <DeferredCityLastUpdatesTicker /> : null}
 
             <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
@@ -95,7 +97,7 @@ function DashboardShellContent() {
               variant={ui.activeTab === 'comparacao' || ui.activeTab === 'marketing' ? 'compact' : 'default'}
             />
 
-            <main>
+            <main className="min-w-0">
               <DashboardViewsRenderer
                 activeTab={ui.activeTab}
                 chartReady={ui.chartReady}

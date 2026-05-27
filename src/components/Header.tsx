@@ -15,12 +15,19 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200/60 bg-white/95 shadow-sm transition-[background-color,border-color,box-shadow] duration-200 dark:border-slate-800/60 dark:bg-slate-950/95 supports-[backdrop-filter]:bg-white/88 supports-[backdrop-filter]:backdrop-blur-sm dark:supports-[backdrop-filter]:bg-slate-950/88">
-      <div className="container flex h-14 max-w-screen-2xl items-center justify-between px-4 sm:px-8">
-        <Link href="/" className="flex items-center gap-2 transition-opacity hover:opacity-90" prefetch={true}>
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/70 bg-white/80 shadow-[0_12px_45px_-38px_rgba(15,23,42,0.75)] transition-[background-color,border-color,box-shadow] duration-200 dark:border-slate-800/70 dark:bg-slate-950/80 supports-[backdrop-filter]:backdrop-blur-xl">
+      <div className="container flex h-16 max-w-screen-2xl items-center justify-between px-4 sm:px-8">
+        <Link href="/" className="group flex items-center gap-3 transition-opacity hover:opacity-95" prefetch={true}>
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl border border-blue-200/70 bg-gradient-to-br from-blue-600 via-sky-500 to-cyan-400 text-sm font-black text-white shadow-[0_12px_32px_-18px_rgba(37,99,235,0.75)] dark:border-blue-400/20">
+            DG
+          </div>
           <div className="hidden sm:flex flex-col leading-none">
-            <span className="font-bold text-foreground">Dashboard</span>
-            <span className="text-xs font-medium text-muted-foreground">Operacional</span>
+            <span className="bg-gradient-to-r from-slate-950 to-slate-600 bg-clip-text text-base font-black tracking-tight text-transparent dark:from-white dark:to-slate-300">
+              Dashboard Geral
+            </span>
+            <span className="mt-1 text-[11px] font-bold uppercase tracking-[0.22em] text-blue-600/80 dark:text-blue-300/80">
+              Operacional
+            </span>
           </div>
         </Link>
 

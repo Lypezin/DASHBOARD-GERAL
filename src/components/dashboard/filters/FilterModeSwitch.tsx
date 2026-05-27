@@ -8,10 +8,10 @@ interface FilterModeSwitchProps {
 
 export const FilterModeSwitch: React.FC<FilterModeSwitchProps> = ({ isModoIntervalo, onToggle }) => {
     return (
-        <div className="flex items-center justify-center sm:justify-start gap-3 pb-3 border-b border-slate-200/50 dark:border-slate-700/50">
+        <div className="flex items-center justify-center gap-3 rounded-2xl border border-slate-200/70 bg-white/70 px-3 py-2 dark:border-slate-800/70 dark:bg-slate-900/70 sm:justify-start">
             <span className={cn(
                 "text-sm transition-colors duration-300",
-                !isModoIntervalo ? "text-blue-600 dark:text-blue-400 font-bold" : "text-slate-500 font-medium dark:text-slate-400"
+                !isModoIntervalo ? "text-blue-600 dark:text-blue-400 font-black" : "text-slate-500 font-semibold dark:text-slate-400"
             )}>
                 Ano/Semana
             </span>
@@ -19,8 +19,8 @@ export const FilterModeSwitch: React.FC<FilterModeSwitchProps> = ({ isModoInterv
                 type="button"
                 onClick={onToggle}
                 className={cn(
-                    "relative inline-flex h-7 w-12 items-center rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 transition-colors duration-300",
-                    isModoIntervalo ? "bg-blue-600" : "bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600"
+                    "relative inline-flex h-7 w-12 items-center rounded-full shadow-inner transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
+                    isModoIntervalo ? "bg-gradient-to-r from-blue-600 to-sky-500" : "bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600"
                 )}
                 role="switch"
                 aria-checked={isModoIntervalo}
@@ -35,7 +35,7 @@ export const FilterModeSwitch: React.FC<FilterModeSwitchProps> = ({ isModoInterv
             </button>
             <span className={cn(
                 "text-sm transition-colors duration-300",
-                isModoIntervalo ? "text-blue-600 dark:text-blue-400 font-bold" : "text-slate-500 font-medium dark:text-slate-400"
+                isModoIntervalo ? "text-blue-600 dark:text-blue-400 font-black" : "text-slate-500 font-semibold dark:text-slate-400"
             )}>
                 Intervalo de Datas
             </span>
