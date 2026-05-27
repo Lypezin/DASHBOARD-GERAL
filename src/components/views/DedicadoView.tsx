@@ -189,7 +189,7 @@ const DedicadoView = React.memo(function DedicadoView({
 
       if (typeof origemPayload.p_organization_id !== 'string' || origemPayload.p_organization_id.trim().length === 0) {
         setDedicadoLoading(false);
-        setDedicadoError('Selecione uma organizacao para carregar os dados do DEDICADO.');
+        setDedicadoError('Selecione uma organização para carregar os dados do DEDICADO.');
         setDedicadoData({ origem: [], dia_origem: [] });
         return;
       }
@@ -238,8 +238,8 @@ const DedicadoView = React.memo(function DedicadoView({
           safeLog.error('Erro ao carregar resumo dedicado por origem:', error);
           setDedicadoError(
             shouldLoadDiaOrigem
-              ? 'Nao foi possivel carregar Dia x Origem agora. Tente novamente ou ajuste o periodo.'
-              : 'Nao foi possivel carregar o resumo do DEDICADO agora. As outras subguias continuam disponiveis.'
+              ? 'Não foi possível carregar Dia x Origem agora. Tente novamente ou ajuste o período.'
+              : 'Não foi possível carregar o resumo do DEDICADO agora. As outras subguias continuam disponíveis.'
           );
           setDedicadoData((current) => ({
             ...current,
@@ -397,9 +397,9 @@ const DedicadoView = React.memo(function DedicadoView({
   }, [dedicatedOrigem]);
 
   return (
-    <div className="mx-auto flex w-full max-w-[1500px] min-w-0 flex-col gap-6 overflow-hidden px-3 pb-10 sm:px-6 lg:px-8 animate-fade-in">
-      <div className="min-w-0 overflow-hidden rounded-3xl border border-blue-200/70 bg-gradient-to-br from-blue-50 via-white to-slate-50 p-5 shadow-sm dark:border-blue-900/40 dark:from-blue-950/30 dark:via-slate-950 dark:to-slate-950">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+    <div className="mx-auto flex w-full max-w-[1500px] min-w-0 flex-col gap-6 px-3 pb-10 sm:px-6 lg:px-8 animate-fade-in">
+      <div className="min-w-0 overflow-hidden rounded-3xl border border-blue-200/60 bg-gradient-to-br from-blue-50 via-white to-slate-50 p-5 shadow-sm dark:border-blue-900/40 dark:from-blue-950/30 dark:via-slate-950 dark:to-slate-950 sm:p-6">
+        <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div className="min-w-0">
             <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-blue-200 bg-white/80 px-3 py-1 text-[11px] font-black uppercase tracking-[0.28em] text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300">
               <BarChart3 className="h-3.5 w-3.5" />
@@ -408,23 +408,23 @@ const DedicadoView = React.memo(function DedicadoView({
             <h2 className="break-words text-3xl font-black tracking-tight text-slate-950 dark:text-white">
               DEDICADO
             </h2>
-            <p className="mt-2 max-w-2xl text-sm text-slate-600 dark:text-slate-400">
+            <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
               Visão separada para restaurantes/origens, com entregadores, resumo por origem e matriz Dia x Origem no mesmo lugar.
             </p>
           </div>
 
-          <div className="flex w-full flex-col gap-3 lg:w-auto lg:items-end">
+          <div className="flex w-full flex-col gap-3 xl:w-auto xl:items-end">
             <button
               type="button"
               onClick={handleExportDedicado}
               disabled={isExporting}
-              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-200 bg-blue-600 px-4 py-2.5 text-xs font-black uppercase tracking-[0.18em] text-white shadow-sm shadow-blue-600/20 transition-all hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:border-blue-500/40 lg:w-auto"
+              className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-200 bg-blue-600 px-4 py-2.5 text-xs font-black uppercase tracking-[0.16em] text-white shadow-sm shadow-blue-600/20 transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:border-blue-500/40 sm:w-auto xl:self-end"
             >
               <Download className="h-4 w-4" />
               {isExporting ? 'Exportando...' : 'Baixar Excel'}
             </button>
 
-            <div className="grid w-full grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white/85 p-1 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 sm:grid-cols-3 xl:grid-cols-5 lg:w-auto lg:min-w-[700px]">
+            <div className="grid w-full grid-cols-2 gap-1.5 rounded-2xl border border-slate-200 bg-white/85 p-1.5 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 sm:grid-cols-3 xl:min-w-[720px] xl:grid-cols-5">
               {SUB_TABS.map((tab) => {
                 const Icon = tab.icon;
                 const active = activeSubTab === tab.id;
@@ -434,14 +434,14 @@ const DedicadoView = React.memo(function DedicadoView({
                     key={tab.id}
                     onClick={() => setActiveSubTab(tab.id)}
                     className={cn(
-                      'inline-flex min-w-0 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-xs font-bold transition-all',
+                      'inline-flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-2.5 py-2 text-[11px] font-bold transition-colors sm:gap-2 sm:px-3.5 sm:text-xs',
                       active
                         ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/20'
                         : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
                     )}
                   >
-                    <Icon className="h-4 w-4" />
-                    {tab.label}
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span className="min-w-0 text-center leading-tight">{tab.label}</span>
                   </button>
                 );
               })}
@@ -533,7 +533,7 @@ function DedicadoDashboard({
           const Icon = card.icon;
 
           return (
-            <Card key={card.title} className="min-w-0 border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <Card key={card.title} className="min-w-0 border-slate-200/70 bg-white/90 shadow-sm transition-[border-color,box-shadow] hover:border-slate-300/80 hover:shadow-md dark:border-slate-800/70 dark:bg-slate-900/85 dark:hover:border-slate-700">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="min-w-0 truncate text-sm font-semibold text-slate-500 dark:text-slate-400">{card.title}</CardTitle>
                 <Icon className={cn('h-4 w-4 shrink-0', card.color)} />
@@ -543,8 +543,8 @@ function DedicadoDashboard({
                   className={cn(
                     'font-mono font-black text-slate-950 dark:text-white',
                     card.compact
-                      ? 'whitespace-nowrap text-lg tracking-tighter sm:text-xl 2xl:text-xl'
-                      : 'truncate text-xl 2xl:text-2xl'
+                      ? 'break-words text-lg tracking-tighter sm:text-xl 2xl:text-xl'
+                      : 'break-words text-xl 2xl:text-2xl'
                   )}
                   title={card.value}
                 >
@@ -557,7 +557,7 @@ function DedicadoDashboard({
         })}
       </div>
 
-      <Card className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <Card className="border-slate-200/70 bg-white/90 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/85">
         <CardHeader>
           <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Top origens</CardTitle>
         </CardHeader>
@@ -565,7 +565,7 @@ function DedicadoDashboard({
           {topOrigens.length > 0 ? (
             <div className="grid gap-3 lg:grid-cols-2">
               {topOrigens.map((origem) => (
-                <div key={origem.origem} className="min-w-0 rounded-2xl border border-slate-200 p-4 dark:border-slate-800">
+                <div key={origem.origem} className="min-w-0 rounded-2xl border border-slate-200/70 bg-white/70 p-4 shadow-sm dark:border-slate-800/70 dark:bg-slate-950/30">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <p className="min-w-0 break-words pr-1 text-sm font-bold leading-snug text-slate-800 dark:text-slate-100">{origem.origem}</p>
                     <span className="w-fit shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-black text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
@@ -615,7 +615,7 @@ function DedicadoResumo({ rows, loading, error }: { rows: any[]; loading: boolea
   if (loading) return <DashboardSkeleton contentOnly />;
 
   return (
-    <Card className="min-w-0 overflow-hidden border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <Card className="min-w-0 overflow-hidden border-slate-200/70 bg-white/90 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/85">
       <CardHeader>
         <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Resumo por Origem</CardTitle>
         <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -648,7 +648,7 @@ function DedicadoDiaOrigem({
   if (loading) return <DashboardSkeleton contentOnly />;
 
   return (
-    <Card className="min-w-0 overflow-hidden border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <Card className="min-w-0 overflow-hidden border-slate-200/70 bg-white/90 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/85">
       <CardHeader>
         <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Dia x Origem</CardTitle>
         <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -668,7 +668,7 @@ function DedicadoRanking({ entregadores, loading }: { entregadores: Entregador[]
 
   if (entregadores.length === 0) {
     return (
-      <Card className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <Card className="border-slate-200/70 bg-white/90 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/85">
         <CardContent className="p-10 text-center">
           <Trophy className="mx-auto mb-3 h-10 w-10 text-slate-300 dark:text-slate-700" />
           <h3 className="text-lg font-black text-slate-900 dark:text-white">Ranking sem dados</h3>
@@ -681,13 +681,13 @@ function DedicadoRanking({ entregadores, loading }: { entregadores: Entregador[]
   }
 
   return (
-    <Card className="min-w-0 overflow-hidden border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+    <Card className="min-w-0 overflow-hidden border-slate-200/70 bg-white/90 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/85">
       <CardHeader className="border-b border-slate-100 dark:border-slate-800">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Ranking de Aderencia</CardTitle>
+            <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Ranking de Aderência</CardTitle>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Ordenado pela mesma aderencia usada na tabela de Entregadores do DEDICADO.
+              Ordenado pela mesma aderência usada na tabela de Entregadores do DEDICADO.
             </p>
           </div>
           <span className="w-fit rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
@@ -703,13 +703,13 @@ function DedicadoRanking({ entregadores, loading }: { entregadores: Entregador[]
               <tr>
                 <th className="px-5 py-4 text-left">#</th>
                 <th className="px-5 py-4 text-left">Entregador</th>
-                <th className="px-5 py-4 text-right">Aderencia</th>
+                <th className="px-5 py-4 text-right">Aderência</th>
                 <th className="px-5 py-4 text-right">Completadas</th>
                 <th className="px-5 py-4 text-right">Ofertadas</th>
                 <th className="px-5 py-4 text-right">Aceitas</th>
                 <th className="px-5 py-4 text-right">Rejeitadas</th>
                 <th className="px-5 py-4 text-right">Horas</th>
-                <th className="px-5 py-4 text-right">Rejeicao</th>
+                <th className="px-5 py-4 text-right">Rejeição</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">

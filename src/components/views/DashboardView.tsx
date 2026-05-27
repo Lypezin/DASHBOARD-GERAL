@@ -31,27 +31,24 @@ const DashboardView = React.memo(function DashboardView({
   const aderenciaGeral = useMemo(() => calculateAderenciaGeral(aderenciaSemanal), [aderenciaSemanal]);
 
   return (
-    <div className="space-y-8 animate-fade-in pb-12 pt-4">
-      {/* Aderência Geral - Design Profissional Clean */}
+    <div className="space-y-7 animate-fade-in pb-12 pt-3">
       <section>
         <DashboardGeneralStats aderenciaGeral={aderenciaGeral} aderenciaDia={aderenciaDia} />
       </section>
 
-      {/* Aderência por Dia da Semana */}
       <section className="space-y-4">
-        <div className="flex items-center gap-2 mb-4">
-          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Evolução Diária</h2>
-          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
-        </div>
+        <DashboardSectionHeader
+          title="Evolução diária"
+          description="Acompanhamento rápido da aderência por dia no período filtrado."
+        />
         <DashboardDailyPerformance aderenciaDia={aderenciaDia} />
       </section>
 
-      {/* Detalhamento Operacional */}
       <section className="space-y-4">
-        <div className="flex items-center gap-2 mb-4">
-          <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Detalhamento Operacional</h2>
-          <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
-        </div>
+        <DashboardSectionHeader
+          title="Detalhamento operacional"
+          description="Quebra por turno, sub praça, origem e dia para investigar desvios."
+        />
         <DashboardOperationalDetail
           aderenciaTurno={aderenciaTurno}
           aderenciaSubPraca={aderenciaSubPraca}
@@ -66,3 +63,15 @@ const DashboardView = React.memo(function DashboardView({
 DashboardView.displayName = 'DashboardView';
 
 export default DashboardView;
+
+function DashboardSectionHeader({ title, description }: { title: string; description: string }) {
+  return (
+    <div className="flex flex-col gap-2 rounded-2xl border border-slate-200/60 bg-white/65 px-4 py-3 shadow-sm dark:border-slate-800/70 dark:bg-slate-950/45 sm:flex-row sm:items-center sm:justify-between">
+      <div className="min-w-0">
+        <h2 className="text-base font-black tracking-tight text-slate-900 dark:text-slate-100 sm:text-lg">{title}</h2>
+        <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400 sm:text-sm">{description}</p>
+      </div>
+      <div className="hidden h-px flex-1 bg-gradient-to-r from-slate-200 to-transparent dark:from-slate-800 sm:block" />
+    </div>
+  );
+}

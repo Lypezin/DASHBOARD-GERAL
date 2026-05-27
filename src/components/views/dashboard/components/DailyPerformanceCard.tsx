@@ -33,12 +33,12 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
             <TooltipTrigger asChild>
                 <div key={`dia-${index}`}>
                     <Card
-                        className={`border border-slate-200/50 dark:border-slate-800/50 shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-200 ${isToday
-                            ? 'bg-blue-50/50 dark:bg-blue-900/10 ring-1 ring-blue-200 dark:ring-blue-800'
-                            : 'bg-white/70 dark:bg-slate-900/70 supports-[backdrop-filter]:backdrop-blur-sm'
-                            } cursor-help hover:-translate-y-0.5 hover:shadow-md`}
+                        className={`cursor-help border border-slate-200/60 shadow-sm transition-[background-color,border-color,box-shadow] duration-200 dark:border-slate-800/70 ${isToday
+                            ? 'bg-blue-50/70 ring-1 ring-blue-200 dark:bg-blue-900/10 dark:ring-blue-800'
+                            : 'bg-white/75 supports-[backdrop-filter]:backdrop-blur-sm dark:bg-slate-900/75'
+                            } hover:border-slate-300/80 hover:shadow-md dark:hover:border-slate-700`}
                     >
-                        <CardContent className="p-4 flex flex-col items-center justify-between h-full min-h-[140px]">
+                        <CardContent className="flex h-full min-h-[140px] flex-col items-center justify-between p-4">
                             <div className="text-center w-full">
                                 <div className="flex items-center justify-center gap-1.5 mb-2">
                                     <div className={`p-1.5 rounded-lg ${isToday ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-slate-100 dark:bg-slate-800'}`}>
@@ -48,7 +48,7 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
                                     </div>
                                 </div>
 
-                                <div className={`text-2xl font-bold font-mono tracking-tight ${statusColor}`}>
+                                <div className={`font-mono text-xl font-black tracking-tight sm:text-2xl ${statusColor}`}>
                                     {aderencia.toFixed(2)}%
                                 </div>
                             </div>
@@ -62,7 +62,7 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
                                 </div>
 
                                 <div className="flex flex-col items-center justify-center mt-2 w-full text-center">
-                                    <span className="text-xs font-bold text-slate-700 dark:text-slate-200 font-mono tracking-tight leading-none bg-slate-50 dark:bg-slate-800/50 px-2 py-0.5 rounded text-nowrap">
+                                    <span className="rounded bg-slate-50 px-2 py-0.5 font-mono text-xs font-bold leading-none tracking-tight text-slate-700 dark:bg-slate-800/50 dark:text-slate-200 text-nowrap">
                                         {formatarHorasParaHMS(dia.horas_entregues || '0')}
                                     </span>
                                     <span className="text-[10px] text-slate-500 dark:text-slate-400 font-mono mt-1 opacity-80 text-nowrap">

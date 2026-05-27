@@ -6,8 +6,8 @@ const TabButton = React.memo(({ label, active, onClick }: { label: string; activ
   return (
     <button
       onClick={onClick}
-      className={`group shrink-0 relative flex items-center justify-center gap-2 rounded-xl px-4 md:px-5 py-2.5 text-sm font-semibold transition-all duration-300 ease-in-out whitespace-nowrap overflow-hidden z-10 ${active
-          ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5 scale-[1.02] dark:bg-slate-700 dark:text-blue-400 dark:ring-white/10'
+      className={`group relative z-10 flex shrink-0 items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-xl px-3.5 py-2.5 text-sm font-bold transition-[background-color,color,box-shadow] duration-200 md:px-4 ${active
+          ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5 dark:bg-slate-800 dark:text-blue-300 dark:ring-white/10'
           : 'text-slate-600 hover:text-slate-900 hover:bg-white/50 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700/50'
         }`}
     >

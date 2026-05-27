@@ -36,7 +36,7 @@ export const UploadSection = memo(function UploadSection({
       'from-blue-600 via-sky-500 to-cyan-400';
 
   return (
-    <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200/70 bg-white/90 shadow-[0_20px_70px_-52px_rgba(15,23,42,0.9)] transition-[border-color,box-shadow,transform,background-color] duration-300 hover:-translate-y-0.5 hover:border-blue-200/80 hover:shadow-[0_24px_82px_-54px_rgba(37,99,235,0.9)] dark:border-slate-800/70 dark:bg-slate-950/80 dark:hover:border-blue-900/60">
+    <div className="group relative flex h-full flex-col overflow-hidden rounded-3xl border border-slate-200/70 bg-white/90 shadow-[0_20px_70px_-52px_rgba(15,23,42,0.9)] transition-[border-color,box-shadow,background-color] duration-300 hover:border-blue-200/80 hover:shadow-[0_24px_82px_-54px_rgba(37,99,235,0.75)] dark:border-slate-800/70 dark:bg-slate-950/80 dark:hover:border-blue-900/60">
       <div className={`absolute left-0 top-0 h-[3px] w-full bg-gradient-to-r ${accentColor} opacity-70 transition-opacity duration-300 group-hover:opacity-100`} />
       <div className="pointer-events-none absolute -right-20 -top-24 h-48 w-48 rounded-full bg-blue-200/30 blur-3xl transition-opacity duration-300 group-hover:opacity-90 dark:bg-blue-900/20" />
 
@@ -46,7 +46,7 @@ export const UploadSection = memo(function UploadSection({
       </div>
 
       {/* Content */}
-      <div className="relative flex flex-1 flex-col gap-6 p-5 pt-4 sm:p-7 sm:pt-4">
+      <div className="relative flex flex-1 flex-col gap-5 p-5 pt-4 sm:p-6 sm:pt-4">
         {/* Upload Area */}
         <div className="flex-1 min-h-[160px] flex flex-col justify-center">
           <FileUploadArea

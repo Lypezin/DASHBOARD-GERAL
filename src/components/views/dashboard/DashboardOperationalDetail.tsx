@@ -77,14 +77,14 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
                             <BenchmarkPracas subPracas={aderenciaSubPraca} />
                         </div>
-                    ) : <EmptyState text="Nenhum dado de ranking disponivel" />
+                    ) : <EmptyState text="Nenhum dado de ranking disponível" />
                 ) : dataToRender.length > 0 ? (
-                    <div key={viewMode} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in">
+                    <div key={viewMode} className="grid grid-cols-1 gap-4 animate-fade-in md:grid-cols-2 lg:grid-cols-3">
                         {dataToRender.map((item, index) => (
                             <OperationalDetailCard key={`${viewMode}-${index}`} data={item} />
                         ))}
                     </div>
-                ) : <EmptyState text="Nenhum dado disponivel" sub="Ajuste os filtros para visualizar os dados" />}
+                ) : <EmptyState text="Nenhum dado disponível" sub="Ajuste os filtros para visualizar os dados" />}
             </CardContent>
         </Card>
     );

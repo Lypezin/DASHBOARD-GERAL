@@ -41,15 +41,15 @@ export default function UploadPage() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-slate-50/50 p-6 md:p-12 dark:bg-slate-950/50">
-        <div className="mx-auto max-w-[1600px] space-y-12">
+      <div className="min-h-screen bg-[linear-gradient(180deg,#f8fbff_0%,#f1f5f9_100%)] p-4 sm:p-6 md:p-10 dark:bg-[linear-gradient(180deg,#020617_0%,#0f172a_100%)]">
+        <div className="mx-auto max-w-[1600px] space-y-8">
           <UploadHeader
             isAuthorized={isAuthorized} user={user}
             organizations={organizations} selectedOrgId={selectedOrgId}
             isLoadingOrgs={isLoadingOrgs} onOrgChange={setSelectedOrgId}
           />
 
-          <div className="grid grid-cols-1 gap-8 items-start xl:grid-cols-3">
+          <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-3">
             <UploadSection
               title="Corridas" description="Upload de dados de corridas"
               icon={<BarChart2 className="h-5 w-5" />}

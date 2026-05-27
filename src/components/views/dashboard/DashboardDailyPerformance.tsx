@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { AderenciaDia } from '@/types';
 import { CalendarDays } from 'lucide-react';
@@ -12,8 +11,6 @@ interface DashboardDailyPerformanceProps {
 export const DashboardDailyPerformance = React.memo(function DashboardDailyPerformance({
     aderenciaDia,
 }: DashboardDailyPerformanceProps) {
-
-    // Processar aderência por dia
     const aderenciaDiaOrdenada = useDailyPerformanceData(aderenciaDia);
 
     if (aderenciaDiaOrdenada.length === 0) return null;
@@ -21,13 +18,13 @@ export const DashboardDailyPerformance = React.memo(function DashboardDailyPerfo
     return (
         <div className="space-y-4">
             <div className="flex items-center justify-between">
-                <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                <h3 className="flex items-center gap-2 text-base font-bold text-slate-800 dark:text-slate-200 sm:text-lg">
                     <CalendarDays className="h-5 w-5 text-slate-500" />
-                    Performance Diária
+                    Performance diária
                 </h3>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
                 {aderenciaDiaOrdenada.map((dia, index) => (
                     <DailyPerformanceCard
                         key={`dia-${index}`}

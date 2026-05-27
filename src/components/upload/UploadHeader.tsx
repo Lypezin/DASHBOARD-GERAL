@@ -1,4 +1,4 @@
-import { Upload, Building2, ChevronDown } from 'lucide-react';
+import { Building2, Upload } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Organization {
@@ -24,14 +24,14 @@ export function UploadHeader({
     onOrgChange
 }: UploadHeaderProps) {
     return (
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200/60 bg-white p-8 md:p-10 dark:border-slate-800 dark:bg-slate-950">
+        <div className="relative overflow-hidden rounded-3xl border border-slate-200/70 bg-white/90 p-5 shadow-sm dark:border-slate-800/70 dark:bg-slate-950/80 sm:p-7 md:p-8">
             {/* Subtle accent line */}
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
             
-            <div className="relative flex flex-col md:flex-row md:items-end justify-between gap-8">
+            <div className="relative flex flex-col justify-between gap-6 md:flex-row md:items-end">
                 <div className="flex items-start gap-5">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800/80">
-                        <Upload className="h-6 w-6 text-slate-600 dark:text-slate-300" />
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-blue-50 ring-1 ring-blue-100 dark:bg-blue-950/35 dark:ring-blue-900/50 sm:h-14 sm:w-14">
+                        <Upload className="h-6 w-6 text-blue-600 dark:text-blue-300" />
                     </div>
                     <div className="space-y-1.5">
                         <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white md:text-3xl">
@@ -43,9 +43,9 @@ export function UploadHeader({
                     </div>
                 </div>
 
-                {/* Seletor de Organização (Visível APENAS para Admins Globais/Master) */}
+                {/* Seletor de organização visível apenas para admins globais/master. */}
                 {isAuthorized && user?.id && organizations.length > 0 && (
-                    <div className="flex flex-col gap-2 min-w-[280px]">
+                    <div className="flex w-full min-w-0 flex-col gap-2 md:w-[320px]">
                         <label className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-0.5">
                             <Building2 className="h-3 w-3" />
                             Organização

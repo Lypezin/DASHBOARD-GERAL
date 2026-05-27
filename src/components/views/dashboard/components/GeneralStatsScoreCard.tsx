@@ -1,8 +1,7 @@
-
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { CircularProgress } from '@/components/ui/circular-progress';
-import { TrendingUp, Info } from 'lucide-react';
+import { Info, TrendingUp } from 'lucide-react';
 import {
     Tooltip,
     TooltipContent,
@@ -19,37 +18,36 @@ export const GeneralStatsScoreCard: React.FC<GeneralStatsScoreCardProps> = ({ pe
     const { theme } = useTheme();
 
     return (
-        <Card className="lg:col-span-4 border border-slate-200/50 dark:border-slate-800/50 shadow-sm hover:shadow-md bg-white dark:bg-slate-900/50 overflow-hidden relative group transition-all duration-300">
-            {/* Brilho radial muito sutil ancorado no topo/direito em vez de esfera dura centralizada */}
-            <div 
-                className="absolute top-0 right-0 w-80 h-80 opacity-10 dark:opacity-5 transition-opacity duration-500 pointer-events-none rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" 
-                style={{ backgroundImage: `radial-gradient(circle, ${progressColor} 0%, transparent 70%)` }} 
+        <Card className="group relative overflow-hidden border border-slate-200/60 bg-white/90 shadow-sm transition-[background-color,border-color,box-shadow] duration-200 hover:border-slate-300/80 hover:shadow-md dark:border-slate-800/70 dark:bg-slate-900/80 dark:hover:border-slate-700 lg:col-span-4">
+            <div
+                className="pointer-events-none absolute right-0 top-0 h-72 w-72 -translate-y-1/2 translate-x-1/4 rounded-full opacity-10 blur-3xl transition-opacity duration-500 dark:opacity-5"
+                style={{ backgroundImage: `radial-gradient(circle, ${progressColor} 0%, transparent 70%)` }}
             />
 
-            <CardContent className="flex flex-col p-6 relative z-10 h-full justify-between">
-                <div className="w-full flex items-start justify-between mb-8">
-                    <div className="flex flex-col gap-1">
+            <CardContent className="relative z-10 flex h-full flex-col justify-between p-5 sm:p-6">
+                <div className="mb-6 flex w-full items-start justify-between gap-4">
+                    <div className="flex min-w-0 flex-col gap-1">
                         <div className="flex items-center gap-2">
-                            <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100">Aderência Geral</h3>
+                            <h3 className="text-base font-bold text-slate-800 dark:text-slate-100">Aderência Geral</h3>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <button className="text-slate-400 hover:text-blue-500 transition-colors rounded-full focus:outline-none">
-                                        <Info className="w-4 h-4" />
+                                    <button className="rounded-full text-slate-400 transition-colors hover:text-blue-500 focus:outline-none">
+                                        <Info className="h-4 w-4" />
                                     </button>
                                 </TooltipTrigger>
-                                <TooltipContent className="max-w-[200px]">
+                                <TooltipContent className="max-w-[220px]">
                                     <p>Índice de eficiência operacional. Relação entre horas realizadas e planejadas.</p>
                                 </TooltipContent>
                             </Tooltip>
                         </div>
-                        <p className="text-xs text-slate-500 dark:text-slate-400 font-medium tracking-wide uppercase">Desempenho Consolidado</p>
+                        <p className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Desempenho consolidado</p>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-700/50 shadow-sm flex items-center justify-center transition-colors duration-300 group-hover:border-slate-200 dark:group-hover:border-slate-700">
-                        <TrendingUp className="w-5 h-5 transition-transform duration-300 group-hover:scale-110" style={{ color: progressColor }} />
+                    <div className="flex shrink-0 items-center justify-center rounded-xl border border-slate-100 bg-slate-50 p-2.5 shadow-sm transition-colors duration-300 group-hover:border-slate-200 dark:border-slate-700/50 dark:bg-slate-800/50 dark:group-hover:border-slate-700">
+                        <TrendingUp className="h-5 w-5" style={{ color: progressColor }} />
                     </div>
                 </div>
 
-                <div className="relative flex items-center justify-center flex-1 py-4 transition-transform duration-500 ease-out hover:scale-105">
+                <div className="relative flex flex-1 items-center justify-center py-3">
                     <CircularProgress
                         value={percentual}
                         size={170}
