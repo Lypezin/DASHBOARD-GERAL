@@ -45,9 +45,11 @@ export function useDashboardPage() {
 
   const anosDisponiveisFinais = useMemo(() => {
     const mainYears = mainData.dimensoes?.anos || [];
-    return Array.from(new Set([...DEFAULT_YEARS, ...anosDisponiveis, ...mainYears]))
+    const mergedYears = Array.from(new Set([...anosDisponiveis, ...mainYears]))
       .filter((ano) => Number.isFinite(ano))
       .sort((a, b) => b - a);
+
+    return mergedYears.length > 0 ? mergedYears : DEFAULT_YEARS;
   }, [mainData.dimensoes?.anos, anosDisponiveis]);
 
   const semanasDisponiveisFinais = useMemo(() => {

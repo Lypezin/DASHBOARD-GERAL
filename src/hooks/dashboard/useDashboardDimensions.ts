@@ -5,9 +5,9 @@ import type { DimensoesDashboard } from '@/types';
 import { fetchAllWeeks, primeAllWeeksCache } from '@/hooks/data/allWeeksCache';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
-const CACHE_KEY = 'dashboard_dimensions_cache_v6';
+const CACHE_KEY = 'dashboard_dimensions_cache_v7';
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hora
-export const DEFAULT_YEARS = [2026, 2025, 2024, 2023, 2022];
+export const DEFAULT_YEARS = buildFallbackYears();
 const EMPTY_DIMENSIONS: DimensoesDashboard = {
   anos: DEFAULT_YEARS,
   semanas: [],
@@ -19,6 +19,19 @@ const EMPTY_DIMENSIONS: DimensoesDashboard = {
 
 interface UseDashboardDimensionsOptions {
   fetchRemote?: boolean;
+}
+
+function buildFallbackYears() {
+  const currentYear = new Date().getFullYear();
+  return [currentYear, currentYear - 1, currentYear - 2];
+}
+
+function resolveAvailableYears(years: number[]) {
+  const normalized = Array.from(new Set(
+    years.filter((ano) => Number.isFinite(ano))
+  )).sort((a, b) => b - a);
+
+  return normalized.length > 0 ? normalized : DEFAULT_YEARS;
 }
 
 export function useDashboardDimensions(options: UseDashboardDimensionsOptions = {}) {
@@ -41,17 +54,13 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
         if (cancelled) return;
 
         const anosData = Array.isArray(anosResult.data) ? anosResult.data : [];
-        const mergedYears = Array.from(new Set([...DEFAULT_YEARS, ...anosData]))
-          .filter((ano) => Number.isFinite(ano))
-          .sort((a, b) => b - a);
+        const resolvedYears = resolveAvailableYears(anosData);
 
-        if (mergedYears.length === 0) return;
-
-        setAnosDisponiveis(mergedYears);
+        setAnosDisponiveis(resolvedYears);
         setOutrasDimensoes((current) => {
           const nextDimensions = {
             ...(current || baseDimensions),
-            anos: mergedYears,
+            anos: resolvedYears,
           };
           writeCachedDimensions(nextDimensions);
           return nextDimensions;
@@ -96,14 +105,14 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
         if (cancelled) return;
 
         const anosData = Array.isArray(anosResult.data) ? anosResult.data : [];
-        const mergedYears = Array.from(new Set([...DEFAULT_YEARS, ...anosData])).sort((a, b) => b - a);
+        const resolvedYears = resolveAvailableYears(anosData);
 
         const pracasData = Array.isArray(pracasResult.data)
           ? pracasResult.data.map((p: any) => p?.praca || p).filter(Boolean).map(String)
           : [];
 
         const dimensoesBase: DimensoesDashboard = {
-          anos: mergedYears,
+          anos: resolvedYears,
           semanas: semanasData,
           pracas: Array.from(new Set(pracasData)).sort(),
           sub_pracas: [],
@@ -111,7 +120,7 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
           turnos: []
         };
 
-        setAnosDisponiveis(mergedYears);
+        setAnosDisponiveis(resolvedYears);
         setSemanasDisponiveis(semanasData);
         setOutrasDimensoes(dimensoesBase);
         writeCachedDimensions(dimensoesBase);
@@ -143,7 +152,10 @@ function readCachedDimensions(): DimensoesDashboard | null {
     const isValid = Date.now() - timestamp < CACHE_DURATION;
 
     if (isValid && data?.anos?.length > 0 && Array.isArray(data.pracas)) {
-      return data as DimensoesDashboard;
+      return {
+        ...(data as DimensoesDashboard),
+        anos: resolveAvailableYears(Array.isArray(data.anos) ? data.anos : [])
+      };
     }
   } catch {
     sessionStorage.removeItem(CACHE_KEY);
