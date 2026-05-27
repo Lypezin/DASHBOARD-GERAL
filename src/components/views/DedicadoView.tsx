@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { BarChart3, CheckCircle2, Clock, Download, LayoutDashboard, ListChecks, Table2, Truck, Users, XCircle } from 'lucide-react';
+import { AlertCircle, BarChart3, CheckCircle2, Clock, Download, LayoutDashboard, ListChecks, Table2, Trophy, Truck, Users, XCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AnaliseTable } from '@/components/analise/AnaliseTable';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
@@ -15,14 +15,15 @@ import { formatarHorasParaHMS } from '@/utils/formatters';
 import { AnaliseDiaOrigemTable } from './analise/components/AnaliseDiaOrigemTable';
 import { EntregadoresMainContent } from './EntregadoresMainView';
 import { exportarDedicadoParaExcel } from './dedicado/DedicadoExcelExport';
-import type { AderenciaDiaOrigem, AderenciaOrigem, CurrentUser } from '@/types';
+import type { AderenciaDiaOrigem, AderenciaOrigem, CurrentUser, Entregador } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 
-type DedicadoSubTab = 'dashboard' | 'entregadores' | 'resumo' | 'dia_origem';
+type DedicadoSubTab = 'dashboard' | 'entregadores' | 'ranking' | 'resumo' | 'dia_origem';
 
 const SUB_TABS: { id: DedicadoSubTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'entregadores', label: 'Entregadores', icon: Users },
+  { id: 'ranking', label: 'Ranking', icon: Trophy },
   { id: 'resumo', label: 'Resumo por Origem', icon: ListChecks },
   { id: 'dia_origem', label: 'Dia x Origem', icon: Table2 },
 ];
@@ -137,6 +138,7 @@ const DedicadoView = React.memo(function DedicadoView({
   const [activeSubTab, setActiveSubTab] = React.useState<DedicadoSubTab>('dashboard');
   const [dedicadoData, setDedicadoData] = React.useState<DedicadoOrigensPayload>({ origem: [], dia_origem: [] });
   const [dedicadoLoading, setDedicadoLoading] = React.useState(false);
+  const [dedicadoError, setDedicadoError] = React.useState<string | null>(null);
   const [isExporting, setIsExporting] = React.useState(false);
   const filterPayloadKey = React.useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
   const dedicatedPayload = React.useMemo<FilterPayload>(() => {
@@ -153,7 +155,9 @@ const DedicadoView = React.memo(function DedicadoView({
 
     return payload;
   }, [filterPayloadKey]);
-  const shouldLoadEntregadores = activeSubTab === 'entregadores';
+  const hasOrganizationContext = typeof dedicatedPayload.p_organization_id === 'string'
+    && dedicatedPayload.p_organization_id.trim().length > 0;
+  const shouldLoadEntregadores = hasOrganizationContext && (activeSubTab === 'entregadores' || activeSubTab === 'ranking');
   const shouldLoadOrigemSummary = activeSubTab === 'dashboard' || activeSubTab === 'resumo';
   const shouldLoadDiaOrigem = activeSubTab === 'dia_origem';
   const { data: tabData, loading } = useTabData(shouldLoadEntregadores ? 'dedicado' : 'dashboard', dedicatedPayload, currentUser);
@@ -179,15 +183,19 @@ const DedicadoView = React.memo(function DedicadoView({
     async function fetchDedicadoOrigens() {
       if (!shouldLoadOrigemSummary && !shouldLoadDiaOrigem) {
         setDedicadoLoading(false);
+        setDedicadoError(null);
         return;
       }
 
       if (typeof origemPayload.p_organization_id !== 'string' || origemPayload.p_organization_id.trim().length === 0) {
-        setDedicadoLoading(true);
+        setDedicadoLoading(false);
+        setDedicadoError('Selecione uma organizacao para carregar os dados do DEDICADO.');
+        setDedicadoData({ origem: [], dia_origem: [] });
         return;
       }
 
       setDedicadoLoading(true);
+      setDedicadoError(null);
 
       try {
         const requestPayload = JSON.parse(origemPayloadKey) as Record<string, unknown>;
@@ -196,7 +204,7 @@ const DedicadoView = React.memo(function DedicadoView({
           p_include_dia_origem: shouldLoadDiaOrigem,
         };
         let { data, error } = await safeRpc<DedicadoOrigensPayload>('dashboard_dedicado_origens_v2', requestWithMode, {
-          timeout: RPC_TIMEOUTS.DEFAULT,
+          timeout: RPC_TIMEOUTS.LONG,
           validateParams: false,
         });
 
@@ -206,14 +214,18 @@ const DedicadoView = React.memo(function DedicadoView({
           && (
             error?.code === '42883'
             || error?.code === 'PGRST202'
+            || error?.code === '57014'
+            || error?.code === 'TIMEOUT'
             || errorMessage.includes('dashboard_dedicado_origens_v2')
             || errorMessage.includes('Could not find the function')
+            || errorMessage.includes('timeout')
+            || errorMessage.includes('Internal Server Error')
           );
 
         if (canFallbackToLegacy) {
           delete requestPayload.p_semanas;
           const fallback = await safeRpc<DedicadoOrigensPayload>('dashboard_dedicado_origens', requestPayload, {
-            timeout: RPC_TIMEOUTS.DEFAULT,
+            timeout: RPC_TIMEOUTS.LONG,
             validateParams: false,
           });
           data = fallback.data;
@@ -224,6 +236,15 @@ const DedicadoView = React.memo(function DedicadoView({
 
         if (error) {
           safeLog.error('Erro ao carregar resumo dedicado por origem:', error);
+          setDedicadoError(
+            shouldLoadDiaOrigem
+              ? 'Nao foi possivel carregar Dia x Origem agora. Tente novamente ou ajuste o periodo.'
+              : 'Nao foi possivel carregar o resumo do DEDICADO agora. As outras subguias continuam disponiveis.'
+          );
+          setDedicadoData((current) => ({
+            ...current,
+            ...(shouldLoadDiaOrigem ? { dia_origem: [] } : { origem: [], totais: {} }),
+          }));
           return;
         }
 
@@ -236,6 +257,7 @@ const DedicadoView = React.memo(function DedicadoView({
       } catch (error) {
         if (!cancelled) {
           safeLog.error('Erro inesperado ao carregar dedicado por origem:', error);
+          setDedicadoError('Erro inesperado ao carregar o DEDICADO. Tente novamente em alguns instantes.');
         }
       } finally {
         if (!cancelled) setDedicadoLoading(false);
@@ -252,6 +274,18 @@ const DedicadoView = React.memo(function DedicadoView({
   const entregadores = React.useMemo(
     () => entregadoresData?.entregadores || [],
     [entregadoresData?.entregadores]
+  );
+  const rankingEntregadores = React.useMemo(
+    () => [...entregadores].sort((a, b) => {
+      const aderenciaDiff = normalizeNumber(b.aderencia_percentual) - normalizeNumber(a.aderencia_percentual);
+      if (aderenciaDiff !== 0) return aderenciaDiff;
+
+      const completadasDiff = normalizeNumber(b.corridas_completadas) - normalizeNumber(a.corridas_completadas);
+      if (completadasDiff !== 0) return completadasDiff;
+
+      return normalizeNumber(b.corridas_ofertadas) - normalizeNumber(a.corridas_ofertadas);
+    }),
+    [entregadores]
   );
   const dedicatedOrigem = React.useMemo(
     () => (dedicadoData.origem || [])
@@ -390,7 +424,7 @@ const DedicadoView = React.memo(function DedicadoView({
               {isExporting ? 'Exportando...' : 'Baixar Excel'}
             </button>
 
-            <div className="grid w-full grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white/85 p-1 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 sm:grid-cols-4 lg:w-auto lg:min-w-[520px]">
+            <div className="grid w-full grid-cols-2 gap-2 rounded-2xl border border-slate-200 bg-white/85 p-1 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 sm:grid-cols-3 xl:grid-cols-5 lg:w-auto lg:min-w-[700px]">
               {SUB_TABS.map((tab) => {
                 const Icon = tab.icon;
                 const active = activeSubTab === tab.id;
@@ -417,24 +451,36 @@ const DedicadoView = React.memo(function DedicadoView({
       </div>
 
       {activeSubTab === 'dashboard' ? (
-        <DedicadoDashboard loading={loading || dedicadoLoading} stats={stats} topOrigens={dedicatedOrigem.slice(0, 8)} />
+        <DedicadoDashboard loading={dedicadoLoading} error={dedicadoError} stats={stats} topOrigens={dedicatedOrigem.slice(0, 8)} />
       ) : null}
 
       {activeSubTab === 'entregadores' ? (
-        <EntregadoresMainContent
-          entregadoresData={entregadoresData}
-          loading={loading}
-          variant="dedicado"
-          filterPayload={dedicatedPayload}
-        />
+        hasOrganizationContext ? (
+          <EntregadoresMainContent
+            entregadoresData={entregadoresData}
+            loading={loading}
+            variant="dedicado"
+            filterPayload={dedicatedPayload}
+          />
+        ) : (
+          <DedicadoInlineNotice message="Selecione uma organizacao para carregar os entregadores dedicados." />
+        )
+      ) : null}
+
+      {activeSubTab === 'ranking' ? (
+        hasOrganizationContext ? (
+          <DedicadoRanking entregadores={rankingEntregadores} loading={loading} />
+        ) : (
+          <DedicadoInlineNotice message="Selecione uma organizacao para montar o ranking do DEDICADO." />
+        )
       ) : null}
 
       {activeSubTab === 'resumo' ? (
-        <DedicadoResumo rows={resumoOrigemRows} loading={dedicadoLoading} />
+        <DedicadoResumo rows={resumoOrigemRows} loading={dedicadoLoading} error={dedicadoError} />
       ) : null}
 
       {activeSubTab === 'dia_origem' ? (
-        <DedicadoDiaOrigem data={dedicatedDiaOrigem} dayDateMap={dayDateMap} loading={dedicadoLoading} />
+        <DedicadoDiaOrigem data={dedicatedDiaOrigem} dayDateMap={dayDateMap} loading={dedicadoLoading} error={dedicadoError} />
       ) : null}
     </div>
   );
@@ -446,10 +492,12 @@ export default DedicadoView;
 
 function DedicadoDashboard({
   loading,
+  error,
   stats,
   topOrigens,
 }: {
   loading: boolean;
+  error?: string | null;
   stats: {
     entregadores: number;
     origens: number;
@@ -463,7 +511,7 @@ function DedicadoDashboard({
     taxaRejeicao: number;
     taxaCompletude: number;
   };
-  topOrigens: AderenciaOrigem[];
+  topOrigens: DedicadoOrigemRow[];
 }) {
   if (loading) return <DashboardSkeleton contentOnly />;
 
@@ -478,6 +526,8 @@ function DedicadoDashboard({
 
   return (
     <div className="space-y-6">
+      {error ? <DedicadoInlineNotice message={error} /> : null}
+
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         {cards.map((card) => {
           const Icon = card.icon;
@@ -561,7 +611,7 @@ function DedicadoDashboard({
   );
 }
 
-function DedicadoResumo({ rows, loading }: { rows: any[]; loading: boolean }) {
+function DedicadoResumo({ rows, loading, error }: { rows: any[]; loading: boolean; error?: string | null }) {
   if (loading) return <DashboardSkeleton contentOnly />;
 
   return (
@@ -572,6 +622,11 @@ function DedicadoResumo({ rows, loading }: { rows: any[]; loading: boolean }) {
           Dados agrupados por origem, respeitando os filtros atuais de período, cidade e organização.
         </p>
       </CardHeader>
+      {error ? (
+        <CardContent className="pb-0">
+          <DedicadoInlineNotice message={error} />
+        </CardContent>
+      ) : null}
       <CardContent className="max-w-full overflow-hidden p-0">
         <AnaliseTable data={rows} labelColumn="Origem" />
       </CardContent>
@@ -583,10 +638,12 @@ function DedicadoDiaOrigem({
   data,
   dayDateMap,
   loading,
+  error,
 }: {
   data: AderenciaDiaOrigem[];
   dayDateMap: Record<string, string>;
   loading: boolean;
+  error?: string | null;
 }) {
   if (loading) return <DashboardSkeleton contentOnly />;
 
@@ -599,8 +656,120 @@ function DedicadoDiaOrigem({
         </p>
       </CardHeader>
       <CardContent className="min-w-0 p-3 sm:p-6">
+        {error ? <DedicadoInlineNotice message={error} /> : null}
         <AnaliseDiaOrigemTable data={data} dayDateMap={dayDateMap} />
       </CardContent>
     </Card>
+  );
+}
+
+function DedicadoRanking({ entregadores, loading }: { entregadores: Entregador[]; loading: boolean }) {
+  if (loading) return <DashboardSkeleton contentOnly />;
+
+  if (entregadores.length === 0) {
+    return (
+      <Card className="border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <CardContent className="p-10 text-center">
+          <Trophy className="mx-auto mb-3 h-10 w-10 text-slate-300 dark:text-slate-700" />
+          <h3 className="text-lg font-black text-slate-900 dark:text-white">Ranking sem dados</h3>
+          <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+            Ajuste os filtros ou aguarde a carga dos entregadores dedicados para montar o ranking.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="min-w-0 overflow-hidden border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+      <CardHeader className="border-b border-slate-100 dark:border-slate-800">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Ranking de Aderencia</CardTitle>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Ordenado pela mesma aderencia usada na tabela de Entregadores do DEDICADO.
+            </p>
+          </div>
+          <span className="w-fit rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+            {entregadores.length.toLocaleString('pt-BR')} entregadores
+          </span>
+        </div>
+      </CardHeader>
+
+      <CardContent className="p-0">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[980px] border-collapse text-sm">
+            <thead className="bg-slate-50 text-xs font-black uppercase tracking-[0.12em] text-slate-500 dark:bg-slate-950/60 dark:text-slate-400">
+              <tr>
+                <th className="px-5 py-4 text-left">#</th>
+                <th className="px-5 py-4 text-left">Entregador</th>
+                <th className="px-5 py-4 text-right">Aderencia</th>
+                <th className="px-5 py-4 text-right">Completadas</th>
+                <th className="px-5 py-4 text-right">Ofertadas</th>
+                <th className="px-5 py-4 text-right">Aceitas</th>
+                <th className="px-5 py-4 text-right">Rejeitadas</th>
+                <th className="px-5 py-4 text-right">Horas</th>
+                <th className="px-5 py-4 text-right">Rejeicao</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+              {entregadores.map((entregador, index) => {
+                const baixoVolume = normalizeNumber(entregador.corridas_ofertadas) < 20;
+                const positionClass = index === 0
+                  ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300'
+                  : index === 1
+                    ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200'
+                    : index === 2
+                      ? 'bg-orange-50 text-orange-700 dark:bg-orange-950/30 dark:text-orange-300'
+                      : 'bg-blue-50 text-blue-700 dark:bg-blue-950/30 dark:text-blue-300';
+
+                return (
+                  <tr key={`${entregador.id_entregador}-${index}`} className="hover:bg-slate-50/80 dark:hover:bg-slate-950/50">
+                    <td className="px-5 py-4">
+                      <span className={cn('inline-flex h-8 min-w-8 items-center justify-center rounded-full px-2 font-black', positionClass)}>
+                        {index + 1}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="font-bold text-slate-900 dark:text-white">{entregador.nome_entregador || 'Sem nome'}</p>
+                          {baixoVolume ? (
+                            <span className="rounded-full border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-black uppercase tracking-wide text-amber-700 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">
+                              baixo volume
+                            </span>
+                          ) : null}
+                        </div>
+                        <p className="mt-1 font-mono text-xs text-slate-500 dark:text-slate-400">{entregador.id_entregador}</p>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4 text-right">
+                      <span className="rounded-full bg-emerald-50 px-2.5 py-1 font-black text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
+                        {normalizeNumber(entregador.aderencia_percentual).toFixed(1)}%
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-right font-mono font-semibold text-slate-700 dark:text-slate-200">{normalizeNumber(entregador.corridas_completadas).toLocaleString('pt-BR')}</td>
+                    <td className="px-5 py-4 text-right font-mono text-slate-600 dark:text-slate-300">{normalizeNumber(entregador.corridas_ofertadas).toLocaleString('pt-BR')}</td>
+                    <td className="px-5 py-4 text-right font-mono text-slate-600 dark:text-slate-300">{normalizeNumber(entregador.corridas_aceitas).toLocaleString('pt-BR')}</td>
+                    <td className="px-5 py-4 text-right font-mono text-slate-600 dark:text-slate-300">{normalizeNumber(entregador.corridas_rejeitadas).toLocaleString('pt-BR')}</td>
+                    <td className="px-5 py-4 text-right font-mono text-slate-600 dark:text-slate-300">{formatarHorasParaHMS(normalizeNumber(entregador.total_segundos) / 3600)}</td>
+                    <td className="px-5 py-4 text-right font-mono text-slate-600 dark:text-slate-300">{normalizeNumber(entregador.rejeicao_percentual).toFixed(1)}%</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function DedicadoInlineNotice({ message }: { message: string }) {
+  return (
+    <div className="mb-4 flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-200">
+      <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+      <p className="font-semibold">{message}</p>
+    </div>
   );
 }

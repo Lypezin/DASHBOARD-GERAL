@@ -55,6 +55,32 @@ function calculateCompletionRate(completadas: unknown, aceitas: unknown) {
   return (normalizeNumber(completadas) / totalAceitas) * 100;
 }
 
+function buildRankingRows(entregadores: Entregador[]) {
+  return [...entregadores]
+    .sort((a, b) => {
+      const aderenciaDiff = normalizeNumber(b.aderencia_percentual) - normalizeNumber(a.aderencia_percentual);
+      if (aderenciaDiff !== 0) return aderenciaDiff;
+
+      const completadasDiff = normalizeNumber(b.corridas_completadas) - normalizeNumber(a.corridas_completadas);
+      if (completadasDiff !== 0) return completadasDiff;
+
+      return normalizeNumber(b.corridas_ofertadas) - normalizeNumber(a.corridas_ofertadas);
+    })
+    .map((entregador, index) => ({
+      Posicao: index + 1,
+      'ID Entregador': entregador.id_entregador,
+      Nome: entregador.nome_entregador,
+      Aderencia: formatPercent(entregador.aderencia_percentual),
+      Horas: formatarHorasParaHMS((entregador.total_segundos || 0) / 3600),
+      Ofertadas: entregador.corridas_ofertadas || 0,
+      Aceitas: entregador.corridas_aceitas || 0,
+      Rejeitadas: entregador.corridas_rejeitadas || 0,
+      Completadas: entregador.corridas_completadas || 0,
+      'Taxa Rejeicao': formatPercent(entregador.rejeicao_percentual),
+      Observacao: normalizeNumber(entregador.corridas_ofertadas) < 20 ? 'Baixo volume' : '',
+    }));
+}
+
 function formatPercentOrDash(value: unknown, hasBase: boolean) {
   return hasBase ? formatPercent(value) : '-';
 }
@@ -160,6 +186,8 @@ export async function exportarDedicadoParaExcel(filterPayload: FilterPayload): P
       Aderencia: formatPercent(entregador.aderencia_percentual),
       Rejeicao: formatPercent(entregador.rejeicao_percentual),
     })), 'Entregadores');
+
+    appendSheet(XLSX, workbook, buildRankingRows(entregadores), 'Ranking');
 
     appendSheet(XLSX, workbook, diaOrigemRows.map((row) => ({
       Dia: row.dia || '-',

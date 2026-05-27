@@ -223,12 +223,24 @@ export async function fetchDedicadoEntregadoresData(options: FetchOptions): Prom
     const result = await fetchEntregadoresByRpc('listar_entregadores_origens_v2', options.filterPayload, { fallbackOnError: false });
     const errorCode = result.error?.code || '';
     const errorMessage = result.error?.message || '';
+    const shouldTryLegacy = result.error && (
+        errorCode === '42883'
+        || errorCode === 'PGRST202'
+        || errorMessage.includes('listar_entregadores_origens_v2')
+        || errorMessage.includes('Could not find the function')
+        || is500Error(result.error)
+        || isTimeoutError(result.error)
+    );
 
-    if (errorCode === '42883' || errorCode === 'PGRST202' || errorMessage.includes('listar_entregadores_origens_v2')) {
+    if (shouldTryLegacy) {
         const legacyPayload = { ...options.filterPayload };
         delete legacyPayload.p_semanas;
         const legacyResult = await fetchEntregadoresByRpc('listar_entregadores_origens', legacyPayload, { fallbackOnError: false });
-        return { ...legacyResult, data: normalizeDedicadoAderencia(legacyResult.data) };
+        const normalizedLegacy = normalizeDedicadoAderencia(legacyResult.data);
+
+        if (!legacyResult.error || normalizedLegacy?.entregadores?.length) {
+            return { ...legacyResult, data: normalizedLegacy };
+        }
     }
 
     return { ...result, data: normalizeDedicadoAderencia(result.data) };
