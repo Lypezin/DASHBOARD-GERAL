@@ -15,8 +15,8 @@ export const ComparisonMetricCell: React.FC<ComparisonMetricCellProps> = ({
     opsValue = 0,
     mktValue = 0,
     type = 'number',
-    opsColorClass = "text-slate-600 dark:text-slate-400",
-    mktColorClass = "text-purple-600 dark:text-purple-400"
+    opsColorClass = 'text-slate-600 dark:text-slate-400',
+    mktColorClass = 'text-sky-600 dark:text-sky-300'
 }) => {
     const total = opsValue + mktValue;
 
@@ -28,9 +28,9 @@ export const ComparisonMetricCell: React.FC<ComparisonMetricCellProps> = ({
 
     return (
         <>
-            <TableCell className="text-right border-l border-slate-100 dark:border-slate-800 align-middle py-4">
+            <TableCell className="border-l border-slate-100 py-4 align-middle text-right dark:border-slate-800">
                 <div className="flex flex-col items-end gap-1">
-                    <span className={`font-medium ${opsColorClass} text-xs`}>
+                    <span className={`text-xs font-medium ${opsColorClass}`}>
                         {formatValue(opsValue)}
                     </span>
                     <span className="text-[10px] text-slate-400">
@@ -38,12 +38,12 @@ export const ComparisonMetricCell: React.FC<ComparisonMetricCellProps> = ({
                     </span>
                 </div>
             </TableCell>
-            <TableCell className="text-right align-middle py-4">
+            <TableCell className="py-4 align-middle text-right">
                 <div className="flex flex-col items-end gap-1">
-                    <span className={`font-semibold ${mktColorClass} text-xs`}>
+                    <span className={`text-xs font-semibold ${mktColorClass}`}>
                         {formatValue(mktValue)}
                     </span>
-                    <span className="text-[10px] text-purple-500/70">
+                    <span className="text-[10px] text-sky-500/70 dark:text-sky-300/70">
                         {calculatePercentage(mktValue, total)}
                     </span>
                 </div>

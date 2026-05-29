@@ -1,11 +1,8 @@
-
 import React, { useState } from 'react';
 import {
     Table,
     TableBody,
     TableCell,
-    TableHead,
-    TableHeader,
     TableRow,
 } from "@/components/ui/table";
 import { MarketingDriverDetailModal } from './MarketingDriverDetailModal';
@@ -39,14 +36,14 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
     const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
 
     return (
-        <div className="rounded-md border border-slate-200 dark:border-slate-800 overflow-x-auto">
-            <Table>
+        <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
+            <Table className="min-w-[1120px]">
                 <MarketingComparacaoTableHeader />
                 <TableBody>
                     {data.length === 0 ? (
                         <TableRow>
                             <TableCell colSpan={16} className="h-24 text-center">
-                                Nenhum dado encontrado para o período selecionado.
+                                Nenhum dado encontrado para o periodo selecionado.
                             </TableCell>
                         </TableRow>
                     ) : (

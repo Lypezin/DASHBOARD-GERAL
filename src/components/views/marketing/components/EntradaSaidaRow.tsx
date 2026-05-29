@@ -27,16 +27,16 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst,
     const retomadaOps = totalRetomada - (item.retomada_marketing || 0);
 
     return (
-        <motion.div className={`group relative rounded-2xl border border-slate-100 bg-white transition-all duration-300 hover:border-indigo-100 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-900/30 ${isFirst ? 'shadow-md ring-1 ring-indigo-50 dark:ring-indigo-900/20' : 'shadow-sm'}`}>
+        <motion.div className={`group relative rounded-2xl border bg-white transition-all duration-300 hover:shadow-lg dark:bg-slate-900 ${isFirst ? 'border-sky-100 shadow-md ring-1 ring-sky-50 dark:border-sky-900/40 dark:ring-sky-900/20' : 'border-slate-100 shadow-sm hover:border-sky-100 dark:border-slate-800 dark:hover:border-sky-900/30'}`}>
             <div
                 className="relative z-10 flex cursor-pointer flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-6 sm:p-5"
                 onClick={() => setIsExpanded(!isExpanded)}
             >
                 <div className="flex w-full items-center justify-center gap-3 sm:min-w-[140px] sm:w-auto sm:justify-start">
-                    <div className={`flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-300 ${isFirst ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 dark:shadow-indigo-900/50' : 'bg-slate-50 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 dark:bg-slate-800 dark:text-slate-500'}`}>
+                    <div className={`flex h-11 w-11 items-center justify-center rounded-xl transition-colors duration-300 ${isFirst ? 'bg-sky-600 text-white shadow-lg shadow-sky-200 dark:shadow-sky-900/50' : 'bg-slate-50 text-slate-400 group-hover:bg-sky-50 group-hover:text-sky-600 dark:bg-slate-800 dark:text-slate-500'}`}>
                         <Calendar className="h-5 w-5" />
                     </div>
-                    <h4 className="text-sm font-bold leading-tight text-slate-800 transition-colors group-hover:text-indigo-600 dark:text-slate-100">
+                    <h4 className="text-sm font-bold leading-tight text-slate-800 transition-colors group-hover:text-sky-600 dark:text-slate-100">
                         {formatWeekLabel(item.semana)}
                     </h4>
                 </div>
@@ -83,7 +83,7 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst,
                 <div className="flex w-full flex-wrap items-center justify-between gap-3 sm:min-w-[220px] sm:w-auto sm:flex-nowrap sm:justify-end">
                     <div className="flex flex-col items-center">
                         <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">Saldo</span>
-                        <div className={`flex items-center gap-1 rounded-lg px-2.5 py-1 ${item.saldo >= 0 ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/20 dark:text-indigo-300' : 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300'}`}>
+                        <div className={`flex items-center gap-1 rounded-lg px-2.5 py-1 ${item.saldo >= 0 ? 'bg-sky-50 text-sky-700 dark:bg-sky-950/20 dark:text-sky-300' : 'bg-amber-50 text-amber-700 dark:bg-amber-900/20 dark:text-amber-300'}`}>
                             {item.saldo >= 0 ? <ArrowUpRight className="h-3.5 w-3.5" /> : <ArrowDownRight className="h-3.5 w-3.5" />}
                             <span className="text-sm font-bold tabular-nums">{item.saldo > 0 ? '+' : ''}{item.saldo}</span>
                         </div>

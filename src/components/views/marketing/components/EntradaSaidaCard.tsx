@@ -19,7 +19,6 @@ export interface WeeklyData {
     nomes_saidas_operacional?: string[];
     nomes_saidas_novos_marketing?: string[];
     nomes_saidas_novos_operacional?: string[];
-    // Retomada
     retomada_total: number;
     retomada_marketing?: number;
     nomes_retomada_marketing: string[];
@@ -37,20 +36,18 @@ interface EntradaSaidaCardProps {
 export const EntradaSaidaCard: React.FC<EntradaSaidaCardProps> = ({ item, isFirst }) => {
     return (
         <div
-            className={`relative overflow-hidden rounded-2xl border-none p-5 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 ${isFirst
-                ? 'bg-gradient-to-br from-indigo-50 to-white dark:from-indigo-900/20 dark:to-slate-900 shadow-md ring-1 ring-indigo-100 dark:ring-indigo-900'
-                : 'bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm shadow-sm hover:bg-white dark:hover:bg-slate-900'
+            className={`relative overflow-hidden rounded-2xl border p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${isFirst
+                ? 'border-sky-100 bg-gradient-to-br from-sky-50 to-white shadow-md ring-1 ring-sky-100 dark:border-sky-900/40 dark:from-sky-950/20 dark:to-slate-900 dark:ring-sky-900/30'
+                : 'border-slate-100 bg-white/80 shadow-sm backdrop-blur-sm hover:bg-white dark:border-slate-800 dark:bg-slate-900/80 dark:hover:bg-slate-900'
                 }`}
         >
-            {isFirst && (
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-indigo-500 to-purple-500"></div>
-            )}
+            {isFirst ? (
+                <div className="absolute left-0 right-0 top-0 h-1 bg-gradient-to-r from-sky-500 to-blue-500"></div>
+            ) : null}
 
-            {/* Header do Card */}
             <EntradaSaidaHeader semana={item.semana} isFirst={isFirst} />
 
-            {/* Métricas */}
-            <div className="grid grid-cols-3 gap-2 mb-4">
+            <div className="mb-4 grid grid-cols-3 gap-2">
                 <MetricBlock
                     type="entradas"
                     marketing={item.entradas_marketing || 0}
@@ -70,20 +67,18 @@ export const EntradaSaidaCard: React.FC<EntradaSaidaCardProps> = ({ item, isFirs
                 />
             </div>
 
-            {/* Novos - Desistências */}
-            {item.saidas_novos > 0 && (
-                <div className="rounded-xl bg-amber-50 dark:bg-amber-900/20 p-2 mb-4 flex items-center justify-between px-3 border border-amber-100 dark:border-amber-900/30">
-                    <p className="text-[10px] uppercase font-semibold text-amber-600/80 dark:text-amber-400/80 flex items-center gap-1.5">
-                        <div className="h-1.5 w-1.5 rounded-full bg-amber-500"></div>
-                        Desistências (Novos)
-                    </p>
-                    <span className="text-xs font-bold text-amber-700 dark:text-amber-400 tabular-nums">
+            {item.saidas_novos > 0 ? (
+                <div className="mb-4 flex items-center justify-between rounded-xl border border-amber-100 bg-amber-50 px-3 p-2 dark:border-amber-900/30 dark:bg-amber-900/20">
+                    <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-amber-600/80 dark:text-amber-400/80">
+                        <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
+                        Desistencias (Novos)
+                    </div>
+                    <span className="tabular-nums text-xs font-bold text-amber-700 dark:text-amber-400">
                         -{item.saidas_novos}
                     </span>
                 </div>
-            )}
+            ) : null}
 
-            {/* Saldo e Ações do Rodapé */}
             <EntradaSaidaFooter item={item} />
         </div>
     );

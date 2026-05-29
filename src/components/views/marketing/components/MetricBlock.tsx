@@ -24,50 +24,50 @@ export const MetricBlock: React.FC<MetricBlockProps> = ({ type, marketing, total
     let totalLabelColor = isEntrada ? 'text-emerald-800/60 dark:text-emerald-300/60' : 'text-rose-800/60 dark:text-rose-300/60';
     let totalValueColor = isEntrada ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400';
     const sign = isEntrada || isRetomada ? '+' : '-';
-    const titleLabel = isEntrada ? 'Entradas' : (isRetomada ? 'Retomada' : 'Saídas');
+    const titleLabel = isEntrada ? 'Entradas' : (isRetomada ? 'Retomada' : 'Saidas');
 
     if (isRetomada) {
-        bgColor = 'bg-indigo-50 dark:bg-indigo-900/20';
-        titleColor = 'text-indigo-600/70 dark:text-indigo-400/70';
-        mktDotColor = 'bg-indigo-500';
-        mktTextColor = 'text-indigo-700/70 dark:text-indigo-400/70';
-        mktValueColor = 'text-indigo-700 dark:text-indigo-400';
-        opsDotColor = 'bg-indigo-300';
-        opsTextColor = 'text-indigo-700/70 dark:text-indigo-400/70';
-        opsValueColor = 'text-indigo-700 dark:text-indigo-400';
-        footerBorder = 'border-indigo-200/50 dark:border-indigo-800/30';
-        totalLabelColor = 'text-indigo-800/60 dark:text-indigo-300/60';
-        totalValueColor = 'text-indigo-700 dark:text-indigo-400';
+        bgColor = 'bg-sky-50 dark:bg-sky-950/20';
+        titleColor = 'text-sky-600/70 dark:text-sky-300/70';
+        mktDotColor = 'bg-sky-500';
+        mktTextColor = 'text-sky-700/70 dark:text-sky-300/70';
+        mktValueColor = 'text-sky-700 dark:text-sky-300';
+        opsDotColor = 'bg-sky-300';
+        opsTextColor = 'text-sky-700/70 dark:text-sky-300/70';
+        opsValueColor = 'text-sky-700 dark:text-sky-300';
+        footerBorder = 'border-sky-200/50 dark:border-sky-800/30';
+        totalLabelColor = 'text-sky-800/60 dark:text-sky-300/60';
+        totalValueColor = 'text-sky-700 dark:text-sky-300';
     }
 
     return (
         <div className={`rounded-xl ${bgColor} p-3 pt-2`}>
-            <p className={`text-[10px] uppercase tracking-wider font-semibold ${titleColor} mb-2 text-center`}>
+            <p className={`mb-2 text-center text-[10px] font-semibold uppercase tracking-wider ${titleColor}`}>
                 {titleLabel}
             </p>
 
-            <div className="space-y-1 mb-2">
-                <div className="flex justify-between items-center text-xs">
+            <div className="mb-2 space-y-1">
+                <div className="flex items-center justify-between text-xs">
                     <span className={`${mktTextColor} flex items-center gap-1.5`}>
                         <div className={`h-1.5 w-1.5 rounded-full ${mktDotColor}`} />
                         Mkt
                     </span>
-                    <span className={`font-semibold ${mktValueColor} tabular-nums`}>{sign}{marketing || 0}</span>
+                    <span className={`tabular-nums font-semibold ${mktValueColor}`}>{sign}{marketing || 0}</span>
                 </div>
-                <div className="flex justify-between items-center text-xs">
+                <div className="flex items-center justify-between text-xs">
                     <span className={`${opsTextColor} flex items-center gap-1.5`}>
                         <div className={`h-1.5 w-1.5 rounded-full ${opsDotColor}`} />
                         Operacional
                     </span>
-                    <span className={`font-semibold ${opsValueColor} tabular-nums`}>
+                    <span className={`tabular-nums font-semibold ${opsValueColor}`}>
                         {sign}{opsValue}
                     </span>
                 </div>
             </div>
 
-            <div className={`flex justify-between items-end border-t ${footerBorder} pt-1.5`}>
+            <div className={`flex items-end justify-between border-t ${footerBorder} pt-1.5`}>
                 <span className={`text-[10px] font-bold uppercase ${totalLabelColor}`}>Total</span>
-                <span className={`text-base font-bold ${totalValueColor} tabular-nums`}>{sign}{total}</span>
+                <span className={`tabular-nums text-base font-bold ${totalValueColor}`}>{sign}{total}</span>
             </div>
         </div>
     );
