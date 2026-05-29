@@ -1,0 +1,93 @@
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import { Copy, Check, Download } from 'lucide-react';
+import { ResumoFilterDropdown } from './components/ResumoFilterDropdown';
+
+interface ResumoFiltersProps {
+    selectedPracas: string[];
+    pracasDisponiveis: string[];
+    onFilterToggle: (praca: string) => void;
+    onClearFilter: () => void;
+    onCopyTable: () => void;
+    onExportTable: () => void;
+    hasData: boolean;
+}
+
+export const ResumoFilters = ({
+    selectedPracas,
+    pracasDisponiveis,
+    onFilterToggle,
+    onClearFilter,
+    onCopyTable,
+    onExportTable,
+    hasData
+}: ResumoFiltersProps) => {
+    const [filterOpen, setFilterOpen] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+    const handleCopy = () => {
+        onCopyTable();
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    return (
+        <div className="flex items-center gap-2">
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={onExportTable}
+                disabled={!hasData}
+                className="flex items-center gap-2 text-slate-700 dark:text-slate-300"
+            >
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Exportar Excel</span>
+            </Button>
+            <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopy}
+                disabled={!hasData}
+                className="flex items-center gap-2"
+            >
+                {copied ? (
+                    <>
+                        <Check className="w-4 h-4 text-green-500" />
+                        <span>Copiado!</span>
+                    </>
+                ) : (
+                    <>
+                        <Copy className="w-4 h-4" />
+                        <span>Copiar</span>
+                    </>
+                )}
+            </Button>
+            <div className="relative">
+                <button
+                    onClick={() => setFilterOpen(!filterOpen)}
+                    className="flex items-center gap-2 px-4 py-2 text-sm font-medium bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                >
+                    <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                    </svg>
+                    {selectedPracas.length === 0
+                        ? "Filtrar por Praça"
+                        : `${selectedPracas.length} praça(s)`}
+                    <svg className={cn("w-4 h-4 transition-transform", filterOpen && "rotate-180")} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                </button>
+
+                <ResumoFilterDropdown
+                    filterOpen={filterOpen}
+                    setFilterOpen={setFilterOpen}
+                    selectedPracas={selectedPracas}
+                    pracasDisponiveis={pracasDisponiveis}
+                    onClearFilter={onClearFilter}
+                    onFilterToggle={onFilterToggle}
+                />
+            </div>
+        </div>
+    );
+};
