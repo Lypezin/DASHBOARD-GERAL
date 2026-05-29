@@ -1,12 +1,11 @@
 import { safeLog } from '@/lib/errorHandler';
-import { safeRpc } from '@/lib/rpcWrapper';
 import { is500Error, isTimeoutError } from '@/lib/rpcErrorHandler';
 import { ValoresEntregador } from '@/types';
-import { RPC_TIMEOUTS } from '@/constants/config';
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
 import { buildFilterPayload } from './fetcherUtils';
 import { fetchValoresFallback } from '../fallbacks';
+import { fetchDashboardDataApi } from '@/utils/dashboard/fetchDashboardDataApi';
 
 export interface FetchOptions {
     filterPayload: FilterPayload;
@@ -24,10 +23,7 @@ export async function fetchValoresDetalhados(options: FetchOptions): Promise<{ d
     if (!('p_limit' in listarValoresPayload)) listarValoresPayload['p_limit'] = 25;
     if (!('p_offset' in listarValoresPayload)) listarValoresPayload['p_offset'] = 0;
 
-    const result = await safeRpc<any>('listar_valores_entregadores_detalhado', listarValoresPayload, {
-        timeout: RPC_TIMEOUTS.LONG,
-        validateParams: false
-    });
+    const result = await fetchDashboardDataApi<any>('valores_detalhados', listarValoresPayload);
 
     if (result.error) {
         if (is500Error(result.error) || isTimeoutError(result.error)) {
@@ -56,7 +52,7 @@ export async function fetchValoresDetalhados(options: FetchOptions): Promise<{ d
 
     if (result && result.data !== null && result.data !== undefined) {
         if (typeof result.data === 'object' && !Array.isArray(result.data)) {
-            const dataObj = result.data as any;
+            const dataObj = result.data as { entregadores?: ValoresEntregador[]; total?: number } | null;
             if (dataObj && 'entregadores' in dataObj && Array.isArray(dataObj.entregadores)) {
                 processedData = dataObj.entregadores;
             }

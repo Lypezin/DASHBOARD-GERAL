@@ -51,7 +51,7 @@ export const EntregadoresHeader = React.memo(function EntregadoresHeader({
                     onClick={onExport}
                     disabled={exportBlocked}
                     title={disableExport ? exportDisabledReason : undefined}
-                    className="gap-2 rounded-2xl border-slate-200 bg-white px-4 py-2.5 font-semibold shadow-sm transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-950 dark:hover:bg-slate-900"
+                    className="w-full shrink-0 gap-2 rounded-2xl border-slate-200 bg-white px-4 py-2.5 font-semibold shadow-sm transition-colors hover:bg-slate-50 sm:w-auto dark:border-slate-700 dark:bg-slate-950 dark:hover:bg-slate-900"
                 >
                     <Download className="h-4 w-4" />
                     {isExporting ? 'Exportando...' : disableExport ? 'Aguarde a busca' : 'Exportar Excel'}

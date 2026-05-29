@@ -1,6 +1,6 @@
-import { safeRpc } from '@/lib/rpcWrapper';
 import { safeLog } from '@/lib/errorHandler';
 import { DashboardFilters } from '@/types/filters';
+import { postAppApiData } from '@/utils/app/fetchAppApi';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -25,17 +25,17 @@ export async function logActivityToRpc(
         functionAvailability.status = null;
     }
 
-    const { error } = await safeRpc('registrar_atividade', {
-        p_session_id: sessionId,
-        p_action_type: action_type,
-        p_action_details: description || null,
-        p_tab_name: tab_name || null,
-        p_filters_applied: filters_applied && Object.keys(filters_applied).length > 0 ? filters_applied : null
-    }, { timeout: 10000, validateParams: false });
+    const { error } = await postAppApiData<null>('/api/app/activity', {
+        sessionId,
+        actionType: action_type,
+        description: description || null,
+        tabName: tab_name || null,
+        filtersApplied: filters_applied && Object.keys(filters_applied).length > 0 ? filters_applied : null
+    });
 
     if (error) {
-        const msg = String(error?.message || '');
-        const is404 = error?.code === 'PGRST116' || msg.includes('404') || msg.includes('not found');
+        const msg = String(error || '');
+        const is404 = msg.includes('404') || msg.includes('not found');
 
         if (is404) {
             functionAvailability.status = false;

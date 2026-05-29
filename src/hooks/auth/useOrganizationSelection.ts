@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { safeLog } from '@/lib/errorHandler';
-import { supabase } from '@/lib/supabaseClient';
+import { getAppApiData } from '@/utils/app/fetchAppApi';
 
 interface Organization {
     id: string;
@@ -24,17 +24,20 @@ export function useOrganizationSelection(isAuthorized: boolean, user: { id: stri
         const fetchOrgs = async () => {
             setIsLoadingOrgs(true);
             try {
-                const { data: isGlobal } = await supabase.rpc('is_global_admin');
+                const { data, error } = await getAppApiData<{
+                    isGlobal: boolean;
+                    organizationId: string;
+                    organizations: Organization[];
+                }>('/api/app/organization-selection');
 
-                if (!isGlobal) {
-                    const { data: profile } = await supabase
-                        .from('user_profiles')
-                        .select('organization_id')
-                        .eq('id', user.id)
-                        .single();
+                if (error || !data) {
+                    safeLog.error('Erro ao carregar organizacoes:', error || 'Resposta vazia');
+                    return;
+                }
 
-                    if (profile?.organization_id) {
-                        setSelectedOrgId(profile.organization_id);
+                if (!data.isGlobal) {
+                    if (data.organizationId) {
+                        setSelectedOrgId(data.organizationId);
                     }
 
                     setOrganizations([]);
@@ -42,23 +45,16 @@ export function useOrganizationSelection(isAuthorized: boolean, user: { id: stri
                     return;
                 }
 
-                const { data } = await supabase
-                    .from('organizations')
-                    .select('id, name')
-                    .order('name');
-
-                if (!data) return;
-
-                setOrganizations(data);
+                setOrganizations(data.organizations);
 
                 setSelectedOrgId((current) => {
-                    if (hasManualSelectionRef.current && current && data.some((org) => org.id === current)) {
+                    if (hasManualSelectionRef.current && current && data.organizations.some((org) => org.id === current)) {
                         return current;
                     }
 
-                    if (data.length > 0) {
+                    if (data.organizations.length > 0) {
                         hasManualSelectionRef.current = false;
-                        return data[0].id;
+                        return data.organizations[0].id;
                     }
 
                     return '';

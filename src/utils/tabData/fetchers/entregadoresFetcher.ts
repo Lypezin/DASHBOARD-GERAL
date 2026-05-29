@@ -1,11 +1,12 @@
 import { safeLog } from '@/lib/errorHandler';
-import { safeRpc } from '@/lib/rpcWrapper';
 import { is500Error, isRateLimitError, isTimeoutError } from '@/lib/rpcErrorHandler';
 import { EntregadoresData, Entregador } from '@/types';
-import { RPC_TIMEOUTS } from '@/constants/config';
 import { fetchEntregadoresFallback } from '../fallbacks';
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
+import { expandImplicitSingleYearToDateRange } from '@/utils/filters/allYearsRange';
+import { fetchDedicadoApi } from '@/utils/dedicado/fetchDedicadoApi';
+import { fetchDashboardDataApi } from '@/utils/dashboard/fetchDashboardDataApi';
 
 interface FetchOptions {
     filterPayload: FilterPayload;
@@ -119,26 +120,21 @@ function normalizeDedicadoAderencia(data: EntregadoresData | null): Entregadores
 }
 
 async function fetchEntregadoresByRpc(
-    rpcName: 'listar_entregadores_v2' | 'listar_entregadores_origens' | 'listar_entregadores_origens_v2',
+    rpcName: 'listar_entregadores_v2',
     filterPayload: FilterPayload,
     options: { fallbackOnError: boolean }
 ): Promise<{ data: EntregadoresData | null; error: RpcError | null }> {
-    const isDedicadoRpc = rpcName === 'listar_entregadores_origens' || rpcName === 'listar_entregadores_origens_v2';
-    const allowedParams = isDedicadoRpc
-        ? ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_data_inicial', 'p_data_final', 'p_organization_id']
-        : ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_only_dedicados', 'p_search'];
+    const normalizedPayload = expandImplicitSingleYearToDateRange(filterPayload);
+    const allowedParams = ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_only_dedicados', 'p_search'];
     const listarEntregadoresPayload: FilterPayload = {};
 
     for (const key of allowedParams) {
-        if (filterPayload && key in filterPayload && filterPayload[key] !== null && filterPayload[key] !== undefined) {
-            listarEntregadoresPayload[key] = filterPayload[key];
+        if (normalizedPayload && key in normalizedPayload && normalizedPayload[key] !== null && normalizedPayload[key] !== undefined) {
+            listarEntregadoresPayload[key] = normalizedPayload[key];
         }
     }
 
-    const result = await safeRpc<any>(rpcName, listarEntregadoresPayload, {
-        timeout: RPC_TIMEOUTS.LONG,
-        validateParams: false
-    });
+    const result = await fetchDashboardDataApi<any>('entregadores', listarEntregadoresPayload);
 
     if (result.error) {
         const search = typeof listarEntregadoresPayload.p_search === 'string'
@@ -220,28 +216,22 @@ export async function fetchEntregadoresData(options: FetchOptions): Promise<{ da
  * Busca dados da subguia DEDICADO, mantendo apenas entregadores com origem/restaurante.
  */
 export async function fetchDedicadoEntregadoresData(options: FetchOptions): Promise<{ data: EntregadoresData | null; error: RpcError | null }> {
-    const result = await fetchEntregadoresByRpc('listar_entregadores_origens_v2', options.filterPayload, { fallbackOnError: false });
-    const errorCode = result.error?.code || '';
-    const errorMessage = result.error?.message || '';
-    const shouldTryLegacy = result.error && (
-        errorCode === '42883'
-        || errorCode === 'PGRST202'
-        || errorMessage.includes('listar_entregadores_origens_v2')
-        || errorMessage.includes('Could not find the function')
-        || is500Error(result.error)
-        || isTimeoutError(result.error)
-    );
+    const allowedParams = ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_data_inicial', 'p_data_final', 'p_organization_id'];
+    const payload: FilterPayload = {};
 
-    if (shouldTryLegacy) {
-        const legacyPayload = { ...options.filterPayload };
-        delete legacyPayload.p_semanas;
-        const legacyResult = await fetchEntregadoresByRpc('listar_entregadores_origens', legacyPayload, { fallbackOnError: false });
-        const normalizedLegacy = normalizeDedicadoAderencia(legacyResult.data);
-
-        if (!legacyResult.error || normalizedLegacy?.entregadores?.length) {
-            return { ...legacyResult, data: normalizedLegacy };
+    for (const key of allowedParams) {
+        if (key in options.filterPayload && options.filterPayload[key] !== null && options.filterPayload[key] !== undefined) {
+            payload[key] = options.filterPayload[key];
         }
     }
 
-    return { ...result, data: normalizeDedicadoAderencia(result.data) };
+    const result = await fetchDedicadoApi<unknown>('entregadores', payload);
+    const parsedData = parseEntregadoresResponse(result.data);
+
+    if (result.error) {
+        safeLog.error('Erro ao buscar entregadores do DEDICADO via API:', result.error);
+        return { data: { entregadores: [], total: 0 }, error: result.error };
+    }
+
+    return { data: normalizeDedicadoAderencia(parsedData), error: null };
 }

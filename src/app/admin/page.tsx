@@ -3,13 +3,13 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useRouter } from 'next/navigation';
-import { safeRpc } from '@/lib/rpcWrapper';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { AdminLoadingSkeleton } from '@/components/admin/AdminLoadingSkeleton';
 import { useAdminData } from '@/hooks/auth/useAdminData';
 import { UserProfile } from '@/hooks/auth/types';
 import { useOrganizations } from '@/hooks/auth/useOrganizations';
 import { AdminContent } from '@/components/admin/AdminContent';
+import { getAppApiData } from '@/utils/app/fetchAppApi';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -55,10 +55,7 @@ export default function AdminPage() {
       return;
     }
 
-    const { data: profile, error } = await safeRpc<UserProfile>('get_current_user_profile', {}, {
-      timeout: 10000,
-      validateParams: false
-    });
+    const { data: profile, error } = await getAppApiData<UserProfile>('/api/app/current-user-profile');
 
     if (error || !profile?.is_admin) {
       router.push('/');

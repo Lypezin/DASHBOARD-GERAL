@@ -4,6 +4,11 @@ import { safeLog } from '@/lib/errorHandler';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
+export type FiltroBarChangeHandler = (
+    key: keyof Filters,
+    rawValue: string | null
+) => void;
+
 export function useFiltroBar({
     filters,
     setFilters,
@@ -13,7 +18,7 @@ export function useFiltroBar({
     setFilters: React.Dispatch<React.SetStateAction<Filters>>;
     currentUser: CurrentUser | null;
 }) {
-    const handleChange = useCallback((key: keyof Filters, rawValue: string | null) => {
+    const handleChange = useCallback<FiltroBarChangeHandler>((key, rawValue) => {
         setFilters((prev) => {
             let processedValue: string | number | null = null;
             if (rawValue && rawValue !== '') {

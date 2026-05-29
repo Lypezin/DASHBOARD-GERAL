@@ -1,8 +1,8 @@
 import type { User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
-import { safeRpc } from '@/lib/rpcWrapper';
 import type { CurrentUser } from '@/types';
+import { getAppApiData } from '@/utils/app/fetchAppApi';
 import { fetchOrganizationData } from '../hooks/organizationDataHelper';
 import type { Organization } from '../organizationTypes';
 import type { BootstrapProfile, AppBootstrapState } from './types';
@@ -28,10 +28,7 @@ export async function fetchProfileWithRetry(): Promise<BootstrapProfile | null> 
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
-      const { data, error } = await safeRpc<BootstrapProfile>('get_current_user_profile', {}, {
-        timeout: 10000,
-        validateParams: false,
-      });
+      const { data, error } = await getAppApiData<BootstrapProfile>('/api/app/current-user-profile');
 
       if (!error && data) {
         return data;

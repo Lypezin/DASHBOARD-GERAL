@@ -4,7 +4,7 @@
  */
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
-import { safeRpc } from '@/lib/rpcWrapper';
+import { getAppApiData } from '@/utils/app/fetchAppApi';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -38,14 +38,11 @@ export async function getCurrentUserOrganizationId(): Promise<string | null> {
         }
 
         // Se não tiver no metadata, buscar do perfil
-        const { data: profile, error: profileError } = await safeRpc<{
+        const { data: profile, error: profileError } = await getAppApiData<{
             organization_id?: string | null;
             is_admin?: boolean;
             role?: string;
-        }>('get_current_user_profile', {}, {
-            timeout: 5000,
-            validateParams: false
-        });
+        }>('/api/app/current-user-profile');
 
         if (profileError || !profile) {
             if (IS_DEV) {

@@ -7,7 +7,6 @@ import { AnaliseTable } from '@/components/analise/AnaliseTable';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { cn } from '@/lib/utils';
 import { safeLog } from '@/lib/errorHandler';
-import { RPC_TIMEOUTS } from '@/constants/config';
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
 import { formatarHorasParaHMS } from '@/utils/formatters';
@@ -23,12 +22,10 @@ import {
 } from './dedicado/metrics';
 import {
   buildDedicadoFilterPayload,
-  callRpcWithFallback,
-  omitPayloadKeys,
-  shouldFallbackOnLegacySummary,
 } from './dedicado/rpcFallback';
 import type { AderenciaDiaOrigem, AderenciaOrigem, CurrentUser, Entregador } from '@/types';
 import type { FilterPayload } from '@/types/filters';
+import { fetchDedicadoApi } from '@/utils/dedicado/fetchDedicadoApi';
 
 type DedicadoSubTab = 'dashboard' | 'entregadores' | 'ranking' | 'resumo' | 'dia_origem';
 
@@ -67,12 +64,19 @@ interface DedicadoOrigensPayload {
   };
 }
 
+type DedicadoDiaOrigemRow = AderenciaDiaOrigem & {
+  dia_semana?: string;
+  dia_da_semana?: string;
+  data?: string;
+  data_do_periodo?: string;
+};
+
 function buildDayDateMap(diaOrigem: AderenciaDiaOrigem[], filterPayload: FilterPayload) {
   const map: Record<string, string> = {};
 
-  diaOrigem.forEach((dia) => {
-    const dayName = dia.dia || (dia as any).dia_semana || (dia as any).dia_da_semana;
-    const rawDate = (dia as any).data || (dia as any).data_do_periodo;
+  (diaOrigem as DedicadoDiaOrigemRow[]).forEach((dia) => {
+    const dayName = dia.dia || dia.dia_semana || dia.dia_da_semana;
+    const rawDate = dia.data || dia.data_do_periodo;
     if (!dayName || !rawDate || typeof rawDate !== 'string') return;
 
     const normalizedKey = dayName.split('-')[0].trim().toLowerCase()
@@ -151,6 +155,11 @@ const DedicadoView = React.memo(function DedicadoView({
     return buildDedicadoFilterPayload(dedicatedPayload);
   }, [dedicatedPayload]);
   const origemPayloadKey = React.useMemo(() => JSON.stringify(origemPayload), [origemPayload]);
+  const origemOrganizationId = React.useMemo(() => {
+    return typeof origemPayload.p_organization_id === 'string'
+      ? origemPayload.p_organization_id.trim()
+      : '';
+  }, [origemPayload.p_organization_id]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -162,7 +171,7 @@ const DedicadoView = React.memo(function DedicadoView({
         return;
       }
 
-      if (typeof origemPayload.p_organization_id !== 'string' || origemPayload.p_organization_id.trim().length === 0) {
+      if (!origemOrganizationId) {
         setDedicadoLoading(false);
         setDedicadoError('Selecione uma organizacao para carregar os dados do DEDICADO.');
         setDedicadoData({ origem: [], dia_origem: [] });
@@ -178,17 +187,7 @@ const DedicadoView = React.memo(function DedicadoView({
           ...requestPayload,
           p_include_dia_origem: shouldLoadDiaOrigem,
         };
-        const { data, error } = await callRpcWithFallback<DedicadoOrigensPayload>({
-          primaryName: 'dashboard_dedicado_origens_v2',
-          fallbackName: shouldLoadDiaOrigem ? undefined : 'dashboard_dedicado_origens',
-          payload: requestWithMode,
-          options: {
-            timeout: RPC_TIMEOUTS.LONG,
-            validateParams: false,
-          },
-          shouldFallback: (rpcError) => shouldFallbackOnLegacySummary(rpcError, 'dashboard_dedicado_origens_v2'),
-          prepareFallbackPayload: (payload) => omitPayloadKeys(payload, ['p_semanas', 'p_include_dia_origem']),
-        });
+        const { data, error } = await fetchDedicadoApi<DedicadoOrigensPayload>('summary', requestWithMode);
 
         if (cancelled) return;
 
@@ -227,7 +226,7 @@ const DedicadoView = React.memo(function DedicadoView({
     return () => {
       cancelled = true;
     };
-  }, [origemPayloadKey, shouldLoadDiaOrigem, shouldLoadOrigemSummary]);
+  }, [origemOrganizationId, origemPayloadKey, shouldLoadDiaOrigem, shouldLoadOrigemSummary]);
 
   const entregadores = React.useMemo(
     () => entregadoresData?.entregadores || [],
@@ -569,7 +568,7 @@ function DedicadoDashboard({
   );
 }
 
-function DedicadoResumo({ rows, loading, error }: { rows: any[]; loading: boolean; error?: string | null }) {
+function DedicadoResumo({ rows, loading, error }: { rows: DedicadoOrigemRow[]; loading: boolean; error?: string | null }) {
   if (loading) return <DashboardSkeleton contentOnly />;
 
   return (

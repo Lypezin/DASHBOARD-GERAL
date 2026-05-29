@@ -1,5 +1,5 @@
-import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
+import { getAppApiData, postAppApiData } from '@/utils/app/fetchAppApi';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -8,7 +8,7 @@ export async function fetchUserProfile() {
     let profileError: any = null;
 
     try {
-        const result = await supabase.rpc('get_current_user_profile') as { data: any; error: any };
+        const result = await getAppApiData<any>('/api/app/current-user-profile');
         profile = result.data;
         profileError = result.error;
     } catch (err) {
@@ -19,7 +19,7 @@ export async function fetchUserProfile() {
     if (profileError && !profile) {
         await new Promise(resolve => setTimeout(resolve, 1000));
         try {
-            const retryResult = await supabase.rpc('get_current_user_profile') as { data: any; error: any };
+            const retryResult = await getAppApiData<any>('/api/app/current-user-profile');
             profile = retryResult.data;
             profileError = retryResult.error;
         } catch (retryErr) {
@@ -32,21 +32,17 @@ export async function fetchUserProfile() {
 
 export async function logLoginActivity(userId: string) {
     try {
-        const { error: rpcError } = await supabase.rpc('registrar_atividade', {
-            p_session_id: userId,
-            p_action_type: 'login',
-            p_action_details: 'Fez login no sistema',
-            p_tab_name: 'dashboard',
-            p_filters_applied: null
+        const { error: rpcError } = await postAppApiData<null>('/api/app/activity', {
+            sessionId: userId,
+            actionType: 'login',
+            description: 'Fez login no sistema',
+            tabName: 'dashboard',
+            filtersApplied: null
         });
 
         if (rpcError) {
-            const errorCode = (rpcError as any)?.code || '';
-            const errorMessage = String((rpcError as any)?.message || '');
-            const is404 = errorCode === 'PGRST116' || errorCode === '42883' ||
-                errorCode === 'PGRST204' ||
-                errorMessage.includes('404') ||
-                errorMessage.includes('not found');
+            const errorMessage = String(rpcError || '');
+            const is404 = errorMessage.includes('404') || errorMessage.includes('not found');
 
             if (!is404 && IS_DEV) {
                 safeLog.warn('Erro ao registrar atividade de login (não bloqueante):', rpcError);

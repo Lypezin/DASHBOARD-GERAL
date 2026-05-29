@@ -1,11 +1,10 @@
 import { safeLog } from '@/lib/errorHandler';
-import { safeRpc } from '@/lib/rpcWrapper';
 import { is500Error, isRateLimitError } from '@/lib/rpcErrorHandler';
 import { UtrData } from '@/types';
-import { RPC_TIMEOUTS } from '@/constants/config';
 import { fetchUtrFallback } from '../fallbacks';
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
+import { fetchDashboardDataApi } from '@/utils/dashboard/fetchDashboardDataApi';
 
 interface FetchOptions {
     filterPayload: FilterPayload;
@@ -28,10 +27,7 @@ export async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrDa
         }
     }
 
-    const result = await safeRpc<any>('calcular_utr_completo', utrPayload as any, {
-        timeout: RPC_TIMEOUTS.DEFAULT,
-        validateParams: true
-    });
+    const result = await fetchDashboardDataApi<any>('utr', utrPayload);
 
     if (result.error) {
         const is500 = is500Error(result.error);

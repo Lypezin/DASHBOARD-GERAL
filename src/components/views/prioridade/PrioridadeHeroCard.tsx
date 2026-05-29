@@ -1,5 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
+import type { LucideIcon } from 'lucide-react';
 
 export const PrioridadeHeroCard = ({
     title,
@@ -14,7 +15,7 @@ export const PrioridadeHeroCard = ({
     title: string;
     value: string;
     subtext: string;
-    icon: any;
+    icon: LucideIcon;
     colorFrom: string;
     colorTo: string;
     iconColor: string;

@@ -3,6 +3,10 @@ import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 
 export interface TagData { id: string; tag_name: string; color: string; }
+interface TagAssignmentRow {
+    tag_id: string;
+    entregador_tags: TagData | null;
+}
 
 export const tagColors = ['#6366f1', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6'];
 
@@ -18,7 +22,12 @@ export function useTagManager(entregadorId: string, organizationId?: string, onU
         try {
             const { data: assigned } = await supabase.from('entregador_tag_assignments')
                 .select('tag_id, entregador_tags(id, tag_name, color)').eq('entregador_id', entregadorId);
-            if (assigned) setTags(assigned.map((a: any) => a.entregador_tags).filter(Boolean));
+            if (assigned) {
+                const assignedTags = (assigned as unknown as TagAssignmentRow[])
+                    .map((assignment) => assignment.entregador_tags)
+                    .filter((tag): tag is TagData => Boolean(tag));
+                setTags(assignedTags);
+            }
 
             const { data: allTags } = await supabase.from('entregador_tags').select('id, tag_name, color').order('tag_name');
             if (allTags) setAvailableTags(allTags);

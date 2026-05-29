@@ -1,13 +1,12 @@
 import { safeLog } from '@/lib/errorHandler';
-import { safeRpc } from '@/lib/rpcWrapper';
 import { is500Error, isRateLimitError, isTimeoutError } from '@/lib/rpcErrorHandler';
 import { ValoresEntregador } from '@/types';
-import { RPC_TIMEOUTS } from '@/constants/config';
 import { fetchValoresFallback } from '../fallbacks';
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
 import { buildFilterPayload } from './fetcherUtils';
 import { fetchValoresDetalhados } from './valoresDetalhadosFetcher';
+import { fetchDashboardDataApi } from '@/utils/dashboard/fetchDashboardDataApi';
 
 // Re-export specific fetchers
 export { fetchValoresDetalhados } from './valoresDetalhadosFetcher';
@@ -31,10 +30,7 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
     const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id'];
     const listarValoresPayload = buildFilterPayload(filterPayload, allowedParams);
 
-    const result = await safeRpc<any>('listar_valores_entregadores', listarValoresPayload, {
-        timeout: RPC_TIMEOUTS.LONG,
-        validateParams: false
-    });
+    const result = await fetchDashboardDataApi<any>('valores', listarValoresPayload);
 
     if (result.error) {
         const is500 = is500Error(result.error);

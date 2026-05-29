@@ -1,7 +1,7 @@
 
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
-import { safeRpc } from '@/lib/rpcWrapper';
+import { getAppApiData } from '@/utils/app/fetchAppApi';
 import { UserProfile } from './usePerfilData';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -10,10 +10,7 @@ export async function fetchUserProfile() {
     const { data: { user: authUser } } = await supabase.auth.getUser();
     if (!authUser) return { authUser: null, profile: null, error: null };
 
-    const { data: profile, error: profileError } = await safeRpc<UserProfile>('get_current_user_profile', {}, {
-        timeout: 10000,
-        validateParams: false
-    });
+    const { data: profile, error: profileError } = await getAppApiData<UserProfile>('/api/app/current-user-profile');
 
     return { authUser, profile, error: profileError };
 }

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Entregador } from '@/types';
-import { HealthBadge } from '@/components/ui/HealthBadge';
+import { HealthBadge, type HealthScore } from '@/components/ui/HealthBadge';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 
 export type SortMetric = 'aderencia' | 'completadas' | 'horas' | 'rejeicao';
@@ -49,7 +49,7 @@ export const PerformerRow = ({
     metric: SortMetric;
     rank: number;
     highlightTop?: boolean;
-    hs: any;
+    hs: HealthScore;
 }) => (
     <div className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">
         <span

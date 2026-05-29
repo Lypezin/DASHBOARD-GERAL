@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
+import { getAppApiData } from '@/utils/app/fetchAppApi';
 
 interface CityUpdateInfo {
   city: string;
@@ -76,7 +76,7 @@ export function useCityLastUpdates() {
       if (!globalPromise) {
         globalPromise = (async () => {
           try {
-            const { data, error } = await supabase.rpc('get_city_last_updates');
+            const { data, error } = await getAppApiData<CityUpdateInfo[]>('/api/app/city-updates');
             if (error) {
               safeLog.error('Error fetching city updates:', error);
               globalPromise = null;

@@ -3,15 +3,36 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Entregador, EntregadoresData } from '@/types';
 import { calcularPercentualAceitas, calcularPercentualCompletadas } from '../EntregadoresUtils';
 
+type EntregadoresSortField = keyof Entregador | 'percentual_aceitas' | 'percentual_completadas';
+
+const VALID_SORT_FIELDS: EntregadoresSortField[] = [
+    'id_entregador',
+    'nome_entregador',
+    'corridas_ofertadas',
+    'corridas_aceitas',
+    'corridas_rejeitadas',
+    'corridas_completadas',
+    'aderencia_percentual',
+    'rejeicao_percentual',
+    'total_segundos',
+    'percentual_aceitas',
+    'percentual_completadas',
+];
+
 export function useEntregadoresMainSort(entregadoresData: EntregadoresData | null, searchTerm: string) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
 
-    const getInitialSortField = () => (searchParams.get('ent_sort') as any) || 'aderencia_percentual';
+    const getInitialSortField = (): EntregadoresSortField => {
+        const sort = searchParams.get('ent_sort');
+        return sort && VALID_SORT_FIELDS.includes(sort as EntregadoresSortField)
+            ? (sort as EntregadoresSortField)
+            : 'aderencia_percentual';
+    };
     const getInitialSortDirection = () => (searchParams.get('ent_dir') as 'asc' | 'desc') || 'desc';
 
-    const [sortField, setSortField] = useState<keyof Entregador | 'percentual_aceitas' | 'percentual_completadas'>(getInitialSortField);
+    const [sortField, setSortField] = useState<EntregadoresSortField>(getInitialSortField);
     const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(getInitialSortDirection);
     const [showInactiveOnly, setShowInactiveOnly] = useState(false);
 
@@ -56,7 +77,7 @@ export function useEntregadoresMainSort(entregadoresData: EntregadoresData | nul
 
     }, [entregadoresData, searchTerm, sortField, sortDirection, showInactiveOnly]);
 
-    const handleSort = (field: keyof Entregador | 'percentual_aceitas' | 'percentual_completadas') => {
+    const handleSort = (field: EntregadoresSortField) => {
         if (sortField === field) setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
         else { setSortField(field); setSortDirection('desc'); }
     };

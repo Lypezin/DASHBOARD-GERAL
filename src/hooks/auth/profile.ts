@@ -1,8 +1,7 @@
-import { safeRpc } from '@/lib/rpcWrapper';
 import { safeLog } from '@/lib/errorHandler';
 import { signOutAndRedirect } from '@/utils/authHelpers';
-import { RPC_TIMEOUTS } from '@/constants/config';
 import { CurrentUser } from '@/types';
+import { getAppApiData } from '@/utils/app/fetchAppApi';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -16,10 +15,10 @@ export async function fetchAndValidateProfile(
     try {
         // ... (lines 17-74 are unchanged)
 
-        const { data: profile, error: profileError } = await safeRpc<{
+        const { data: profile, error: profileError } = await getAppApiData<{
             is_approved: boolean; is_admin: boolean; assigned_pracas: string[];
             role?: 'admin' | 'marketing' | 'user' | 'master'; organization_id?: string | null;
-        }>('get_current_user_profile', {}, { timeout: RPC_TIMEOUTS.FAST, validateParams: false });
+        }>('/api/app/current-user-profile');
 
         if (profileError) {
             if (IS_DEV) {

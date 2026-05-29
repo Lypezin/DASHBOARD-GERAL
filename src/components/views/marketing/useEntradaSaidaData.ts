@@ -1,8 +1,7 @@
 import { useState, useEffect } from 'react';
-import { safeRpc } from '@/lib/rpcWrapper';
-import { RPC_TIMEOUTS } from '@/constants/config';
 import { safeLog } from '@/lib/errorHandler';
 import { CITY_DB_MAPPING } from '@/constants/marketing';
+import { fetchFluxoSemanal } from './api/fetchFluxoSemanal';
 import { processFluxoData, FluxoEntregadores } from './utils/processFluxoData';
 
 const CACHE_TTL_MS = 1000 * 60 * 5;
@@ -62,11 +61,11 @@ export function useEntradaSaidaData({
 
             try {
                 const filteredData = await fetchFluxoWithDedupe(cacheKey, {
-                    p_data_inicial: start,
-                    p_data_final: end,
-                    p_organization_id: organizationId,
-                    p_praca: dbPraca,
-                    p_include_names: false
+                    dataInicial: start,
+                    dataFinal: end,
+                    organizationId,
+                    praca: dbPraca,
+                    includeNames: false,
                 });
 
                 if (cancelled) return;
@@ -120,7 +119,15 @@ function getCachedFluxo(cacheKey: string) {
     return cached.data;
 }
 
-async function fetchFluxoWithDedupe(cacheKey: string, params: Record<string, unknown>) {
+type FluxoFetchParams = {
+    dataFinal: string;
+    dataInicial: string;
+    includeNames?: boolean;
+    organizationId: string;
+    praca?: string | null;
+};
+
+async function fetchFluxoWithDedupe(cacheKey: string, params: FluxoFetchParams) {
     const activeRequest = inFlightRequests.get(cacheKey);
     if (activeRequest) return activeRequest;
 
@@ -132,15 +139,8 @@ async function fetchFluxoWithDedupe(cacheKey: string, params: Record<string, unk
     return request;
 }
 
-async function fetchFluxo(cacheKey: string, params: Record<string, unknown>) {
-    const { data: rpcData, error: rpcError } = await safeRpc<any[]>('get_fluxo_semanal', params, {
-        timeout: RPC_TIMEOUTS.LONG,
-        validateParams: false
-    });
-
-    if (rpcError) throw rpcError;
-
-    const rawData = Array.isArray(rpcData) ? rpcData : (rpcData || []);
+async function fetchFluxo(cacheKey: string, params: FluxoFetchParams) {
+    const rawData = await fetchFluxoSemanal(params);
     const filteredData = processFluxoData(rawData);
 
     fluxoCache.set(cacheKey, {

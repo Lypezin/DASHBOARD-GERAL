@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabaseClient';
-import { safeRpc } from '@/lib/rpcWrapper';
 import { safeLog } from '@/lib/errorHandler';
+import { getAppApiData } from '@/utils/app/fetchAppApi';
 
 interface UserProfile {
     is_admin: boolean;
@@ -16,10 +16,7 @@ export async function checkAdminStatus() {
             return { authorized: false, user: null, redirect: '/login' };
         }
 
-        const profileResult = await safeRpc<UserProfile>('get_current_user_profile', {}, {
-            timeout: 8000,
-            validateParams: false
-        });
+        const profileResult = await getAppApiData<UserProfile>('/api/app/current-user-profile');
 
         const { data: profile, error } = profileResult;
 

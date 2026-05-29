@@ -1,10 +1,10 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { Badge, LeaderboardEntry } from '@/types/gamification';
 import { useGamificationCelebration } from '@/hooks/gamification/useGamificationCelebration';
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
+import { getAppApiData, postAppApiData } from '@/utils/app/fetchAppApi';
 
 export function useGamificationState() {
     const [badges, setBadges] = useState<Badge[]>([]);
@@ -17,7 +17,7 @@ export function useGamificationState() {
     const loginRegisteredRef = useRef<string | null>(null);
 
     const refreshLeaderboard = useCallback(async () => {
-        const { data } = await supabase.rpc('get_gamification_leaderboard');
+        const { data } = await getAppApiData<LeaderboardEntry[]>('/api/app/gamification');
         if (data) setLeaderboard(data);
     }, []);
 
@@ -49,7 +49,12 @@ export function useGamificationState() {
         if (!currentUser?.id) return;
 
         try {
-            const { data, error } = await supabase.rpc('register_interaction', { p_interaction_type: type });
+            const { data, error } = await postAppApiData<{
+                new_badge_slug: string;
+                new_badge_name: string;
+                new_badge_description: string;
+                new_badge_icon: string;
+            }[]>('/api/app/gamification', { type });
 
             if (error) {
                 safeLog.error('Error registering interaction:', error);
@@ -57,7 +62,7 @@ export function useGamificationState() {
             }
 
             if (data && data.length > 0) {
-                data.forEach((newBadge: any) => {
+                data.forEach((newBadge) => {
                     const badgeObj = {
                         slug: newBadge.new_badge_slug,
                         name: newBadge.new_badge_name,

@@ -14,13 +14,13 @@ interface StatProps {
 }
 
 export const EntradaSaidaRowStat: React.FC<StatProps> = ({ label, value, color, icon: Icon }) => (
-    <div className="flex flex-col items-center justify-center min-w-[80px]">
-        <span className={`text-[10px] uppercase font-bold tracking-wider ${color.textLight} mb-0.5`}>{label}</span>
+    <div className="flex min-w-[80px] flex-col items-center justify-center">
+        <span className={`mb-0.5 text-[10px] font-bold uppercase tracking-wider ${color.textLight}`}>{label}</span>
         <div className="flex items-center gap-1.5">
-            <div className={`p-1 rounded-full ${color.bg}`}>
-                <Icon className={`w-3 h-3 ${color.icon}`} />
+            <div className={`rounded-full p-1 ${color.bg}`}>
+                <Icon className={`h-3 w-3 ${color.icon}`} />
             </div>
-            <span className={`text-lg font-bold ${color.text} tabular-nums`}>{value}</span>
+            <span className={`text-base font-bold tabular-nums sm:text-lg ${color.text}`}>{value}</span>
         </div>
     </div>
 );

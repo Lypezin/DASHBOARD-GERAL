@@ -1,4 +1,3 @@
-
 import React, { useEffect, useMemo, useState } from 'react';
 import {
     Dialog,
@@ -13,10 +12,10 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Eye, ArrowUpRight, ArrowDownRight, RotateCcw } from 'lucide-react';
 import { MetricDetailList } from './MetricDetailList';
 import { DesistenciasList } from './DesistenciasList';
-import { safeRpc } from '@/lib/rpcWrapper';
-import { RPC_TIMEOUTS } from '@/constants/config';
 import { CITY_DB_MAPPING } from '@/constants/marketing';
 import { getDateRangeFromWeek } from '@/utils/timeHelpers';
+import { fetchFluxoSemanal } from '../api/fetchFluxoSemanal';
+import { getMetricDialogConfig } from '../utils/getMetricDialogConfig';
 
 interface MetricDetailDialogProps {
     type: 'entradas' | 'saidas' | 'retomada';
@@ -31,7 +30,17 @@ interface MetricDetailDialogProps {
     operacionalNovosNames?: string[];
 }
 
-import { getMetricDialogConfig } from '../utils/getMetricDialogConfig';
+type FluxoDetailRow = {
+    semana?: string;
+    nomes_entradas_mkt?: string[];
+    nomes_entradas_ops?: string[];
+    nomes_retomada_mkt?: string[];
+    nomes_retomada_ops?: string[];
+    nomes_saidas_mkt?: string[];
+    nomes_saidas_novos_mkt?: string[];
+    nomes_saidas_novos_ops?: string[];
+    nomes_saidas_ops?: string[];
+};
 
 export const MetricDetailDialog: React.FC<MetricDetailDialogProps> = ({
     type,
@@ -95,26 +104,25 @@ export const MetricDetailDialog: React.FC<MetricDetailDialogProps> = ({
             const range = getDateRangeFromWeek(Number(yearText), Number(weekText));
             const dbPraca = praca ? CITY_DB_MAPPING[praca] || praca : null;
 
-            const { data, error } = await safeRpc<any[]>('get_fluxo_semanal', {
-                p_data_inicial: range.start,
-                p_data_final: range.end,
-                p_organization_id: organizationId,
-                p_praca: dbPraca,
-                p_include_names: true
-            }, {
-                timeout: RPC_TIMEOUTS.LONG,
-                validateParams: false
-            });
+            let rows: FluxoDetailRow[] = [];
 
-            if (cancelled) return;
-
-            if (error) {
-                setDetailsError(error.message || 'Erro ao carregar nomes.');
-                setLoadingDetails(false);
+            try {
+                rows = await fetchFluxoSemanal<FluxoDetailRow>({
+                    dataInicial: range.start,
+                    dataFinal: range.end,
+                    organizationId,
+                    praca: dbPraca,
+                    includeNames: true,
+                });
+            } catch (error) {
+                if (!cancelled) {
+                    setDetailsError(error instanceof Error ? error.message : 'Erro ao carregar nomes.');
+                    setLoadingDetails(false);
+                }
                 return;
             }
 
-            const rows = Array.isArray(data) ? data : [];
+            if (cancelled) return;
             const item = rows.find((row) => row?.semana === semanaIso) || rows[0];
 
             if (!item) {
@@ -197,7 +205,7 @@ export const MetricDetailDialog: React.FC<MetricDetailDialogProps> = ({
     );
 };
 
-function getDetailsFromFluxoItem(type: 'entradas' | 'saidas' | 'retomada', item: any) {
+function getDetailsFromFluxoItem(type: 'entradas' | 'saidas' | 'retomada', item: FluxoDetailRow) {
     if (type === 'entradas') {
         return {
             marketingNames: item.nomes_entradas_mkt || [],

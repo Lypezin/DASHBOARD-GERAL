@@ -15,13 +15,14 @@ import {
 } from '@/config/dynamicImports';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import type { TabType } from '@/types';
+import type { DashboardViewRenderProps } from '@/components/dashboard/DashboardViewsRenderer';
 
 // Helper to determine if a chart is needed
 export const needsChartReady = (tab: TabType) => {
     return ['evolucao', 'comparacao', 'marketing_comparacao'].includes(tab);
 };
 
-export const renderActiveView = (activeTab: TabType, props: any) => {
+export const renderActiveView = (activeTab: TabType, props: DashboardViewRenderProps) => {
     switch (activeTab) {
         case 'dashboard':
             return (

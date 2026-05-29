@@ -1,10 +1,10 @@
 /** Hook dedicado para buscar dados do resumo semanal com filtro local de praca */
 import { useState, useEffect, useMemo } from 'react';
-import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { DELAYS } from '@/constants/config';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { mergeDriversAndPedidosData, DriversData, PedidosData } from '@/utils/data/driverTransformers';
+import { fetchDashboardDataApi } from '@/utils/dashboard/fetchDashboardDataApi';
 
 interface UseResumoLocalDataOptions {
     ano: number;
@@ -53,27 +53,28 @@ export function useResumoLocalData({ ano, pracas, activeTab, enabled = true }: U
                     safeLog.info('[useResumoLocalData] Fetching data:', params);
                 }
 
-                const [driversResult, pedidosResult] = await Promise.all([
-                    supabase.rpc('resumo_semanal_drivers', params),
-                    supabase.rpc('resumo_semanal_pedidos', params)
-                ]);
+                const { data, error } = await fetchDashboardDataApi<{
+                    drivers: DriversData[];
+                    pedidos: PedidosData[];
+                }>('resumo_local', params);
 
                 if (!mounted) return;
 
-                if (driversResult.error) {
-                    safeLog.error('[useResumoLocalData] Drivers RPC error:', driversResult.error);
-                }
-                if (pedidosResult.error) {
-                    safeLog.error('[useResumoLocalData] Pedidos RPC error:', pedidosResult.error);
+                if (error) {
+                    safeLog.error('[useResumoLocalData] API error:', error);
+                    setError(new Error(error.message || 'Erro ao carregar resumo semanal.'));
+                    setDriversData([]);
+                    setPedidosData([]);
+                    return;
                 }
 
                 if (process.env.NODE_ENV === 'development') {
-                    safeLog.info('[useResumoLocalData] Drivers data:', driversResult.data);
-                    safeLog.info('[useResumoLocalData] Pedidos data:', pedidosResult.data);
+                    safeLog.info('[useResumoLocalData] Drivers data:', data?.drivers);
+                    safeLog.info('[useResumoLocalData] Pedidos data:', data?.pedidos);
                 }
 
-                setDriversData(driversResult.data || []);
-                setPedidosData(pedidosResult.data || []);
+                setDriversData(Array.isArray(data?.drivers) ? data.drivers : []);
+                setPedidosData(Array.isArray(data?.pedidos) ? data.pedidos : []);
             } catch (err: unknown) {
                 if (!mounted) return;
                 safeLog.error('[useResumoLocalData] Error:', err);

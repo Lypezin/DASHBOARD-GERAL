@@ -1,12 +1,8 @@
 import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
-import { RPC_TIMEOUTS } from '@/constants/config';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import {
   buildDedicadoFilterPayload,
-  callRpcWithFallback,
-  omitPayloadKeys,
-  shouldFallbackOnLegacySummary,
 } from './rpcFallback';
 import {
   calculateAcceptanceRate,
@@ -18,6 +14,7 @@ import {
 } from './metrics';
 import type { Entregador } from '@/types';
 import type { FilterPayload } from '@/types/filters';
+import { fetchDedicadoApi } from '@/utils/dedicado/fetchDedicadoApi';
 
 interface DedicadoExportPayload {
   totais?: {
@@ -95,28 +92,11 @@ export async function exportarDedicadoParaExcel(filterPayload: FilterPayload): P
     const workbook = XLSX.utils.book_new();
 
     const [summaryResult, entregadoresResult] = await Promise.all([
-      callRpcWithFallback<DedicadoExportPayload>({
-        primaryName: 'dashboard_dedicado_origens_v2',
-        fallbackName: 'dashboard_dedicado_origens',
-        payload: {
-          ...rpcPayload,
-          p_include_dia_origem: true,
-        },
-        options: {
-          timeout: RPC_TIMEOUTS.LONG,
-          validateParams: false,
-        },
-        shouldFallback: (rpcError) => shouldFallbackOnLegacySummary(rpcError, 'dashboard_dedicado_origens_v2'),
-        prepareFallbackPayload: (payload) => omitPayloadKeys(payload, ['p_semanas', 'p_include_dia_origem']),
+      fetchDedicadoApi<DedicadoExportPayload>('summary', {
+        ...rpcPayload,
+        p_include_dia_origem: true,
       }),
-      callRpcWithFallback<DedicadoEntregadoresPayload>({
-        primaryName: 'listar_entregadores_origens_v2',
-        payload: rpcPayload,
-        options: {
-          timeout: RPC_TIMEOUTS.LONG,
-          validateParams: false,
-        },
-      }),
+      fetchDedicadoApi<DedicadoEntregadoresPayload>('entregadores', rpcPayload),
     ]);
 
     if (summaryResult.error) throw new Error(summaryResult.error.message || 'Erro ao buscar resumo do DEDICADO');

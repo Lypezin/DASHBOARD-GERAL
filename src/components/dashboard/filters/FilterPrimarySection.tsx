@@ -3,6 +3,7 @@ import FiltroDateRange from '@/components/FiltroDateRange';
 import FiltroMultiSelect from '@/components/FiltroMultiSelect';
 import FiltroSelect from '@/components/FiltroSelect';
 import { Filters } from '@/types';
+import type { FiltroBarChangeHandler } from '@/hooks/ui/useFiltroBar';
 
 interface FilterPrimarySectionProps {
     isModoIntervalo: boolean;
@@ -10,7 +11,7 @@ interface FilterPrimarySectionProps {
     setFilters: React.Dispatch<React.SetStateAction<Filters>>;
     anosOptions: { value: string; label: string }[];
     semanasOptions: { value: string; label: string }[];
-    handleChange: (field: keyof Filters, value: any) => void;
+    handleChange: FiltroBarChangeHandler;
 }
 
 export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({

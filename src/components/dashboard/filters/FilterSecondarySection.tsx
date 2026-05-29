@@ -2,6 +2,7 @@ import React from 'react';
 import FiltroSelect from '@/components/FiltroSelect';
 import FiltroMultiSelect from '@/components/FiltroMultiSelect';
 import { Filters, FilterOption } from '@/types';
+import type { FiltroBarChangeHandler } from '@/hooks/ui/useFiltroBar';
 
 interface FilterSecondarySectionProps {
     filters: Filters;
@@ -10,7 +11,7 @@ interface FilterSecondarySectionProps {
     subPracas: FilterOption[];
     origens: FilterOption[];
     turnos: FilterOption[];
-    handleChange: (field: keyof Filters, value: any) => void;
+    handleChange: FiltroBarChangeHandler;
     shouldDisablePracaFilter: boolean;
 }
 

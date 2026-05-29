@@ -40,6 +40,8 @@ interface DashboardViewsRendererProps {
   aderenciaDiaOrigem: AderenciaDiaOrigem[];
 }
 
+export type DashboardViewRenderProps = DashboardViewsRendererProps;
+
 
 export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer(props: DashboardViewsRendererProps) {
   const { activeTab, chartReady } = props;

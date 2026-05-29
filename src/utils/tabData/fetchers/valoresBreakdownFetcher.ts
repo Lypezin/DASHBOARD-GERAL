@@ -1,11 +1,10 @@
 import { safeLog } from '@/lib/errorHandler';
-import { safeRpc } from '@/lib/rpcWrapper';
 import { is500Error, isTimeoutError } from '@/lib/rpcErrorHandler';
-import { RPC_TIMEOUTS } from '@/constants/config';
 import { ValoresBreakdown } from '@/types/financeiro';
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
 import { buildFilterPayload } from './fetcherUtils';
+import { fetchDashboardDataApi } from '@/utils/dashboard/fetchDashboardDataApi';
 
 export interface FetchOptions {
     filterPayload: FilterPayload;
@@ -20,10 +19,7 @@ export async function fetchValoresBreakdown(options: FetchOptions): Promise<{ da
     const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id'];
     const breakdownPayload = buildFilterPayload(filterPayload, allowedParams);
 
-    const result = await safeRpc<ValoresBreakdown>('obter_resumo_valores_breakdown', breakdownPayload, {
-        timeout: RPC_TIMEOUTS.LONG,
-        validateParams: false
-    });
+    const result = await fetchDashboardDataApi<ValoresBreakdown>('valores_breakdown', breakdownPayload);
 
     if (result.error) {
         if (is500Error(result.error) || isTimeoutError(result.error)) {

@@ -63,20 +63,20 @@ const FiltroBar = React.memo(function FiltroBar({
 
   return (
     <div className="relative z-10 font-sans">
-      <div className="flex flex-col lg:flex-row lg:items-end gap-4">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-end">
 
         {/* Toggle Mode Swtich - Now Integrated */}
-        <div className="mb-0.5 min-w-fit">
+        <div className="mb-0.5 min-w-fit self-start">
           <FilterModeSwitch
             isModoIntervalo={showDateRangeFilters}
             onToggle={handleModeToggle}
           />
         </div>
 
-        <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 hidden lg:block mx-2 self-center" />
+        <div className="mx-2 hidden h-8 w-px self-center bg-slate-200 dark:bg-slate-700 xl:block" />
 
         {/* Filters Group */}
-        <div className="flex-1 flex flex-wrap items-end gap-3">
+        <div className="flex flex-1 flex-wrap items-end gap-3 min-w-0">
           <FilterPrimarySection
             isModoIntervalo={showDateRangeFilters}
             filters={filters}
@@ -100,7 +100,9 @@ const FiltroBar = React.memo(function FiltroBar({
 
         {/* Clear Button - Compact */}
         {hasActiveFilters && (
-          <FilterClearButton onClear={handleClearFiltersClick} />
+          <div className="self-start xl:self-auto">
+            <FilterClearButton onClear={handleClearFiltersClick} />
+          </div>
         )}
       </div>
     </div>

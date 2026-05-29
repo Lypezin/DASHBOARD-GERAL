@@ -1,23 +1,7 @@
-import { safeRpc } from '@/lib/rpcWrapper';
-
 type RpcErrorLike = {
   code?: string | null;
   message?: string | null;
 } | null | undefined;
-
-type SafeRpcOptions = {
-  timeout: number;
-  validateParams: boolean;
-};
-
-type FallbackConfig<T> = {
-  primaryName: string;
-  fallbackName?: string;
-  payload: Record<string, unknown>;
-  options: SafeRpcOptions;
-  shouldFallback?: (error: RpcErrorLike) => boolean;
-  prepareFallbackPayload?: (payload: Record<string, unknown>) => Record<string, unknown>;
-};
 
 const DEDICADO_FILTER_KEYS = [
   'p_ano',
@@ -77,24 +61,4 @@ export function shouldFallbackOnLegacySummary(error: RpcErrorLike, primaryName: 
     || errorMessage.includes('timeout')
     || errorMessage.includes('internal server error')
   );
-}
-
-export async function callRpcWithFallback<T>({
-  primaryName,
-  fallbackName,
-  payload,
-  options,
-  shouldFallback,
-  prepareFallbackPayload,
-}: FallbackConfig<T>) {
-  let result = await safeRpc<T>(primaryName, payload, options);
-
-  if (!fallbackName || !result.error || !shouldFallback?.(result.error)) {
-    return result;
-  }
-
-  const fallbackPayload = prepareFallbackPayload ? prepareFallbackPayload(payload) : payload;
-  result = await safeRpc<T>(fallbackName, fallbackPayload, options);
-
-  return result;
 }

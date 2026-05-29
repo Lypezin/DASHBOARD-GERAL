@@ -1,9 +1,10 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { LucideIcon } from 'lucide-react';
 
 interface StatCardProps {
     title: string;
-    icon: any;
+    icon: LucideIcon;
     value: string;
     colorClass: string;
     bgClass: string;

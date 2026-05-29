@@ -10,19 +10,16 @@ import { TagManager } from './TagManager';
 import { MetaEditor } from './MetaEditor';
 import { useEntregadorDetail } from './hooks/useEntregadorDetail';
 import { safeLog } from '@/lib/errorHandler';
-import { RPC_TIMEOUTS } from '@/constants/config';
 import { cn } from '@/lib/utils';
 import {
     buildDedicadoFilterPayload,
-    callRpcWithFallback,
-    omitPayloadKeys,
-    shouldFallbackOnMissingFunction,
 } from '../dedicado/rpcFallback';
 import {
     calculateNormalAderencia,
     normalizeMetricNumber,
 } from '../dedicado/metrics';
 import type { FilterPayload } from '@/types/filters';
+import { fetchDedicadoApi } from '@/utils/dedicado/fetchDedicadoApi';
 
 interface OrigemBreakdownRow {
     origem: string;
@@ -87,17 +84,7 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
 
             try {
                 const payload = JSON.parse(origemPayloadKey) as Record<string, unknown>;
-                const { data, error } = await callRpcWithFallback<OrigemBreakdownPayload>({
-                    primaryName: 'dedicado_entregador_origens_v2',
-                    fallbackName: 'dedicado_entregador_origens',
-                    payload,
-                    options: {
-                        timeout: RPC_TIMEOUTS.DEFAULT,
-                        validateParams: false,
-                    },
-                    shouldFallback: (rpcError) => shouldFallbackOnMissingFunction(rpcError, 'dedicado_entregador_origens_v2'),
-                    prepareFallbackPayload: (requestPayload) => omitPayloadKeys(requestPayload, ['p_semanas']),
-                });
+                const { data, error } = await fetchDedicadoApi<OrigemBreakdownPayload>('entregador', payload);
 
                 if (cancelled) return;
 
