@@ -27,10 +27,10 @@ export const EntregadoresMainSearch = React.memo(function EntregadoresMainSearch
                         placeholder="Pesquisar por nome ou ID do entregador..."
                         value={searchTerm}
                         onChange={(e) => onSearchChange(e.target.value)}
-                        className="w-full pl-9 pr-28 py-2 text-sm rounded-md border border-slate-200 bg-slate-50 focus:bg-white focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 transition-[background-color,border-color,box-shadow] duration-150 dark:border-slate-700 dark:bg-slate-800 dark:text-white"
+                        className="w-full rounded-md border border-slate-200 bg-slate-50 py-2 pl-9 pr-4 text-sm transition-[background-color,border-color,box-shadow] duration-150 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white sm:pr-28"
                     />
                     {isSearching ? (
-                        <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-blue-600 dark:text-blue-300">
+                        <span className="mt-1 block text-right text-xs font-medium text-blue-600 dark:text-blue-300 sm:absolute sm:right-3 sm:top-1/2 sm:mt-0 sm:-translate-y-1/2">
                             Atualizando...
                         </span>
                     ) : null}

@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
+import { safeLog } from '@/lib/errorHandler';
 
 const HEARTBEAT_INTERVAL_MS = 180000;
 
@@ -74,15 +75,15 @@ export function UserActivityTracker() {
                             .update({ last_seen: new Date().toISOString() })
                             .eq('id', visitIdRef.current)
                             .then(({ error: heartbeatError }) => {
-                                if (heartbeatError) console.error('Heartbeat error:', heartbeatError);
+                                if (heartbeatError) safeLog.error('Heartbeat error:', heartbeatError);
                             });
                     }, HEARTBEAT_INTERVAL_MS);
                 } else {
-                    console.error('Failed to start activity session:', error);
+                    safeLog.error('Failed to start activity session:', error);
                     visitIdRef.current = null;
                 }
             } catch (error) {
-                console.error('Error in UserActivityTracker:', error);
+                safeLog.error('Error in UserActivityTracker:', error);
             }
         };
 

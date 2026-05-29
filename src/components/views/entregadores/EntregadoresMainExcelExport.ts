@@ -59,7 +59,7 @@ export async function exportarEntregadoresMainParaExcel(entregadores: Entregador
         // Download
         XLSX.writeFile(wb, nomeArquivo);
 
-        if (IS_DEV) safeLog.info(`✅ Entregadores Operacional exportado: ${nomeArquivo}`);
+        if (IS_DEV) safeLog.info(`Entregadores Operacional exportado: ${nomeArquivo}`);
 
     } catch (error) {
         safeLog.error('Erro ao exportar entregadores operacional:', error);

@@ -5,6 +5,7 @@ import { CACHE, DELAYS } from '@/constants/config';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import type { FilterPayload } from '@/types/filters';
 import { fetchTabData } from '@/utils/tabData/fetchTabData';
+import { createRequestKey } from '@/utils/request/createRequestKey';
 import { processTabSuccessData, getTabFallbackData, TabData } from './tabDataHelpers';
 
 const SELF_MANAGED_TABS = ['evolucao', 'dashboard', 'analise', 'comparacao', 'marketing'];
@@ -57,7 +58,7 @@ export function useTabData(
     getCacheKey: (params) => `${params.tab}-${params.filterPayloadKey}`,
   });
 
-  const filterPayloadStr = useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
+  const filterPayloadStr = useMemo(() => createRequestKey(filterPayload), [filterPayload]);
 
   const fetchData = useCallback(async (tab: string, payload: FilterPayload, filterPayloadKey: string, fetchId: number) => {
     const tabScope = getTabScope(tab);

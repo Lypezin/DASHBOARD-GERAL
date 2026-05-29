@@ -5,6 +5,7 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 import { safeLog } from '@/lib/errorHandler';
 import type { EvolucaoMensal, EvolucaoSemanal, UtrSemanal } from '@/types';
 import type { FilterPayload } from '@/types/filters';
+import { createRequestKey } from '@/utils/request/createRequestKey';
 import { fetchDashboardEvolucaoData } from './utils/fetchEvolucao';
 
 interface UseDashboardEvolucaoOptions {
@@ -58,7 +59,7 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
 
   const { isLoading: isOrgLoading } = useOrganization();
   const lastFetchSignature = useRef<string | null>(null);
-  const filterPayloadKey = JSON.stringify(filterPayload);
+  const filterPayloadKey = createRequestKey(filterPayload);
   const stableFilterPayload = useMemo(() => JSON.parse(filterPayloadKey) as FilterPayload, [filterPayloadKey]);
 
   useEffect(() => {
@@ -70,7 +71,7 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
 
     pruneEvolucaoCache();
 
-    const currentSignature = JSON.stringify({ filterPayload: stableFilterPayload, anoEvolucao });
+    const currentSignature = createRequestKey({ filterPayload: stableFilterPayload, anoEvolucao });
     const cachedData = getCachedEvolucao(currentSignature);
 
     if (cachedData) {

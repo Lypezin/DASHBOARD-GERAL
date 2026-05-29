@@ -96,7 +96,7 @@ export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainSt
                         className="border-slate-200/70 bg-white/88 shadow-sm transition-[border-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-md dark:border-slate-800/70 dark:bg-slate-900/84 dark:hover:border-slate-700"
                     >
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                            <CardTitle className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                            <CardTitle className="min-w-0 truncate text-sm font-semibold text-slate-500 dark:text-slate-400" title={card.title}>
                                 {card.title}
                             </CardTitle>
                             <span className={`rounded-2xl px-2.5 py-2 ${card.badgeClass}`}>
@@ -105,12 +105,12 @@ export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainSt
                         </CardHeader>
                         <CardContent>
                             <div
-                                className={`font-mono font-black text-slate-950 dark:text-white ${card.compact ? 'truncate text-xl' : 'text-2xl'}`}
+                                className={`font-mono font-black text-slate-950 dark:text-white ${card.compact ? 'break-words text-lg tracking-tighter sm:text-xl' : 'break-words text-2xl'}`}
                                 title={card.value}
                             >
                                 {card.value}
                             </div>
-                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            <p className="mt-1 line-clamp-2 text-xs text-slate-500 dark:text-slate-400" title={card.subtext}>
                                 {card.subtext}
                             </p>
                             {typeof card.progressValue === 'number' ? (

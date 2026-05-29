@@ -9,6 +9,7 @@ import type {
   AderenciaSubPraca, AderenciaOrigem, AderenciaDiaOrigem
 } from '@/types';
 import type { FilterPayload } from '@/types/filters';
+import { safeLog } from '@/lib/errorHandler';
 
 const AnaliseView = React.memo(function AnaliseView({
   filterPayload,
@@ -88,7 +89,7 @@ const AnaliseView = React.memo(function AnaliseView({
           map[nome] = `${dStr}/${mStr}`;
         });
       } catch (error) {
-        console.error('Erro ao calcular datas da semana:', error);
+        safeLog.error('Erro ao calcular datas da semana:', error);
       }
     }
 

@@ -26,6 +26,7 @@ import {
 import type { AderenciaDiaOrigem, AderenciaOrigem, CurrentUser, Entregador } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 import { fetchDedicadoApi } from '@/utils/dedicado/fetchDedicadoApi';
+import { createRequestKey } from '@/utils/request/createRequestKey';
 
 type DedicadoSubTab = 'dashboard' | 'entregadores' | 'ranking' | 'resumo' | 'dia_origem';
 
@@ -129,7 +130,7 @@ const DedicadoView = React.memo(function DedicadoView({
   const [dedicadoLoading, setDedicadoLoading] = React.useState(false);
   const [dedicadoError, setDedicadoError] = React.useState<string | null>(null);
   const [isExporting, setIsExporting] = React.useState(false);
-  const filterPayloadKey = React.useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
+  const filterPayloadKey = React.useMemo(() => createRequestKey(filterPayload), [filterPayload]);
   const dedicatedPayload = React.useMemo<FilterPayload>(() => {
     const payload = JSON.parse(filterPayloadKey) as FilterPayload;
     const isIntervalMode = payload.p_filtro_modo === 'intervalo';
@@ -156,7 +157,7 @@ const DedicadoView = React.memo(function DedicadoView({
   const origemPayload = React.useMemo(() => {
     return buildDedicadoFilterPayload(dedicatedPayload);
   }, [dedicatedPayload]);
-  const origemPayloadKey = React.useMemo(() => JSON.stringify(origemPayload), [origemPayload]);
+  const origemPayloadKey = React.useMemo(() => createRequestKey(origemPayload), [origemPayload]);
   const origemOrganizationId = React.useMemo(() => {
     return typeof origemPayload.p_organization_id === 'string'
       ? origemPayload.p_organization_id.trim()
@@ -509,7 +510,7 @@ function DedicadoDashboard({
                 >
                   {card.value}
                 </div>
-                <p className="mt-1 truncate text-xs text-slate-500 dark:text-slate-400" title={card.sub}>{card.sub}</p>
+                <p className="mt-1 line-clamp-2 text-xs text-slate-500 dark:text-slate-400" title={card.sub}>{card.sub}</p>
               </CardContent>
             </Card>
           );

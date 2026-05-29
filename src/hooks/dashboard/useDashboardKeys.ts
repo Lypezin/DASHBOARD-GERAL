@@ -3,6 +3,7 @@ import { Filters, CurrentUser } from '@/types';
 import { buildFilterPayload } from '@/utils/filters/payloadBuilder';
 import { safeLog } from '@/lib/errorHandler';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { createRequestKey } from '@/utils/request/createRequestKey';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -112,7 +113,7 @@ export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentU
         return buildFilterPayload(stableFilters, stableCurrentUser, organizationId);
     }, [organizationId, stableCurrentUser, stableFilters]);
 
-    const filterPayloadKey = useMemo(() => JSON.stringify(filterPayload), [filterPayload]);
+    const filterPayloadKey = useMemo(() => createRequestKey(filterPayload), [filterPayload]);
 
     return { filtersKey, currentUserKey, filterPayload, filterPayloadKey };
 }

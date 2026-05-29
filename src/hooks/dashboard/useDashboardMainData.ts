@@ -17,6 +17,7 @@ import { useDashboardDataEffect } from './useDashboardDataEffect';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
+import { createRequestKey } from '@/utils/request/createRequestKey';
 
 interface UseDashboardMainDataOptions {
   filterPayload: FilterPayload;
@@ -29,7 +30,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
   const { isLoading: isOrgLoading } = useOrganization();
 
   const payloadKey = useMemo(
-    () => filterPayloadKey || JSON.stringify(filterPayload),
+    () => filterPayloadKey || createRequestKey(filterPayload),
     [filterPayload, filterPayloadKey]
   );
   const hasOrganizationContext = useMemo(

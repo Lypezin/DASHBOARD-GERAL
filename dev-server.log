@@ -1,0 +1,38 @@
+
+> dashboard-geral@0.1.0 dev
+> next dev -p 3000
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+
+ ✓ Starting...
+ ✓ Ready in 1873ms
+ ○ Compiling /login ...
+ ✓ Compiled /login in 9s (1215 modules)
+ ✓ Compiled in 1430ms (613 modules)
+ GET /login 200 in 55ms
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 13.4s (5224 modules)
+[useDashboardKeys] Gerando payload {
+  filters: {
+    ano: 2026,
+    semana: null,
+    praca: null,
+    subPraca: null,
+    origem: null,
+    turno: null,
+    subPracas: [],
+    origens: [],
+    turnos: [],
+    semanas: [],
+    filtroModo: 'ano_semana',
+    dataInicial: null,
+    dataFinal: null
+  },
+  user_set: false,
+  organizationId: null
+}
+[buildFilterPayload] Start { mode: 'ano_semana', ano: 2026, semana: null }
+ GET /dashboard 200 in 13822ms
+ GET /upload 200 in 13847ms
+ ✓ Compiled in 2s (5241 modules)
