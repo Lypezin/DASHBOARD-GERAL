@@ -1,9 +1,6 @@
 import React from 'react';
-import CustoPorLiberadoCard from '@/components/CustoPorLiberadoCard';
 import { ValoresCidadePorCidade } from '@/types';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { BarChart3, DollarSign, Building2 } from 'lucide-react';
+import { DollarSign, BarChart3 } from 'lucide-react';
 import { SummaryCard } from './components/SummaryCard';
 import { CityValuesGrid } from './components/CityValuesGrid';
 import { CityCostGrid } from './components/CityCostGrid';
@@ -19,13 +16,9 @@ export const ValoresCidadeCards: React.FC<ValoresCidadeCardsProps> = ({
   custoPorLiberado,
   cidadesData,
 }) => {
-
-
-
   return (
     <div className="space-y-8 animate-fade-in">
-      {/* Cartões Principais */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
           title="Total Geral"
           value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalGeral)}
@@ -39,23 +32,18 @@ export const ValoresCidadeCards: React.FC<ValoresCidadeCardsProps> = ({
         <SummaryCard
           title="Custo por Liberado"
           value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(custoPorLiberado)}
-          subtext="Média geral"
+          subtext="Media geral"
           icon={BarChart3}
-          colorClass="text-purple-600 dark:text-purple-400"
-          bgClass="from-purple-50 to-white dark:from-purple-900/20 dark:to-slate-900"
-          iconBgClass="bg-purple-100 dark:bg-purple-900/40"
+          colorClass="text-sky-600 dark:text-sky-300"
+          bgClass="from-sky-50 to-white dark:from-sky-900/20 dark:to-slate-900"
+          iconBgClass="bg-sky-100 dark:bg-sky-900/40"
         />
       </div>
 
-      {/* Cartões de Cidade */}
       <div className="space-y-8">
-        {/* Valores por Cidade */}
         <CityValuesGrid cidadesData={cidadesData} />
-
-        {/* Custo por Liberado por Cidade */}
         <CityCostGrid cidadesData={cidadesData} />
       </div>
     </div>
   );
 };
-

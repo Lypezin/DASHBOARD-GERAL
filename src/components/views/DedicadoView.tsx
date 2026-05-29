@@ -477,7 +477,7 @@ function DedicadoDashboard({
 
   const cards = [
     { title: 'Entregadores', value: stats.entregadores.toLocaleString('pt-BR'), sub: 'ativos no filtro dedicado', icon: Users, color: 'text-blue-500' },
-    { title: 'Origens', value: stats.origens.toLocaleString('pt-BR'), sub: 'restaurantes/origens no filtro', icon: BarChart3, color: 'text-indigo-500' },
+    { title: 'Origens', value: stats.origens.toLocaleString('pt-BR'), sub: 'restaurantes/origens no filtro', icon: BarChart3, color: 'text-sky-500' },
     { title: 'Ofertadas', value: stats.ofertadas.toLocaleString('pt-BR'), sub: `${stats.taxaAceitacao.toFixed(1)}% aceitas`, icon: Truck, color: 'text-sky-500' },
     { title: 'Aceitas', value: stats.aceitas.toLocaleString('pt-BR'), sub: `${stats.taxaCompletude.toFixed(1)}% completadas`, icon: CheckCircle2, color: 'text-emerald-500' },
     { title: 'Rejeitadas', value: stats.rejeitadas.toLocaleString('pt-BR'), sub: `${stats.taxaRejeicao.toFixed(1)}% rejeicao`, icon: XCircle, color: 'text-rose-500' },
@@ -543,9 +543,9 @@ function DedicadoDashboard({
                         {(origem.corridas_aceitas || 0).toLocaleString('pt-BR')} ({formatMetricPercentOrNA(origem.taxa_aceitacao, Boolean(origem.corridas_ofertadas))})
                       </span>
                     </div>
-                    <div className="rounded-xl bg-indigo-50 px-3 py-2 dark:bg-indigo-950/20">
-                      <span className="block font-bold uppercase tracking-wide text-indigo-500 dark:text-indigo-400">Completadas</span>
-                      <span className="mt-0.5 block break-words font-mono font-black text-indigo-700 dark:text-indigo-300">
+                    <div className="rounded-xl bg-sky-50 px-3 py-2 dark:bg-sky-950/20">
+                      <span className="block font-bold uppercase tracking-wide text-sky-500 dark:text-sky-300">Completadas</span>
+                      <span className="mt-0.5 block break-words font-mono font-black text-sky-700 dark:text-sky-300">
                         {(origem.corridas_completadas || 0).toLocaleString('pt-BR')} ({formatMetricPercentOrNA(origem.taxa_completude, Boolean(origem.corridas_aceitas))})
                       </span>
                     </div>
@@ -665,7 +665,7 @@ function DedicadoRanking({ entregadores, loading }: { entregadores: Entregador[]
       </CardHeader>
 
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
+        <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
           <table className="w-full min-w-[980px] border-collapse text-sm">
             <thead className="bg-slate-50 text-xs font-black uppercase tracking-[0.12em] text-slate-500 dark:bg-slate-950/60 dark:text-slate-400">
               <tr>

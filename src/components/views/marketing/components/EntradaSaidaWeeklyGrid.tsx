@@ -21,7 +21,7 @@ export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ 
         <div className="space-y-4">
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-800 dark:text-slate-100">
-                    <Calendar className="h-5 w-5 text-indigo-500" />
+                    <Calendar className="h-5 w-5 text-sky-500" />
                     Detalhamento por Semana
                 </h3>
                 <Badge variant="secondary" className="w-fit bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">

@@ -1,9 +1,24 @@
 import React from 'react';
 
 export const ENTRADA_SAIDA_COLORS = {
-    entradas: { bg: 'bg-emerald-100 dark:bg-emerald-900/30', icon: 'text-emerald-600 dark:text-emerald-400', text: 'text-emerald-700 dark:text-emerald-300', textLight: 'text-emerald-600/70' },
-    retomada: { bg: 'bg-indigo-100 dark:bg-indigo-900/30', icon: 'text-indigo-600 dark:text-indigo-400', text: 'text-indigo-700 dark:text-indigo-300', textLight: 'text-indigo-600/70' },
-    saidas: { bg: 'bg-rose-100 dark:bg-rose-900/30', icon: 'text-rose-600 dark:text-rose-400', text: 'text-rose-700 dark:text-rose-300', textLight: 'text-rose-600/70' },
+    entradas: {
+        bg: 'bg-emerald-100 dark:bg-emerald-900/30',
+        icon: 'text-emerald-600 dark:text-emerald-400',
+        text: 'text-emerald-700 dark:text-emerald-300',
+        textLight: 'text-emerald-600/70',
+    },
+    retomada: {
+        bg: 'bg-sky-100 dark:bg-sky-900/30',
+        icon: 'text-sky-600 dark:text-sky-400',
+        text: 'text-sky-700 dark:text-sky-300',
+        textLight: 'text-sky-600/70',
+    },
+    saidas: {
+        bg: 'bg-rose-100 dark:bg-rose-900/30',
+        icon: 'text-rose-600 dark:text-rose-400',
+        text: 'text-rose-700 dark:text-rose-300',
+        textLight: 'text-rose-600/70',
+    },
 };
 
 interface StatProps {

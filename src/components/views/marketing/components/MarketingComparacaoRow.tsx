@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
@@ -18,25 +17,24 @@ interface MarketingComparacaoRowProps {
     onSelectWeek: (semana_iso: string) => void;
 }
 
-// ... imports
-
-export const MarketingComparacaoRow = React.memo(function MarketingComparacaoRow({ row, onSelectWeek }: MarketingComparacaoRowProps) {
-    const totalHours = row.segundos_ops + row.segundos_mkt;
-
+export const MarketingComparacaoRow = React.memo(function MarketingComparacaoRow({
+    row,
+    onSelectWeek,
+}: MarketingComparacaoRowProps) {
     return (
-        <TableRow className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-all duration-200 border-b border-slate-50 dark:border-slate-800/50 group">
-            <TableCell className="font-medium whitespace-nowrap pl-6 py-4">
+        <TableRow className="group border-b border-slate-50 transition-all duration-200 hover:bg-slate-50/80 dark:border-slate-800/50 dark:hover:bg-slate-800/50">
+            <TableCell className="whitespace-nowrap py-4 pl-6 font-medium">
                 <div className="flex items-center gap-2">
-                    <span className="bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-2 py-1 rounded text-xs font-bold">
+                    <span className="rounded bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                         S{extractWeekNumber(row.semana_iso)}
                     </span>
                 </div>
             </TableCell>
-            <TableCell className="text-center py-4">
+            <TableCell className="py-4 text-center">
                 <Button
                     variant="ghost"
                     size="sm"
-                    className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-all hover:bg-blue-50 dark:hover:bg-blue-900/20 text-blue-500"
+                    className="h-8 w-8 p-0 text-blue-500 opacity-0 transition-all hover:bg-blue-50 group-hover:opacity-100 dark:hover:bg-blue-900/20"
                     onClick={() => onSelectWeek(row.semana_iso)}
                     title="Ver detalhes"
                 >
@@ -45,46 +43,21 @@ export const MarketingComparacaoRow = React.memo(function MarketingComparacaoRow
                 </Button>
             </TableCell>
 
-            {/* Entregadores */}
             <ComparisonMetricCell
                 opsValue={row.entregadores_ops || 0}
                 mktValue={row.entregadores_mkt || 0}
-                opsColorClass="text-indigo-600 dark:text-indigo-400"
+                opsColorClass="text-sky-600 dark:text-sky-400"
             />
 
-            {/* Hours */}
-            <ComparisonMetricCell
-                opsValue={row.segundos_ops}
-                mktValue={row.segundos_mkt}
-                type="duration"
-            />
-
-            {/* Ofertadas */}
-            <ComparisonMetricCell
-                opsValue={row.ofertadas_ops}
-                mktValue={row.ofertadas_mkt}
-            />
-
-            {/* Aceitas */}
-            <ComparisonMetricCell
-                opsValue={row.aceitas_ops}
-                mktValue={row.aceitas_mkt}
-            />
-
-            {/* Completas */}
-            <ComparisonMetricCell
-                opsValue={row.concluidas_ops}
-                mktValue={row.concluidas_mkt}
-            />
-
-            {/* Rejeitadas */}
+            <ComparisonMetricCell opsValue={row.segundos_ops} mktValue={row.segundos_mkt} type="duration" />
+            <ComparisonMetricCell opsValue={row.ofertadas_ops} mktValue={row.ofertadas_mkt} />
+            <ComparisonMetricCell opsValue={row.aceitas_ops} mktValue={row.aceitas_mkt} />
+            <ComparisonMetricCell opsValue={row.concluidas_ops} mktValue={row.concluidas_mkt} />
             <ComparisonMetricCell
                 opsValue={row.rejeitadas_ops}
                 mktValue={row.rejeitadas_mkt}
                 opsColorClass="text-rose-600/70 dark:text-rose-400/70"
             />
-
-            {/* Valor */}
             <ComparisonMetricCell
                 opsValue={row.valor_ops || 0}
                 mktValue={row.valor_mkt || 0}

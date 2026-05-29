@@ -2,19 +2,16 @@
 
 import React, { useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { EvolucaoSemanal, AderenciaSemanal, UtrSemanal, AderenciaDia, AderenciaDiaOrigem } from '@/types';
-import { formatNumber, formatPercent } from '@/utils/formatters';
+import { AderenciaSemanal, AderenciaDia } from '@/types';
 import { useResumoLocalData } from '@/hooks/data/useResumoDrivers';
 import { useResumoPracasFilter } from '@/hooks/data/useResumoPracasFilter';
 import { useResumoSemanalLogic } from '@/hooks/data/useResumoSemanalLogic';
 import { ResumoFilters } from './resumo-semanal/ResumoFilters';
 import { ResumoTable } from './resumo-semanal/ResumoTable';
 import { handleExportExcelResumoSemanal } from './resumo-semanal/ResumoSemanalExcelExport';
-
 import { handleCopyTable as copyTableHelper } from './resumo-semanal/utils/copyHelpers';
 import { SelectedPracasTags } from './resumo-semanal/SelectedPracasTags';
 import { useDashboardEvolucao } from '@/hooks/dashboard/useDashboardEvolucao';
-import { useDashboardMainData } from '@/hooks/dashboard/useDashboardMainData';
 import type { FilterPayload } from '@/types/filters';
 
 interface ResumoSemanalViewProps {
@@ -32,19 +29,16 @@ export const ResumoSemanalView = React.memo(({
     aderenciaSemanal,
     aderenciaDia,
 }: ResumoSemanalViewProps) => {
-    // Fetch evolution and UTR data
-    const { evolucaoSemanal, utrSemanal, loading: loadingEvolucao } = useDashboardEvolucao({ 
-        filterPayload, 
+    const { evolucaoSemanal, utrSemanal, loading: loadingEvolucao } = useDashboardEvolucao({
+        filterPayload,
         anoEvolucao: anoSelecionado,
         activeTab: 'resumo'
     });
 
     const loading = loadingEvolucao;
-    // Persisted local praça filter
     const { selectedPracas, togglePraca, clearFilter } = useResumoPracasFilter();
     const useLocalData = selectedPracas.length > 0;
 
-    // Fetch filtered data (drivers, pedidos, SH) using local praça filter
     const { dataMap: localDataMap, loading: loadingLocal } = useResumoLocalData({
         ano: anoSelecionado,
         pracas: selectedPracas,
@@ -73,10 +67,10 @@ export const ResumoSemanalView = React.memo(({
     }, [displayRows]);
 
     return (
-        <div className="space-y-6 w-full max-w-[1400px] mx-auto p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <Card className="border-none shadow-sm bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+        <div className="mx-auto w-full max-w-[1400px] space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 p-6">
+            <Card className="border-none bg-white/50 shadow-sm backdrop-blur-sm dark:bg-slate-900/50">
                 <CardHeader className="flex flex-row items-center justify-between">
-                    <CardTitle className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    <CardTitle className="bg-gradient-to-r from-blue-600 to-sky-600 bg-clip-text text-xl font-bold text-transparent">
                         Resumo Semanal
                     </CardTitle>
 
