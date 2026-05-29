@@ -4,7 +4,7 @@ import { ShieldCheck } from 'lucide-react';
 export const DashboardAuthLoading = React.memo(function DashboardAuthLoading() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-md rounded-[2rem] border border-slate-200/70 bg-white/90 p-8 text-center shadow-xl shadow-slate-200/40 backdrop-blur dark:border-slate-800/70 dark:bg-slate-900/85 dark:shadow-black/20">
+      <div className="w-full max-w-md rounded-[2rem] border border-slate-200/70 bg-white/90 p-8 text-center shadow-[0_28px_70px_-44px_rgba(15,23,42,0.65)] backdrop-blur dark:border-slate-800/70 dark:bg-slate-900/85 dark:shadow-black/30">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-blue-600 via-sky-500 to-cyan-400 text-white shadow-lg shadow-blue-600/20">
           <ShieldCheck className="h-8 w-8" />
         </div>

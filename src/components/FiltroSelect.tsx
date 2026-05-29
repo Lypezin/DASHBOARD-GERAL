@@ -33,7 +33,7 @@ const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange,
   };
 
   return (
-    <div className="flex flex-col gap-1 sm:gap-1.5 relative group" ref={wrapperRef}>
+    <div className="group relative flex flex-col gap-1 sm:gap-1.5" ref={wrapperRef}>
       <span className="truncate pl-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500/90 dark:text-slate-400 sm:text-[11px]">
         {label}
       </span>
@@ -43,8 +43,8 @@ const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange,
           onClick={() => setIsOpen(!isOpen)}
           disabled={disabled}
           className={cn(
-            "w-full min-h-[44px] appearance-none rounded-2xl border border-slate-200/70 text-left dark:border-slate-700/80",
-            "bg-white/75 px-3.5 py-2.5 pr-9 text-sm font-semibold dark:bg-slate-900/80 supports-[backdrop-filter]:backdrop-blur-sm",
+            "w-full min-h-[46px] appearance-none rounded-[1.15rem] border border-slate-200/70 text-left dark:border-slate-700/80",
+            "bg-white/78 px-3.5 py-2.5 pr-10 text-sm font-medium dark:bg-slate-900/82 supports-[backdrop-filter]:backdrop-blur-sm",
             "text-slate-700 shadow-[0_10px_28px_-24px_rgba(15,23,42,0.7)] transition-[background-color,border-color,box-shadow] duration-150 dark:text-slate-200",
             "hover:border-blue-300/70 hover:bg-white hover:shadow-[0_14px_34px_-25px_rgba(37,99,235,0.7)] dark:hover:border-blue-500/40 dark:hover:bg-slate-800/90",
             isOpen ? "ring-2 ring-blue-500/35 border-blue-500 dark:border-blue-500/60" : "hover:ring-2 hover:ring-blue-500/15 dark:hover:ring-blue-500/25",
@@ -73,7 +73,7 @@ const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange,
               e.stopPropagation();
               onChange(null);
             }}
-            className="absolute right-9 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/80 p-0.5 text-slate-400 transition-colors hover:text-red-500 dark:bg-slate-800 dark:hover:text-red-400"
+            className="absolute right-9 top-1/2 z-10 -translate-y-1/2 rounded-full bg-white/85 p-0.5 text-slate-400 transition-colors hover:text-red-500 dark:bg-slate-800 dark:hover:text-red-400"
           >
             <X className="h-3.5 w-3.5" />
           </button>

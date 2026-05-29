@@ -45,8 +45,8 @@ const MarketingView = React.memo(function MarketingView() {
   };
 
   return (
-    <div className="mx-auto max-w-7xl space-y-6 px-4 py-7 animate-fade-in sm:px-6 lg:px-8">
-      <div className="rounded-3xl border border-slate-200/70 bg-white/80 p-4 shadow-sm dark:border-slate-800/70 dark:bg-slate-950/70 sm:p-5">
+    <div className="mx-auto max-w-7xl space-y-5 px-3 py-6 animate-fade-in sm:px-6 sm:py-7 lg:px-8">
+      <div className="rounded-3xl border border-slate-200/70 bg-white/82 p-4 shadow-[0_18px_48px_-42px_rgba(15,23,42,0.7)] dark:border-slate-800/70 dark:bg-slate-950/74 sm:p-5">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div className="min-w-0">
             <div className="mb-2 inline-flex rounded-full bg-blue-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
@@ -54,11 +54,11 @@ const MarketingView = React.memo(function MarketingView() {
             </div>
             <h1 className="text-2xl font-black tracking-tight text-slate-950 dark:text-white">Marketing</h1>
             <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-              Gerencie campanhas e acompanhe os resultados da operação.
+              Gerencie campanhas e acompanhe os resultados da operacao.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-1.5 rounded-2xl border border-slate-200/70 bg-slate-100/80 p-1.5 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/60">
+          <div className="flex flex-wrap gap-1.5 rounded-2xl border border-slate-200/70 bg-slate-100/80 p-1.5 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/60 md:justify-end">
             <TabButton
               label="Dashboard"
               active={activeSubTab === 'dashboard'}
@@ -75,12 +75,12 @@ const MarketingView = React.memo(function MarketingView() {
               onClick={() => handleTabChange('valores-cidade')}
             />
             <TabButton
-              label="Entrada/Saída"
+              label="Entrada/Saida"
               active={activeSubTab === 'entrada-saida'}
               onClick={() => handleTabChange('entrada-saida')}
             />
             <TabButton
-              label="Apresentação"
+              label="Apresentacao"
               active={activeSubTab === 'apresentacao'}
               onClick={() => handleTabChange('apresentacao')}
             />

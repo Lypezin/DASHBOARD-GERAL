@@ -123,12 +123,18 @@
 
   body {
     @apply bg-background text-foreground;
+    min-height: 100%;
+    overflow-x: clip;
     font-family: var(--font-outfit), var(--font-inter), sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "tnum";
     text-rendering: geometricPrecision;
     transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
                 color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
                 border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  main {
+    min-width: 0;
   }
 
   ::selection {
@@ -163,6 +169,31 @@
 
   .surface-panel {
     @apply rounded-3xl border border-slate-200/70 bg-white/90 shadow-[0_18px_65px_-48px_rgba(15,23,42,0.55)] dark:border-slate-800/70 dark:bg-slate-950/75;
+  }
+
+  .subtle-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.55) transparent;
+  }
+
+  .subtle-scrollbar::-webkit-scrollbar {
+    height: 10px;
+    width: 10px;
+  }
+
+  .subtle-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .subtle-scrollbar::-webkit-scrollbar-thumb {
+    border: 2px solid transparent;
+    border-radius: 9999px;
+    background-clip: padding-box;
+    background-color: rgba(148, 163, 184, 0.45);
+  }
+
+  .dark .subtle-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(100, 116, 139, 0.55);
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -24,7 +24,7 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
 }) => {
     if (isModoIntervalo) {
         return (
-            <div className="w-full min-w-0 flex-auto lg:w-auto">
+            <div className="w-full min-w-0 flex-auto xl:max-w-[26rem]">
                 <FiltroDateRange
                     dataInicial={filters?.dataInicial ?? null}
                     dataFinal={filters?.dataFinal ?? null}
@@ -64,7 +64,7 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
 
     return (
         <>
-            <div className="flex-1 min-w-[120px]">
+            <div className="min-w-[10rem] flex-1 basis-[10rem] sm:min-w-[11rem] sm:basis-[11rem]">
                 <FiltroSelect
                     label="Ano"
                     value={filters.ano !== null ? String(filters.ano) : ''}
@@ -73,7 +73,7 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
                     onChange={(value) => handleChange('ano', value)}
                 />
             </div>
-            <div className="flex-1 min-w-[120px]">
+            <div className="min-w-[10rem] flex-1 basis-[10rem] sm:min-w-[11rem] sm:basis-[11rem]">
                 <FiltroMultiSelect
                     label="Semana"
                     selected={selectedWeeks}

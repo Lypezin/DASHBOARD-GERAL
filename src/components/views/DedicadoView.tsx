@@ -384,7 +384,7 @@ const DedicadoView = React.memo(function DedicadoView({
               {isExporting ? 'Exportando...' : 'Baixar Excel'}
             </button>
 
-            <div className="grid w-full grid-cols-2 gap-1.5 rounded-2xl border border-slate-200 bg-white/85 p-1.5 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 sm:grid-cols-3 xl:min-w-[720px] xl:grid-cols-5">
+            <div className="grid w-full grid-cols-2 gap-1.5 rounded-2xl border border-slate-200 bg-white/85 p-1.5 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 sm:grid-cols-3 xl:grid-cols-5 xl:self-stretch">
               {SUB_TABS.map((tab) => {
                 const Icon = tab.icon;
                 const active = activeSubTab === tab.id;

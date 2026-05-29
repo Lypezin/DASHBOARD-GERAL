@@ -27,9 +27,9 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
 }) => {
     return (
         <>
-            <div className="flex-1 min-w-[120px]">
+            <div className="min-w-[10rem] flex-1 basis-[10rem] sm:min-w-[11rem] sm:basis-[11rem]">
                 <FiltroSelect
-                    label="Praça"
+                    label="Praca"
                     value={filters.praca ?? ''}
                     options={pracas}
                     placeholder="Todas"
@@ -37,16 +37,16 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
                     disabled={shouldDisablePracaFilter}
                 />
             </div>
-            <div className="flex-1 min-w-[120px]">
+            <div className="min-w-[10rem] flex-1 basis-[10rem] sm:min-w-[11rem] sm:basis-[11rem]">
                 <FiltroMultiSelect
-                    label="Sub praça"
+                    label="Sub praca"
                     selected={filters.subPracas || []}
                     options={subPracas}
                     placeholder="Todas"
                     onSelectionChange={(values) => setFilters(prev => ({ ...prev, subPracas: values }))}
                 />
             </div>
-            <div className="flex-1 min-w-[120px]">
+            <div className="min-w-[10rem] flex-1 basis-[10rem] sm:min-w-[11rem] sm:basis-[11rem]">
                 <FiltroMultiSelect
                     label="Origem"
                     selected={filters.origens || []}
@@ -55,7 +55,7 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
                     onSelectionChange={(values) => setFilters(prev => ({ ...prev, origens: values }))}
                 />
             </div>
-            <div className="flex-1 min-w-[120px]">
+            <div className="min-w-[10rem] flex-1 basis-[10rem] sm:min-w-[11rem] sm:basis-[11rem]">
                 <FiltroMultiSelect
                     label="Turno"
                     selected={filters.turnos || []}

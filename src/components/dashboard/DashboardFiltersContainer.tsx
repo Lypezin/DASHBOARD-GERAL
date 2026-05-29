@@ -54,15 +54,15 @@ export const DashboardFiltersContainer = React.memo(function DashboardFiltersCon
 
   return (
     <Card className={cn(
-      "sticky top-4 z-40 mb-5 overflow-visible rounded-3xl",
+      "sticky top-[4.75rem] z-40 mb-5 overflow-visible rounded-3xl",
       "border border-slate-200/65 dark:border-slate-800/70",
-      "bg-white/80 dark:bg-slate-950/75 supports-[backdrop-filter]:backdrop-blur-xl",
-      "shadow-[0_18px_60px_-48px_rgba(15,23,42,0.78)]",
+      "bg-white/82 dark:bg-slate-950/78 supports-[backdrop-filter]:backdrop-blur-xl",
+      "shadow-[0_18px_56px_-48px_rgba(15,23,42,0.72)]",
       "transition-[background-color,border-color,box-shadow] duration-200"
     )}>
-      <CardContent className="relative p-4 sm:p-5">
-        <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/70 to-transparent dark:via-blue-700/60" />
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+      <CardContent className="relative p-3.5 sm:p-4 lg:p-5">
+        <div className="pointer-events-none absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/65 to-transparent dark:via-blue-700/55" />
+        <div className="mb-4 flex flex-col gap-2.5 sm:flex-row sm:items-center sm:justify-between">
           <div className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
             <span className="h-2.5 w-2.5 rounded-full bg-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.12)] dark:shadow-[0_0_0_4px_rgba(59,130,246,0.16)]" />
             Filtros do painel

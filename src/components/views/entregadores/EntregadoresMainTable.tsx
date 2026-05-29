@@ -43,7 +43,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
             <EntregadoresMainTableHeaderCard />
 
             <CardContent className="p-0">
-                <div className="overflow-x-auto">
+                <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
                     <div className="min-w-[1100px]">
                         <EntregadoresMainTableHeader
                             sortField={sortField}
@@ -51,7 +51,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                             onSort={onSort}
                         />
 
-                        <div className="max-h-[600px] overflow-y-auto">
+                        <div className="subtle-scrollbar max-h-[600px] overflow-y-auto">
                             {currentItems.length > 0 ? (
                                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
                                     {currentItems.map((entregador, index) => (

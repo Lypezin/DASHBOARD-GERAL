@@ -63,20 +63,20 @@ const FiltroBar = React.memo(function FiltroBar({
 
   return (
     <div className="relative z-10 font-sans">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-end">
+      <div className="flex flex-col gap-3.5 xl:flex-row xl:items-end xl:gap-4">
 
         {/* Toggle Mode Swtich - Now Integrated */}
-        <div className="mb-0.5 min-w-fit self-start">
+        <div className="min-w-fit self-start">
           <FilterModeSwitch
             isModoIntervalo={showDateRangeFilters}
             onToggle={handleModeToggle}
           />
         </div>
 
-        <div className="mx-2 hidden h-8 w-px self-center bg-slate-200 dark:bg-slate-700 xl:block" />
+        <div className="mx-1 hidden h-8 w-px self-center bg-slate-200/90 dark:bg-slate-700/80 xl:block" />
 
         {/* Filters Group */}
-        <div className="flex flex-1 flex-wrap items-end gap-3 min-w-0">
+        <div className="flex min-w-0 flex-1 flex-wrap items-stretch gap-3">
           <FilterPrimarySection
             isModoIntervalo={showDateRangeFilters}
             filters={filters}
