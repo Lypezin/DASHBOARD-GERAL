@@ -1,6 +1,7 @@
 
 import { useCallback, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
+import { loadXLSX } from '@/lib/xlsxClient';
 import { getDateRangeFromWeek } from '@/utils/timeHelpers';
 
 interface UseMarketingExcelExportProps {
@@ -25,8 +26,7 @@ export function useMarketingExcelExport({ semanaIso, organizationId, activeTab, 
             setExportLoading(true);
             const { start, end } = getWeekRange(semanaIso);
 
-            // Dynamic import for XLSX
-            const XLSX = await import('xlsx');
+            const XLSX = await loadXLSX();
             const { formatarHorasParaHMS } = await import('@/utils/formatters');
 
             let exportData: any[] = [];

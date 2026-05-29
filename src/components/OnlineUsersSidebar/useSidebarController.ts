@@ -14,8 +14,14 @@ export function useSidebarController(
 ) {
     const [isOpen, setIsOpen] = useState(initialOpen);
     const [hasActivatedRealtime, setHasActivatedRealtime] = useState(initialOpen || preloadRealtime);
+    const [isPageVisible, setIsPageVisible] = useState(true);
 
-    const onlineUsersData = useOnlineUsers(currentUser, currentTab, hasActivatedRealtime, isOpen);
+    const onlineUsersData = useOnlineUsers(
+        currentUser,
+        currentTab,
+        hasActivatedRealtime && isPageVisible,
+        isOpen && isPageVisible
+    );
     const { onlineUsers, messages, joinedUsers, clearJoinedUsers } = onlineUsersData;
 
     const [searchTerm, setSearchTerm] = useState('');
@@ -50,15 +56,27 @@ export function useSidebarController(
     }, [hasActivatedRealtime, preloadRealtime]);
 
     useEffect(() => {
+        const handleVisibilityChange = () => {
+            setIsPageVisible(document.visibilityState !== 'hidden');
+        };
+
+        handleVisibilityChange();
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+    }, []);
+
+    useEffect(() => {
         if (joinedUsers.length === 0) return;
         clearJoinedUsers();
     }, [joinedUsers, clearJoinedUsers]);
 
     const [, setTick] = useState(0);
     useEffect(() => {
+        if (!isOpen) return;
+
         const interval = setInterval(() => setTick((tick) => tick + 1), 60000);
         return () => clearInterval(interval);
-    }, []);
+    }, [isOpen]);
 
     const filteredUsers = useMemo(() => {
         const normalizedSearch = searchTerm.toLowerCase();

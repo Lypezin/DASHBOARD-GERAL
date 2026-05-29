@@ -26,6 +26,9 @@ import {
 
 export const runtime = 'nodejs';
 
+const PRACAS_CACHE_TTL_MS = 5 * 60 * 1000;
+let pracasCache: { data: unknown; expiresAt: number } | null = null;
+
 const ADMIN_RPC_ALLOWLIST = new Set([
     'approve_user',
     'create_organization',
@@ -68,7 +71,20 @@ async function executeAdminOperation(
         case 'list_all_organizations':
             return listAllOrganizations(admin);
         case 'list_pracas_disponiveis':
-            return admin.rpc('list_pracas_disponiveis');
+            if (pracasCache && pracasCache.expiresAt > Date.now()) {
+                return { data: pracasCache.data, error: null };
+            }
+
+            {
+                const result = await admin.rpc('list_pracas_disponiveis');
+                if (!result.error) {
+                    pracasCache = {
+                        data: result.data,
+                        expiresAt: Date.now() + PRACAS_CACHE_TTL_MS,
+                    };
+                }
+                return result;
+            }
         case 'create_organization':
             return createOrganization(admin, params);
         case 'update_organization':

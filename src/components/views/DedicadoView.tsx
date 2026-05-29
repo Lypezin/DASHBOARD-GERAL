@@ -149,7 +149,9 @@ const DedicadoView = React.memo(function DedicadoView({
   const shouldLoadEntregadores = hasOrganizationContext && (activeSubTab === 'entregadores' || activeSubTab === 'ranking');
   const shouldLoadOrigemSummary = activeSubTab === 'dashboard' || activeSubTab === 'resumo';
   const shouldLoadDiaOrigem = activeSubTab === 'dia_origem';
-  const { data: tabData, loading } = useTabData(shouldLoadEntregadores ? 'dedicado' : 'dashboard', dedicatedPayload, currentUser);
+  const { data: tabData, loading } = useTabData('dedicado', dedicatedPayload, currentUser, {
+    enabled: shouldLoadEntregadores,
+  });
   const { entregadoresData } = useTabDataMapper({ activeTab: 'dedicado', tabData });
   const origemPayload = React.useMemo(() => {
     return buildDedicadoFilterPayload(dedicatedPayload);

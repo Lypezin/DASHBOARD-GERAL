@@ -4,6 +4,26 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === 'true',
 });
 
+const DEFAULT_SUPABASE_HOST = 'ulmobmmlkevxswxpcyza.supabase.co';
+
+function getSupabaseHost() {
+  try {
+    const configuredUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+    if (!configuredUrl || configuredUrl.includes('placeholder.supabase.co')) {
+      return DEFAULT_SUPABASE_HOST;
+    }
+
+    return new URL(configuredUrl).hostname;
+  } catch {
+    return DEFAULT_SUPABASE_HOST;
+  }
+}
+
+const supabaseHost = getSupabaseHost();
+const supabaseHttpsOrigin = `https://${supabaseHost}`;
+const supabaseWssOrigin = `wss://${supabaseHost}`;
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   compress: true,
@@ -20,12 +40,7 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: '**.supabase.co',
-        pathname: '/storage/v1/object/public/**',
-      },
-      {
-        protocol: 'https',
-        hostname: '**.supabase.in',
+        hostname: supabaseHost,
         pathname: '/storage/v1/object/public/**',
       },
     ],
@@ -81,7 +96,7 @@ const nextConfig = {
               "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
               "font-src 'self' https://fonts.gstatic.com",
               "img-src 'self' data: https: blob:",
-              "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+              `connect-src 'self' ${supabaseHttpsOrigin} ${supabaseWssOrigin}`,
               "frame-ancestors 'self'",
             ].join('; '),
           },

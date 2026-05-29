@@ -51,6 +51,7 @@ export const ImageElement: React.FC<ImageElementProps> = ({ element: el, canDrag
             )}
 
             <div className="relative pointer-events-none select-none">
+                {/* eslint-disable-next-line @next/next/no-img-element -- Slide media can be arbitrary data/blob URLs without stable dimensions for next/image. */}
                 <img src={el.content} className={`max-w-[85vw] max-h-[85vh] object-contain drop-shadow-2xl rounded-lg`} alt="Slide Element" decoding="async" draggable={false} />
             </div>
         </motion.div>

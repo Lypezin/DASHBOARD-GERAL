@@ -1,15 +1,17 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
-
 import { useOrganization } from '@/contexts/OrganizationContext';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
+const WEEKS_CACHE_TTL_MS = 5 * 60 * 1000;
+
+const weeksCache = new Map<string, { data: number[]; expiresAt: number }>();
+const weeksRequests = new Map<string, Promise<number[]>>();
 
 /**
- * Hook que busca as semanas que possuem dados para um ano específico
- * Evita mostrar semanas sem dados no filtro
- * Usa a mesma fonte de dados que listar_todas_semanas() (view atual com overlay incremental)
+ * Busca as semanas com dados para o ano/organizacao ativos.
+ * O cache curto evita repetir a mesma RPC ao remontar filtros ou alternar abas.
  */
 export function useSemanasComDados(ano: number | null) {
     const { organization } = useOrganization();
@@ -17,6 +19,8 @@ export function useSemanasComDados(ano: number | null) {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
+        let cancelled = false;
+
         if (!ano) {
             setSemanas([]);
             return;
@@ -24,38 +28,66 @@ export function useSemanasComDados(ano: number | null) {
 
         const fetchSemanasComDados = async () => {
             setLoading(true);
+
             try {
-                // Usa RPC otimizado que já retorna apenas as semanas distintas e ordenadas
-                // Evita trafegar dados desnecessários de toda a view
-                const { data, error } = await supabase
-                    .rpc('get_available_weeks', {
-                        p_ano_iso: ano,
-                        p_organization_id: organization?.id
-                    });
-
-                if (error) {
-                    if (IS_DEV) safeLog.error('Erro ao buscar semanas com dados:', error);
-                    setSemanas([]);
-                    return;
-                }
-
-                if (data && Array.isArray(data) && data.length > 0) {
-                    // O RPC já retorna [{ semana_iso: 52 }, ...] ordenado
-                    const semanasOtimizadas = data.map((d: { semana_iso: number }) => d.semana_iso);
-                    setSemanas(semanasOtimizadas);
-                } else {
-                    setSemanas([]);
-                }
+                const semanasOtimizadas = await fetchAvailableWeeks(ano, organization?.id);
+                if (!cancelled) setSemanas(semanasOtimizadas);
             } catch (err) {
                 if (IS_DEV) safeLog.error('Erro ao buscar semanas com dados:', err);
-                setSemanas([]);
+                if (!cancelled) setSemanas([]);
             } finally {
-                setLoading(false);
+                if (!cancelled) setLoading(false);
             }
         };
 
-        fetchSemanasComDados();
+        void fetchSemanasComDados();
+
+        return () => {
+            cancelled = true;
+        };
     }, [ano, organization?.id]);
 
     return { semanasComDados: semanas, loadingSemanasComDados: loading };
+}
+
+async function fetchAvailableWeeks(ano: number, organizationId?: string | null) {
+    const cacheKey = `${organizationId || 'no-org'}:${ano}`;
+    const cached = weeksCache.get(cacheKey);
+
+    if (cached && cached.expiresAt > Date.now()) {
+        return cached.data;
+    }
+
+    const activeRequest = weeksRequests.get(cacheKey);
+    if (activeRequest) return activeRequest;
+
+    const request = (async () => {
+        const { data, error } = await supabase
+            .rpc('get_available_weeks', {
+                p_ano_iso: ano,
+                p_organization_id: organizationId,
+            });
+
+        if (error) {
+            throw error;
+        }
+
+        const semanasOtimizadas = Array.isArray(data)
+            ? data
+                .map((item: { semana_iso?: number }) => Number(item?.semana_iso))
+                .filter((semana) => Number.isFinite(semana) && semana > 0)
+            : [];
+
+        weeksCache.set(cacheKey, {
+            data: semanasOtimizadas,
+            expiresAt: Date.now() + WEEKS_CACHE_TTL_MS,
+        });
+
+        return semanasOtimizadas;
+    })().finally(() => {
+        weeksRequests.delete(cacheKey);
+    });
+
+    weeksRequests.set(cacheKey, request);
+    return request;
 }

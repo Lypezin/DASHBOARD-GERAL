@@ -24,6 +24,10 @@ function getRequestTab(tab: string) {
   return tab === 'prioridade' ? 'entregadores' : tab;
 }
 
+interface UseTabDataOptions {
+  enabled?: boolean;
+}
+
 function hasLoadedData(data: TabData) {
   if (data === null || data === undefined) return false;
   if (Array.isArray(data)) return data.length > 0;
@@ -34,12 +38,19 @@ function hasLoadedData(data: TabData) {
   return true;
 }
 
-export function useTabData(activeTab: string, filterPayload: object, _currentUser?: CurrentUser | null) {
+export function useTabData(
+  activeTab: string,
+  filterPayload: object,
+  _currentUser?: CurrentUser | null,
+  options: UseTabDataOptions = {}
+) {
   const [data, setData] = useState<TabData>(null);
   const [loading, setLoading] = useState(false);
   const fetchIdRef = useRef(0);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const retryAttemptsRef = useRef<Map<number, number>>(new Map());
   const { isLoading: isOrgLoading } = useOrganization();
+  const enabled = options.enabled ?? true;
 
   const { getCached, setCached } = useCache<TabData>({
     ttl: CACHE.TAB_DATA_TTL,
@@ -86,6 +97,7 @@ export function useTabData(activeTab: string, filterPayload: object, _currentUse
       const processedData = await request;
       if (fetchIdRef.current !== fetchId) return;
 
+      retryAttemptsRef.current.delete(fetchId);
       setData(processedData);
       setCached(cacheParams, processedData);
       setLoading(false);
@@ -94,7 +106,21 @@ export function useTabData(activeTab: string, filterPayload: object, _currentUse
 
       const msg = error instanceof Error ? error.message : '';
       if (msg === 'RETRY_500' || msg === 'RETRY_RATE_LIMIT') {
-        setTimeout(() => {
+        const currentAttempts = retryAttemptsRef.current.get(fetchId) || 0;
+
+        if (currentAttempts >= 1) {
+          retryAttemptsRef.current.delete(fetchId);
+          setData((previousData) => {
+            if (hasLoadedData(previousData)) return previousData;
+            return getTabFallbackData(tab);
+          });
+          setLoading(false);
+          return;
+        }
+
+        retryAttemptsRef.current.set(fetchId, currentAttempts + 1);
+
+        window.setTimeout(() => {
           if (fetchIdRef.current === fetchId) {
             void fetchData(tab, payload, filterPayloadKey, fetchId);
           }
@@ -102,6 +128,7 @@ export function useTabData(activeTab: string, filterPayload: object, _currentUse
         return;
       }
 
+      retryAttemptsRef.current.delete(fetchId);
       setData((previousData) => {
         if (hasLoadedData(previousData)) return previousData;
         return getTabFallbackData(tab);
@@ -114,6 +141,13 @@ export function useTabData(activeTab: string, filterPayload: object, _currentUse
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
       debounceRef.current = null;
+    }
+
+    if (!enabled) {
+      fetchIdRef.current++;
+      setData(null);
+      setLoading(false);
+      return;
     }
 
     if (isOrgLoading) return;
@@ -131,7 +165,7 @@ export function useTabData(activeTab: string, filterPayload: object, _currentUse
     if (!hasOrganizationContext) {
       fetchIdRef.current++;
       setData(null);
-      setLoading(true);
+      setLoading(false);
       return;
     }
 
@@ -141,7 +175,7 @@ export function useTabData(activeTab: string, filterPayload: object, _currentUse
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [activeTab, fetchData, filterPayload, filterPayloadStr, isOrgLoading]);
+  }, [activeTab, enabled, fetchData, filterPayload, filterPayloadStr, isOrgLoading]);
 
   return { data, loading };
 }

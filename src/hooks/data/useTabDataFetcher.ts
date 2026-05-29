@@ -16,6 +16,7 @@ export function useTabDataFetcher() {
   const [loading, setLoading] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const retryAttemptsRef = useRef(0);
 
   const fetchWithRetry = async (
     tab: string,
@@ -50,6 +51,7 @@ export function useTabDataFetcher() {
         return;
       }
 
+      retryAttemptsRef.current = 0;
       onSuccess(result.data, result.total);
       setLoading(false);
     } catch (error) {
@@ -61,14 +63,29 @@ export function useTabDataFetcher() {
 
       const errorMessage = error && typeof error === 'object' && 'message' in error && typeof error.message === 'string' ? error.message : '';
       if (errorMessage === 'RETRY_500') {
+        if (retryAttemptsRef.current >= 1) {
+          retryAttemptsRef.current = 0;
+          onError(error instanceof Error ? error : new Error(String(error)));
+          setLoading(false);
+          return;
+        }
+        retryAttemptsRef.current += 1;
         retryTimeoutRef.current = setTimeout(() => { if (shouldContinue()) fetchWithRetry(tab, filterPayload, onSuccess, onError, shouldContinue); }, DELAYS.RETRY_500);
         return;
       }
       if (errorMessage === 'RETRY_RATE_LIMIT') {
+        if (retryAttemptsRef.current >= 1) {
+          retryAttemptsRef.current = 0;
+          onError(error instanceof Error ? error : new Error(String(error)));
+          setLoading(false);
+          return;
+        }
+        retryAttemptsRef.current += 1;
         retryTimeoutRef.current = setTimeout(() => { if (shouldContinue()) fetchWithRetry(tab, filterPayload, onSuccess, onError, shouldContinue); }, DELAYS.RETRY_RATE_LIMIT);
         return;
       }
 
+      retryAttemptsRef.current = 0;
       onError(error instanceof Error ? error : new Error(String(error)));
       setLoading(false);
     }
@@ -81,6 +98,7 @@ export function useTabDataFetcher() {
     if (retryTimeoutRef.current) {
       clearTimeout(retryTimeoutRef.current);
     }
+    retryAttemptsRef.current = 0;
     setLoading(false);
   };
 
