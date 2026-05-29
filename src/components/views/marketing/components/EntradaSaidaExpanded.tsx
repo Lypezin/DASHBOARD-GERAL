@@ -63,7 +63,7 @@ export const EntradaSaidaExpanded: React.FC<Props> = ({
         >
             <div className="border-t border-slate-100 bg-gradient-to-b from-slate-50/80 to-white dark:border-slate-800 dark:from-slate-800/30 dark:to-slate-900">
                 <div className="space-y-5 p-6">
-                    <div className="grid grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
                         <MetricBox
                             icon={ArrowUpRight}
                             title="Entradas"

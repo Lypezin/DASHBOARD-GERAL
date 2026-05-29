@@ -38,7 +38,7 @@ export const MarketingFiltersContent: React.FC<MarketingFiltersContentProps> = (
             <CardContent className="space-y-6 bg-white p-6 dark:bg-slate-900">
                 <MarketingQuickFilters onQuickFilter={handleQuickFilter} />
 
-                <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
+                <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <MarketingDateRangeFilter filters={filters} setFilters={setFilters} />
                     <MarketingCityFilter filters={filters} setFilters={setFilters} />
                 </div>
