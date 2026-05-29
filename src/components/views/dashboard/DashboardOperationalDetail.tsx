@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { BarChart3, ListChecks } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 import { AderenciaDia, AderenciaOrigem, AderenciaSubPraca, AderenciaTurno } from '@/types';
 import { BenchmarkPracas } from '../comparacao/BenchmarkPracas';
 import { OperationalDetailCard } from './components/OperationalDetailCard';
@@ -55,23 +54,14 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
     }, [viewMode, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem]);
 
     return (
-        <Card className="border-none shadow-none bg-transparent">
-            <CardHeader className="px-0 pt-0 pb-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div className="flex items-center gap-2">
-                        <div className="p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                            <ListChecks className="h-5 w-5 text-slate-600 dark:text-slate-400" />
-                        </div>
-                        <div>
-                            <CardTitle className="text-lg font-semibold">Detalhamento Operacional</CardTitle>
-                            <CardDescription>Analise segmentada por categorias</CardDescription>
-                        </div>
-                    </div>
-                    <OperationalViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
-                </div>
-            </CardHeader>
+        <div className="space-y-4">
+            {/* Toggle de Visualização Compacto à direita */}
+            <div className="flex justify-end pt-1">
+                <OperationalViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
+            </div>
 
-            <CardContent className="p-0">
+            {/* Grid de Cards Operacionais */}
+            <div className="min-w-0">
                 {viewMode === 'ranking' ? (
                     aderenciaSubPraca.length > 0 ? (
                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
@@ -85,15 +75,17 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
                         ))}
                     </div>
                 ) : <EmptyState text="Nenhum dado disponível" sub="Ajuste os filtros para visualizar os dados" />}
-            </CardContent>
-        </Card>
+            </div>
+        </div>
     );
 });
 
+DashboardOperationalDetail.displayName = 'DashboardOperationalDetail';
+
 const EmptyState = ({ text, sub }: { text: string; sub?: string }) => (
-    <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
-        <BarChart3 className="h-12 w-12 mb-3 opacity-20" />
-        <p className="text-sm font-medium">{text}</p>
+    <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground/80">
+        <BarChart3 className="h-10 w-10 mb-3 opacity-20 text-foreground" />
+        <p className="text-sm font-bold">{text}</p>
         {sub && <p className="text-xs mt-1 opacity-70">{sub}</p>}
     </div>
 );

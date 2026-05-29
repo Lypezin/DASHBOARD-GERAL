@@ -20,41 +20,41 @@ export const UtrContent = React.memo(function UtrContent({
     porTurno
 }: UtrContentProps) {
     return (
-        <>
+        <div className="space-y-10">
+            {/* Seção 1: Indicadores Consolidados */}
             <section className="space-y-4">
-                <div className="mb-4 flex items-center gap-2">
-                    <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Visao consolidada</h2>
-                    <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
-                </div>
                 <UtrGeral data={utrData.geral} />
             </section>
 
+            {/* Seção 2: Detalhamento por Dimensões */}
             <section className="space-y-4">
-                <div className="mb-4 flex items-center gap-2">
-                    <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Detalhamento operacional</h2>
-                    <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
+                <div className="pt-2 px-1">
+                    <h2 className="text-[10px] sm:text-xs font-bold text-muted-foreground/80 uppercase tracking-wider">
+                        Detalhamento por Segmentos
+                    </h2>
                 </div>
-                <div className="grid gap-5 xl:grid-cols-2">
+                
+                <div className="grid gap-6 xl:grid-cols-2">
                     <UtrSection
-                        title="Praca"
+                        title="Praça"
                         description="Desempenho por polo operacional."
-                        icon={<Building2 className="h-[18px] w-[18px] text-sky-600 dark:text-sky-300" />}
+                        icon={<Building2 className="h-4.5 w-4.5 text-sky-600 dark:text-sky-400" />}
                         data={porPraca}
                         getLabel={(item) => item.praca}
                     />
 
                     <UtrSection
-                        title="Sub-praca"
+                        title="Sub-praça"
                         description="Detalhamento por recorte interno."
-                        icon={<MapPin className="h-[18px] w-[18px] text-cyan-600 dark:text-cyan-300" />}
+                        icon={<MapPin className="h-4.5 w-4.5 text-cyan-600 dark:text-cyan-400" />}
                         data={porSubPraca}
                         getLabel={(item) => item.sub_praca}
                     />
 
                     <UtrSection
                         title="Origem"
-                        description="Distribuicao por canal operacional."
-                        icon={<Target className="h-[18px] w-[18px] text-rose-600 dark:text-rose-300" />}
+                        description="Distribuição por canal operacional."
+                        icon={<Target className="h-4.5 w-4.5 text-rose-600 dark:text-rose-400" />}
                         data={porOrigem}
                         getLabel={(item) => item.origem}
                     />
@@ -62,12 +62,14 @@ export const UtrContent = React.memo(function UtrContent({
                     <UtrSection
                         title="Turno"
                         description="Comparativo por janela operacional."
-                        icon={<Clock className="h-[18px] w-[18px] text-amber-600 dark:text-amber-300" />}
+                        icon={<Clock className="h-4.5 w-4.5 text-amber-600 dark:text-amber-400" />}
                         data={porTurno}
                         getLabel={(item) => item.turno || item.periodo || ''}
                     />
                 </div>
             </section>
-        </>
+        </div>
     );
 });
+
+UtrContent.displayName = 'UtrContent';

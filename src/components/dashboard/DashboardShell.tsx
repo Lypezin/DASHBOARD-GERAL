@@ -8,9 +8,10 @@ import { DashboardFiltersContainer } from '@/components/dashboard/DashboardFilte
 import { DashboardLoadingState } from '@/components/dashboard/DashboardLoadingState';
 import { DashboardViewsRenderer } from '@/components/dashboard/DashboardViewsRenderer';
 import { OnlineUsersSidebarLauncher } from '@/components/OnlineUsersSidebar/OnlineUsersSidebarLauncher';
-import { TabNavigation } from '@/components/TabNavigation';
 import { useDashboardPage } from '@/hooks/dashboard/useDashboardPage';
 import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
+import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
+import { FaviconManager } from '@/components/layout/FaviconManager';
 
 const DeferredActivityTracker = dynamic(
   () => import('@/components/dashboard/ActivityTracker').then((mod) => ({ default: mod.ActivityTracker })),
@@ -50,13 +51,22 @@ function DashboardShellContent() {
     timeoutMs: 1200,
   });
 
+  // Calcular aderência geral para alimentar o favicon animado em tempo real
+  const aderenciaGeral = React.useMemo(() => {
+    if (!data.aderenciaSemanal) return undefined;
+    return calculateAderenciaGeral(data.aderenciaSemanal);
+  }, [data.aderenciaSemanal]);
+
+  const percentualAderencia = aderenciaGeral?.aderencia_percentual || 0;
+
   if (auth.isCheckingAuth) return <DashboardAuthLoading />;
   if (!auth.isAuthenticated) return null;
 
   return (
-    <div className="relative min-h-screen isolate overflow-x-clip bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.1),transparent_34rem),linear-gradient(180deg,#f8fbff_0%,#ffffff_40%,#f4f8ff_100%)] dark:bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_34rem),linear-gradient(180deg,#020617_0%,#0f172a_46%,#061329_100%)]">
-      <div className="pointer-events-none fixed inset-x-0 top-0 -z-10 h-72 bg-[radial-gradient(circle_at_78%_12%,rgba(14,165,233,0.12),transparent_24rem)] dark:bg-[radial-gradient(circle_at_78%_12%,rgba(14,165,233,0.16),transparent_24rem)]" />
-      <div className="pointer-events-none fixed bottom-[-10rem] right-[-8rem] -z-10 h-80 w-80 rounded-full bg-blue-200/25 blur-3xl dark:bg-blue-900/15" />
+    <div className="relative min-h-screen">
+      {/* Favicon dinâmico sincronizado com os dados filtrados atuais */}
+      <FaviconManager percentual={percentualAderencia} />
+
       {showActivityTracker ? (
         <DeferredActivityTracker
           activeTab={ui.activeTab}
@@ -65,14 +75,15 @@ function DashboardShellContent() {
         />
       ) : null}
 
-      <div className="relative z-10 mx-auto max-w-[1880px] px-3 py-4 sm:px-5 sm:py-6 lg:px-8 lg:py-8">
+      <div className="relative z-10 px-4 py-6 sm:px-6 lg:px-8">
         {ui.loading && <DashboardLoadingState />}
         {ui.error && <DashboardErrorState error={ui.error} />}
 
         {!ui.loading && !ui.error && (
-          <div className="space-y-4 animate-fade-in sm:space-y-5">
+          <div className="space-y-6 animate-fade-in">
             {ui.activeTab === 'dashboard' && showDashboardWidgets ? <DeferredCityLastUpdatesTicker /> : null}
 
+            {/* Cabeçalho de Filtros */}
             <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
               <div className="min-w-0 flex-1">
                 <DashboardFiltersContainer
@@ -88,16 +99,11 @@ function DashboardShellContent() {
                   activeTab={ui.activeTab}
                 />
               </div>
-              {showLoginBadge ? <DeferredLoginStreakBadge className="self-start xl:self-auto" /> : null}
+              {showLoginBadge ? <DeferredLoginStreakBadge className="self-start xl:self-auto shrink-0" /> : null}
             </div>
 
-            <TabNavigation
-              activeTab={ui.activeTab}
-              onTabChange={ui.handleTabChange}
-              variant={ui.activeTab === 'comparacao' || ui.activeTab === 'marketing' ? 'compact' : 'default'}
-            />
-
-            <main className="min-w-0 overflow-x-clip">
+            {/* Área de Visualização Principal */}
+            <main className="min-w-0">
               <DashboardViewsRenderer
                 activeTab={ui.activeTab}
                 chartReady={ui.chartReady}

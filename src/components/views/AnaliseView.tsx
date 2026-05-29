@@ -97,7 +97,7 @@ const AnaliseView = React.memo(function AnaliseView({
   }, [aderenciaDia, filterPayload?.p_ano, filterPayload?.p_semana]);
 
   return (
-    <div className="flex flex-col gap-10 pb-8 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 animate-fade-in">
+    <div className="flex flex-col gap-10 pb-16 pt-2 w-full animate-fade-in">
       <AnaliseMetricCards
         totals={totals || { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }}
         taxaAceitacao={taxaAceitacao}

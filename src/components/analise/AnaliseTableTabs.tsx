@@ -1,9 +1,10 @@
 /**
- * AnaliseTableTabs - Segmented control style Linear/Vercel
- * Funciona em light e dark mode perfeitamente
+ * AnaliseTableTabs - Underline-style minimal tabs inspired by Stripe/GitHub.
+ * Funciona perfeitamente em light e dark mode.
  */
 
 import React from 'react';
+import { cn } from '@/lib/utils';
 
 type TableType = 'dia' | 'turno' | 'sub_praca' | 'origem' | 'dia_origem';
 
@@ -24,26 +25,28 @@ export const AnaliseTableTabs = React.memo(function AnaliseTableTabs({
   ];
 
   return (
-    <div className="
-      p-1 rounded-lg flex items-center
-      bg-slate-100 dark:bg-slate-800
-      border border-slate-200 dark:border-slate-700
-    ">
-      {tabs.map((tab) => (
-        <button
-          key={tab.id}
-          onClick={() => onTableChange(tab.id)}
-          className={`
-            px-3.5 py-1.5 text-xs font-semibold rounded-md transition-all whitespace-nowrap
-            ${activeTable === tab.id
-              ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-            }
-          `}
-        >
-          {tab.label}
-        </button>
-      ))}
+    <div className="flex items-center border-b border-border/80 w-full md:w-auto shrink-0 select-none pb-0">
+      <div className="flex gap-4">
+        {tabs.map((tab) => {
+          const isActive = activeTable === tab.id;
+          
+          return (
+            <button
+              key={tab.id}
+              onClick={() => onTableChange(tab.id)}
+              className={cn(
+                "relative pb-2 text-xs font-bold transition-all whitespace-nowrap focus:outline-none",
+                "border-b-2 -mb-[1px]",
+                isActive
+                  ? "border-primary text-foreground"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <span className="px-1">{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 });

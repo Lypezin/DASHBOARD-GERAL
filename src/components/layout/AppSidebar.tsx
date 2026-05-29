@@ -1,0 +1,287 @@
+'use client';
+
+import React from 'react';
+import { useSidebar } from '@/contexts/SidebarContext';
+import { useDashboardTabs } from '@/hooks/dashboard/useDashboardTabs';
+import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
+import { useHeaderAvatar } from '@/hooks/auth/useHeaderAvatar';
+import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+  LayoutDashboard,
+  BarChart3,
+  Gauge,
+  Users,
+  Coins,
+  Star,
+  TrendingUp,
+  GitCompare,
+  Megaphone,
+  Target,
+  Shield,
+  ChevronLeft,
+  ChevronRight,
+  X
+} from 'lucide-react';
+import { TabType } from '@/types';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+
+interface SidebarItem {
+  label: string;
+  value: TabType;
+  icon: React.ComponentType<any>;
+}
+
+interface SidebarGroup {
+  name: string;
+  items: SidebarItem[];
+}
+
+const SIDEBAR_GROUPS: SidebarGroup[] = [
+  {
+    name: 'Principal',
+    items: [
+      { label: 'Visão Geral', value: 'dashboard', icon: LayoutDashboard },
+      { label: 'Análise', value: 'analise', icon: BarChart3 },
+      { label: 'UTR', value: 'utr', icon: Gauge },
+    ],
+  },
+  {
+    name: 'Operacional',
+    items: [
+      { label: 'Entregadores', value: 'entregadores', icon: Users },
+      { label: 'Valores', value: 'valores', icon: Coins },
+      { label: 'Prioridade | Promo', value: 'prioridade', icon: Star },
+      { label: 'Evolução', value: 'evolucao', icon: TrendingUp },
+    ],
+  },
+  {
+    name: 'Marketing',
+    items: [
+      { label: 'Comparação', value: 'comparacao', icon: GitCompare },
+      { label: 'Operacional Marketing', value: 'marketing_comparacao', icon: Megaphone },
+      { label: 'Marketing', value: 'marketing', icon: Target },
+      { label: 'Dedicado', value: 'dedicado', icon: Shield },
+    ],
+  },
+];
+
+export function AppSidebar() {
+  const { collapsed, toggleSidebar, mobileOpen, setMobileOpen } = useSidebar();
+  const { activeTab, handleTabChange } = useDashboardTabs();
+  const { user } = useHeaderAuth();
+  const avatarUrl = useHeaderAvatar(user);
+
+  const handleItemClick = (value: TabType) => {
+    handleTabChange(value);
+    setMobileOpen(false); // Fecha o menu no mobile ao clicar
+  };
+
+  // Renderizador dos itens de navegação comuns
+  const renderNavItems = () => {
+    return SIDEBAR_GROUPS.map((group) => (
+      <div key={group.name} className="space-y-1.5 pt-4">
+        {/* Rótulo do Grupo */}
+        <AnimatePresence mode="wait">
+          {!collapsed ? (
+            <motion.p
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.15 }}
+              className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60"
+            >
+              {group.name}
+            </motion.p>
+          ) : (
+            <div className="h-4 border-b border-border/20 my-1 mx-3" />
+          )}
+        </AnimatePresence>
+
+        {/* Itens */}
+        <div className="space-y-0.5">
+          {group.items.map((item) => {
+            const isActive = activeTab === item.value;
+            const Icon = item.icon;
+
+            const buttonEl = (
+              <button
+                onClick={() => handleItemClick(item.value)}
+                className={cn(
+                  'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-all duration-150',
+                  'relative overflow-hidden group focus:outline-none',
+                  isActive
+                    ? 'bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(59,130,246,0.15)]'
+                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                )}
+              >
+                <Icon className={cn('h-[18px] w-[18px] shrink-0', isActive ? 'text-current' : 'text-muted-foreground/80 group-hover:text-foreground')} />
+                
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: 'auto' }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{ duration: 0.2 }}
+                    className="truncate"
+                  >
+                    {item.label}
+                  </motion.span>
+                )}
+              </button>
+            );
+
+            if (collapsed) {
+              return (
+                <Tooltip key={item.value} delayDuration={0}>
+                  <TooltipTrigger asChild>
+                    {buttonEl}
+                  </TooltipTrigger>
+                  <TooltipContent side="right" className="font-bold border border-border">
+                    {item.label}
+                  </TooltipContent>
+                </Tooltip>
+              );
+            }
+
+            return <React.Fragment key={item.value}>{buttonEl}</React.Fragment>;
+          })}
+        </div>
+      </div>
+    ));
+  };
+
+  return (
+    <>
+      {/* SIDEBAR DESKTOP */}
+      <motion.aside
+        animate={{ width: collapsed ? 64 : 256 }}
+        transition={{ type: 'spring', stiffness: 380, damping: 35 }}
+        className={cn(
+          'hidden md:flex h-screen flex-col border-r border-border bg-card shrink-0 select-none relative z-50 overflow-x-hidden'
+        )}
+      >
+        {/* Header da Sidebar */}
+        <div className="flex h-14 items-center justify-between border-b border-border px-3 shrink-0">
+          <div className="flex items-center gap-3 min-w-0">
+            {/* Logo DG */}
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-200/50 bg-gradient-to-br from-blue-600 via-sky-500 to-cyan-400 text-xs font-black text-white shadow-sm dark:border-blue-400/25">
+              DG
+            </div>
+            
+            {!collapsed && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="flex flex-col min-w-0"
+              >
+                <span className="truncate text-sm font-black tracking-tight text-foreground">
+                  Dashboard Geral
+                </span>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-primary">
+                  OPERACIONAL
+                </span>
+              </motion.div>
+            )}
+          </div>
+        </div>
+
+        {/* Itens de Navegação (Scrollable) */}
+        <div className="flex-1 overflow-y-auto px-2 py-4 space-y-4 subtle-scrollbar">
+          {renderNavItems()}
+        </div>
+
+        {/* Rodapé da Sidebar */}
+        <div className="border-t border-border p-2 shrink-0 flex flex-col gap-2">
+          {/* Botão para colapsar */}
+          <button
+            onClick={toggleSidebar}
+            className="flex w-full items-center justify-center rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            title={collapsed ? 'Expandir Menu' : 'Recolher Menu'}
+          >
+            {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+          </button>
+        </div>
+      </motion.aside>
+
+      {/* OVERLAY MOBILE SIDEBAR */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <>
+            {/* Backdrop escuro */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileOpen(false)}
+              className="fixed inset-0 z-50 bg-black md:hidden"
+            />
+
+            {/* Sidebar real flutuante */}
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
+              className="fixed bottom-0 top-0 left-0 z-50 flex w-72 flex-col bg-card border-r border-border shadow-2xl md:hidden"
+            >
+              {/* Header Mobile */}
+              <div className="flex h-14 items-center justify-between border-b border-border px-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-200/50 bg-gradient-to-br from-blue-600 via-sky-500 to-cyan-400 text-[10px] font-black text-white">
+                    DG
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-black text-foreground">Dashboard Geral</span>
+                    <span className="text-[8px] font-bold uppercase tracking-wider text-primary">OPERACIONAL</span>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setMobileOpen(false)}
+                  className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              {/* Navegação Mobile */}
+              <div className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
+                {/* Aqui os itens são sempre expandidos (collapsed = false) */}
+                {(() => {
+                  return SIDEBAR_GROUPS.map((group) => (
+                    <div key={`mobile-${group.name}`} className="space-y-1.5 pt-2">
+                      <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+                        {group.name}
+                      </p>
+                      <div className="space-y-0.5">
+                        {group.items.map((item) => {
+                          const isActive = activeTab === item.value;
+                          const Icon = item.icon;
+
+                          return (
+                            <button
+                              key={`mobile-${item.value}`}
+                              onClick={() => handleItemClick(item.value)}
+                              className={cn(
+                                'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-all duration-150',
+                                isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                              )}
+                            >
+                              <Icon className="h-[18px] w-[18px]" />
+                              <span>{item.label}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}

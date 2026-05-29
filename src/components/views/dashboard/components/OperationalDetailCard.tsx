@@ -8,6 +8,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from '@/lib/utils';
 
 interface DetailData {
     label: string;
@@ -31,54 +32,70 @@ export const OperationalDetailCard: React.FC<OperationalDetailCardProps> = ({ da
     const isMidPerf = data.aderencia >= 70;
 
     const statusColor = isHighPerf ? 'text-emerald-600 dark:text-emerald-400' :
-        isMidPerf ? 'text-blue-600 dark:text-blue-400' :
+        isMidPerf ? 'text-primary dark:text-blue-400' :
             'text-rose-600 dark:text-rose-400';
 
     const barColor = isHighPerf ? 'bg-emerald-500' :
-        isMidPerf ? 'bg-blue-500' :
+        isMidPerf ? 'bg-primary' :
             'bg-rose-500';
 
-    const bgGradient = isHighPerf
-        ? 'bg-gradient-to-br from-white/90 to-emerald-50/70 dark:from-slate-900/90 dark:to-emerald-900/20'
-        : isMidPerf
-            ? 'bg-gradient-to-br from-white/90 to-blue-50/70 dark:from-slate-900/90 dark:to-blue-900/20'
-            : 'bg-gradient-to-br from-white/90 to-rose-50/70 dark:from-slate-900/90 dark:to-rose-900/20';
+    // Barra lateral de status cirúrgica (substitui gradientes de fundo inteiros)
+    const statusSideBarColor = isHighPerf ? 'bg-emerald-500' :
+        isMidPerf ? 'bg-primary' :
+            'bg-rose-500';
 
     const Icon = isMidPerf ? TrendingUp : TrendingDown;
 
     return (
         <Tooltip>
             <TooltipTrigger asChild>
-                <Card className={`group relative cursor-help overflow-hidden border border-slate-200/60 shadow-sm transition-[background-color,border-color,box-shadow] duration-200 hover:border-slate-300/80 hover:shadow-md dark:border-slate-800/70 dark:hover:border-slate-700 ${bgGradient}`}>
-                    <div className={`absolute top-0 right-0 p-3 opacity-[0.05] group-hover:opacity-[0.12] transition-opacity duration-500 pointer-events-none`}>
-                        <Icon className="w-28 h-28 text-current transform -rotate-12" />
+                <Card className={cn(
+                    "group relative cursor-help overflow-hidden border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.01)] transition-all duration-200",
+                    "hover:-translate-y-0.5 hover:border-border/80 hover:shadow-[0_6px_14px_rgba(0,0,0,0.03)] dark:hover:shadow-[0_6px_18px_rgba(0,0,0,0.18)]"
+                )}>
+                    {/* Barra lateral sutil e cirúrgica de status */}
+                    <div className={cn("absolute left-0 top-0 bottom-0 w-1", statusSideBarColor)} />
+
+                    {/* Pequena marca d'água de ícone ao fundo */}
+                    <div className="absolute top-0 right-0 p-3 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity duration-300 pointer-events-none text-foreground">
+                        <Icon className="w-24 h-24 transform -rotate-12" />
                     </div>
 
-                    <CardContent className="p-5 relative z-10">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className="flex items-center gap-2 max-w-[70%]">
-                                <h3 className="font-bold text-base text-slate-800 dark:text-slate-100 truncate tracking-tight" title={data.label}>
+                    <CardContent className="py-5 pl-6 pr-5 relative z-10">
+                        {/* Cabeçalho */}
+                        <div className="flex justify-between items-start mb-4 gap-2">
+                            <div className="flex items-center gap-2 max-w-[70%] min-w-0">
+                                <h3 className="font-bold text-base text-foreground truncate tracking-tight" title={data.label}>
                                     {data.label}
                                 </h3>
                             </div>
-                            <Badge variant={isHighPerf ? 'default' : isMidPerf ? 'secondary' : 'destructive'} className="text-xs h-6 px-2 font-bold shadow-sm">
+                            <Badge 
+                                variant="outline" 
+                                className={cn(
+                                    "text-xs h-6 px-2 font-bold transition-all shadow-none border-none",
+                                    isHighPerf 
+                                      ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" 
+                                      : isMidPerf 
+                                      ? "bg-primary/10 text-primary dark:text-blue-400" 
+                                      : "bg-rose-500/10 text-rose-600 dark:text-rose-400"
+                                )}
+                            >
                                 {data.aderencia.toFixed(1)}%
                             </Badge>
                         </div>
 
+                        {/* Conteúdo e Progress Bar */}
                         <div className="space-y-4">
                             <div className="space-y-1.5">
-                                <div className="flex justify-between text-xs font-medium text-slate-500 dark:text-slate-400">
+                                <div className="flex justify-between text-xs font-semibold text-muted-foreground/80">
                                     <span>Progresso</span>
                                     <span className={statusColor}>{Math.min(data.aderencia, 100).toFixed(0)}%</span>
                                 </div>
-                                <div className="h-2.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shadow-inner">
+                                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                                     <div
-                                        className={`h-full ${barColor} rounded-full shadow-sm transition-[width] duration-700 relative`}
+                                        className={cn("h-full rounded-full transition-all duration-700", barColor)}
                                         style={{ width: `${Math.min(data.aderencia, 100)}%` }}
-                                    >
-                                        <div className="absolute inset-0 bg-white/15"></div>
-                                    </div>
+                                    />
                                 </div>
                             </div>
 

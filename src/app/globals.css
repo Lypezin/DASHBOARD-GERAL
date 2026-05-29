@@ -8,65 +8,66 @@
 
 @layer base {
   :root {
-    /* Clean operations palette */
-    --background: 214 52% 98%;
-    --foreground: 222.2 47.4% 11.2%;
+    /* Refined Light Mode Palette (Modern Flat Neutral) */
+    --background: 240 5% 98%; /* Soft cool grey #FAF9F6 */
+    --foreground: 240 10% 3.9%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 47.4% 11.2%;
+    --card: 0 0% 100%; /* Pure white solid card */
+    --card-foreground: 240 10% 3.9%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 47.4% 11.2%;
+    --popover-foreground: 240 10% 3.9%;
 
-    --primary: 221.2 83.2% 53.3%;
+    --primary: 221.2 83.2% 53.3%; /* Premium Electric Cobalt */
     --primary-foreground: 210 40% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 10% 3.9%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 10% 3.9%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
+    --border: 240 5.9% 90%; /* Crisp 1px borders */
+    --input: 240 5.9% 90%;
     --ring: 221.2 83.2% 53.3%;
 
-    --radius: 1rem;
+    --radius: 0.75rem; /* Standard SaaS radius (12px) */
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Refined Dark Mode Palette (Linear/Vercel Zinc style) */
+    --background: 240 10% 3.9%; /* Rich dark background #09090B */
+    --foreground: 0 0% 98%;
 
-    --card: 222.2 84% 6.5%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 10% 5.9%; /* Deep solid card #18181B */
+    --card-foreground: 0 0% 98%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 10% 3.9%;
+    --popover-foreground: 0 0% 98%;
 
     --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 240 3.7% 15.9%;
+    --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
+    --border: 240 3.7% 15.9%; /* Crisp border #27272A */
+    --input: 240 3.7% 15.9%;
     --ring: 224.3 76.3% 48%;
   }
 }
@@ -76,27 +77,28 @@
     @apply border-border;
   }
 
-  /* Mesh Gradient Background - Optimized for performance */
-  .mesh-gradient {
+  /* Dot Grid Background - Elegant Vercel/Linear pattern */
+  .grid-pattern {
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
     z-index: -1;
-    overflow: hidden;
-    background: radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.05) 0, transparent 50%), 
-                radial-gradient(at 100% 0%, rgba(147, 51, 234, 0.05) 0, transparent 50%), 
-                radial-gradient(at 100% 100%, rgba(30, 64, 175, 0.05) 0, transparent 50%), 
-                radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.05) 0, transparent 50%);
-    /* Removed heavy rotation/scale for smooth performance */
-    opacity: 0.8;
+    pointer-events: none;
+    background-image: radial-gradient(hsl(var(--foreground) / 0.035) 1.2px, transparent 1.2px);
+    background-size: 24px 24px;
+    opacity: 0.85;
+  }
+
+  .dark .grid-pattern {
+    background-image: radial-gradient(hsl(var(--foreground) / 0.05) 1.2px, transparent 1.2px);
   }
 
   /* Glow Animation */
   @keyframes glow-pulse {
-    0%, 100% { box-shadow: 0 0 5px rgba(59, 130, 246, 0.5), 0 0 10px rgba(59, 130, 246, 0.2); }
-    50% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.8), 0 0 25px rgba(59, 130, 246, 0.4); }
+    0%, 100% { box-shadow: 0 0 4px rgba(59, 130, 246, 0.4); }
+    50% { box-shadow: 0 0 10px rgba(59, 130, 246, 0.6); }
   }
 
   .animate-glow-pulse {
@@ -105,14 +107,14 @@
 
   /* Blur-in animation */
   .animate-blur-in {
-    animation: blur-in 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    animation: blur-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
   @keyframes blur-in {
     0% {
       opacity: 0;
-      filter: blur(20px);
-      transform: scale(0.95);
+      filter: blur(16px);
+      transform: scale(0.97);
     }
     100% {
       opacity: 1;
@@ -128,9 +130,9 @@
     font-family: var(--font-outfit), var(--font-inter), sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "tnum";
     text-rendering: geometricPrecision;
-    transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-                color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-                border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+                color 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
+                border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   main {
@@ -138,7 +140,7 @@
   }
 
   ::selection {
-    background: rgba(37, 99, 235, 0.18);
+    background: rgba(37, 99, 235, 0.12);
     color: hsl(var(--foreground));
   }
 
@@ -150,35 +152,35 @@
     animation: none !important;
   }
 
+  /* Redefined glass-card to a premium flat SaaS Card with subtle shadow and border */
   .glass-card {
-    backdrop-filter: blur(18px);
-    -webkit-backdrop-filter: blur(18px);
-    background: rgba(255, 255, 255, 0.78);
-    border: 1px solid rgba(226, 232, 240, 0.78);
-    box-shadow: 0 18px 55px -38px rgba(15, 23, 42, 0.45);
-    transition: background-color 0.3s cubic-bezier(0.4, 0, 0.2, 1), 
-                border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-                box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background-color: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05), 0 1px 2px -1px rgba(0, 0, 0, 0.05);
+    border-radius: var(--radius);
+    transition: background-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+                border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .dark .glass-card {
-    background: rgba(15, 23, 42, 0.66);
-    border: 1px solid rgba(148, 163, 184, 0.12);
-    box-shadow: 0 20px 70px -42px rgba(0, 0, 0, 0.85);
+  .glass-card:hover {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
   }
 
   .surface-panel {
-    @apply rounded-3xl border border-slate-200/70 bg-white/90 shadow-[0_18px_65px_-48px_rgba(15,23,42,0.55)] dark:border-slate-800/70 dark:bg-slate-950/75;
+    @apply border border-border bg-card shadow-[0_1px_3px_0_rgba(0,0,0,0.05)];
+    border-radius: var(--radius);
   }
 
   .subtle-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: rgba(148, 163, 184, 0.55) transparent;
+    scrollbar-color: hsl(var(--muted-foreground) / 0.3) transparent;
   }
 
   .subtle-scrollbar::-webkit-scrollbar {
-    height: 10px;
-    width: 10px;
+    height: 6px;
+    width: 6px;
   }
 
   .subtle-scrollbar::-webkit-scrollbar-track {
@@ -186,14 +188,13 @@
   }
 
   .subtle-scrollbar::-webkit-scrollbar-thumb {
-    border: 2px solid transparent;
     border-radius: 9999px;
-    background-clip: padding-box;
-    background-color: rgba(148, 163, 184, 0.45);
+    background-color: hsl(var(--muted-foreground) / 0.2);
+    transition: background-color 0.2s;
   }
 
-  .dark .subtle-scrollbar::-webkit-scrollbar-thumb {
-    background-color: rgba(100, 116, 139, 0.55);
+  .subtle-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: hsl(var(--muted-foreground) / 0.4);
   }
 
   @media (prefers-reduced-motion: reduce) {

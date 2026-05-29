@@ -31,7 +31,7 @@ const UtrView = React.memo(function UtrView({
 
   if (loading) {
     return (
-      <div className="space-y-5 animate-fade-in">
+      <div className="space-y-5 animate-fade-in pt-4">
         <TableSkeleton rows={6} columns={4} />
       </div>
     );
@@ -39,12 +39,12 @@ const UtrView = React.memo(function UtrView({
 
   if (!utrData || !utrData.geral) {
     return (
-      <div className="rounded-3xl border border-dashed border-slate-300 bg-white/75 px-6 py-12 text-center shadow-sm dark:border-slate-700 dark:bg-slate-900/70">
-        <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800">
-          <Activity className="h-6 w-6 text-slate-500 dark:text-slate-300" />
+      <div className="rounded-xl border border-dashed border-border bg-card px-6 py-12 text-center shadow-[0_1px_2px_rgba(0,0,0,0.01)]">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
+          <Activity className="h-5 w-5 text-muted-foreground" />
         </div>
-        <p className="text-lg font-semibold text-slate-900 dark:text-white">Nenhum dado disponivel</p>
-        <p className="mx-auto mt-2 max-w-md text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-base font-bold text-foreground">Nenhum dado disponível</p>
+        <p className="mx-auto mt-1.5 max-w-sm text-xs text-muted-foreground">
           Aguarde o carregamento ou ajuste os filtros para visualizar a leitura operacional de UTR.
         </p>
       </div>
@@ -55,7 +55,7 @@ const UtrView = React.memo(function UtrView({
   const totalSlices = porPraca.length + porSubPraca.length + porOrigem.length + porTurno.length;
 
   return (
-    <div className="flex flex-col gap-8 pb-12 pt-4 w-full max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-10 animate-fade-in">
+    <div className="flex flex-col gap-8 pb-16 pt-2 w-full animate-fade-in">
       <UtrHeader
         isExporting={isExporting}
         onExport={handleExport}

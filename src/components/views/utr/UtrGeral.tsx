@@ -14,68 +14,71 @@ export const UtrGeral = React.memo(function UtrGeral({ data }: UtrGeralProps) {
     const formattedCorridas = (data.corridas ?? 0).toLocaleString('pt-BR');
 
     return (
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-3 pt-1">
             {/* UTR Index Card */}
-            <Card className="rounded-2xl border-slate-200/60 shadow-sm bg-white dark:bg-slate-950 dark:border-slate-800">
-                <CardContent className="p-6">
+            <Card className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.01)] transition-all duration-200 hover:-translate-y-0.5 hover:border-border/80 hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)]">
+                <CardContent className="p-5">
                     <div className="flex items-center justify-between mb-4">
-                        <div className="space-y-1">
-                            <h3 className="font-semibold text-slate-800 dark:text-slate-200 text-sm">UTR Consolidada</h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Índice geral do período</p>
+                        <div className="space-y-0.5">
+                            <h3 className="font-bold text-muted-foreground/80 text-xs uppercase tracking-wider">UTR Consolidada</h3>
+                            <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Média do período</p>
                         </div>
-                        <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400">
-                            <Activity className="h-5 w-5" />
+                        <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-primary/10 border border-primary/20 text-primary shrink-0">
+                            <Activity className="h-4.5 w-4.5" />
                         </div>
                     </div>
-                    <div className="flex items-baseline gap-2">
-                        <span className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                    <div className="flex items-baseline gap-1.5">
+                        <span className="text-3xl font-black tracking-tight text-foreground font-outfit">
                             {(data.utr ?? 0).toFixed(2)}
                         </span>
-                        <span className="text-sm text-slate-500 dark:text-slate-400 font-medium">índice</span>
+                        <span className="text-xs text-muted-foreground font-semibold">índice</span>
                     </div>
                 </CardContent>
             </Card>
 
             {/* Tempo Card */}
-            <Card className="rounded-2xl border-slate-200/60 shadow-sm bg-white dark:bg-slate-950 dark:border-slate-800">
-                <CardContent className="p-6">
+            <Card className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.01)] transition-all duration-200 hover:-translate-y-0.5 hover:border-border/80 hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)]">
+                <CardContent className="p-5">
                     <div className="flex items-center justify-between mb-4">
-                        <div className="space-y-1">
-                            <h3 className="font-semibold text-slate-800 dark:text-slate-200 text-sm">Tempo Total</h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Carga horária operacional</p>
+                        <div className="space-y-0.5">
+                            <h3 className="font-bold text-muted-foreground/80 text-xs uppercase tracking-wider">Tempo Total</h3>
+                            <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Horas operacionais</p>
                         </div>
-                        <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-orange-50 text-orange-600 dark:bg-orange-900/20 dark:text-orange-400">
-                            <Timer className="h-5 w-5" />
+                        <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-600 dark:text-amber-400 shrink-0">
+                            <Timer className="h-4.5 w-4.5" />
                         </div>
                     </div>
-                    <div className="flex flex-col gap-1">
-                        <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50" title={fullTime}>
+                    <div className="flex flex-col gap-0.5">
+                        <span className="text-2xl font-black tracking-tight text-foreground font-outfit" title={fullTime}>
                             {compactTime}
                         </span>
-                        <span className="text-xs text-slate-500 font-mono" title={fullTime}>{fullTime}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono" title={fullTime}>{fullTime}</span>
                     </div>
                 </CardContent>
             </Card>
 
             {/* Corridas Card */}
-            <Card className="rounded-2xl border-slate-200/60 shadow-sm bg-white dark:bg-slate-950 dark:border-slate-800">
-                <CardContent className="p-6">
+            <Card className="rounded-xl border border-border bg-card shadow-[0_1px_2px_rgba(0,0,0,0.01)] transition-all duration-200 hover:-translate-y-0.5 hover:border-border/80 hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)]">
+                <CardContent className="p-5">
                     <div className="flex items-center justify-between mb-4">
-                        <div className="space-y-1">
-                            <h3 className="font-semibold text-slate-800 dark:text-slate-200 text-sm">Total de Corridas</h3>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">Volume consolidado</p>
+                        <div className="space-y-0.5">
+                            <h3 className="font-bold text-muted-foreground/80 text-xs uppercase tracking-wider">Total Corridas</h3>
+                            <p className="text-[10px] text-muted-foreground font-semibold uppercase tracking-wider">Volume de entregas</p>
                         </div>
-                        <div className="h-10 w-10 flex items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400">
-                            <Car className="h-5 w-5" />
+                        <div className="h-9 w-9 flex items-center justify-center rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 shrink-0">
+                            <Car className="h-4.5 w-4.5" />
                         </div>
                     </div>
-                    <div className="flex items-baseline gap-2">
-                        <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
+                    <div className="flex items-baseline gap-1.5">
+                        <span className="text-2xl font-black tracking-tight text-foreground font-outfit">
                             {formattedCorridas}
                         </span>
+                        <span className="text-xs text-muted-foreground font-semibold">entregas</span>
                     </div>
                 </CardContent>
             </Card>
         </div>
     );
 });
+
+UtrGeral.displayName = 'UtrGeral';

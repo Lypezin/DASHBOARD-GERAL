@@ -12,7 +12,7 @@ export const ConversionFunnel = React.memo(function ConversionFunnel({ ofertadas
     if (ofertadas === 0) return null;
 
     const stages: FunnelStage[] = [
-        { label: 'Ofertadas', value: ofertadas, color: 'bg-blue-500' },
+        { label: 'Ofertadas', value: ofertadas, color: 'bg-primary' },
         { label: 'Aceitas', value: aceitas, color: 'bg-sky-500' },
         { label: 'Completadas', value: completadas, color: 'bg-emerald-500' },
     ];
@@ -24,24 +24,24 @@ export const ConversionFunnel = React.memo(function ConversionFunnel({ ofertadas
     const maxValue = Math.max(...stages.map(s => s.value));
 
     return (
-        <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900/50">
-            <div className="mb-4 flex items-center gap-2">
-                <TrendingDown className="h-4 w-4 text-slate-500" />
-                <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Funil de Conversao</h3>
+        <div className="rounded-xl border border-border bg-card p-5 shadow-[0_1px_2px_rgba(0,0,0,0.01)]">
+            <div className="mb-4 flex items-center gap-2 px-0.5">
+                <TrendingDown className="h-4 w-4 text-muted-foreground/80" />
+                <h3 className="text-sm font-bold text-foreground font-outfit">Funil de Conversão</h3>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-4">
                 {stages.map((stage, i) => {
                     const widthPct = maxValue > 0 ? (stage.value / maxValue) * 100 : 0;
                     return (
-                        <div key={stage.label}>
-                            <div className="mb-1 flex items-center justify-between">
-                                <span className="text-xs font-medium text-slate-600 dark:text-slate-400">{stage.label}</span>
-                                <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
+                        <div key={stage.label} className="space-y-1">
+                            <div className="flex items-center justify-between px-0.5">
+                                <span className="text-xs font-semibold text-muted-foreground">{stage.label}</span>
+                                <span className="text-xs font-mono font-bold text-foreground">
                                     {stage.value.toLocaleString('pt-BR')}
                                 </span>
                             </div>
-                            <div className="h-7 overflow-hidden rounded-md bg-slate-100 dark:bg-slate-800">
+                            <div className="h-6 overflow-hidden rounded-md bg-muted">
                                 <div
                                     className={`h-full rounded-md ${stage.color} transition-[width] duration-700`}
                                     style={{ width: `${widthPct}%` }}
@@ -49,14 +49,14 @@ export const ConversionFunnel = React.memo(function ConversionFunnel({ ofertadas
                             </div>
                             {i < stages.length - 1 ? (
                                 <div className="ml-2 mt-1 flex items-center gap-1">
-                                    <ArrowRight className="h-3 w-3 text-slate-400" />
+                                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/45" />
                                     <Tooltip>
                                         <TooltipTrigger asChild>
-                                            <span className="cursor-help text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                                            <span className="cursor-help text-[10px] font-semibold text-muted-foreground/75 hover:text-foreground transition-colors">
                                                 {i === 0 ? `${taxaAceitacao}% aceita` : `${taxaCompletude}% completa`}
                                             </span>
                                         </TooltipTrigger>
-                                        <TooltipContent>
+                                        <TooltipContent className="font-bold border border-border">
                                             <p>{i === 0 ? `${aceitas} de ${ofertadas} aceitas` : `${completadas} de ${aceitas} completadas`}</p>
                                         </TooltipContent>
                                     </Tooltip>
@@ -67,22 +67,24 @@ export const ConversionFunnel = React.memo(function ConversionFunnel({ ofertadas
                 })}
             </div>
 
-            <div className="mt-4 flex items-center justify-between border-t border-slate-100 pt-3 dark:border-slate-800">
+            <div className="mt-4 flex items-center justify-between border-t border-border pt-3 px-0.5">
                 <Tooltip>
                     <TooltipTrigger asChild>
-                        <div className="flex cursor-help items-center gap-1.5">
+                        <div className="flex cursor-help items-center gap-1.5 hover:opacity-80 transition-opacity">
                             <span className="inline-block h-2 w-2 rounded-full bg-rose-500" />
-                            <span className="text-xs text-slate-500">Rejeicao: {taxaRejeicao}%</span>
+                            <span className="text-xs font-semibold text-muted-foreground">Rejeição: {taxaRejeicao}%</span>
                         </div>
                     </TooltipTrigger>
-                    <TooltipContent>
+                    <TooltipContent className="font-bold border border-border">
                         <p>{rejeitadas.toLocaleString('pt-BR')} corridas rejeitadas de {ofertadas.toLocaleString('pt-BR')}</p>
                     </TooltipContent>
                 </Tooltip>
-                <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">
-                    Conversao total: {ofertadas > 0 ? ((completadas / ofertadas) * 100).toFixed(1) : 0}%
+                <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                    Conversão total: {ofertadas > 0 ? ((completadas / ofertadas) * 100).toFixed(1) : 0}%
                 </span>
             </div>
         </div>
     );
 });
+
+ConversionFunnel.displayName = 'ConversionFunnel';
