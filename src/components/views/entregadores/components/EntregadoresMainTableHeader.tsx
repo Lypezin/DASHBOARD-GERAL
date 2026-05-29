@@ -1,6 +1,6 @@
 import React from 'react';
 import { Entregador } from '@/types';
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
 
 interface EntregadoresTableHeaderProps {
     sortField: keyof Entregador | 'percentual_aceitas' | 'percentual_completadas';
@@ -8,73 +8,72 @@ interface EntregadoresTableHeaderProps {
     onSort: (field: keyof Entregador | 'percentual_aceitas' | 'percentual_completadas') => void;
 }
 
+type SortableField = keyof Entregador | 'percentual_aceitas' | 'percentual_completadas';
+
 export const EntregadoresMainTableHeader = React.memo(function EntregadoresMainTableHeader({
     sortField,
     sortDirection,
     onSort,
 }: EntregadoresTableHeaderProps) {
-    const getSortIcon = (field: keyof Entregador | 'percentual_aceitas' | 'percentual_completadas') => {
-        if (sortField !== field) return <ArrowUpDown className="ml-1 h-3 w-3 text-slate-400 inline" />;
-        return sortDirection === 'asc' ?
-            <ArrowUp className="ml-1 h-3 w-3 text-slate-900 dark:text-white inline" /> :
-            <ArrowDown className="ml-1 h-3 w-3 text-slate-900 dark:text-white inline" />;
+    const getSortIcon = (field: SortableField) => {
+        if (sortField !== field) {
+            return <ArrowUpDown className="inline h-3 w-3 text-slate-400" />;
+        }
+
+        return sortDirection === 'asc'
+            ? <ArrowUp className="inline h-3 w-3 text-slate-900 dark:text-white" />
+            : <ArrowDown className="inline h-3 w-3 text-slate-900 dark:text-white" />;
+    };
+
+    const HeaderCell = ({
+        label,
+        field,
+        align = 'center',
+        span = '',
+    }: {
+        label: string;
+        field?: SortableField;
+        align?: 'left' | 'center' | 'right';
+        span?: string;
+    }) => {
+        const baseClass = 'text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400';
+        const alignClass = align === 'left'
+            ? 'justify-start text-left'
+            : align === 'right'
+                ? 'justify-end text-right'
+                : 'justify-center text-center';
+
+        if (!field) {
+            return <div className={`${baseClass} ${alignClass} ${span}`}>{label}</div>;
+        }
+
+        return (
+            <button
+                type="button"
+                onClick={() => onSort(field)}
+                className={`${baseClass} ${alignClass} ${span} flex items-center gap-1 transition-colors hover:text-slate-800 dark:hover:text-slate-200`}
+            >
+                <span>{label}</span>
+                {getSortIcon(field)}
+            </button>
+        );
     };
 
     return (
-        <div className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700">
-            <div className="grid grid-cols-10 gap-4 px-6 py-3 min-w-[1100px]">
-                <div className="text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                    Saúde
-                </div>
-                <div
-                    className="cursor-pointer text-left text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center gap-1 col-span-2"
-                    onClick={() => onSort('nome_entregador')}
-                >
-                    Nome {getSortIcon('nome_entregador')}
-                </div>
-                <div
-                    className="cursor-pointer text-center text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-center gap-1"
-                    onClick={() => onSort('total_segundos')}
-                >
-                    Horas {getSortIcon('total_segundos')}
-                </div>
-                <div
-                    className="cursor-pointer text-right text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-end gap-1"
-                    onClick={() => onSort('corridas_ofertadas')}
-                >
-                    Ofertadas {getSortIcon('corridas_ofertadas')}
-                </div>
-                <div
-                    className="cursor-pointer text-right text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-end gap-1"
-                    onClick={() => onSort('corridas_aceitas')}
-                >
-                    Aceitas {getSortIcon('corridas_aceitas')}
-                </div>
-                <div
-                    className="cursor-pointer text-center text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-center gap-1"
-                    onClick={() => onSort('percentual_aceitas')}
-                >
-                    % Aceitas {getSortIcon('percentual_aceitas')}
-                </div>
-                <div
-                    className="cursor-pointer text-right text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-end gap-1"
-                    onClick={() => onSort('corridas_completadas')}
-                >
-                    Completadas {getSortIcon('corridas_completadas')}
-                </div>
-                <div
-                    className="cursor-pointer text-center text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-center gap-1"
-                    onClick={() => onSort('percentual_completadas')}
-                >
-                    % Completadas {getSortIcon('percentual_completadas')}
-                </div>
-                <div
-                    className="cursor-pointer text-center text-xs font-semibold uppercase tracking-wider text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 flex items-center justify-center gap-1"
-                    onClick={() => onSort('aderencia_percentual')}
-                >
-                    Aderência {getSortIcon('aderencia_percentual')}
-                </div>
+        <div className="border-b border-slate-200 bg-slate-50/90 dark:border-slate-700 dark:bg-slate-900/70">
+            <div className="grid min-w-[1100px] grid-cols-10 gap-4 px-6 py-3">
+                <HeaderCell label="Saude" />
+                <HeaderCell label="Nome" field="nome_entregador" align="left" span="col-span-2" />
+                <HeaderCell label="Horas" field="total_segundos" />
+                <HeaderCell label="Ofertadas" field="corridas_ofertadas" align="right" />
+                <HeaderCell label="Aceitas" field="corridas_aceitas" align="right" />
+                <HeaderCell label="% Aceitas" field="percentual_aceitas" />
+                <HeaderCell label="Completadas" field="corridas_completadas" align="right" />
+                <HeaderCell label="% Completadas" field="percentual_completadas" />
+                <HeaderCell label="Aderencia" field="aderencia_percentual" />
             </div>
         </div>
     );
 });
+
+EntregadoresMainTableHeader.displayName = 'EntregadoresMainTableHeader';

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Entregador } from '@/types';
 import { EntregadoresMainTableHeaderCard } from './components/EntregadoresMainTableHeaderCard';
@@ -27,7 +27,6 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
 }: EntregadoresMainTableProps) {
     const [currentPage, setCurrentPage] = useState(1);
 
-    // Reset pagination when search term or sorting changes
     useEffect(() => {
         setCurrentPage(1);
     }, [searchTerm, sortField, sortDirection]);
@@ -36,12 +35,11 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
 
     const currentItems = useMemo(() => {
         const start = (currentPage - 1) * ITEMS_PER_PAGE;
-        const end = start + ITEMS_PER_PAGE;
-        return sortedEntregadores.slice(start, end);
+        return sortedEntregadores.slice(start, start + ITEMS_PER_PAGE);
     }, [sortedEntregadores, currentPage]);
 
     return (
-        <Card className="border-slate-200 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+        <Card className="overflow-hidden border-slate-200/70 bg-white/92 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/86">
             <EntregadoresMainTableHeaderCard />
 
             <CardContent className="p-0">
@@ -52,8 +50,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                         onSort={onSort}
                     />
 
-                    {/* Lista com scroll - Paginated */}
-                    <div className="max-h-[600px] overflow-y-auto overflow-x-auto">
+                    <div className="max-h-[600px] overflow-x-auto overflow-y-auto">
                         {currentItems.length > 0 ? (
                             <div className="divide-y divide-slate-100 dark:divide-slate-800">
                                 {currentItems.map((entregador, index) => (
@@ -65,10 +62,15 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                                 ))}
                             </div>
                         ) : (
-                            <div className="px-6 py-12 text-center text-sm text-slate-500 dark:text-slate-400">
-                                {searchTerm
-                                    ? `Nenhum entregador encontrado com o termo "${searchTerm}"`
-                                    : 'Nenhum entregador disponível'}
+                            <div className="px-6 py-14 text-center">
+                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                    {searchTerm
+                                        ? `Nenhum entregador encontrado com o termo "${searchTerm}"`
+                                        : 'Nenhum entregador disponivel'}
+                                </p>
+                                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                    Ajuste os filtros ou refine a busca para localizar registros.
+                                </p>
                             </div>
                         )}
                     </div>
@@ -85,3 +87,5 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
         </Card>
     );
 });
+
+EntregadoresMainTable.displayName = 'EntregadoresMainTable';

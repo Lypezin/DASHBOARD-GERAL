@@ -1,4 +1,5 @@
 import { createClient } from '@/utils/supabase/server';
+import { loadAuthenticatedUser } from './authenticatedUser';
 
 export type CurrentUserProfile = {
   id?: string;
@@ -51,18 +52,12 @@ export async function loadCurrentUserProfile(
     forbiddenMessage = 'Usuario sem permissao administrativa.',
   } = options;
 
-  const supabase = createClient();
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-
-  if (userError || !userData.user) {
-    return {
-      failure: {
-        status: 401,
-        message: unauthenticatedMessage,
-      },
-    };
+  const auth = await loadAuthenticatedUser(unauthenticatedMessage);
+  if ('failure' in auth) {
+    return { failure: auth.failure };
   }
 
+  const supabase = createClient();
   const { data: profileData, error: profileError } = await supabase.rpc('get_current_user_profile');
   const profile = normalizeCurrentUserProfile(profileData);
 

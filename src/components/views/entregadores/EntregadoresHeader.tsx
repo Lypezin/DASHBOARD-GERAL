@@ -38,7 +38,7 @@ export const EntregadoresHeader = React.memo(function EntregadoresHeader({
                         Entregadores
                     </div>
                     <h2 className="text-2xl font-black tracking-tight text-slate-950 dark:text-white">
-                    {title}
+                        {title}
                     </h2>
                     <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
                         {autoSemana
@@ -60,3 +60,5 @@ export const EntregadoresHeader = React.memo(function EntregadoresHeader({
         </div>
     );
 });
+
+EntregadoresHeader.displayName = 'EntregadoresHeader';

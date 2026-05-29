@@ -1,21 +1,20 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
 import {
     createServiceRoleClient,
     getServiceRoleConfigErrorPayload,
     isServiceRoleConfigError
 } from '@/utils/supabase/admin';
+import { loadAuthenticatedUser } from '@/app/api/_shared/authenticatedUser';
 
 export const runtime = 'nodejs';
 
 export async function POST(request: Request) {
     try {
-        const supabase = createClient();
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-
-        if (userError || !userData.user) {
-            return NextResponse.json({ error: 'Usuario nao autenticado.' }, { status: 401 });
+        const auth = await loadAuthenticatedUser();
+        if ('failure' in auth) {
+            return NextResponse.json({ error: auth.failure.message }, { status: auth.failure.status });
         }
+        const { user } = auth;
 
         const body = await request.json().catch(() => null);
         const userId = typeof body?.userId === 'string' ? body.userId : '';
@@ -25,7 +24,7 @@ export async function POST(request: Request) {
                 ? null
                 : undefined;
 
-        if (!userId || userId !== userData.user.id) {
+        if (!userId || userId !== user.id) {
             return NextResponse.json({ error: 'Voce so pode atualizar o proprio avatar.' }, { status: 403 });
         }
 
@@ -35,7 +34,7 @@ export async function POST(request: Request) {
 
         const admin = createServiceRoleClient();
         const nextMetadata = {
-            ...(userData.user.user_metadata || {}),
+            ...(user.user_metadata || {}),
             avatar_url: avatarUrl,
         };
 
