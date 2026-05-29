@@ -62,21 +62,20 @@ const FiltroBar = React.memo(function FiltroBar({
   const { anosOptions, semanasOptions } = useFiltroBarOptions(anos, semanas, filters);
 
   return (
-    <div className="relative z-10 font-sans">
-      <div className="flex flex-col gap-3.5 xl:flex-row xl:items-end xl:gap-4">
-
-        {/* Toggle Mode Swtich - Now Integrated */}
-        <div className="min-w-fit self-start">
+    <div className="relative z-10 font-sans w-full">
+      <div className="flex flex-col gap-4 xl:flex-row xl:items-end w-full">
+        {/* Toggle Mode Switch - Alinhado no topo ou esquerda */}
+        <div className="min-w-fit shrink-0 self-start xl:self-auto xl:pb-0.5">
           <FilterModeSwitch
             isModoIntervalo={showDateRangeFilters}
             onToggle={handleModeToggle}
           />
         </div>
 
-        <div className="mx-1 hidden h-8 w-px self-center bg-slate-200/90 dark:bg-slate-700/80 xl:block" />
+        <div className="hidden xl:block mx-1 h-8 w-px bg-border shrink-0 self-end mb-1" />
 
-        {/* Filters Group */}
-        <div className="flex min-w-0 flex-1 flex-wrap items-stretch gap-3">
+        {/* Filters Group - CSS Grid Simétrico e Responsivo */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5 min-w-0 flex-1">
           <FilterPrimarySection
             isModoIntervalo={showDateRangeFilters}
             filters={filters}
@@ -100,7 +99,7 @@ const FiltroBar = React.memo(function FiltroBar({
 
         {/* Clear Button - Compact */}
         {hasActiveFilters && (
-          <div className="self-start xl:self-auto">
+          <div className="shrink-0 self-start xl:self-end xl:pb-0.5">
             <FilterClearButton onClear={handleClearFiltersClick} />
           </div>
         )}

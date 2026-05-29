@@ -35,35 +35,34 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
   };
 
   return (
-    <div className="group relative flex flex-col gap-1 sm:gap-1.5" ref={wrapperRef}>
-      <span className="truncate pl-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500/90 dark:text-slate-400 sm:text-[11px]">
+    <div className="group relative flex flex-col gap-1" ref={wrapperRef}>
+      <span className="truncate pl-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80">
         {label}
       </span>
       <div className="relative">
         <button
           ref={buttonRef}
+          type="button"
           onClick={() => setIsOpen(!isOpen)}
           disabled={disabled}
           className={cn(
-            "w-full min-h-[46px] appearance-none rounded-[1.15rem] border border-slate-200/70 text-left dark:border-slate-700/80",
-            "bg-white/78 px-3.5 py-2.5 pr-9 text-sm font-medium dark:bg-slate-900/82 supports-[backdrop-filter]:backdrop-blur-sm",
-            "text-slate-700 shadow-[0_10px_28px_-24px_rgba(15,23,42,0.7)] transition-[background-color,border-color,box-shadow] duration-150 dark:text-slate-200",
-            "hover:border-blue-300/70 hover:bg-white hover:shadow-[0_14px_34px_-25px_rgba(37,99,235,0.7)] dark:hover:border-blue-500/40 dark:hover:bg-slate-800/90",
-            isOpen ? "ring-2 ring-blue-500/35 border-blue-500 dark:border-blue-500/60" : "hover:ring-2 hover:ring-blue-500/15 dark:hover:ring-blue-500/25",
-            "focus:outline-none focus:ring-2 focus:ring-blue-500/40",
+            "w-full min-h-[38px] appearance-none rounded-lg border border-border text-left focus:outline-none",
+            "bg-card px-3 py-1.5 pr-9 text-xs font-semibold text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all duration-150",
+            "hover:border-primary/50 hover:bg-muted/30",
+            isOpen ? "ring-2 ring-primary/20 border-primary" : "hover:ring-2 hover:ring-primary/5",
             "disabled:cursor-not-allowed disabled:opacity-50"
           )}
         >
           <span className="block truncate">
             {selected.length > 0 ? (
-              <span className="text-blue-600 dark:text-blue-400">{selected.length} selecionado(s)</span>
+              <span className="text-primary font-bold">{selected.length} selecionado(s)</span>
             ) : (
-              <span className="text-slate-500 dark:text-slate-400 font-normal">{placeholder}</span>
+              <span className="text-muted-foreground font-normal">{placeholder}</span>
             )}
           </span>
         </button>
         <div className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 transition-transform duration-150 ${isOpen ? 'rotate-180' : ''}`}>
-          <ChevronDown className="h-4 w-4 text-slate-400 dark:text-slate-500" />
+          <ChevronDown className="h-3.5 w-3.5 text-muted-foreground/60" />
         </div>
       </div>
 

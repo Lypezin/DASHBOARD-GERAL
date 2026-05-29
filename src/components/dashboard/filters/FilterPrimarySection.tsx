@@ -24,7 +24,7 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
 }) => {
     if (isModoIntervalo) {
         return (
-            <div className="w-full min-w-0 flex-auto xl:max-w-[26rem]">
+            <div className="col-span-2 min-w-0">
                 <FiltroDateRange
                     dataInicial={filters?.dataInicial ?? null}
                     dataFinal={filters?.dataFinal ?? null}
@@ -64,37 +64,33 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
 
     return (
         <>
-            <div className="min-w-[10rem] flex-1 basis-[10rem] sm:min-w-[11rem] sm:basis-[11rem]">
-                <FiltroSelect
-                    label="Ano"
-                    value={filters.ano !== null ? String(filters.ano) : ''}
-                    options={anosOptions}
-                    placeholder="Todos"
-                    onChange={(value) => handleChange('ano', value)}
-                />
-            </div>
-            <div className="min-w-[10rem] flex-1 basis-[10rem] sm:min-w-[11rem] sm:basis-[11rem]">
-                <FiltroMultiSelect
-                    label="Semana"
-                    selected={selectedWeeks}
-                    options={semanasOptions}
-                    placeholder="Todas"
-                    onSelectionChange={(values) => {
-                        setFilters(prev => {
-                            const semanas = values
-                                .map((value) => parseInt(value, 10))
-                                .filter((value) => Number.isFinite(value))
-                                .sort((a, b) => a - b);
+            <FiltroSelect
+                label="Ano"
+                value={filters.ano !== null ? String(filters.ano) : ''}
+                options={anosOptions}
+                placeholder="Todos"
+                onChange={(value) => handleChange('ano', value)}
+            />
+            <FiltroMultiSelect
+                label="Semana"
+                selected={selectedWeeks}
+                options={semanasOptions}
+                placeholder="Todas"
+                onSelectionChange={(values) => {
+                    setFilters(prev => {
+                        const semanas = values
+                            .map((value) => parseInt(value, 10))
+                            .filter((value) => Number.isFinite(value))
+                            .sort((a, b) => a - b);
 
-                            return {
-                                ...prev,
-                                semana: semanas.length === 1 ? semanas[0] : null,
-                                semanas
-                            };
-                        });
-                    }}
-                />
-            </div>
+                        return {
+                            ...prev,
+                            semana: semanas.length === 1 ? semanas[0] : null,
+                            semanas
+                        };
+                    });
+                }}
+            />
         </>
     );
 };

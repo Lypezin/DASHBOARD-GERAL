@@ -18,11 +18,6 @@ const DeferredActivityTracker = dynamic(
   { ssr: false }
 );
 
-const DeferredCityLastUpdatesTicker = dynamic(
-  () => import('@/components/dashboard/CityLastUpdatesTicker').then((mod) => ({ default: mod.CityLastUpdatesTicker })),
-  { ssr: false }
-);
-
 const DeferredLoginStreakBadge = dynamic(
   () => import('@/components/shared/LoginStreakBadge').then((mod) => ({ default: mod.LoginStreakBadge })),
   { ssr: false }
@@ -38,10 +33,6 @@ export function DashboardShell() {
 
 function DashboardShellContent() {
   const { auth, ui, filters, anoEvolucao, data } = useDashboardPage();
-  const showDashboardWidgets = useDeferredMount({
-    enabled: auth.isAuthenticated && ui.activeTab === 'dashboard',
-    timeoutMs: 900,
-  });
   const showActivityTracker = useDeferredMount({
     enabled: auth.isAuthenticated,
     timeoutMs: 700,
@@ -81,8 +72,6 @@ function DashboardShellContent() {
 
         {!ui.loading && !ui.error && (
           <div className="space-y-6 animate-fade-in">
-            {ui.activeTab === 'dashboard' && showDashboardWidgets ? <DeferredCityLastUpdatesTicker /> : null}
-
             {/* Cabeçalho de Filtros */}
             <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
               <div className="min-w-0 flex-1">

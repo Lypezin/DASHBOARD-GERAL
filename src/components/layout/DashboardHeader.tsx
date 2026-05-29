@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { UserDropdown } from '@/components/Header/UserDropdown';
 import { Menu, Moon, Sun, Trophy, ChevronRight } from 'lucide-react';
 import { TabType } from '@/types';
+import { CityLastUpdatesTicker } from '@/components/dashboard/CityLastUpdatesTicker';
 
 const DeferredAchievementsDialog = dynamic(
   () => import('@/components/achievements/AchievementsDialog').then((mod) => ({ default: mod.AchievementsDialog })),
@@ -44,7 +45,7 @@ export function DashboardHeader() {
   return (
     <header className="sticky top-0 z-40 flex h-14 w-full items-center justify-between border-b border-border bg-card/95 px-4 py-3 shadow-[0_1px_2px_0_rgba(0,0,0,0.03)] backdrop-blur transition-all duration-200 sm:px-6 lg:px-8">
       {/* Esquerda: Menu toggle + Breadcrumb */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 shrink-0">
         {/* Toggle para Desktop / Mobile */}
         <Button
           variant="ghost"
@@ -66,18 +67,23 @@ export function DashboardHeader() {
           <span className="sr-only">Menu lateral</span>
         </Button>
 
-        <div className="hidden h-4 w-px bg-border/80 sm:block" />
+        <div className="hidden h-4 w-px bg-border/80 sm:block shrink-0" />
 
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground sm:text-sm">
+        <nav className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground sm:text-sm shrink-0">
           <span className="font-medium text-muted-foreground/72">{breadcrumb.group}</span>
           <ChevronRight className="h-3.5 w-3.5 opacity-60" />
           <span className="font-bold text-foreground">{breadcrumb.label}</span>
         </nav>
       </div>
 
+      {/* Centro: Ticker de Cidades Sincronizadas Permanente em Desktop */}
+      <div className="hidden lg:flex flex-1 max-w-[18rem] xl:max-w-[32rem] mx-8 overflow-hidden">
+        <CityLastUpdatesTicker />
+      </div>
+
       {/* Direita: Conquistas + Tema + Perfil */}
-      <div className="flex items-center gap-1 sm:gap-2">
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
         {/* Conquistas (Apenas se logado) */}
         {user && (
           <Button
@@ -103,7 +109,7 @@ export function DashboardHeader() {
           <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-transform duration-200 dark:rotate-0 dark:scale-100 sm:h-[1.1rem] sm:w-[1.1rem]" />
         </Button>
 
-        <div className="h-4 w-px bg-border/60 mx-1" />
+        <div className="h-4 w-px bg-border/60 mx-1 shrink-0" />
 
         {/* Perfil dropdown */}
         <UserDropdown user={user} avatarUrl={avatarUrl} onLogout={handleLogout} />

@@ -164,10 +164,12 @@ export function AppSidebar() {
         {/* Header da Sidebar */}
         <div className="flex h-14 items-center justify-between border-b border-border px-3 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
-            {/* Logo DG */}
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-200/50 bg-gradient-to-br from-blue-600 via-sky-500 to-cyan-400 text-xs font-black text-white shadow-sm dark:border-blue-400/25">
-              DG
-            </div>
+            {/* Logo GO Itaim */}
+            <img 
+              src="/logo.png" 
+              alt="GO Itaim Logo" 
+              className="h-9 w-9 shrink-0 rounded-lg object-cover border border-border/40 shadow-sm"
+            />
             
             {!collapsed && (
               <motion.div
@@ -229,9 +231,11 @@ export function AppSidebar() {
               {/* Header Mobile */}
               <div className="flex h-14 items-center justify-between border-b border-border px-4">
                 <div className="flex items-center gap-3">
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg border border-blue-200/50 bg-gradient-to-br from-blue-600 via-sky-500 to-cyan-400 text-[10px] font-black text-white">
-                    DG
-                  </div>
+                  <img 
+                    src="/logo.png" 
+                    alt="GO Itaim Logo" 
+                    className="h-8 w-8 shrink-0 rounded-lg object-cover border border-border/30"
+                  />
                   <div className="flex flex-col">
                     <span className="text-sm font-black text-foreground">Dashboard Geral</span>
                     <span className="text-[8px] font-bold uppercase tracking-wider text-primary">OPERACIONAL</span>

@@ -27,43 +27,36 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
 }) => {
     return (
         <>
-            <div className="min-w-[10rem] flex-1 basis-[10rem] sm:min-w-[11rem] sm:basis-[11rem]">
-                <FiltroSelect
-                    label="Praca"
-                    value={filters.praca ?? ''}
-                    options={pracas}
-                    placeholder="Todas"
-                    onChange={(value) => handleChange('praca', value)}
-                    disabled={shouldDisablePracaFilter}
-                />
-            </div>
-            <div className="min-w-[10rem] flex-1 basis-[10rem] sm:min-w-[11rem] sm:basis-[11rem]">
-                <FiltroMultiSelect
-                    label="Sub praca"
-                    selected={filters.subPracas || []}
-                    options={subPracas}
-                    placeholder="Todas"
-                    onSelectionChange={(values) => setFilters(prev => ({ ...prev, subPracas: values }))}
-                />
-            </div>
-            <div className="min-w-[10rem] flex-1 basis-[10rem] sm:min-w-[11rem] sm:basis-[11rem]">
-                <FiltroMultiSelect
-                    label="Origem"
-                    selected={filters.origens || []}
-                    options={origens}
-                    placeholder="Todas"
-                    onSelectionChange={(values) => setFilters(prev => ({ ...prev, origens: values }))}
-                />
-            </div>
-            <div className="min-w-[10rem] flex-1 basis-[10rem] sm:min-w-[11rem] sm:basis-[11rem]">
-                <FiltroMultiSelect
-                    label="Turno"
-                    selected={filters.turnos || []}
-                    options={turnos}
-                    placeholder="Todos"
-                    onSelectionChange={(values) => setFilters(prev => ({ ...prev, turnos: values }))}
-                />
-            </div>
+            <FiltroSelect
+                label="Praça"
+                value={filters.praca ?? ''}
+                options={pracas}
+                placeholder="Todas"
+                onChange={(value) => handleChange('praca', value)}
+                disabled={shouldDisablePracaFilter}
+            />
+            <FiltroMultiSelect
+                label="Sub praça"
+                selected={filters.subPracas || []}
+                options={subPracas}
+                placeholder="Todas"
+                onSelectionChange={(values) => setFilters(prev => ({ ...prev, subPracas: values }))}
+            />
+            <FiltroMultiSelect
+                label="Origem"
+                selected={filters.origens || []}
+                options={origens}
+                placeholder="Todas"
+                onSelectionChange={(values) => setFilters(prev => ({ ...prev, origens: values }))}
+            />
+            <FiltroMultiSelect
+                label="Turno"
+                selected={filters.turnos || []}
+                options={turnos}
+                placeholder="Todos"
+                onSelectionChange={(values) => setFilters(prev => ({ ...prev, turnos: values }))}
+            />
         </>
     );
 };
+export default FilterSecondarySection;
