@@ -1,6 +1,11 @@
 
 /**
- * Helpers para gerenciar organization_id no Supabase Auth
- * DEPRECATED: Use src/services/userOrganizationService.ts instead
+ * Helpers para gerenciar organization_id no Supabase Auth.
+ * Mantido como facade de compatibilidade para imports legados.
  */
-export { syncOrganizationIdToMetadata, getCurrentUserOrganizationId } from '@/services/userOrganizationService';
+import {
+  getCurrentUserOrganizationId,
+  syncOrganizationIdToMetadata,
+} from '@/services/userOrganizationService';
+
+export { getCurrentUserOrganizationId, syncOrganizationIdToMetadata };
