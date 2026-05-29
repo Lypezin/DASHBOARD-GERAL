@@ -7,7 +7,6 @@ import { AnaliseTable } from '@/components/analise/AnaliseTable';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { cn } from '@/lib/utils';
 import { safeLog } from '@/lib/errorHandler';
-import { safeRpc } from '@/lib/rpcWrapper';
 import { RPC_TIMEOUTS } from '@/constants/config';
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
@@ -15,6 +14,19 @@ import { formatarHorasParaHMS } from '@/utils/formatters';
 import { AnaliseDiaOrigemTable } from './analise/components/AnaliseDiaOrigemTable';
 import { EntregadoresMainContent } from './EntregadoresMainView';
 import { exportarDedicadoParaExcel } from './dedicado/DedicadoExcelExport';
+import {
+  calculateAcceptanceRate,
+  calculateCompletionRate,
+  calculateHourlyAderencia,
+  formatMetricPercentOrNA,
+  normalizeMetricNumber,
+} from './dedicado/metrics';
+import {
+  buildDedicadoFilterPayload,
+  callRpcWithFallback,
+  omitPayloadKeys,
+  shouldFallbackOnLegacySummary,
+} from './dedicado/rpcFallback';
 import type { AderenciaDiaOrigem, AderenciaOrigem, CurrentUser, Entregador } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 
@@ -53,33 +65,6 @@ interface DedicadoOrigensPayload {
     semana?: number | null;
     auto_semana?: boolean;
   };
-}
-
-function normalizeNumber(value: unknown) {
-  const parsed = Number(value || 0);
-  return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function calculateHourlyAderencia(realizados: unknown, planejados: unknown) {
-  const totalPlanejados = normalizeNumber(planejados);
-  if (totalPlanejados <= 0) return 0;
-  return (normalizeNumber(realizados) / totalPlanejados) * 100;
-}
-
-function calculateAcceptanceRate(aceitas: unknown, ofertadas: unknown) {
-  const totalOfertadas = normalizeNumber(ofertadas);
-  if (totalOfertadas <= 0) return 0;
-  return (normalizeNumber(aceitas) / totalOfertadas) * 100;
-}
-
-function calculateCompletionRate(completadas: unknown, aceitas: unknown) {
-  const totalAceitas = normalizeNumber(aceitas);
-  if (totalAceitas <= 0) return 0;
-  return (normalizeNumber(completadas) / totalAceitas) * 100;
-}
-
-function formatPercentOrNA(value: unknown, hasBase: boolean) {
-  return hasBase ? `${normalizeNumber(value).toFixed(1)}%` : 'N/D';
 }
 
 function buildDayDateMap(diaOrigem: AderenciaDiaOrigem[], filterPayload: FilterPayload) {
@@ -163,17 +148,7 @@ const DedicadoView = React.memo(function DedicadoView({
   const { data: tabData, loading } = useTabData(shouldLoadEntregadores ? 'dedicado' : 'dashboard', dedicatedPayload, currentUser);
   const { entregadoresData } = useTabDataMapper({ activeTab: 'dedicado', tabData });
   const origemPayload = React.useMemo(() => {
-    const allowed = ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_data_inicial', 'p_data_final', 'p_organization_id'] as const;
-    const payload: Record<string, unknown> = {};
-
-    allowed.forEach((key) => {
-      const value = dedicatedPayload[key];
-      if (value !== null && value !== undefined && value !== '') {
-        payload[key] = value;
-      }
-    });
-
-    return payload;
+    return buildDedicadoFilterPayload(dedicatedPayload);
   }, [dedicatedPayload]);
   const origemPayloadKey = React.useMemo(() => JSON.stringify(origemPayload), [origemPayload]);
 
@@ -189,7 +164,7 @@ const DedicadoView = React.memo(function DedicadoView({
 
       if (typeof origemPayload.p_organization_id !== 'string' || origemPayload.p_organization_id.trim().length === 0) {
         setDedicadoLoading(false);
-        setDedicadoError('Selecione uma organização para carregar os dados do DEDICADO.');
+        setDedicadoError('Selecione uma organizacao para carregar os dados do DEDICADO.');
         setDedicadoData({ origem: [], dia_origem: [] });
         return;
       }
@@ -203,34 +178,17 @@ const DedicadoView = React.memo(function DedicadoView({
           ...requestPayload,
           p_include_dia_origem: shouldLoadDiaOrigem,
         };
-        let { data, error } = await safeRpc<DedicadoOrigensPayload>('dashboard_dedicado_origens_v2', requestWithMode, {
-          timeout: RPC_TIMEOUTS.LONG,
-          validateParams: false,
-        });
-
-        const errorMessage = String(error?.message || '');
-        const canFallbackToLegacy = !shouldLoadDiaOrigem
-          && error
-          && (
-            error?.code === '42883'
-            || error?.code === 'PGRST202'
-            || error?.code === '57014'
-            || error?.code === 'TIMEOUT'
-            || errorMessage.includes('dashboard_dedicado_origens_v2')
-            || errorMessage.includes('Could not find the function')
-            || errorMessage.includes('timeout')
-            || errorMessage.includes('Internal Server Error')
-          );
-
-        if (canFallbackToLegacy) {
-          delete requestPayload.p_semanas;
-          const fallback = await safeRpc<DedicadoOrigensPayload>('dashboard_dedicado_origens', requestPayload, {
+        const { data, error } = await callRpcWithFallback<DedicadoOrigensPayload>({
+          primaryName: 'dashboard_dedicado_origens_v2',
+          fallbackName: shouldLoadDiaOrigem ? undefined : 'dashboard_dedicado_origens',
+          payload: requestWithMode,
+          options: {
             timeout: RPC_TIMEOUTS.LONG,
             validateParams: false,
-          });
-          data = fallback.data;
-          error = fallback.error;
-        }
+          },
+          shouldFallback: (rpcError) => shouldFallbackOnLegacySummary(rpcError, 'dashboard_dedicado_origens_v2'),
+          prepareFallbackPayload: (payload) => omitPayloadKeys(payload, ['p_semanas', 'p_include_dia_origem']),
+        });
 
         if (cancelled) return;
 
@@ -238,8 +196,8 @@ const DedicadoView = React.memo(function DedicadoView({
           safeLog.error('Erro ao carregar resumo dedicado por origem:', error);
           setDedicadoError(
             shouldLoadDiaOrigem
-              ? 'Não foi possível carregar Dia x Origem agora. Tente novamente ou ajuste o período.'
-              : 'Não foi possível carregar o resumo do DEDICADO agora. As outras subguias continuam disponíveis.'
+              ? 'Nao foi possivel carregar Dia x Origem agora. Tente novamente ou ajuste o periodo.'
+              : 'Nao foi possivel carregar o resumo do DEDICADO agora. As outras subguias continuam disponiveis.'
           );
           setDedicadoData((current) => ({
             ...current,
@@ -269,7 +227,7 @@ const DedicadoView = React.memo(function DedicadoView({
     return () => {
       cancelled = true;
     };
-  }, [origemPayload, origemPayloadKey, shouldLoadDiaOrigem, shouldLoadOrigemSummary]);
+  }, [origemPayloadKey, shouldLoadDiaOrigem, shouldLoadOrigemSummary]);
 
   const entregadores = React.useMemo(
     () => entregadoresData?.entregadores || [],
@@ -277,30 +235,30 @@ const DedicadoView = React.memo(function DedicadoView({
   );
   const rankingEntregadores = React.useMemo(
     () => [...entregadores].sort((a, b) => {
-      const aderenciaDiff = normalizeNumber(b.aderencia_percentual) - normalizeNumber(a.aderencia_percentual);
+      const aderenciaDiff = normalizeMetricNumber(b.aderencia_percentual) - normalizeMetricNumber(a.aderencia_percentual);
       if (aderenciaDiff !== 0) return aderenciaDiff;
 
-      const completadasDiff = normalizeNumber(b.corridas_completadas) - normalizeNumber(a.corridas_completadas);
+      const completadasDiff = normalizeMetricNumber(b.corridas_completadas) - normalizeMetricNumber(a.corridas_completadas);
       if (completadasDiff !== 0) return completadasDiff;
 
-      return normalizeNumber(b.corridas_ofertadas) - normalizeNumber(a.corridas_ofertadas);
+      return normalizeMetricNumber(b.corridas_ofertadas) - normalizeMetricNumber(a.corridas_ofertadas);
     }),
     [entregadores]
   );
   const dedicatedOrigem = React.useMemo(
     () => (dedicadoData.origem || [])
       .map((item) => {
-        const corridasOfertadas = normalizeNumber(item.corridas_ofertadas);
-        const corridasAceitas = normalizeNumber(item.corridas_aceitas);
-        const corridasCompletadas = normalizeNumber(item.corridas_completadas);
-        const segundosRealizados = normalizeNumber(item.segundos_realizados);
-        const segundosPlanejados = normalizeNumber(item.segundos_planejados);
+        const corridasOfertadas = normalizeMetricNumber(item.corridas_ofertadas);
+        const corridasAceitas = normalizeMetricNumber(item.corridas_aceitas);
+        const corridasCompletadas = normalizeMetricNumber(item.corridas_completadas);
+        const segundosRealizados = normalizeMetricNumber(item.segundos_realizados);
+        const segundosPlanejados = normalizeMetricNumber(item.segundos_planejados);
 
         return {
           ...item,
           corridas_ofertadas: corridasOfertadas,
           corridas_aceitas: corridasAceitas,
-          corridas_rejeitadas: normalizeNumber(item.corridas_rejeitadas),
+          corridas_rejeitadas: normalizeMetricNumber(item.corridas_rejeitadas),
           corridas_completadas: corridasCompletadas,
           segundos_realizados: segundosRealizados,
           segundos_planejados: segundosPlanejados,
@@ -314,17 +272,17 @@ const DedicadoView = React.memo(function DedicadoView({
   const dedicatedDiaOrigem = React.useMemo(
     () => (dedicadoData.dia_origem || [])
       .map((item) => {
-        const corridasOfertadas = normalizeNumber(item.corridas_ofertadas);
-        const corridasAceitas = normalizeNumber(item.corridas_aceitas);
-        const corridasCompletadas = normalizeNumber(item.corridas_completadas);
-        const segundosRealizados = normalizeNumber(item.segundos_realizados);
-        const segundosPlanejados = normalizeNumber(item.segundos_planejados);
+        const corridasOfertadas = normalizeMetricNumber(item.corridas_ofertadas);
+        const corridasAceitas = normalizeMetricNumber(item.corridas_aceitas);
+        const corridasCompletadas = normalizeMetricNumber(item.corridas_completadas);
+        const segundosRealizados = normalizeMetricNumber(item.segundos_realizados);
+        const segundosPlanejados = normalizeMetricNumber(item.segundos_planejados);
 
         return {
           ...item,
           corridas_ofertadas: corridasOfertadas,
           corridas_aceitas: corridasAceitas,
-          corridas_rejeitadas: normalizeNumber(item.corridas_rejeitadas),
+          corridas_rejeitadas: normalizeMetricNumber(item.corridas_rejeitadas),
           corridas_completadas: corridasCompletadas,
           segundos_realizados: segundosRealizados,
           segundos_planejados: segundosPlanejados,
@@ -336,14 +294,14 @@ const DedicadoView = React.memo(function DedicadoView({
     [dedicadoData.dia_origem]
   );
   const dedicatedTotals = React.useMemo(() => ({
-    totalEntregadores: normalizeNumber(dedicadoData.totais?.total_entregadores),
-    totalOrigens: normalizeNumber(dedicadoData.totais?.total_origens),
-    ofertadas: normalizeNumber(dedicadoData.totais?.corridas_ofertadas),
-    aceitas: normalizeNumber(dedicadoData.totais?.corridas_aceitas),
-    rejeitadas: normalizeNumber(dedicadoData.totais?.corridas_rejeitadas),
-    completadas: normalizeNumber(dedicadoData.totais?.corridas_completadas),
-    segundos: normalizeNumber(dedicadoData.totais?.segundos_realizados),
-    segundosPlanejados: normalizeNumber(dedicadoData.totais?.segundos_planejados),
+    totalEntregadores: normalizeMetricNumber(dedicadoData.totais?.total_entregadores),
+    totalOrigens: normalizeMetricNumber(dedicadoData.totais?.total_origens),
+    ofertadas: normalizeMetricNumber(dedicadoData.totais?.corridas_ofertadas),
+    aceitas: normalizeMetricNumber(dedicadoData.totais?.corridas_aceitas),
+    rejeitadas: normalizeMetricNumber(dedicadoData.totais?.corridas_rejeitadas),
+    completadas: normalizeMetricNumber(dedicadoData.totais?.corridas_completadas),
+    segundos: normalizeMetricNumber(dedicadoData.totais?.segundos_realizados),
+    segundosPlanejados: normalizeMetricNumber(dedicadoData.totais?.segundos_planejados),
   }), [dedicadoData.totais]);
   const dayDateMap = React.useMemo(
     () => buildDayDateMap(dedicatedDiaOrigem, filterPayload),
@@ -352,11 +310,11 @@ const DedicadoView = React.memo(function DedicadoView({
 
   const stats = React.useMemo(() => {
     const entregadoresTotals = entregadores.reduce((acc, entregador) => {
-      acc.ofertadas += entregador.corridas_ofertadas || 0;
-      acc.aceitas += entregador.corridas_aceitas || 0;
-      acc.rejeitadas += entregador.corridas_rejeitadas || 0;
-      acc.completadas += entregador.corridas_completadas || 0;
-      acc.segundos += entregador.total_segundos || 0;
+      acc.ofertadas += normalizeMetricNumber(entregador.corridas_ofertadas);
+      acc.aceitas += normalizeMetricNumber(entregador.corridas_aceitas);
+      acc.rejeitadas += normalizeMetricNumber(entregador.corridas_rejeitadas);
+      acc.completadas += normalizeMetricNumber(entregador.corridas_completadas);
+      acc.segundos += normalizeMetricNumber(entregador.total_segundos);
       return acc;
     }, { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0, segundos: 0 });
     const totals = {
@@ -409,7 +367,7 @@ const DedicadoView = React.memo(function DedicadoView({
               DEDICADO
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-              Visão separada para restaurantes/origens, com entregadores, resumo por origem e matriz Dia x Origem no mesmo lugar.
+              Visao separada para restaurantes e origens, com entregadores, resumo por origem e matriz Dia x Origem no mesmo lugar.
             </p>
           </div>
 
@@ -520,7 +478,7 @@ function DedicadoDashboard({
     { title: 'Origens', value: stats.origens.toLocaleString('pt-BR'), sub: 'restaurantes/origens no filtro', icon: BarChart3, color: 'text-indigo-500' },
     { title: 'Ofertadas', value: stats.ofertadas.toLocaleString('pt-BR'), sub: `${stats.taxaAceitacao.toFixed(1)}% aceitas`, icon: Truck, color: 'text-sky-500' },
     { title: 'Aceitas', value: stats.aceitas.toLocaleString('pt-BR'), sub: `${stats.taxaCompletude.toFixed(1)}% completadas`, icon: CheckCircle2, color: 'text-emerald-500' },
-    { title: 'Rejeitadas', value: stats.rejeitadas.toLocaleString('pt-BR'), sub: `${stats.taxaRejeicao.toFixed(1)}% rejeição`, icon: XCircle, color: 'text-rose-500' },
+    { title: 'Rejeitadas', value: stats.rejeitadas.toLocaleString('pt-BR'), sub: `${stats.taxaRejeicao.toFixed(1)}% rejeicao`, icon: XCircle, color: 'text-rose-500' },
     { title: 'Horas', value: formatarHorasParaHMS(stats.segundos / 3600), sub: 'tempo entregue', icon: Clock, color: 'text-orange-500', compact: true },
   ];
 
@@ -569,7 +527,7 @@ function DedicadoDashboard({
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <p className="min-w-0 break-words pr-1 text-sm font-bold leading-snug text-slate-800 dark:text-slate-100">{origem.origem}</p>
                     <span className="w-fit shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-black text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
-                      Aderência {formatPercentOrNA(origem.aderencia_percentual, Boolean(origem.segundos_planejados))}
+                      Aderencia {formatMetricPercentOrNA(origem.aderencia_percentual, Boolean(origem.segundos_planejados))}
                     </span>
                   </div>
                   <div className="mt-4 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
@@ -580,13 +538,13 @@ function DedicadoDashboard({
                     <div className="rounded-xl bg-emerald-50 px-3 py-2 dark:bg-emerald-950/20">
                       <span className="block font-bold uppercase tracking-wide text-emerald-500 dark:text-emerald-400">Aceitas</span>
                       <span className="mt-0.5 block break-words font-mono font-black text-emerald-700 dark:text-emerald-300">
-                        {(origem.corridas_aceitas || 0).toLocaleString('pt-BR')} ({formatPercentOrNA(origem.taxa_aceitacao, Boolean(origem.corridas_ofertadas))})
+                        {(origem.corridas_aceitas || 0).toLocaleString('pt-BR')} ({formatMetricPercentOrNA(origem.taxa_aceitacao, Boolean(origem.corridas_ofertadas))})
                       </span>
                     </div>
                     <div className="rounded-xl bg-indigo-50 px-3 py-2 dark:bg-indigo-950/20">
                       <span className="block font-bold uppercase tracking-wide text-indigo-500 dark:text-indigo-400">Completadas</span>
                       <span className="mt-0.5 block break-words font-mono font-black text-indigo-700 dark:text-indigo-300">
-                        {(origem.corridas_completadas || 0).toLocaleString('pt-BR')} ({formatPercentOrNA(origem.taxa_completude, Boolean(origem.corridas_aceitas))})
+                        {(origem.corridas_completadas || 0).toLocaleString('pt-BR')} ({formatMetricPercentOrNA(origem.taxa_completude, Boolean(origem.corridas_aceitas))})
                       </span>
                     </div>
                     <div className="rounded-xl bg-orange-50 px-3 py-2 dark:bg-orange-950/20">
@@ -602,7 +560,7 @@ function DedicadoDashboard({
             </div>
           ) : (
             <p className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
-              Nenhuma origem encontrada no resumo do período atual.
+              Nenhuma origem encontrada no resumo do periodo atual.
             </p>
           )}
         </CardContent>
@@ -619,7 +577,7 @@ function DedicadoResumo({ rows, loading, error }: { rows: any[]; loading: boolea
       <CardHeader>
         <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Resumo por Origem</CardTitle>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Dados agrupados por origem, respeitando os filtros atuais de período, cidade e organização.
+          Dados agrupados por origem, respeitando os filtros atuais de periodo, cidade e organizacao.
         </p>
       </CardHeader>
       {error ? (
@@ -652,7 +610,7 @@ function DedicadoDiaOrigem({
       <CardHeader>
         <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Dia x Origem</CardTitle>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Matriz migrada da guia Análise e filtrada para as origens do período atual.
+          Matriz migrada da guia Analise e filtrada para as origens do periodo atual.
         </p>
       </CardHeader>
       <CardContent className="min-w-0 p-3 sm:p-6">
@@ -685,9 +643,9 @@ function DedicadoRanking({ entregadores, loading }: { entregadores: Entregador[]
       <CardHeader className="border-b border-slate-100 dark:border-slate-800">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Ranking de Aderência</CardTitle>
+            <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Ranking de Aderencia</CardTitle>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Ordenado pela mesma aderência usada na tabela de Entregadores do DEDICADO.
+              Ordenado pela mesma aderencia usada na tabela de Entregadores do DEDICADO.
             </p>
           </div>
           <span className="w-fit rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
@@ -703,18 +661,18 @@ function DedicadoRanking({ entregadores, loading }: { entregadores: Entregador[]
               <tr>
                 <th className="px-5 py-4 text-left">#</th>
                 <th className="px-5 py-4 text-left">Entregador</th>
-                <th className="px-5 py-4 text-right">Aderência</th>
+                <th className="px-5 py-4 text-right">Aderencia</th>
                 <th className="px-5 py-4 text-right">Completadas</th>
                 <th className="px-5 py-4 text-right">Ofertadas</th>
                 <th className="px-5 py-4 text-right">Aceitas</th>
                 <th className="px-5 py-4 text-right">Rejeitadas</th>
                 <th className="px-5 py-4 text-right">Horas</th>
-                <th className="px-5 py-4 text-right">Rejeição</th>
+                <th className="px-5 py-4 text-right">Rejeicao</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {entregadores.map((entregador, index) => {
-                const baixoVolume = normalizeNumber(entregador.corridas_ofertadas) < 20;
+                const baixoVolume = normalizeMetricNumber(entregador.corridas_ofertadas) < 20;
                 const positionClass = index === 0
                   ? 'bg-amber-50 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300'
                   : index === 1
@@ -745,15 +703,15 @@ function DedicadoRanking({ entregadores, loading }: { entregadores: Entregador[]
                     </td>
                     <td className="px-5 py-4 text-right">
                       <span className="rounded-full bg-emerald-50 px-2.5 py-1 font-black text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-300">
-                        {normalizeNumber(entregador.aderencia_percentual).toFixed(1)}%
+                        {normalizeMetricNumber(entregador.aderencia_percentual).toFixed(1)}%
                       </span>
                     </td>
-                    <td className="px-5 py-4 text-right font-mono font-semibold text-slate-700 dark:text-slate-200">{normalizeNumber(entregador.corridas_completadas).toLocaleString('pt-BR')}</td>
-                    <td className="px-5 py-4 text-right font-mono text-slate-600 dark:text-slate-300">{normalizeNumber(entregador.corridas_ofertadas).toLocaleString('pt-BR')}</td>
-                    <td className="px-5 py-4 text-right font-mono text-slate-600 dark:text-slate-300">{normalizeNumber(entregador.corridas_aceitas).toLocaleString('pt-BR')}</td>
-                    <td className="px-5 py-4 text-right font-mono text-slate-600 dark:text-slate-300">{normalizeNumber(entregador.corridas_rejeitadas).toLocaleString('pt-BR')}</td>
-                    <td className="px-5 py-4 text-right font-mono text-slate-600 dark:text-slate-300">{formatarHorasParaHMS(normalizeNumber(entregador.total_segundos) / 3600)}</td>
-                    <td className="px-5 py-4 text-right font-mono text-slate-600 dark:text-slate-300">{normalizeNumber(entregador.rejeicao_percentual).toFixed(1)}%</td>
+                    <td className="px-5 py-4 text-right font-mono font-semibold text-slate-700 dark:text-slate-200">{normalizeMetricNumber(entregador.corridas_completadas).toLocaleString('pt-BR')}</td>
+                    <td className="px-5 py-4 text-right font-mono text-slate-600 dark:text-slate-300">{normalizeMetricNumber(entregador.corridas_ofertadas).toLocaleString('pt-BR')}</td>
+                    <td className="px-5 py-4 text-right font-mono text-slate-600 dark:text-slate-300">{normalizeMetricNumber(entregador.corridas_aceitas).toLocaleString('pt-BR')}</td>
+                    <td className="px-5 py-4 text-right font-mono text-slate-600 dark:text-slate-300">{normalizeMetricNumber(entregador.corridas_rejeitadas).toLocaleString('pt-BR')}</td>
+                    <td className="px-5 py-4 text-right font-mono text-slate-600 dark:text-slate-300">{formatarHorasParaHMS(normalizeMetricNumber(entregador.total_segundos) / 3600)}</td>
+                    <td className="px-5 py-4 text-right font-mono text-slate-600 dark:text-slate-300">{normalizeMetricNumber(entregador.rejeicao_percentual).toFixed(1)}%</td>
                   </tr>
                 );
               })}

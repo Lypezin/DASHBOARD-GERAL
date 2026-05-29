@@ -16,17 +16,17 @@ const variantStyles = {
   default: {
     accent: 'text-blue-600 dark:text-blue-400',
     iconBg: 'bg-blue-50 dark:bg-blue-950/40',
-    border: 'border-slate-150 dark:border-slate-800',
+    border: 'border-slate-200 dark:border-slate-800',
   },
   marketing: {
     accent: 'text-purple-600 dark:text-purple-400',
     iconBg: 'bg-purple-50 dark:bg-purple-950/40',
-    border: 'border-slate-150 dark:border-slate-800',
+    border: 'border-slate-200 dark:border-slate-800',
   },
   valores: {
     accent: 'text-emerald-600 dark:text-emerald-400',
     iconBg: 'bg-emerald-50 dark:bg-emerald-950/40',
-    border: 'border-slate-150 dark:border-slate-800',
+    border: 'border-slate-200 dark:border-slate-800',
   },
 };
 
@@ -77,7 +77,7 @@ export function FileList({ files, onRemove, disabled = false, variant = 'default
         >
           {/* File Icon */}
           <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${styles.iconBg}`}>
-            <FileSpreadsheet className={`h-4.5 w-4.5 ${styles.accent}`} />
+            <FileSpreadsheet className={`h-4 w-4 ${styles.accent}`} />
           </div>
 
           {/* File Info */}

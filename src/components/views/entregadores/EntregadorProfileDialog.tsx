@@ -9,10 +9,19 @@ import { Clock, Target, Hash, Activity, Store } from 'lucide-react';
 import { TagManager } from './TagManager';
 import { MetaEditor } from './MetaEditor';
 import { useEntregadorDetail } from './hooks/useEntregadorDetail';
-import { safeRpc } from '@/lib/rpcWrapper';
 import { safeLog } from '@/lib/errorHandler';
 import { RPC_TIMEOUTS } from '@/constants/config';
 import { cn } from '@/lib/utils';
+import {
+    buildDedicadoFilterPayload,
+    callRpcWithFallback,
+    omitPayloadKeys,
+    shouldFallbackOnMissingFunction,
+} from '../dedicado/rpcFallback';
+import {
+    calculateNormalAderencia,
+    normalizeMetricNumber,
+} from '../dedicado/metrics';
 import type { FilterPayload } from '@/types/filters';
 
 interface OrigemBreakdownRow {
@@ -45,17 +54,6 @@ interface Props {
     filterPayload?: FilterPayload;
 }
 
-function normalizeNumber(value: unknown) {
-    const parsed = Number(value || 0);
-    return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function calculateNormalAderencia(completadas: unknown, ofertadas: unknown) {
-    const totalOfertadas = normalizeNumber(ofertadas);
-    if (totalOfertadas <= 0) return 0;
-    return (normalizeNumber(completadas) / totalOfertadas) * 100;
-}
-
 export const EntregadorProfileDialog = React.memo(function EntregadorProfileDialog({
     entregador,
     open,
@@ -71,17 +69,9 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
     const origemPayloadKey = React.useMemo(() => {
         if (!entregador || !isDedicado) return '';
 
-        const allowed = ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_data_inicial', 'p_data_final', 'p_organization_id'] as const;
-        const payload: Record<string, unknown> = { p_entregador_id: entregador.id_entregador };
-
-        allowed.forEach((key) => {
-            const value = filterPayload?.[key];
-            if (value !== null && value !== undefined && value !== '') {
-                payload[key] = value;
-            }
-        });
-
-        return JSON.stringify(payload);
+        return JSON.stringify(buildDedicadoFilterPayload(filterPayload, {
+            p_entregador_id: entregador.id_entregador,
+        }));
     }, [entregador, filterPayload, isDedicado]);
 
     React.useEffect(() => {
@@ -97,29 +87,17 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
 
             try {
                 const payload = JSON.parse(origemPayloadKey) as Record<string, unknown>;
-                let { data, error } = await safeRpc<OrigemBreakdownPayload>('dedicado_entregador_origens_v2', payload, {
-                    timeout: RPC_TIMEOUTS.DEFAULT,
-                    validateParams: false,
-                });
-
-                const errorMessage = String(error?.message || '');
-                if (
-                    error
-                    && (
-                        error?.code === '42883'
-                        || error?.code === 'PGRST202'
-                        || errorMessage.includes('dedicado_entregador_origens_v2')
-                        || errorMessage.includes('Could not find the function')
-                    )
-                ) {
-                    delete payload.p_semanas;
-                    const fallback = await safeRpc<OrigemBreakdownPayload>('dedicado_entregador_origens', payload, {
+                const { data, error } = await callRpcWithFallback<OrigemBreakdownPayload>({
+                    primaryName: 'dedicado_entregador_origens_v2',
+                    fallbackName: 'dedicado_entregador_origens',
+                    payload,
+                    options: {
                         timeout: RPC_TIMEOUTS.DEFAULT,
                         validateParams: false,
-                    });
-                    data = fallback.data;
-                    error = fallback.error;
-                }
+                    },
+                    shouldFallback: (rpcError) => shouldFallbackOnMissingFunction(rpcError, 'dedicado_entregador_origens_v2'),
+                    prepareFallbackPayload: (requestPayload) => omitPayloadKeys(requestPayload, ['p_semanas']),
+                });
 
                 if (cancelled) return;
 
@@ -133,14 +111,14 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
                     Array.isArray(data?.origens)
                         ? data.origens.map((row) => ({
                             ...row,
-                            corridas_ofertadas: normalizeNumber(row.corridas_ofertadas),
-                            corridas_aceitas: normalizeNumber(row.corridas_aceitas),
-                            corridas_rejeitadas: normalizeNumber(row.corridas_rejeitadas),
-                            corridas_completadas: normalizeNumber(row.corridas_completadas),
-                            segundos_realizados: normalizeNumber(row.segundos_realizados),
+                            corridas_ofertadas: normalizeMetricNumber(row.corridas_ofertadas),
+                            corridas_aceitas: normalizeMetricNumber(row.corridas_aceitas),
+                            corridas_rejeitadas: normalizeMetricNumber(row.corridas_rejeitadas),
+                            corridas_completadas: normalizeMetricNumber(row.corridas_completadas),
+                            segundos_realizados: normalizeMetricNumber(row.segundos_realizados),
                             aderencia_percentual: calculateNormalAderencia(row.corridas_completadas, row.corridas_ofertadas),
-                            rejeicao_percentual: normalizeNumber(row.rejeicao_percentual),
-                            completude_percentual: normalizeNumber(row.completude_percentual),
+                            rejeicao_percentual: normalizeMetricNumber(row.rejeicao_percentual),
+                            completude_percentual: normalizeMetricNumber(row.completude_percentual),
                         }))
                         : []
                 );

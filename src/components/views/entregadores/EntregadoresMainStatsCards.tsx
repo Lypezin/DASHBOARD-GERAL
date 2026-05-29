@@ -14,6 +14,18 @@ interface EntregadoresMainStatsCardsProps {
     corridasSubtext?: string;
 }
 
+type CardConfig = {
+    title: string;
+    value: string;
+    subtext: string;
+    icon: React.ComponentType<{ className?: string }>;
+    iconClass: string;
+    badgeClass: string;
+    progressValue?: number;
+    progressClass?: string;
+    compact?: boolean;
+};
+
 export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainStatsCards({
     totalEntregadores,
     aderenciaMedia,
@@ -25,91 +37,96 @@ export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainSt
     corridasTitle = 'Corridas Completas',
     corridasSubtext = 'Total completado',
 }: EntregadoresMainStatsCardsProps) {
+    const cards: CardConfig[] = [
+        {
+            title: totalTitle,
+            value: totalEntregadores.toLocaleString('pt-BR'),
+            subtext: totalSubtext,
+            icon: Users,
+            iconClass: 'text-blue-500',
+            badgeClass: 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300',
+        },
+        {
+            title: 'Aderencia Media',
+            value: `${aderenciaMedia.toFixed(1)}%`,
+            subtext: 'Media de aderencia do grupo',
+            icon: CheckCircle2,
+            iconClass: 'text-emerald-500',
+            badgeClass: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300',
+            progressValue: aderenciaMedia,
+            progressClass: 'bg-emerald-500',
+        },
+        {
+            title: 'Rejeicao Media',
+            value: `${rejeicaoMedia.toFixed(1)}%`,
+            subtext: 'Media de rejeicao no periodo',
+            icon: XCircle,
+            iconClass: 'text-rose-500',
+            badgeClass: 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300',
+            progressValue: rejeicaoMedia,
+            progressClass: 'bg-rose-500',
+        },
+        {
+            title: corridasTitle,
+            value: totalCorridas.toLocaleString('pt-BR'),
+            subtext: corridasSubtext,
+            icon: Truck,
+            iconClass: 'text-indigo-500',
+            badgeClass: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300',
+        },
+        {
+            title: 'Total Horas',
+            value: totalHoras,
+            subtext: 'Horas totais do conjunto filtrado',
+            icon: Clock,
+            iconClass: 'text-orange-500',
+            badgeClass: 'bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300',
+            compact: true,
+        },
+    ];
+
     return (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {/* Total Entregadores */}
-            <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">{totalTitle}</CardTitle>
-                    <Users className="h-4 w-4 text-blue-500" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-                        {totalEntregadores.toLocaleString('pt-BR')}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                        {totalSubtext}
-                    </p>
-                </CardContent>
-            </Card>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {cards.map((card) => {
+                const Icon = card.icon;
 
-            {/* Aderência Média */}
-            <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">Aderência Média</CardTitle>
-                    <CheckCircle2 className="h-4 w-4 text-emerald-500" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-                        {aderenciaMedia.toFixed(1)}%
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                        <div className="h-1.5 flex-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                            <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.min(aderenciaMedia, 100)}%` }}></div>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Rejeição Média */}
-            <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">Rejeição Média</CardTitle>
-                    <XCircle className="h-4 w-4 text-rose-500" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-                        {rejeicaoMedia.toFixed(1)}%
-                    </div>
-                    <div className="flex items-center gap-2 mt-1">
-                        <div className="h-1.5 flex-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                            <div className="h-full bg-rose-500 rounded-full" style={{ width: `${Math.min(rejeicaoMedia, 100)}%` }}></div>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            {/* Total Corridas */}
-            <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">{corridasTitle}</CardTitle>
-                    <Truck className="h-4 w-4 text-indigo-500" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
-                        {totalCorridas.toLocaleString('pt-BR')}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                        {corridasSubtext}
-                    </p>
-                </CardContent>
-            </Card>
-
-            {/* Total Horas */}
-            <Card className="border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-muted-foreground">Total Horas</CardTitle>
-                    <Clock className="h-4 w-4 text-orange-500" />
-                </CardHeader>
-                <CardContent>
-                    <div className="text-xl font-bold text-slate-900 dark:text-white font-mono truncate" title={totalHoras}>
-                        {totalHoras}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                        Horas totais
-                    </p>
-                </CardContent>
-            </Card>
+                return (
+                    <Card
+                        key={card.title}
+                        className="border-slate-200/70 bg-white/88 shadow-sm transition-[border-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-md dark:border-slate-800/70 dark:bg-slate-900/84 dark:hover:border-slate-700"
+                    >
+                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
+                            <CardTitle className="text-sm font-semibold text-slate-500 dark:text-slate-400">
+                                {card.title}
+                            </CardTitle>
+                            <span className={`rounded-2xl px-2.5 py-2 ${card.badgeClass}`}>
+                                <Icon className={`h-4 w-4 ${card.iconClass}`} />
+                            </span>
+                        </CardHeader>
+                        <CardContent>
+                            <div
+                                className={`font-mono font-black text-slate-950 dark:text-white ${card.compact ? 'truncate text-xl' : 'text-2xl'}`}
+                                title={card.value}
+                            >
+                                {card.value}
+                            </div>
+                            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                {card.subtext}
+                            </p>
+                            {typeof card.progressValue === 'number' ? (
+                                <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                                    <div
+                                        className={`h-full rounded-full ${card.progressClass}`}
+                                        style={{ width: `${Math.min(card.progressValue, 100)}%` }}
+                                    />
+                                </div>
+                            ) : null}
+                        </CardContent>
+                    </Card>
+                );
+            })}
         </div>
     );
 });
+
+EntregadoresMainStatsCards.displayName = 'EntregadoresMainStatsCards';

@@ -24,7 +24,7 @@ export function UploadRefreshMVs({ onAutoRefresh }: UploadRefreshMVsProps) {
         <div className="flex-1 space-y-3">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/30">
-              <RefreshCw className={`h-4.5 w-4.5 text-amber-600 dark:text-amber-400 ${refreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 text-amber-600 dark:text-amber-400 ${refreshing ? 'animate-spin' : ''}`} />
             </div>
             <div>
               <h3 className="text-sm font-semibold text-slate-900 dark:text-white">

@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
 import {
     createServiceRoleClient,
     getServiceRoleConfigErrorPayload,
     isServiceRoleConfigError
 } from '@/utils/supabase/admin';
+import type { CurrentUserProfile } from '@/app/api/_shared/currentUserProfile';
+import {
+    loadCurrentUserProfile,
+} from '@/app/api/_shared/currentUserProfile';
 import {
     listAllUsers,
     listPendingUsers,
@@ -37,27 +40,6 @@ const ADMIN_RPC_ALLOWLIST = new Set([
     'update_user_pracas',
     'update_user_role'
 ]);
-
-type CurrentUserProfile = {
-    id?: string;
-    role?: string;
-    is_admin?: boolean;
-    is_approved?: boolean;
-    organization_id?: string | null;
-};
-
-function normalizeProfile(profile: unknown): CurrentUserProfile | null {
-    if (Array.isArray(profile)) {
-        return (profile[0] as CurrentUserProfile) || null;
-    }
-
-    return (profile as CurrentUserProfile) || null;
-}
-
-function canUseAdminApi(profile: CurrentUserProfile) {
-    const role = String(profile.role || '').toLowerCase();
-    return profile.is_approved === true && (profile.is_admin === true || role === 'admin' || role === 'master');
-}
 
 async function executeAdminOperation(
     rpcName: string,
@@ -98,19 +80,18 @@ async function executeAdminOperation(
 
 export async function POST(request: Request) {
     try {
-        const supabase = createClient();
-        const { data: userData, error: userError } = await supabase.auth.getUser();
+        const auth = await loadCurrentUserProfile({
+            requireApproved: true,
+            requireElevatedRole: true,
+            missingProfileMessage: 'Usuario sem permissao administrativa.',
+            notApprovedMessage: 'Usuario sem permissao administrativa.',
+            forbiddenMessage: 'Usuario sem permissao administrativa.',
+        });
 
-        if (userError || !userData.user) {
-            return NextResponse.json({ data: null, error: 'Usuario nao autenticado.' }, { status: 401 });
+        if ('failure' in auth) {
+            return NextResponse.json({ data: null, error: auth.failure.message }, { status: auth.failure.status });
         }
-
-        const { data: profileData, error: profileError } = await supabase.rpc('get_current_user_profile');
-        const profile = normalizeProfile(profileData);
-
-        if (profileError || !profile || !canUseAdminApi(profile)) {
-            return NextResponse.json({ data: null, error: 'Usuario sem permissao administrativa.' }, { status: 403 });
-        }
+        const { profile } = auth;
 
         const body = await request.json().catch(() => null);
         const rpcName = typeof body?.rpcName === 'string' ? body.rpcName : '';

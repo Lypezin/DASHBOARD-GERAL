@@ -1,49 +1,28 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
 import {
     createServiceRoleClient,
     getServiceRoleConfigErrorPayload,
     isServiceRoleConfigError
 } from '@/utils/supabase/admin';
+import {
+    hasElevatedRole,
+    loadCurrentUserProfile,
+} from '@/app/api/_shared/currentUserProfile';
 import type { PendingMV } from '@/types/upload';
 
 export const runtime = 'nodejs';
 
-type CurrentUserProfile = {
-    role?: string;
-    is_admin?: boolean;
-    is_approved?: boolean;
-};
-
-function normalizeProfile(profile: unknown): CurrentUserProfile | null {
-    if (Array.isArray(profile)) {
-        return (profile[0] as CurrentUserProfile) || null;
-    }
-
-    return (profile as CurrentUserProfile) || null;
-}
-
-function canRefresh(profile: CurrentUserProfile) {
-    const role = String(profile.role || '').toLowerCase();
-    return profile.is_admin === true || role === 'admin' || role === 'master';
-}
-
 async function requireApprovedUser() {
-    const supabase = createClient();
-    const { data: userData, error: userError } = await supabase.auth.getUser();
+    const auth = await loadCurrentUserProfile({
+        requireApproved: true,
+        notApprovedMessage: 'Usuario nao aprovado.',
+    });
 
-    if (userError || !userData.user) {
-        return { error: NextResponse.json({ success: false, error: 'Usuario nao autenticado.' }, { status: 401 }) };
+    if ('failure' in auth) {
+        return { error: NextResponse.json({ success: false, error: auth.failure.message }, { status: auth.failure.status }) };
     }
 
-    const { data: profileData, error: profileError } = await supabase.rpc('get_current_user_profile');
-    const profile = normalizeProfile(profileData);
-
-    if (profileError || !profile || profile.is_approved !== true) {
-        return { error: NextResponse.json({ success: false, error: 'Usuario nao aprovado.' }, { status: 403 }) };
-    }
-
-    return { profile };
+    return { profile: auth.profile };
 }
 
 async function fetchPendingMVs(admin = createServiceRoleClient()) {
@@ -128,7 +107,7 @@ export async function POST(request: Request) {
             normalizedReason.startsWith('upload:') ||
             normalizedReason.startsWith('bulk_insert:');
 
-        if (requireAdmin && !canRefresh(auth.profile)) {
+        if (requireAdmin && !hasElevatedRole(auth.profile)) {
             return NextResponse.json({ success: false, error: 'Apenas administradores podem executar esta atualizacao.' }, { status: 403 });
         }
 

@@ -22,6 +22,20 @@ interface DashboardFiltersContainerProps {
   activeTab: string;
 }
 
+const TAB_LABELS: Record<string, string> = {
+  dashboard: 'Dashboard',
+  analise: 'Analise',
+  utr: 'UTR',
+  entregadores: 'Entregadores',
+  valores: 'Valores',
+  prioridade: 'Prioridade | Promo',
+  evolucao: 'Evolucao',
+  comparacao: 'Comparacao',
+  marketing_comparacao: 'Operacional | Marketing',
+  marketing: 'Marketing',
+  dedicado: 'DEDICADO',
+};
+
 export const DashboardFiltersContainer = React.memo(function DashboardFiltersContainer({
   filters,
   setFilters,
@@ -46,7 +60,17 @@ export const DashboardFiltersContainer = React.memo(function DashboardFiltersCon
       "shadow-[0_18px_60px_-48px_rgba(15,23,42,0.78)]",
       "transition-[background-color,border-color,box-shadow] duration-200"
     )}>
-      <CardContent className="p-4 sm:p-5">
+      <CardContent className="relative p-4 sm:p-5">
+        <div className="pointer-events-none absolute inset-x-8 top-0 h-px bg-gradient-to-r from-transparent via-blue-300/70 to-transparent dark:via-blue-700/60" />
+        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <div className="inline-flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.24em] text-slate-500 dark:text-slate-400">
+            <span className="h-2.5 w-2.5 rounded-full bg-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.12)] dark:shadow-[0_0_0_4px_rgba(59,130,246,0.16)]" />
+            Filtros do painel
+          </div>
+          <span className="inline-flex w-fit items-center rounded-full border border-slate-200/80 bg-white/75 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-500 dark:border-slate-800/80 dark:bg-slate-900/75 dark:text-slate-400">
+            {TAB_LABELS[activeTab] || activeTab}
+          </span>
+        </div>
         <FiltroBar
           filters={filters}
           setFilters={setFilters}

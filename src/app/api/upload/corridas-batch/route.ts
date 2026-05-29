@@ -1,55 +1,29 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
 import {
     createServiceRoleClient,
     getServiceRoleConfigErrorPayload,
     isServiceRoleConfigError
 } from '@/utils/supabase/admin';
+import {
+    hasElevatedRole,
+    loadCurrentUserProfile,
+} from '@/app/api/_shared/currentUserProfile';
 
 export const runtime = 'nodejs';
 
-type CurrentUserProfile = {
-    id?: string;
-    role?: string;
-    is_admin?: boolean;
-    is_approved?: boolean;
-    organization_id?: string | null;
-};
-
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function normalizeProfile(profile: unknown): CurrentUserProfile | null {
-    if (Array.isArray(profile)) {
-        return (profile[0] as CurrentUserProfile) || null;
-    }
-
-    return (profile as CurrentUserProfile) || null;
-}
-
-function isPrivileged(profile: CurrentUserProfile) {
-    const role = String(profile.role || '').toLowerCase();
-    return profile.is_admin === true || role === 'admin' || role === 'master';
-}
 
 export async function POST(request: Request) {
     try {
-        const supabase = createClient();
-        const { data: userData, error: userError } = await supabase.auth.getUser();
+        const auth = await loadCurrentUserProfile({
+            requireApproved: true,
+            notApprovedMessage: 'Usuario ainda nao aprovado.',
+        });
 
-        if (userError || !userData.user) {
-            return NextResponse.json({ success: false, error: 'Usuario nao autenticado.' }, { status: 401 });
+        if ('failure' in auth) {
+            return NextResponse.json({ success: false, error: auth.failure.message }, { status: auth.failure.status });
         }
-
-        const { data: profileData, error: profileError } = await supabase.rpc('get_current_user_profile');
-        const profile = normalizeProfile(profileData);
-
-        if (profileError || !profile) {
-            return NextResponse.json({ success: false, error: 'Nao foi possivel validar o perfil do usuario.' }, { status: 403 });
-        }
-
-        if (profile.is_approved !== true) {
-            return NextResponse.json({ success: false, error: 'Usuario ainda nao aprovado.' }, { status: 403 });
-        }
+        const { profile } = auth;
 
         const body = await request.json().catch(() => null);
         const rawRows = body?.dados;
@@ -69,7 +43,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: 'Organizacao invalida para importacao.' }, { status: 400 });
         }
 
-        if (!isPrivileged(profile) && profileOrganizationId && organizationId !== profileOrganizationId) {
+        if (!hasElevatedRole(profile) && profileOrganizationId && organizationId !== profileOrganizationId) {
             return NextResponse.json({ success: false, error: 'Organizacao nao permitida para este usuario.' }, { status: 403 });
         }
 
