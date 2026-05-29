@@ -58,11 +58,11 @@ export const GeneralStatsScoreCard: React.FC<GeneralStatsScoreCardProps> = ({ pe
                 </div>
 
                 {/* Gráfico circular de progresso fino e elegante */}
-                <div className="relative flex flex-1 items-center justify-center py-4">
+                <div className="relative flex flex-1 items-center justify-center py-2">
                     <CircularProgress
                         value={percentual}
-                        size={160}
-                        strokeWidth={10} // Reduzido de 14 para 10 para design mais fino e premium
+                        size={130}
+                        strokeWidth={9}
                         color={displayColor}
                         backgroundColor={theme === 'dark' ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.035)"}
                         showLabel={true}

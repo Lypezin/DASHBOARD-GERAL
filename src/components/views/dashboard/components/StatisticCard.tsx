@@ -77,26 +77,34 @@ export const StatisticCard = React.memo(function StatisticCard({
                         </Tooltip>
                     </div>
 
-                    {/* Valor da Métrica */}
-                    <h4 className={`break-words font-mono text-2xl font-black tracking-tight sm:text-3xl ${statusColor}`}>
+                    {/* Valor da Métrica - Ajuste Inteligente de Fonte para evitar quebras */}
+                    <h4 className={cn(
+                      "break-all font-mono font-black tracking-tight leading-none my-1",
+                      statusColor,
+                      String(value).length > 13
+                        ? "text-base sm:text-lg md:text-xl"
+                        : String(value).length > 10
+                        ? "text-lg sm:text-xl md:text-2xl"
+                        : "text-2xl sm:text-3xl"
+                    )}>
                         {value}
                     </h4>
 
                     {/* Indicador de Variação/Badge */}
-                    <div className="flex items-center gap-2 pt-1">
-                        <div className={`px-2 py-0.5 rounded border text-[10px] sm:text-xs font-bold flex items-center gap-1 transition-all ${badgeColorClass}`}>
+                    <div className="flex items-center gap-2 pt-1.5">
+                        <div className={cn("px-2 py-0.5 rounded border text-[10px] font-bold flex items-center gap-1 transition-all shadow-none", badgeColorClass)}>
                             <badge.icon className="w-3.5 h-3.5" />
                             <span>{badge.text}</span>
                         </div>
                     </div>
 
-                    {/* Sparkline Discreto */}
+                    {/* Sparkline Discreto com Base Integrada */}
                     {sparklineData && sparklineData.length >= 2 && (
-                        <div className="pt-3 opacity-90 transition-opacity group-hover:opacity-100">
+                        <div className="pt-4.5 opacity-90 transition-opacity group-hover:opacity-100">
                             <Sparkline
                                 data={sparklineData}
-                                width={120}
-                                height={24}
+                                width={140}
+                                height={28}
                                 color={sparklineColor || '#3B82F6'}
                                 strokeWidth={1.5}
                             />
