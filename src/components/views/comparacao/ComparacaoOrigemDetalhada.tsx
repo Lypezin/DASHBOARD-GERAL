@@ -8,7 +8,7 @@ interface ComparacaoOrigemDetalhadaProps {
     semanasSelecionadas: string[];
 }
 
-export const ComparacaoOrigemDetalhada: React.FC<ComparacaoOrigemDetalhadaProps> = ({ dadosComparacao, semanasSelecionadas, }) => {
+export const ComparacaoOrigemDetalhada: React.FC<ComparacaoOrigemDetalhadaProps> = ({ dadosComparacao, semanasSelecionadas }) => {
     if (!dadosComparacao || dadosComparacao.length === 0) return null;
 
     const todasOrigens = new Set<string>();
@@ -19,30 +19,30 @@ export const ComparacaoOrigemDetalhada: React.FC<ComparacaoOrigemDetalhadaProps>
     const showVariation = dadosComparacao.length >= 2;
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200/80 dark:border-slate-800 overflow-hidden">
-            <div className="px-5 py-3.5 border-b border-slate-100 dark:border-slate-800">
-                <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Análise Detalhada por Origem</h3>
+        <div className="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white/95 shadow-[0_18px_50px_-42px_rgba(15,23,42,0.36)] dark:border-slate-800/80 dark:bg-slate-950/76">
+            <div className="border-b border-slate-200/70 px-6 py-4 dark:border-slate-800/70">
+                <h3 className="text-sm font-semibold tracking-wide text-slate-900 dark:text-white">Analise detalhada por origem</h3>
             </div>
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {origens.map((origem) => (
                     <div key={origem}>
-                        <div className="px-5 py-2 bg-slate-50/80 dark:bg-slate-800/40">
-                            <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">{origem}</p>
+                        <div className="bg-slate-50/80 px-6 py-2.5 dark:bg-slate-900/65">
+                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{origem}</p>
                         </div>
-                        <div className="overflow-x-auto">
+                        <div className="subtle-scrollbar overflow-x-auto">
                             <Table>
                                 <TableHeader>
-                                    <TableRow className="hover:bg-transparent bg-transparent">
-                                        <TableHead className="sticky left-0 z-20 bg-white dark:bg-slate-900 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-5 min-w-[160px] border-r border-slate-100 dark:border-slate-800">
-                                            Métrica
+                                    <TableRow className="bg-transparent hover:bg-transparent">
+                                        <TableHead className="sticky left-0 z-20 min-w-[170px] border-r border-slate-100 bg-white pl-6 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-500">
+                                            Metrica
                                         </TableHead>
                                         {semanasSelecionadas.map((semana) => (
-                                            <TableHead key={semana} className="text-center text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 border-l border-slate-100 dark:border-slate-800 min-w-[100px]">
+                                            <TableHead key={semana} className="min-w-[108px] border-l border-slate-100 text-center text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 dark:border-slate-800 dark:text-slate-500">
                                                 Sem. {String(semana).replace('W', '')}
                                             </TableHead>
                                         ))}
                                         {showVariation && (
-                                            <TableHead className="text-center text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 min-w-[80px]">
+                                            <TableHead className="min-w-[88px] text-center text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
                                                 Var.
                                             </TableHead>
                                         )}
@@ -52,17 +52,17 @@ export const ComparacaoOrigemDetalhada: React.FC<ComparacaoOrigemDetalhadaProps>
                                     {METRICAS.map((metrica, mIdx) => {
                                         const valores = dadosComparacao.map((_, idx) => getValorOrigem(dadosComparacao, idx, origem, metrica.campo));
                                         return (
-                                            <TableRow key={metrica.campo} className={`hover:bg-slate-50/50 dark:hover:bg-slate-800/30 ${mIdx % 2 === 0 ? 'bg-white dark:bg-slate-900' : 'bg-slate-50/40 dark:bg-slate-800/10'}`}>
-                                                <TableCell className="sticky left-0 z-10 bg-inherit pl-5 py-2.5 text-sm font-medium text-slate-600 dark:text-slate-300 border-r border-slate-100 dark:border-slate-800 min-w-[160px]">
+                                            <TableRow key={metrica.campo} className={`hover:bg-slate-50/60 dark:hover:bg-slate-900/55 ${mIdx % 2 === 0 ? 'bg-white dark:bg-slate-950' : 'bg-slate-50/35 dark:bg-slate-900/35'}`}>
+                                                <TableCell className="sticky left-0 z-10 min-w-[170px] border-r border-slate-100 bg-inherit pl-6 py-3 text-sm font-medium text-slate-600 dark:border-slate-800 dark:text-slate-300">
                                                     {metrica.label}
                                                 </TableCell>
                                                 {valores.map((val, idx) => (
-                                                    <TableCell key={idx} className="text-center py-2.5 text-sm tabular-nums text-slate-700 dark:text-slate-200 border-l border-slate-100 dark:border-slate-800">
+                                                    <TableCell key={idx} className="border-l border-slate-100 py-3 text-center text-sm text-slate-700 tabular-nums dark:border-slate-800 dark:text-slate-200">
                                                         {metrica.format(val)}
                                                     </TableCell>
                                                 ))}
                                                 {showVariation && (
-                                                    <TableCell className="text-center py-2.5">
+                                                    <TableCell className="py-3 text-center">
                                                         {formatVariation(valores[0], valores[valores.length - 1], metrica.isPercent)}
                                                     </TableCell>
                                                 )}

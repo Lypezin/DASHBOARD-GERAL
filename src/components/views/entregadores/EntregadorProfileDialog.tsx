@@ -11,9 +11,7 @@ import { MetaEditor } from './MetaEditor';
 import { useEntregadorDetail } from './hooks/useEntregadorDetail';
 import { safeLog } from '@/lib/errorHandler';
 import { cn } from '@/lib/utils';
-import {
-    buildDedicadoFilterPayload,
-} from '../dedicado/rpcFallback';
+import { buildDedicadoFilterPayload } from '../dedicado/rpcFallback';
 import {
     calculateNormalAderencia,
     normalizeMetricNumber,
@@ -63,6 +61,7 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
     const { detail, loading, loadDetail } = useEntregadorDetail(entregador, open, organizationId, !isDedicado);
     const [origemBreakdown, setOrigemBreakdown] = React.useState<OrigemBreakdownRow[]>([]);
     const [origemLoading, setOrigemLoading] = React.useState(false);
+
     const origemPayloadKey = React.useMemo(() => {
         if (!entregador || !isDedicado) return '';
 
@@ -128,38 +127,53 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
 
     if (!entregador) return null;
 
-    const hs = calculateHealthScore(entregador.aderencia_percentual, entregador.corridas_completadas, entregador.corridas_ofertadas, entregador.total_segundos);
+    const hs = calculateHealthScore(
+        entregador.aderencia_percentual,
+        entregador.corridas_completadas,
+        entregador.corridas_ofertadas,
+        entregador.total_segundos
+    );
+
     const metrics = [
-        { label: 'Horas Online', value: formatarHorasParaHMS((entregador.total_segundos || 0) / 3600), icon: Clock, color: 'text-blue-600' },
-        { label: 'Aderência', value: `${entregador.aderencia_percentual.toFixed(1)}%`, icon: Target, color: 'text-emerald-600' },
-        { label: 'Completadas', value: entregador.corridas_completadas.toLocaleString('pt-BR'), icon: Activity, color: 'text-indigo-600' },
+        { label: 'Horas online', value: formatarHorasParaHMS((entregador.total_segundos || 0) / 3600), icon: Clock, color: 'text-blue-600' },
+        { label: 'Aderencia', value: `${entregador.aderencia_percentual.toFixed(1)}%`, icon: Target, color: 'text-emerald-600' },
+        { label: 'Completadas', value: entregador.corridas_completadas.toLocaleString('pt-BR'), icon: Activity, color: 'text-sky-600' },
         { label: 'Ofertadas', value: entregador.corridas_ofertadas.toLocaleString('pt-BR'), icon: Hash, color: 'text-slate-600' },
     ];
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className={cn('max-h-[85vh] overflow-y-auto', isDedicado ? 'max-w-4xl' : 'max-w-lg')}>
-                <DialogHeader>
+            <DialogContent className={cn(
+                'subtle-scrollbar max-h-[88vh] overflow-y-auto rounded-[1.9rem] border border-slate-200/80 bg-white/96 shadow-[0_26px_80px_-48px_rgba(15,23,42,0.48)] dark:border-slate-800/80 dark:bg-slate-950/94',
+                isDedicado ? 'max-w-5xl' : 'max-w-xl'
+            )}>
+                <DialogHeader className="border-b border-slate-100 pb-4 dark:border-slate-800">
                     <DialogTitle className="flex items-center gap-3">
                         <HealthBadge grade={hs.grade} score={hs.score} size="md" />
-                        <div><p className="text-lg font-bold">{entregador.nome_entregador}</p><p className="text-xs text-slate-500">{entregador.id_entregador}</p></div>
+                        <div className="min-w-0">
+                            <p className="truncate text-lg font-bold">{entregador.nome_entregador}</p>
+                            <p className="truncate text-xs text-slate-500">{entregador.id_entregador}</p>
+                        </div>
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="grid grid-cols-2 gap-3 mt-2">
-                    {metrics.map(m => (
-                        <div key={m.label} className="rounded-lg border border-slate-200 bg-slate-50 p-3 dark:border-slate-800 dark:bg-slate-900/80">
-                            <div className="flex items-center gap-2 mb-1"><m.icon className={`h-3.5 w-3.5 ${m.color}`} /><span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">{m.label}</span></div>
-                            <p className="text-base font-bold text-slate-900 dark:text-slate-100">{m.value}</p>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    {metrics.map((metric) => (
+                        <div key={metric.label} className="rounded-2xl border border-slate-200/80 bg-slate-50/90 p-3.5 dark:border-slate-800 dark:bg-slate-900/80">
+                            <div className="mb-1 flex items-center gap-2">
+                                <metric.icon className={`h-3.5 w-3.5 ${metric.color}`} />
+                                <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">{metric.label}</span>
+                            </div>
+                            <p className="text-base font-bold text-slate-900 dark:text-slate-100">{metric.value}</p>
                         </div>
                     ))}
                 </div>
 
                 {isDedicado ? (
-                    <div className="mt-5 rounded-2xl border border-blue-100 bg-blue-50/40 p-3 dark:border-blue-900/40 dark:bg-blue-950/20">
-                        <div className="mb-3 flex items-center justify-between gap-3">
-                            <div className="flex items-center gap-2">
-                                <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600 text-white">
+                    <div className="rounded-3xl border border-blue-100 bg-blue-50/40 p-4 dark:border-blue-900/40 dark:bg-blue-950/20">
+                        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-[0_12px_24px_-18px_rgba(37,99,235,0.8)]">
                                     <Store className="h-4 w-4" />
                                 </div>
                                 <div>
@@ -167,21 +181,19 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
                                     <p className="text-xs text-slate-500 dark:text-slate-400">Horas e corridas separadas por restaurante/origem</p>
                                 </div>
                             </div>
-                            {origemLoading ? (
-                                <span className="text-xs font-semibold text-blue-600 dark:text-blue-300">Carregando...</span>
-                            ) : null}
+                            {origemLoading ? <span className="text-xs font-semibold text-blue-600 dark:text-blue-300">Carregando...</span> : null}
                         </div>
 
                         {origemBreakdown.length > 0 ? (
-                            <div className="max-h-72 overflow-auto rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-                                <div className="grid min-w-[760px] grid-cols-[minmax(220px,1.5fr)_110px_90px_90px_90px_90px_90px] gap-3 border-b border-slate-100 bg-slate-50 px-4 py-2 text-[10px] font-black uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+                            <div className="subtle-scrollbar max-h-72 overflow-auto rounded-2xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+                                <div className="grid min-w-[760px] grid-cols-[minmax(220px,1.5fr)_110px_90px_90px_90px_90px_90px] gap-3 border-b border-slate-100 bg-slate-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.18em] text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
                                     <span>Origem</span>
                                     <span className="text-right">Horas</span>
                                     <span className="text-right">Ofertadas</span>
                                     <span className="text-right">Aceitas</span>
                                     <span className="text-right">Rejeitadas</span>
-                                    <span className="text-right">Concluídas</span>
-                                    <span className="text-right">Aderência</span>
+                                    <span className="text-right">Concluidas</span>
+                                    <span className="text-right">Aderencia</span>
                                 </div>
                                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
                                     {origemBreakdown.map((row) => (
@@ -191,14 +203,14 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
                                             <span className="text-right tabular-nums text-slate-600 dark:text-slate-400">{row.corridas_ofertadas.toLocaleString('pt-BR')}</span>
                                             <span className="text-right tabular-nums text-emerald-600 dark:text-emerald-400">{row.corridas_aceitas.toLocaleString('pt-BR')}</span>
                                             <span className="text-right tabular-nums text-rose-600 dark:text-rose-400">{row.corridas_rejeitadas.toLocaleString('pt-BR')}</span>
-                                            <span className="text-right tabular-nums text-indigo-600 dark:text-indigo-400">{row.corridas_completadas.toLocaleString('pt-BR')}</span>
+                                            <span className="text-right tabular-nums text-sky-600 dark:text-sky-300">{row.corridas_completadas.toLocaleString('pt-BR')}</span>
                                             <span className="text-right font-bold tabular-nums text-slate-800 dark:text-slate-100">{row.aderencia_percentual.toFixed(1)}%</span>
                                         </div>
                                     ))}
                                 </div>
                             </div>
                         ) : (
-                            <div className="rounded-xl border border-dashed border-blue-200 bg-white/70 p-4 text-center text-xs text-slate-500 dark:border-blue-900/60 dark:bg-slate-950/40 dark:text-slate-400">
+                            <div className="rounded-2xl border border-dashed border-blue-200 bg-white/70 p-4 text-center text-xs text-slate-500 dark:border-blue-900/60 dark:bg-slate-950/40 dark:text-slate-400">
                                 {origemLoading ? 'Carregando origens...' : 'Nenhum detalhamento por origem encontrado para o filtro atual.'}
                             </div>
                         )}
@@ -207,26 +219,40 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
 
                 {!isDedicado ? (
                     <>
-                <div className="mt-4"><p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Tags</p><TagManager entregadorId={entregador.id_entregador} organizationId={organizationId} onUpdate={loadDetail} /></div>
-                <div className="mt-4"><p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Metas</p><MetaEditor entregadorId={entregador.id_entregador} organizationId={organizationId} metas={detail?.metas || []} onUpdate={loadDetail} /></div>
-
-                <div className="mt-4">
-                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Histórico Recente</p>
-                    {detail?.history && detail.history.length > 0 ? (
-                        <div className="space-y-1.5 max-h-40 overflow-y-auto">
-                            {detail.history.map(h => (
-                                <div key={h.id} className="flex items-center gap-2 text-xs">
-                                    <span className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0" /><span className="text-slate-600 dark:text-slate-300">{h.event_type.replace(/_/g, ' ')}</span><span className="text-slate-400 ml-auto text-[10px]">{new Date(h.created_at).toLocaleDateString('pt-BR')}</span>
-                                </div>
-                            ))}
+                        <div>
+                            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Tags</p>
+                            <TagManager entregadorId={entregador.id_entregador} organizationId={organizationId} onUpdate={loadDetail} />
                         </div>
-                    ) : <span className="text-xs text-slate-400">Sem registros</span>}
-                </div>
 
+                        <div>
+                            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Metas</p>
+                            <MetaEditor entregadorId={entregador.id_entregador} organizationId={organizationId} metas={detail?.metas || []} onUpdate={loadDetail} />
+                        </div>
+
+                        <div>
+                            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Historico recente</p>
+                            {detail?.history && detail.history.length > 0 ? (
+                                <div className="subtle-scrollbar max-h-44 space-y-1.5 overflow-y-auto rounded-2xl border border-slate-200/70 bg-slate-50/70 p-3 dark:border-slate-800/70 dark:bg-slate-900/70">
+                                    {detail.history.map((historyItem) => (
+                                        <div key={historyItem.id} className="flex items-center gap-2 text-xs">
+                                            <span className="h-2 w-2 flex-shrink-0 rounded-full bg-blue-400" />
+                                            <span className="text-slate-600 dark:text-slate-300">{historyItem.event_type.replace(/_/g, ' ')}</span>
+                                            <span className="ml-auto text-[10px] text-slate-400">{new Date(historyItem.created_at).toLocaleDateString('pt-BR')}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <span className="text-xs text-slate-400">Sem registros</span>
+                            )}
+                        </div>
                     </>
                 ) : null}
 
-                {loading && <div className="absolute inset-0 bg-white/50 flex flex-col items-center justify-center rounded-lg dark:bg-slate-950/50"><div className="animate-spin rounded-full h-6 w-6 border-2 border-blue-500 border-t-transparent" /></div>}
+                {loading ? (
+                    <div className="absolute inset-0 flex items-center justify-center rounded-[1.9rem] bg-white/55 dark:bg-slate-950/55">
+                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
+                    </div>
+                ) : null}
             </DialogContent>
         </Dialog>
     );

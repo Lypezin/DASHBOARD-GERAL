@@ -71,8 +71,8 @@ export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainSt
             value: totalCorridas.toLocaleString('pt-BR'),
             subtext: corridasSubtext,
             icon: Truck,
-            iconClass: 'text-indigo-500',
-            badgeClass: 'bg-indigo-50 text-indigo-700 dark:bg-indigo-950/40 dark:text-indigo-300',
+            iconClass: 'text-sky-500',
+            badgeClass: 'bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300',
         },
         {
             title: 'Total Horas',

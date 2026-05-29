@@ -20,25 +20,25 @@ export const UtrContent = React.memo(function UtrContent({
     porTurno
 }: UtrContentProps) {
     return (
-        <React.Fragment>
+        <>
             <section className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                    <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Visao Consolidada</h2>
+                <div className="mb-4 flex items-center gap-2">
+                    <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Visao consolidada</h2>
                     <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
                 </div>
                 <UtrGeral data={utrData.geral} />
             </section>
 
             <section className="space-y-4">
-                <div className="flex items-center gap-2 mb-4">
-                    <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Detalhamento Operacional</h2>
+                <div className="mb-4 flex items-center gap-2">
+                    <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-200">Detalhamento operacional</h2>
                     <div className="h-px flex-1 bg-slate-200 dark:bg-slate-800"></div>
                 </div>
                 <div className="grid gap-5 xl:grid-cols-2">
                     <UtrSection
                         title="Praca"
                         description="Desempenho por polo operacional."
-                        icon={<Building2 className="h-[18px] w-[18px] text-indigo-600 dark:text-indigo-300" />}
+                        icon={<Building2 className="h-[18px] w-[18px] text-sky-600 dark:text-sky-300" />}
                         data={porPraca}
                         getLabel={(item) => item.praca}
                     />
@@ -46,7 +46,7 @@ export const UtrContent = React.memo(function UtrContent({
                     <UtrSection
                         title="Sub-praca"
                         description="Detalhamento por recorte interno."
-                        icon={<MapPin className="h-[18px] w-[18px] text-violet-600 dark:text-violet-300" />}
+                        icon={<MapPin className="h-[18px] w-[18px] text-cyan-600 dark:text-cyan-300" />}
                         data={porSubPraca}
                         getLabel={(item) => item.sub_praca}
                     />
@@ -68,6 +68,6 @@ export const UtrContent = React.memo(function UtrContent({
                     />
                 </div>
             </section>
-        </React.Fragment>
+        </>
     );
 });

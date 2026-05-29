@@ -15,36 +15,36 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
     dadosComparacao,
 }) => {
     return (
-        <div className="overflow-x-auto">
-            <table className="w-full">
-                <thead className="bg-slate-50 dark:bg-slate-800/50">
-                    <tr className="border-b border-slate-200 dark:border-slate-700">
-                        <th rowSpan={2} className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 align-middle">
+        <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
+            <table className="w-full min-w-[720px]">
+                <thead className="bg-slate-50/90 dark:bg-slate-900/80">
+                    <tr className="border-b border-slate-200 dark:border-slate-800">
+                        <th rowSpan={2} className="px-4 py-4 text-center align-middle text-[11px] font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400 sm:px-6">
                             Dia
                         </th>
                         {semanasSelecionadas.map((semana, idx) => (
                             <th
                                 key={`aderencia-${semana}`}
                                 colSpan={idx === 0 ? 1 : 2}
-                                className="px-6 py-4 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400"
+                                className="px-4 py-4 text-center text-[11px] font-black uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400 sm:px-6"
                             >
                                 Semana {semana}
                             </th>
                         ))}
                     </tr>
-                    <tr className="border-b border-slate-200 dark:border-slate-700">
+                    <tr className="border-b border-slate-200 dark:border-slate-800">
                         {semanasSelecionadas.map((semana, idx) =>
                             idx === 0 ? (
-                                <th key={`aderencia-${semana}-valor`} className="px-6 py-2 text-center text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                                <th key={`aderencia-${semana}-valor`} className="px-4 py-2 text-center text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500 sm:px-6">
                                     Valor
                                 </th>
                             ) : (
                                 <React.Fragment key={`aderencia-${semana}`}>
-                                    <th className="px-6 py-2 text-center text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                                    <th className="px-4 py-2 text-center text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500 sm:px-6">
                                         Valor
                                     </th>
-                                    <th className="px-6 py-2 text-center text-[11px] font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                                        Δ%
+                                    <th className="px-4 py-2 text-center text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500 sm:px-6">
+                                        Var %
                                     </th>
                                 </React.Fragment>
                             )
@@ -53,8 +53,8 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                     {DIAS_DA_SEMANA.map((dia) => (
-                        <tr key={dia} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                            <td className="px-6 py-4 text-center font-medium text-slate-900 dark:text-white">{dia}</td>
+                        <tr key={dia} className="transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                            <td className="px-4 py-4 text-center font-semibold text-slate-900 dark:text-white sm:px-6">{dia}</td>
                             {dadosComparacao.map((dados, idx) => {
                                 const diaData = findDayData(dia, dados?.aderencia_dia);
                                 const aderencia = getMetricValue(diaData, 'aderencia_percentual');
@@ -69,16 +69,16 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
 
                                 return (
                                     <React.Fragment key={idx}>
-                                        <td className="px-6 py-4 text-center">
-                                            <span className="font-medium text-slate-700 dark:text-slate-300">
+                                        <td className="px-4 py-4 text-center sm:px-6">
+                                            <span className="font-semibold text-slate-700 dark:text-slate-300">
                                                 {aderencia.toFixed(1)}%
                                             </span>
                                         </td>
-                                        {idx > 0 && variacao !== null && (
-                                            <td className="px-6 py-4 text-center">
+                                        {idx > 0 && variacao !== null ? (
+                                            <td className="px-4 py-4 text-center sm:px-6">
                                                 <VariacaoBadge variacao={variacao} className="px-2 py-0.5 text-xs" />
                                             </td>
-                                        )}
+                                        ) : null}
                                     </React.Fragment>
                                 );
                             })}

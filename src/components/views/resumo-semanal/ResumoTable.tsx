@@ -29,69 +29,70 @@ export const ResumoTable = React.memo(({ data, isLoading }: ResumoTableProps) =>
     }, [data]);
 
     return (
-        <div className="rounded-md border border-slate-200 dark:border-slate-800 overflow-hidden">
-            <Table>
-                <TableHeader className="bg-slate-50 dark:bg-slate-900/50">
-                    <TableRow>
-                        <TableHead className="font-semibold text-slate-700 dark:text-slate-300">SEMANA</TableHead>
-                        <TableHead className="font-semibold text-slate-700 dark:text-slate-300 text-right">Pedidos</TableHead>
-                        <TableHead className="font-semibold text-slate-700 dark:text-slate-300 text-right">Drivers</TableHead>
-                        <TableHead className="font-semibold text-slate-700 dark:text-slate-300 text-right">SH</TableHead>
-                        <TableHead className="font-semibold text-slate-700 dark:text-slate-300 text-right">Aderência Média</TableHead>
-                        <TableHead className="font-semibold text-slate-700 dark:text-slate-300 text-right">UTR</TableHead>
-                        <TableHead className="font-semibold text-slate-700 dark:text-slate-300 text-right">Aderência</TableHead>
-                        <TableHead className="font-semibold text-slate-700 dark:text-slate-300 text-right">Rejeite</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {data.map((row) => (
-                        <TableRow key={row.label} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/50 transition-colors">
-                            <TableCell className="font-medium">
-                                <div className="bg-blue-600 text-white rounded-md py-1 px-3 text-center inline-block min-w-[3rem] text-sm shadow-sm font-bold">
-                                    {row.semana_label.replace('Semana ', '')}
-                                </div>
-                            </TableCell>
-                            <TableCell className="text-right font-medium">{formatNumber(row.pedidos)}</TableCell>
-                            <TableCell className="text-right text-slate-600 dark:text-slate-400">{formatNumber(row.drivers)}</TableCell>
-                            <TableCell className="text-right text-slate-600 dark:text-slate-400">{formatNumber(row.sh)}</TableCell>
-                            <TableCell className="text-right text-slate-600 dark:text-slate-400">{formatPercent(row.aderenciaMedia)}</TableCell>
-                            <TableCell className="text-right font-medium">{formatNumber(row.utr, 2)}</TableCell>
-                            <TableCell className="text-right font-bold text-slate-700 dark:text-slate-200">{formatPercent(row.aderencia)}</TableCell>
-                            <TableCell className="text-right text-red-600 dark:text-red-400 font-medium">{formatPercent(row.rejeite)}</TableCell>
-                        </TableRow>
-                    ))}
-                    {/* Totals Row */}
-                    {data.length > 0 && (
-                        <TableRow className="bg-slate-100 dark:bg-slate-800/80 font-bold border-t-2 border-slate-300 dark:border-slate-600">
-                            <TableCell className="font-bold">
-                                <div className="bg-gradient-to-r from-blue-700 to-indigo-700 text-white rounded-md py-1 px-3 text-center inline-block min-w-[3rem] text-sm shadow-sm">
-                                    TOTAL
-                                </div>
-                            </TableCell>
-                            <TableCell className="text-right font-bold text-slate-800 dark:text-slate-100">
-                                {formatNumber(totals.pedidos)}
-                            </TableCell>
-                            <TableCell className="text-right font-bold text-slate-800 dark:text-slate-100">
-                                {formatNumber(totals.drivers)}
-                            </TableCell>
-                            <TableCell className="text-right font-bold text-slate-800 dark:text-slate-100">
-                                {formatNumber(totals.sh)}
-                            </TableCell>
-                            <TableCell className="text-right text-slate-400">—</TableCell>
-                            <TableCell className="text-right text-slate-400">—</TableCell>
-                            <TableCell className="text-right text-slate-400">—</TableCell>
-                            <TableCell className="text-right text-slate-400">—</TableCell>
-                        </TableRow>
-                    )}
-                    {data.length === 0 && (
+        <div className="overflow-hidden rounded-[2rem] border border-slate-200/75 bg-white/92 shadow-[0_18px_46px_-38px_rgba(15,23,42,0.42)] dark:border-slate-800/75 dark:bg-slate-950/78">
+            <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
+                <Table className="min-w-[920px]">
+                    <TableHeader className="bg-slate-50/90 dark:bg-slate-900/60">
                         <TableRow>
-                            <TableCell colSpan={8} className="text-center py-8 text-muted-foreground">
-                                {isLoading ? 'Carregando dados...' : 'Nenhum dado disponível para o período.'}
-                            </TableCell>
+                            <TableHead className="font-semibold text-slate-700 dark:text-slate-300">SEMANA</TableHead>
+                            <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-300">Pedidos</TableHead>
+                            <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-300">Drivers</TableHead>
+                            <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-300">SH</TableHead>
+                            <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-300">Aderencia Media</TableHead>
+                            <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-300">UTR</TableHead>
+                            <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-300">Aderencia</TableHead>
+                            <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-300">Rejeite</TableHead>
                         </TableRow>
-                    )}
-                </TableBody>
-            </Table>
+                    </TableHeader>
+                    <TableBody>
+                        {data.map((row) => (
+                            <TableRow key={row.label} className="transition-colors hover:bg-slate-50/60 dark:hover:bg-slate-900/45">
+                                <TableCell className="font-medium">
+                                    <div className="inline-block min-w-[3rem] rounded-md bg-blue-600 px-3 py-1 text-center text-sm font-bold text-white shadow-sm">
+                                        {row.semana_label.replace('Semana ', '')}
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-right font-medium">{formatNumber(row.pedidos)}</TableCell>
+                                <TableCell className="text-right text-slate-600 dark:text-slate-400">{formatNumber(row.drivers)}</TableCell>
+                                <TableCell className="text-right text-slate-600 dark:text-slate-400">{formatNumber(row.sh)}</TableCell>
+                                <TableCell className="text-right text-slate-600 dark:text-slate-400">{formatPercent(row.aderenciaMedia)}</TableCell>
+                                <TableCell className="text-right font-medium">{formatNumber(row.utr, 2)}</TableCell>
+                                <TableCell className="text-right font-bold text-slate-700 dark:text-slate-200">{formatPercent(row.aderencia)}</TableCell>
+                                <TableCell className="text-right font-medium text-rose-600 dark:text-rose-400">{formatPercent(row.rejeite)}</TableCell>
+                            </TableRow>
+                        ))}
+                        {data.length > 0 && (
+                            <TableRow className="border-t-2 border-slate-300 bg-slate-100 font-bold dark:border-slate-600 dark:bg-slate-800/80">
+                                <TableCell className="font-bold">
+                                    <div className="inline-block min-w-[3rem] rounded-md bg-slate-900 px-3 py-1 text-center text-sm text-white shadow-sm dark:bg-white dark:text-slate-900">
+                                        TOTAL
+                                    </div>
+                                </TableCell>
+                                <TableCell className="text-right font-bold text-slate-800 dark:text-slate-100">
+                                    {formatNumber(totals.pedidos)}
+                                </TableCell>
+                                <TableCell className="text-right font-bold text-slate-800 dark:text-slate-100">
+                                    {formatNumber(totals.drivers)}
+                                </TableCell>
+                                <TableCell className="text-right font-bold text-slate-800 dark:text-slate-100">
+                                    {formatNumber(totals.sh)}
+                                </TableCell>
+                                <TableCell className="text-right text-slate-400">-</TableCell>
+                                <TableCell className="text-right text-slate-400">-</TableCell>
+                                <TableCell className="text-right text-slate-400">-</TableCell>
+                                <TableCell className="text-right text-slate-400">-</TableCell>
+                            </TableRow>
+                        )}
+                        {data.length === 0 && (
+                            <TableRow>
+                                <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
+                                    {isLoading ? 'Carregando dados...' : 'Nenhum dado disponivel para o periodo.'}
+                                </TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                </Table>
+            </div>
         </div>
     );
 });

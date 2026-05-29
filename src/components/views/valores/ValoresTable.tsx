@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
     Table,
@@ -7,7 +6,7 @@ import {
     TableHead,
     TableHeader,
     TableRow
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { ValoresEntregador } from '@/types';
 import { ValoresTableRow } from './components/ValoresTableRow';
@@ -42,55 +41,89 @@ export const ValoresTable = React.memo(function ValoresTable({
         if (sortField !== field) {
             return <ArrowUpDown className="ml-1 h-3 w-3 text-slate-400" />;
         }
-        return sortDirection === 'asc' ?
-            <ArrowUp className="ml-1 h-3 w-3 text-slate-900 dark:text-white" /> :
-            <ArrowDown className="ml-1 h-3 w-3 text-slate-900 dark:text-white" />;
+
+        return sortDirection === 'asc'
+            ? <ArrowUp className="ml-1 h-3 w-3 text-slate-900 dark:text-white" />
+            : <ArrowDown className="ml-1 h-3 w-3 text-slate-900 dark:text-white" />;
     };
 
-    const SortableHeader = ({ field, label, align = 'left', className = '' }: any) => (
-        <TableHead className={`cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ${className}`} onClick={() => onSort(field)}>
-            <div className={`flex items-center gap-2 ${align === 'right' ? 'justify-end' : ''}`}>{label} <SortIcon field={field} /></div>
+    const SortableHeader = ({
+        field,
+        label,
+        align = 'left',
+        className = ''
+    }: {
+        field: keyof ValoresEntregador;
+        label: string;
+        align?: 'left' | 'right';
+        className?: string;
+    }) => (
+        <TableHead
+            className={`cursor-pointer transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 ${className}`}
+            onClick={() => onSort(field)}
+        >
+            <div className={`flex items-center gap-2 ${align === 'right' ? 'justify-end' : ''}`}>
+                {label}
+                <SortIcon field={field} />
+            </div>
         </TableHead>
     );
 
     return (
-        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden ring-1 ring-slate-100 dark:ring-slate-800/50">
-            <Table>
-                <TableHeader>
-                    <TableRow className="bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800">
-                        <SortableHeader field="nome_entregador" label="Entregador" className="w-[300px] pl-6" />
-                        {isDetailed && (
+        <div className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white/90 shadow-[0_18px_48px_-40px_rgba(15,23,42,0.52)] ring-1 ring-slate-100/80 dark:border-slate-800/70 dark:bg-slate-900/84 dark:ring-slate-800/50">
+            <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
+                <Table>
+                    <TableHeader>
+                        <TableRow className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/80">
+                            <SortableHeader field="nome_entregador" label="Entregador" className="w-[300px] pl-6" />
+                            {isDetailed ? (
+                                <>
+                                    <SortableHeader field="turno" label="Turno" />
+                                    <SortableHeader field="sub_praca" label="Sub praca" />
+                                </>
+                            ) : null}
+                            <SortableHeader field="total_taxas" label="Total" align="right" />
+                            <SortableHeader field="numero_corridas_aceitas" label="Corridas" align="right" />
+                            <SortableHeader field="taxa_media" label="Media" align="right" className="pr-6" />
+                        </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                        {sortedValores.length > 0 ? (
                             <>
-                                <SortableHeader field="turno" label="Turno" />
-                                <SortableHeader field="sub_praca" label="Sub-Praça" />
+                                {sortedValores.map((entregador, index) => (
+                                    entregador ? (
+                                        <ValoresTableRow
+                                            key={`${entregador.id_entregador}-${index}`}
+                                            entregador={entregador}
+                                            ranking={index + 1}
+                                            formatarReal={formatarReal}
+                                            isDetailed={isDetailed}
+                                        />
+                                    ) : null
+                                ))}
+
+                                {hasMore ? (
+                                    <TableRow>
+                                        <TableCell colSpan={isDetailed ? 6 : 4} className="h-12 py-4 text-center">
+                                            <div ref={lastElementRef} className="flex items-center justify-center gap-2 text-slate-500">
+                                                {isLoadingMore
+                                                    ? <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-slate-600" />
+                                                    : <span className="text-xs">Carregando mais...</span>}
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+                                ) : null}
                             </>
+                        ) : (
+                            <TableRow>
+                                <TableCell colSpan={isDetailed ? 6 : 4} className="h-24 text-center">
+                                    Nenhum dado encontrado.
+                                </TableCell>
+                            </TableRow>
                         )}
-                        <SortableHeader field="total_taxas" label="Total" align="right" />
-                        <SortableHeader field="numero_corridas_aceitas" label="Corridas" align="right" />
-                        <SortableHeader field="taxa_media" label="Média" align="right" className="pr-6" />
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {sortedValores.length > 0 ? (
-                        <>
-                            {sortedValores.map((entregador, index) => entregador && (
-                                <ValoresTableRow key={`${entregador.id_entregador}-${index}`} entregador={entregador} ranking={index + 1} formatarReal={formatarReal} isDetailed={isDetailed} />
-                            ))}
-                            {hasMore && (
-                                <TableRow>
-                                    <TableCell colSpan={isDetailed ? 6 : 4} className="h-12 text-center py-4">
-                                        <div ref={lastElementRef} className="flex justify-center items-center gap-2 text-slate-500">
-                                            {isLoadingMore ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-slate-600"></div> : <span className="text-xs">Carregando mais...</span>}
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            )}
-                        </>
-                    ) : (
-                        <TableRow><TableCell colSpan={isDetailed ? 6 : 4} className="h-24 text-center">Nenhum dado encontrado.</TableCell></TableRow>
-                    )}
-                </TableBody>
-            </Table>
+                    </TableBody>
+                </Table>
+            </div>
         </div>
     );
 });

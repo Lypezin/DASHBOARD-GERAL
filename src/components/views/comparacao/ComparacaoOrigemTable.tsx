@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { DashboardResumoData } from '@/types';
 import {
@@ -24,23 +23,23 @@ export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
     const { origensOrdenadas, dadosPorOrigem } = useComparacaoOrigemTableData(dadosComparacao);
 
     return (
-        <div className="overflow-x-auto">
-            <Table>
+        <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
+            <Table className="min-w-[720px]">
                 <TableHeader>
-                    <TableRow className="hover:bg-transparent border-none">
-                        <TableHead className="sticky left-0 z-20 bg-white dark:bg-slate-900 text-xs font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 pl-8 pb-4 align-bottom">
+                    <TableRow className="border-none hover:bg-transparent">
+                        <TableHead className="sticky left-0 z-20 bg-white pb-4 pl-6 align-bottom text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:bg-slate-950 dark:text-slate-500 sm:pl-8">
                             Origem
                         </TableHead>
                         {semanasSelecionadas.map((semana) => {
                             const semanaStr = String(semana).replace('W', '');
                             return (
                                 <React.Fragment key={semana}>
-                                    <TableHead className="text-center pb-2">
-                                        <span className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[10px] font-bold uppercase tracking-widest ring-1 ring-inset ring-slate-200 dark:ring-slate-700">
+                                    <TableHead className="pb-2 text-center">
+                                        <span className="inline-flex items-center justify-center rounded-full bg-slate-50 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-slate-600 ring-1 ring-inset ring-slate-200 dark:bg-slate-900 dark:text-slate-300 dark:ring-slate-700">
                                             Sem. {semanaStr}
                                         </span>
                                     </TableHead>
-                                    <TableHead className="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 min-w-[70px] pb-4 align-bottom">
+                                    <TableHead className="min-w-[72px] pb-4 align-bottom text-center text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
                                         Var
                                     </TableHead>
                                 </React.Fragment>
@@ -51,9 +50,9 @@ export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
                 <TableBody>
                     {origensOrdenadas.length > 0 && (
                         <ComparacaoOrigemRow
-                            key="MÉDIA DAS ORIGENS"
-                            origem="MÉDIA DAS ORIGENS"
-                            index={-1} 
+                            key="MEDIA DAS ORIGENS"
+                            origem="MEDIA DAS ORIGENS"
+                            index={-1}
                             semanasSelecionadas={semanasSelecionadas}
                             dadosPorOrigem={dadosPorOrigem}
                         />
@@ -69,8 +68,8 @@ export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
                     ))}
                     {origensOrdenadas.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={semanasSelecionadas.length * 2 + 1} className="text-center py-8 text-sm text-slate-400">
-                                Nenhum dado de origem disponível.
+                            <TableCell colSpan={semanasSelecionadas.length * 2 + 1} className="py-8 text-center text-sm text-slate-400">
+                                Nenhum dado de origem disponivel.
                             </TableCell>
                         </TableRow>
                     )}

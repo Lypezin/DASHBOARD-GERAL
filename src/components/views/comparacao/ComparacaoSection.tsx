@@ -5,53 +5,57 @@ import { ComparacaoDiaTable } from './components/ComparacaoDiaTable';
 import { ViewModeToggle } from './components/ViewModeToggle';
 
 interface ComparacaoSectionProps {
-  title: string;
-  icon: React.ReactNode;
-  description: string;
-  type: 'dia' | 'subPraca' | 'origem';
-  dadosComparacao: DashboardResumoData[];
-  semanasSelecionadas: string[];
-  viewMode: 'table' | 'chart';
-  onViewModeChange: (mode: 'table' | 'chart') => void;
-  origensDisponiveis?: string[];
-  totalColunasOrigem?: number;
+    title: string;
+    icon: React.ReactNode;
+    description: string;
+    type: 'dia' | 'subPraca' | 'origem';
+    dadosComparacao: DashboardResumoData[];
+    semanasSelecionadas: string[];
+    viewMode: 'table' | 'chart';
+    onViewModeChange: (mode: 'table' | 'chart') => void;
+    origensDisponiveis?: string[];
+    totalColunasOrigem?: number;
 }
 
 export const ComparacaoSection: React.FC<ComparacaoSectionProps> = ({
-  title,
-  type,
-  dadosComparacao,
-  semanasSelecionadas,
-  viewMode,
-  onViewModeChange,
+    title,
+    type,
+    dadosComparacao,
+    semanasSelecionadas,
+    viewMode,
+    onViewModeChange,
 }) => {
-  if (type === 'dia') {
-    return (
-      <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] overflow-hidden transition-all duration-300">
-        <div className="flex items-center justify-between px-8 py-6 border-b border-transparent">
-          <h3 className="text-lg text-slate-900 dark:text-white flex items-center gap-3">
-            <span className="w-1 h-5 rounded-full bg-slate-200 dark:bg-slate-700"></span>
-            <span className="font-semibold tracking-tight">{title}</span>
-          </h3>
-          <ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} size="sm" />
-        </div>
-        {viewMode === 'table' ? (
-          <ComparacaoDiaTable
-            semanasSelecionadas={semanasSelecionadas}
-            dadosComparacao={dadosComparacao}
-          />
-        ) : (
-          <div className="p-5">
-            <ComparacaoCharts
-              dadosComparacao={dadosComparacao}
-              semanasSelecionadas={semanasSelecionadas}
-              viewMode={viewMode}
-              chartType="dia"
-            />
-          </div>
-        )}
-      </div>
-    );
-  }
-  return null;
+    if (type === 'dia') {
+        return (
+            <div className="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white/95 shadow-[0_18px_50px_-42px_rgba(15,23,42,0.36)] transition-[border-color,box-shadow,background-color] duration-200 dark:border-slate-800/80 dark:bg-slate-950/76">
+                <div className="flex flex-col gap-3 border-b border-slate-200/70 px-5 py-5 dark:border-slate-800/70 sm:flex-row sm:items-center sm:justify-between sm:px-7">
+                    <div className="min-w-0">
+                        <h3 className="flex items-center gap-3 text-lg tracking-tight text-slate-900 dark:text-white">
+                            <span className="h-5 w-1 rounded-full bg-sky-400/80 dark:bg-sky-300/70" />
+                            <span className="font-semibold">{title}</span>
+                        </h3>
+                    </div>
+                    <ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} size="sm" />
+                </div>
+
+                {viewMode === 'table' ? (
+                    <ComparacaoDiaTable
+                        semanasSelecionadas={semanasSelecionadas}
+                        dadosComparacao={dadosComparacao}
+                    />
+                ) : (
+                    <div className="p-4 sm:p-5">
+                        <ComparacaoCharts
+                            dadosComparacao={dadosComparacao}
+                            semanasSelecionadas={semanasSelecionadas}
+                            viewMode={viewMode}
+                            chartType="dia"
+                        />
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    return null;
 };

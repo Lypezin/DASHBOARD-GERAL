@@ -8,10 +8,14 @@ interface SecaoItem {
 }
 
 const SECOES: SecaoItem[] = [
-    { id: 'metricas', label: 'Cards de Métricas' }, { id: 'detalhada', label: 'Análise Detalhada' },
-    { id: 'por_dia', label: 'Tabela por Dia' }, { id: 'aderencia_dia', label: 'Aderência por Dia' },
-    { id: 'sub_praca', label: 'Por Sub-Praça' }, { id: 'por_origem', label: 'Por Origem' },
-    { id: 'origem_detalhada', label: 'Análise Detalhada por Origem' }, { id: 'utr', label: 'UTR' },
+    { id: 'metricas', label: 'Cards de metricas' },
+    { id: 'detalhada', label: 'Analise detalhada' },
+    { id: 'por_dia', label: 'Tabela por dia' },
+    { id: 'aderencia_dia', label: 'Aderencia por dia' },
+    { id: 'sub_praca', label: 'Por sub praca' },
+    { id: 'por_origem', label: 'Por origem' },
+    { id: 'origem_detalhada', label: 'Analise detalhada por origem' },
+    { id: 'utr', label: 'UTR' },
 ];
 
 interface ComparacaoSectionSelectorProps {
@@ -27,7 +31,12 @@ export const ComparacaoSectionSelector: React.FC<ComparacaoSectionSelectorProps>
     const ref = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const handleClick = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+        const handleClick = (event: MouseEvent) => {
+            if (ref.current && !ref.current.contains(event.target as Node)) {
+                setOpen(false);
+            }
+        };
+
         document.addEventListener('mousedown', handleClick);
         return () => document.removeEventListener('mousedown', handleClick);
     }, []);
@@ -38,48 +47,49 @@ export const ComparacaoSectionSelector: React.FC<ComparacaoSectionSelectorProps>
     return (
         <div className="relative" ref={ref}>
             <button
-                onClick={() => setOpen(prev => !prev)}
-                className={`flex items-center gap-2.5 px-5 py-2.5 text-[11px] font-bold uppercase tracking-widest rounded-full border-2 transition-all duration-300
-                    ${open
-                        ? 'bg-slate-900 border-slate-900 text-white dark:bg-white dark:border-white dark:text-slate-900 shadow-lg'
-                        : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-indigo-500 dark:hover:border-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-400'
+                onClick={() => setOpen((prev) => !prev)}
+                className={`inline-flex items-center gap-2.5 rounded-full border px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] transition-[background-color,border-color,color,box-shadow,transform] duration-200 ${open
+                    ? 'border-slate-900 bg-slate-900 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.7)] dark:border-white dark:bg-white dark:text-slate-900'
+                    : 'border-slate-200/80 bg-white/82 text-slate-500 shadow-[0_12px_26px_-22px_rgba(15,23,42,0.45)] hover:-translate-y-0.5 hover:border-sky-300 hover:text-sky-600 dark:border-slate-800/80 dark:bg-slate-900/82 dark:text-slate-400 dark:hover:border-sky-500/50 dark:hover:text-sky-300'
                     }`}
-                title="Escolher seções visíveis"
+                title="Escolher secoes visiveis"
             >
-                <LayoutDashboard className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Exibição</span>
-                {totalVisiveis < total && (
-                    <span className={`flex items-center justify-center w-4 h-4 text-[9px] font-black rounded-full shadow-sm ${open ? 'bg-white/20 text-white dark:bg-slate-900/10 dark:text-slate-900' : 'bg-indigo-500 text-white'}`}>
+                <LayoutDashboard className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">Exibicao</span>
+                {totalVisiveis < total ? (
+                    <span className={`inline-flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-black ${open ? 'bg-white/20 text-white dark:bg-slate-900/10 dark:text-slate-900' : 'bg-sky-500 text-white'}`}>
                         {totalVisiveis}
                     </span>
-                )}
+                ) : null}
             </button>
 
-            {open && (
-                <div className="absolute right-0 top-full mt-3 z-50 bg-white dark:bg-slate-900 rounded-[2rem] shadow-[0_20px_70px_rgba(0,0,0,0.15)] dark:shadow-[0_20px_70px_rgba(0,0,0,0.4)] border border-slate-100 dark:border-slate-800/60 min-w-[260px] overflow-hidden p-3 animate-in fade-in slide-in-from-top-2 duration-300">
-                    <div className="px-5 py-3 mb-2">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
-                            Configurar Visualização
+            {open ? (
+                <div className="absolute right-0 top-full z-50 mt-3 min-w-[270px] overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white/94 p-3 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.42)] backdrop-blur-xl dark:border-slate-800/70 dark:bg-slate-950/92 dark:shadow-black/40">
+                    <div className="mb-2 px-4 py-2">
+                        <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">
+                            Configurar exibicao
                         </p>
                     </div>
+
                     <div className="space-y-1">
                         {SECOES.map((secao) => {
                             const isVisible = secoesVisiveis[secao.id];
+
                             return (
                                 <button
                                     key={secao.id}
                                     onClick={() => onToggleSecao(secao.id)}
-                                    className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all text-left group"
+                                    className="group flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
                                 >
-                                    <div className={`flex-shrink-0 flex items-center justify-center w-5 h-5 rounded-lg border-2 transition-all ${isVisible
-                                        ? 'bg-indigo-500 border-indigo-500 shadow-md shadow-indigo-500/20'
-                                        : 'bg-transparent border-slate-200 dark:border-slate-800 group-hover:border-slate-300 dark:group-hover:border-slate-700'
-                                        }`}>
-                                        {isVisible && (
-                                            <Check className="w-3 h-3 text-white" strokeWidth={4} />
-                                        )}
+                                    <div
+                                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border-2 transition-all ${isVisible
+                                            ? 'border-sky-500 bg-sky-500 shadow-[0_10px_24px_-16px_rgba(14,165,233,0.9)]'
+                                            : 'border-slate-200 bg-transparent group-hover:border-slate-300 dark:border-slate-800 dark:group-hover:border-slate-700'
+                                            }`}
+                                    >
+                                        {isVisible ? <Check className="h-3 w-3 text-white" strokeWidth={4} /> : null}
                                     </div>
-                                    <span className={`text-[13px] transition-colors ${isVisible ? 'text-slate-900 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-500'}`}>
+                                    <span className={`text-[13px] transition-colors ${isVisible ? 'font-bold text-slate-900 dark:text-white' : 'text-slate-500 dark:text-slate-400'}`}>
                                         {secao.label}
                                     </span>
                                 </button>
@@ -87,7 +97,7 @@ export const ComparacaoSectionSelector: React.FC<ComparacaoSectionSelectorProps>
                         })}
                     </div>
                 </div>
-            )}
+            ) : null}
         </div>
     );
 };

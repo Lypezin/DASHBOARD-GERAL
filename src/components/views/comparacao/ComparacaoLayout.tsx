@@ -20,7 +20,7 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
     actions
 }: ComparacaoLayoutProps) {
     return (
-        <div className="space-y-8 pb-8 w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in">
+        <div className="mx-auto w-full max-w-[1800px] space-y-8 px-4 pb-8 animate-fade-in sm:px-6 lg:px-8">
             <ComparacaoFilters
                 pracas={pracas}
                 todasSemanas={data.todasSemanas}
@@ -40,41 +40,41 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
             {state.loading && <DashboardSkeleton contentOnly />}
 
             {state.error && !state.loading && (
-                <div className="flex flex-col items-center justify-center py-16 px-4 text-center bg-rose-50/50 dark:bg-rose-950/10 rounded-[2.5rem] border border-rose-100 dark:border-rose-900/30 shadow-sm animate-fade-in">
-                    <div className="w-16 h-16 bg-rose-100 dark:bg-rose-900/30 rounded-full flex items-center justify-center mb-5">
-                        <AlertCircle className="w-8 h-8 text-rose-500 dark:text-rose-400" />
+                <div className="animate-fade-in rounded-[2.4rem] border border-rose-200/70 bg-white/94 px-4 py-16 text-center shadow-[0_20px_60px_-44px_rgba(190,24,93,0.35)] dark:border-rose-900/40 dark:bg-slate-950/78">
+                    <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-rose-100/90 dark:bg-rose-950/50">
+                        <AlertCircle className="h-8 w-8 text-rose-500 dark:text-rose-300" />
                     </div>
-                    <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
-                        Erro ao carregar comparação
+                    <h2 className="mb-2 text-xl font-bold text-slate-900 dark:text-white">
+                        Erro ao carregar comparacao
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed">
+                    <p className="mx-auto max-w-md leading-relaxed text-slate-500 dark:text-slate-400">
                         {state.error}
                     </p>
                     <button
                         onClick={() => window.location.reload()}
-                        className="mt-6 px-6 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-full font-bold text-xs uppercase tracking-widest transition-[background-color,box-shadow] duration-150 shadow-md shadow-rose-500/20"
+                        className="mt-6 rounded-full bg-rose-500 px-6 py-2 text-xs font-bold uppercase tracking-widest text-white shadow-md shadow-rose-500/20 transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:bg-rose-600"
                     >
-                        Tentar Novamente
+                        Tentar novamente
                     </button>
                 </div>
             )}
 
             {!state.loading && state.semanasSelecionadas.length > 2 && (
-                <div className="flex flex-col items-center justify-center py-20 px-4 text-center bg-white dark:bg-slate-900 rounded-[2.5rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.2)] border border-transparent dark:border-slate-800/50 animate-fade-in">
-                    <div className="w-20 h-20 bg-indigo-50 dark:bg-indigo-900/20 rounded-full flex items-center justify-center mb-6">
-                        <Calendar className="w-10 h-10 text-indigo-500 dark:text-indigo-400" />
+                <div className="animate-fade-in rounded-[2.4rem] border border-slate-200/80 bg-white/95 px-4 py-20 text-center shadow-[0_24px_70px_-50px_rgba(15,23,42,0.34)] dark:border-slate-800/80 dark:bg-slate-950/78">
+                    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-sky-50 dark:bg-sky-950/30">
+                        <Calendar className="h-10 w-10 text-sky-500 dark:text-sky-300" />
                     </div>
-                    <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-3">
-                        Limite de Comparação Excedido
+                    <h2 className="mb-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                        Limite de comparacao excedido
                     </h2>
-                    <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto leading-relaxed mb-8">
-                        Para garantir a melhor visualização e precisão dos dados, a aba de comparação suporta no máximo <span className="font-bold text-indigo-600 dark:text-indigo-400">2 semanas</span> simultâneas.
+                    <p className="mx-auto mb-8 max-w-md leading-relaxed text-slate-500 dark:text-slate-400">
+                        Para manter leitura e precisao, a aba de comparacao suporta no maximo <span className="font-bold text-sky-600 dark:text-sky-300">2 semanas</span> simultaneas.
                     </p>
                     <button
                         onClick={actions.limparSemanas}
-                        className="px-8 py-3 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-full font-bold text-sm tracking-widest uppercase hover:scale-[1.01] active:scale-[0.99] transition-[background-color,color,box-shadow,transform] duration-150 shadow-md shadow-slate-900/10 dark:shadow-white/5"
+                        className="rounded-full bg-slate-900 px-8 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-md shadow-slate-900/10 transition-[background-color,color,box-shadow,transform] duration-200 hover:-translate-y-0.5 dark:bg-white dark:text-slate-900 dark:shadow-white/5"
                     >
-                        Reajustar Seleção
+                        Reajustar selecao
                     </button>
                 </div>
             )}

@@ -16,7 +16,7 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
     const { data, loading, error, totals, praca } = useMarketingComparacaoViewController(filters);
 
     return (
-        <div className="space-y-8 pb-20 w-full max-w-[1800px] mx-auto animate-fade-in">
+        <div className="mx-auto w-full max-w-[1800px] space-y-8 pb-20 animate-fade-in">
             {error && (
                 <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
@@ -27,7 +27,7 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
 
             {loading ? (
                 <div className="flex justify-center py-24">
-                    <Loader2 className="h-10 w-10 animate-spin text-purple-600" />
+                    <Loader2 className="h-10 w-10 animate-spin text-sky-600" />
                 </div>
             ) : (
                 <>
@@ -36,19 +36,19 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
                     <div className="space-y-4">
                         <div className="flex items-center justify-between px-2">
                             <div className="flex items-center gap-3">
-                                <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-purple-500 to-blue-600 shadow-sm" />
+                                <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-sky-500 to-blue-600 shadow-sm" />
                                 <div>
-                                    <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
+                                    <h2 className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
                                         Comparativo Semanal
                                     </h2>
-                                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
-                                        Análise detalhada de volume e conversão (Operacional vs Marketing)
+                                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                                        Analise detalhada de volume e conversao (Operacional vs Marketing)
                                     </p>
                                 </div>
                             </div>
                         </div>
 
-                        <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden ring-1 ring-slate-100 dark:ring-slate-800/50">
+                        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm ring-1 ring-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:ring-slate-800/50">
                             <MarketingComparacaoTable data={data} praca={praca} />
                         </div>
                     </div>

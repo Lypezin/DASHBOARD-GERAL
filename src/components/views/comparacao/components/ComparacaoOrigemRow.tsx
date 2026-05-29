@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { VariacaoBadge } from '@/components/VariacaoBadge';
@@ -11,21 +10,22 @@ interface ComparacaoOrigemRowProps {
 }
 
 export const ComparacaoOrigemRow = React.memo(({ origem, index, semanasSelecionadas, dadosPorOrigem }: ComparacaoOrigemRowProps) => {
+    const isAverageRow = origem === 'MEDIA DAS ORIGENS';
+
     return (
         <TableRow
             className={`
-                group transition-all duration-200 border-b border-transparent
-                ${origem === 'MÉDIA DAS ORIGENS'
-                    ? 'bg-indigo-50/40 dark:bg-indigo-900/10 font-bold'
-                    : index % 2 === 0 ? '' : 'bg-slate-50/20 dark:bg-slate-900/10'
-                } 
-                hover:bg-slate-50 dark:hover:bg-slate-800/20
+                group border-b border-transparent transition-all duration-200
+                ${isAverageRow
+                    ? 'bg-sky-50/70 font-bold dark:bg-sky-950/18'
+                    : index % 2 === 0 ? 'bg-white dark:bg-slate-950' : 'bg-slate-50/35 dark:bg-slate-900/30'}
+                hover:bg-slate-50/70 dark:hover:bg-slate-900/55
             `}
         >
-            <TableCell className={`sticky left-0 z-10 font-semibold text-[13px] pl-8 py-5 transition-colors
-                ${origem === 'MÉDIA DAS ORIGENS'
-                    ? 'bg-indigo-50/10 dark:bg-slate-900 text-indigo-700 dark:text-indigo-400'
-                    : 'bg-inherit text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400'}
+            <TableCell className={`sticky left-0 z-10 py-4 pl-6 text-[13px] font-semibold transition-colors sm:pl-8
+                ${isAverageRow
+                    ? 'bg-sky-50/90 text-sky-700 dark:bg-slate-950 dark:text-sky-300'
+                    : 'bg-inherit text-slate-800 group-hover:text-sky-600 dark:text-slate-200 dark:group-hover:text-sky-300'}
             `}>
                 {origem}
             </TableCell>
@@ -46,15 +46,15 @@ export const ComparacaoOrigemRow = React.memo(({ origem, index, semanasSeleciona
 
                 return (
                     <React.Fragment key={idx}>
-                        <TableCell className={`text-center text-[13px] font-mono tabular-nums text-slate-700 dark:text-slate-300 py-5`}>
-                            {origem === 'MÉDIA DAS ORIGENS' && <span className="text-indigo-500/50 dark:text-indigo-400/50 mr-1">~</span>}
+                        <TableCell className="py-4 text-center font-mono text-[13px] text-slate-700 tabular-nums dark:text-slate-300">
+                            {isAverageRow && <span className="mr-1 text-sky-500/60 dark:text-sky-300/60">~</span>}
                             {valor.toFixed(1)}%
                         </TableCell>
-                        <TableCell className="text-center w-[70px] py-5">
+                        <TableCell className="w-[72px] py-4 text-center">
                             {idx > 0 ? (
                                 <VariacaoBadge variacao={variacao ?? 0} className="mx-auto scale-90" />
                             ) : (
-                                <span className="text-slate-300 dark:text-slate-600 font-mono text-xs">-</span>
+                                <span className="font-mono text-xs text-slate-300 dark:text-slate-600">-</span>
                             )}
                         </TableCell>
                     </React.Fragment>

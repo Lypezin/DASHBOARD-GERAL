@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
@@ -19,38 +18,38 @@ export const ValoresHeader = React.memo(function ValoresHeader({
     onToggleDetailed
 }: ValoresHeaderProps) {
     return (
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex flex-col gap-4 rounded-3xl border border-slate-200/70 bg-white/88 p-5 shadow-[0_16px_42px_-36px_rgba(15,23,42,0.52)] dark:border-slate-800/70 dark:bg-slate-900/82 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
-                <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-emerald-500 to-teal-600 shadow-sm" />
+                <div className="h-9 w-1.5 rounded-full bg-gradient-to-b from-emerald-500 to-teal-600 shadow-sm" />
                 <div>
-                    <h2 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
-                        Valores por Entregador
+                    <h2 className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
+                        Valores por entregador
                     </h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">
+                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                         Acompanhe o repasse de cada entregador
                     </p>
                 </div>
             </div>
 
-            <div className="flex items-center gap-4">
-                {onToggleDetailed && (
-                    <div className="flex items-center gap-2">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+                {onToggleDetailed ? (
+                    <div className="flex items-center gap-2 rounded-full border border-slate-200/70 bg-slate-50/90 px-3 py-2 dark:border-slate-800/70 dark:bg-slate-800/60">
                         <Switch
                             id="detailed-mode"
                             checked={isDetailed}
                             onCheckedChange={onToggleDetailed}
                         />
                         <Label htmlFor="detailed-mode" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                            Visão Detalhada
+                            Visao detalhada
                         </Label>
                     </div>
-                )}
+                ) : null}
 
                 <Button
                     variant="outline"
                     onClick={onExport}
                     disabled={isExporting}
-                    className="gap-2"
+                    className="h-11 gap-2 rounded-2xl border-slate-200/80 bg-white/85 px-4 shadow-[0_12px_24px_-22px_rgba(15,23,42,0.4)] transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white dark:border-slate-800/80 dark:bg-slate-900/85 dark:hover:border-blue-500/40 dark:hover:bg-slate-900"
                 >
                     <Download className="h-4 w-4" />
                     {isExporting ? 'Exportando...' : 'Exportar Excel'}

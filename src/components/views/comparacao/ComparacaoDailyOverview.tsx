@@ -5,17 +5,17 @@ import { ComparacaoSubPracaSection } from './ComparacaoSubPracaSection';
 import { Section } from './ComparacaoSectionWrapper';
 
 interface Props {
-  data: any;
-  state: any;
-  actions: any;
-  sv: any;
+    data: any;
+    state: any;
+    actions: any;
+    sv: any;
 }
 
 export const ComparacaoDailyOverview: React.FC<Props> = ({ data, state, actions, sv }) => (
     <>
         <Section show={sv.aderencia_dia}>
             <ComparacaoSection
-                title="Aderência por Dia"
+                title="Aderencia por dia"
                 icon={<Calendar className="h-5 w-5" />}
                 description=""
                 type="dia"
