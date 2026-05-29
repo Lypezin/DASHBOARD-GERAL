@@ -568,7 +568,15 @@ function DedicadoDashboard({
   );
 }
 
-function DedicadoResumo({ rows, loading, error }: { rows: DedicadoOrigemRow[]; loading: boolean; error?: string | null }) {
+function DedicadoResumo({
+  rows,
+  loading,
+  error,
+}: {
+  rows: Array<DedicadoOrigemRow & { label: string; horas_entregues?: string }>;
+  loading: boolean;
+  error?: string | null;
+}) {
   if (loading) return <DashboardSkeleton contentOnly />;
 
   return (

@@ -5,6 +5,12 @@ import { useGamificationCelebration } from '@/hooks/gamification/useGamification
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
 import { getAppApiData, postAppApiData } from '@/utils/app/fetchAppApi';
+import { supabase } from '@/lib/supabaseClient';
+
+type UserBadgeRow = {
+    badge_slug: string;
+    unlocked_at: string | null;
+};
 
 export function useGamificationState() {
     const [badges, setBadges] = useState<Badge[]>([]);
@@ -31,15 +37,18 @@ export function useGamificationState() {
             supabase.from('gamification_user_badges').select('badge_slug, unlocked_at').eq('user_id', currentUser.id)
         ]);
 
-        if (allBadges) setBadges(allBadges);
+        const badgeRows = (allBadges || []) as Badge[];
+        const unlockedRows = (unlocked || []) as UserBadgeRow[];
 
-        if (allBadges && unlocked) {
-            const unlockedSlugs = new Set(unlocked.map(u => u.badge_slug));
-            const unlockedList = allBadges
-                .filter(b => unlockedSlugs.has(b.slug))
-                .map(b => ({
-                    ...b,
-                    unlocked_at: unlocked.find(u => u.badge_slug === b.slug)?.unlocked_at
+        if (badgeRows.length > 0) setBadges(badgeRows);
+
+        if (badgeRows.length > 0 && unlockedRows.length > 0) {
+            const unlockedSlugs = new Set(unlockedRows.map((userBadge) => userBadge.badge_slug));
+            const unlockedList = badgeRows
+                .filter((badge) => unlockedSlugs.has(badge.slug))
+                .map((badge) => ({
+                    ...badge,
+                    unlocked_at: unlockedRows.find((userBadge) => userBadge.badge_slug === badge.slug)?.unlocked_at || undefined
                 }));
             setUnlockedBadges(unlockedList);
         }

@@ -4,9 +4,9 @@ import { fetchMarketingTotalsData, fetchMarketingCitiesData, fetchMarketingDaily
 import { generatePrintStyles } from '@/utils/apresentacao/printPageHelpers';
 import { MarketingReportSlides } from './components/MarketingReportSlides';
 import { createClient } from '@/utils/supabase/server';
-import { safeRpc } from '@/lib/rpcWrapper';
 import { redirect } from 'next/navigation';
 import { MARKETING_PRESENTATION_WEEKLY_CITIES } from '@/constants/marketing';
+import { normalizeCurrentUserProfile } from '@/app/api/_shared/currentUserProfile';
 
 import { Metadata } from 'next';
 
@@ -35,9 +35,21 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
         redirect('/login');
     }
 
-    const { data: profile } = await safeRpc<{ 
-        role: string; is_admin: boolean; organization_id?: string | null;
-    }>('get_current_user_profile', {}, { client: supabase });
+    const { data: profileData, error: profileError } = await supabase.rpc('get_current_user_profile');
+    const profile = normalizeCurrentUserProfile(profileData) as {
+        role?: string;
+        is_admin?: boolean;
+        organization_id?: string | null;
+    } | null;
+
+    if (profileError || !profile) {
+        return (
+            <div style={{ background: '#0f172a', color: 'white', padding: 48, textAlign: 'center', fontFamily: 'sans-serif', minHeight: '100vh' }}>
+                <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Acesso Restrito</h1>
+                <p>Nao foi possivel validar seu perfil agora.</p>
+            </div>
+        );
+    }
 
     const isMarketing = profile?.role === 'marketing' || profile?.role === 'admin' || profile?.role === 'master' || profile?.is_admin;
 

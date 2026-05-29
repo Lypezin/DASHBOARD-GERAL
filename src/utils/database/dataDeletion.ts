@@ -1,45 +1,31 @@
-/**
- * Utilitários para remoção de dados do banco de dados.
- */
-
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
+import { postUploadApi } from '@/utils/upload/fetchUploadApi';
 
-/**
- * Deleta todos os registros de uma tabela usando função RPC ou fallback.
- */
 export async function deleteAllRecords(
     table: string,
-    rpcFunctionName?: string,
     options: { organizationId?: string; requireOrganization?: boolean } = {}
 ): Promise<number> {
-    safeLog.info(`Iniciando remoção de dados antigos da tabela ${table}...`);
+    safeLog.info(`Iniciando remocao de dados antigos da tabela ${table}...`);
     const { organizationId, requireOrganization = false } = options;
 
     if (requireOrganization && !isValidUuid(organizationId)) {
-        throw new Error('Organização inválida ou não selecionada. A remoção foi bloqueada por segurança.');
+        throw new Error('Organizacao invalida ou nao selecionada. A remocao foi bloqueada por seguranca.');
     }
 
-    if (rpcFunctionName) {
-        try {
-            const rpcParams = organizationId ? { p_organization_id: organizationId } : undefined;
-            const { data: deletedCount, error } = await supabase.rpc(rpcFunctionName, rpcParams);
-            if (!error) {
-                safeLog.info(`✅ Removidos ${deletedCount || 0} registros via RPC`);
-                return deletedCount || 0;
-            }
-            if (!isMissingRpcSignatureError(error)) {
-                throw new Error(`Erro RPC delete: ${error.message}`);
-            }
-        } catch (err: unknown) {
-            const errorMessage = err instanceof Error ? err.message : String(err);
-            if (isMissingRpcSignatureError(err)) {
-                safeLog.info('RPC não disponível para remoção escopada, usando fallback seguro...');
-            } else {
-                safeLog.error(`Erro ao deletar dados de ${table} via RPC: ${errorMessage}`, 'dataDeletion');
-                throw err;
-            }
+    if (table === 'dados_marketing' || table === 'dados_valores_cidade') {
+        const { ok, status, payload } = await postUploadApi<{ deleted?: number }>(
+            '/api/upload/table-delete',
+            { table, organizationId }
+        );
+
+        if (!ok) {
+            throw new Error(payload?.error || payload?.message || `Erro HTTP ${status} ao remover dados de ${table}.`);
         }
+
+        const deleted = Number(payload?.deleted || 0);
+        safeLog.info(`Removidos ${deleted} registros via API interna`);
+        return deleted;
     }
 
     return await deleteInBatches(table, organizationId);
@@ -48,13 +34,13 @@ export async function deleteAllRecords(
 async function deleteInBatches(table: string, organizationId?: string): Promise<number> {
     let deletedCount = 0;
     let hasMore = true;
-    const BATCH_SIZE = 500;
+    const batchSize = 500;
 
     while (hasMore) {
         let query = supabase
             .from(table)
             .select('id')
-            .limit(BATCH_SIZE);
+            .limit(batchSize);
 
         if (organizationId) {
             query = query.eq('organization_id', organizationId);
@@ -68,7 +54,7 @@ async function deleteInBatches(table: string, organizationId?: string): Promise<
             break;
         }
 
-        const ids = batch.map(i => i.id);
+        const ids = batch.map((item) => item.id);
         const { error: delErr } = await supabase.from(table).delete().in('id', ids);
 
         if (delErr) throw new Error(`Erro deletar lote: ${delErr.message}`);
@@ -76,7 +62,7 @@ async function deleteInBatches(table: string, organizationId?: string): Promise<
         deletedCount += ids.length;
         safeLog.info(`Deletados: ${deletedCount}`);
 
-        if (batch.length < BATCH_SIZE) hasMore = false;
+        if (batch.length < batchSize) hasMore = false;
     }
 
     return deletedCount;
@@ -84,14 +70,4 @@ async function deleteInBatches(table: string, organizationId?: string): Promise<
 
 function isValidUuid(value?: string): value is string {
     return !!value && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
-}
-
-function isMissingRpcSignatureError(error: unknown): boolean {
-    if (!error || typeof error !== 'object') return false;
-    const maybeError = error as { code?: string; message?: string };
-    return (
-        maybeError.code === 'PGRST116' ||
-        maybeError.code === 'PGRST202' ||
-        maybeError.message?.toLowerCase().includes('could not find the function') === true
-    );
 }

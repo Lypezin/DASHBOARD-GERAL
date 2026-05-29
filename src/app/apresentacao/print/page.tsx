@@ -1,5 +1,4 @@
 import React from 'react';
-import { safeRpc } from '@/lib/rpcWrapper';
 import { DashboardResumoData } from '@/types';
 import { parsePrintParams, createFilterPayload, generatePrintStyles } from '@/utils/apresentacao/printPageHelpers';
 import { processPrintData } from '@/utils/apresentacao/printDataProcessor';
@@ -42,20 +41,12 @@ export default async function PrintablePage({ searchParams }: PageProps) {
 
   // Buscar os dois conjuntos de dados via RPC com cliente autenticado
   const [semana1Result, semana2Result] = await Promise.all([
-    safeRpc<DashboardResumoData>('dashboard_resumo', createFilterPayload(ano1, semanaNum1, praca), {
-      timeout: 30000,
-      validateParams: true,
-      client: supabase
-    }),
-    safeRpc<DashboardResumoData>('dashboard_resumo', createFilterPayload(ano2, semanaNum2, praca), {
-      timeout: 30000,
-      validateParams: true,
-      client: supabase
-    }),
+    supabase.rpc('dashboard_resumo', createFilterPayload(ano1, semanaNum1, praca)),
+    supabase.rpc('dashboard_resumo', createFilterPayload(ano2, semanaNum2, praca)),
   ]);
 
-  const semana1 = semana1Result.data;
-  const semana2 = semana2Result.data;
+  const semana1 = (semana1Result.error ? null : semana1Result.data) as DashboardResumoData | null;
+  const semana2 = (semana2Result.error ? null : semana2Result.data) as DashboardResumoData | null;
 
   // Processar dados para os slides
   const processedData = processPrintData(semana1, semana2, numeroSemana1, numeroSemana2);

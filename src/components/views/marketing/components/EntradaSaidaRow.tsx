@@ -17,8 +17,9 @@ interface EntradaSaidaRowProps {
 export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst, organizationId, praca }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
-    const hasOrigins = item.retomada_origins && Object.keys(item.retomada_origins).length > 0;
-    const sortedOrigins = hasOrigins ? Object.entries(item.retomada_origins).sort((a, b) => b[0].localeCompare(a[0])) : [];
+    const retomadaOrigins = item.retomada_origins || {};
+    const hasOrigins = Object.keys(retomadaOrigins).length > 0;
+    const sortedOrigins = hasOrigins ? Object.entries(retomadaOrigins).sort((a, b) => b[0].localeCompare(a[0])) : [];
     const totalRetomada = item.retomada_total || 0;
 
     const entradasOps = (item.entradas_total || 0) - (item.entradas_marketing || 0);

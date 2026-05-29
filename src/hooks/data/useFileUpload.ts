@@ -8,8 +8,8 @@ import { triggerConcurrentRefresh } from '@/utils/fileProcessing/viewRefresher';
 
 export interface FileUploadOptions {
   tableName: string; excelConfig: ExcelProcessConfig; overwrite?: boolean;
-  deleteRpcFunction?: string; insertOptions?: BatchInsertOptions;
-  refreshRpcFunction?: string; organizationId?: string;
+  insertOptions?: BatchInsertOptions;
+  refreshAfterSuccess?: boolean; organizationId?: string;
 }
 
 export interface UploadState {
@@ -27,8 +27,8 @@ export interface UploadResult {
 
 export function useFileUpload(options: FileUploadOptions) {
   const {
-    tableName, excelConfig, overwrite = false, deleteRpcFunction,
-    insertOptions = {}, refreshRpcFunction, organizationId
+    tableName, excelConfig, overwrite = false,
+    insertOptions = {}, refreshAfterSuccess = false, organizationId
   } = options;
 
   const [state, setState] = useState<UploadState>({
@@ -72,7 +72,7 @@ export function useFileUpload(options: FileUploadOptions) {
     try {
       if (overwrite) {
         setState(p => ({ ...p, progressLabel: 'Limpando dados...', progress: 5 }));
-        await deleteAllRecords(tableName, deleteRpcFunction, {
+        await deleteAllRecords(tableName, {
           organizationId,
           requireOrganization: true
         });
@@ -119,7 +119,7 @@ export function useFileUpload(options: FileUploadOptions) {
 
       setState(p => ({ ...p, message: msg }));
 
-      if (errorCount === 0 && successCount > 0 && refreshRpcFunction) triggerConcurrentRefresh(refreshRpcFunction);
+      if (errorCount === 0 && successCount > 0 && refreshAfterSuccess) triggerConcurrentRefresh(tableName);
 
       return {
         success: errorCount === 0 && successCount > 0,
@@ -143,7 +143,7 @@ export function useFileUpload(options: FileUploadOptions) {
     } finally {
       setState(p => ({ ...p, uploading: false }));
     }
-  }, [tableName, excelConfig, overwrite, deleteRpcFunction, insertOptions, refreshRpcFunction, organizationId]);
+  }, [tableName, excelConfig, overwrite, insertOptions, refreshAfterSuccess, organizationId]);
 
   return { ...state, uploadFiles, resetState: () => setState({ uploading: false, progress: 0, progressLabel: '', message: '', currentFileIndex: 0 }) };
 }

@@ -52,8 +52,7 @@ export const useUploadPageLogic = () => {
             filterEmptyRows: true,
         },
         overwrite: true,
-        deleteRpcFunction: 'delete_all_dados_marketing',
-        refreshRpcFunction: 'refresh_mv_entregadores_marketing',
+        refreshAfterSuccess: true,
         organizationId: effectiveOrgId
     });
 
@@ -67,7 +66,6 @@ export const useUploadPageLogic = () => {
             filterEmptyRows: true,
         },
         overwrite: true,
-        deleteRpcFunction: 'delete_all_dados_valores_cidade',
         organizationId: effectiveOrgId
     });
 
