@@ -14,7 +14,7 @@ export function CityLastUpdatesTicker() {
 
     return [...data]
       .sort((a, b) => (b.last_update_date || '').localeCompare(a.last_update_date || ''))
-      .slice(0, 6);
+      .slice(0, 10);
   }, [data]);
 
   if (loading || visibleItems.length === 0) return null;
@@ -82,7 +82,7 @@ export function CityLastUpdatesTicker() {
         }
 
         .city-updates-marquee {
-          animation: city-updates-marquee 15s linear infinite !important;
+          animation: city-updates-marquee 20s linear infinite !important;
           transform: translate3d(0, 0, 0);
           will-change: transform;
         }

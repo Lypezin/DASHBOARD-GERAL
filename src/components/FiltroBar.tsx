@@ -64,15 +64,15 @@ const FiltroBar = React.memo(function FiltroBar({
   return (
     <div className="relative z-10 font-sans w-full">
       <div className="flex flex-col gap-4 xl:flex-row xl:items-end w-full">
-        {/* Toggle Mode Switch - Alinhado no topo ou esquerda */}
-        <div className="min-w-fit shrink-0 self-start xl:self-auto xl:pb-0.5">
+        {/* Toggle Mode Switch - Alinhamento natural com label embutido */}
+        <div className="min-w-fit shrink-0 w-full sm:w-auto">
           <FilterModeSwitch
             isModoIntervalo={showDateRangeFilters}
             onToggle={handleModeToggle}
           />
         </div>
 
-        <div className="hidden xl:block mx-1 h-8 w-px bg-border shrink-0 self-end mb-1" />
+        <div className="hidden xl:block mx-1 h-[38px] w-px bg-border/80 shrink-0 self-end mb-0.5" />
 
         {/* Filters Group - CSS Grid Simétrico e Responsivo */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5 min-w-0 flex-1">
@@ -97,9 +97,9 @@ const FiltroBar = React.memo(function FiltroBar({
           />
         </div>
 
-        {/* Clear Button - Compact */}
+        {/* Clear Button - Alinhamento natural com label embutido */}
         {hasActiveFilters && (
-          <div className="shrink-0 self-start xl:self-end xl:pb-0.5">
+          <div className="shrink-0 w-full sm:w-auto">
             <FilterClearButton onClear={handleClearFiltersClick} />
           </div>
         )}

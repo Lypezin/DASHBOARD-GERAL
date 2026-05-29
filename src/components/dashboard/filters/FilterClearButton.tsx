@@ -1,20 +1,34 @@
-
 import React from 'react';
+import { Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface FilterClearButtonProps {
-    onClear: () => void;
+  onClear: () => void;
+  className?: string;
 }
 
-export const FilterClearButton: React.FC<FilterClearButtonProps> = ({ onClear }) => {
-    return (
-        <div className="flex-shrink-0">
-            <button
-                onClick={onClear}
-                className="inline-flex h-[46px] items-center gap-1.5 whitespace-nowrap rounded-2xl border border-slate-200/70 bg-white/72 px-4 py-2 text-[11px] font-black uppercase tracking-[0.14em] text-slate-500 shadow-[0_10px_28px_-24px_rgba(15,23,42,0.65)] transition-[background-color,border-color,color,box-shadow,transform] duration-150 hover:-translate-y-0.5 hover:border-rose-200 hover:bg-rose-50 hover:text-rose-600 hover:shadow-[0_14px_30px_-22px_rgba(225,29,72,0.65)] dark:border-slate-800/80 dark:bg-slate-900/72 dark:text-slate-400 dark:hover:border-rose-800 dark:hover:bg-rose-900/20 dark:hover:text-rose-400"
-            >
-                <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                Limpar
-            </button>
-        </div>
-    );
+export const FilterClearButton: React.FC<FilterClearButtonProps> = ({ onClear, className }) => {
+  return (
+    <div className={cn("flex flex-col gap-1 w-full sm:w-auto", className)}>
+      {/* Label invisível superior estrutural para simetria vertical com os filtros */}
+      <span className="block h-[15px] select-none text-[10px] font-bold uppercase tracking-wider text-transparent">
+        Ação
+      </span>
+      <button
+        onClick={onClear}
+        type="button"
+        className={cn(
+          "inline-flex h-[38px] items-center justify-center gap-1.5 whitespace-nowrap rounded-lg border border-border bg-card px-4 text-xs font-bold uppercase tracking-wider text-muted-foreground/80 shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all duration-150",
+          "hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600",
+          "dark:hover:border-rose-950 dark:hover:bg-rose-950/20 dark:hover:text-rose-400",
+          "focus:outline-none focus:ring-2 focus:ring-rose-500/20"
+        )}
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+        Limpar
+      </button>
+    </div>
+  );
 };
+
+export default FilterClearButton;

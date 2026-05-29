@@ -19,27 +19,27 @@ export const AnaliseTableRow = React.memo(function AnaliseTableRow({
 
   return (
     <tr className="
-      hover:bg-slate-50 dark:hover:bg-slate-800/40
+      hover:bg-muted/40
       transition-colors duration-150
     ">
-      <td className="py-3.5 pl-6 pr-4 text-sm font-medium text-slate-900 dark:text-white">
+      <td className="py-3.5 pl-6 pr-4 text-sm font-bold text-foreground">
         <div className="max-w-[300px] truncate" title={item.label}>
           {item.label}
         </div>
       </td>
-      <td className="whitespace-nowrap px-4 py-3.5 font-mono text-sm tabular-nums text-slate-500 dark:text-slate-400">
+      <td className="whitespace-nowrap px-4 py-3.5 font-mono text-sm font-semibold tabular-nums text-muted-foreground/80">
         {item.horas_entregues || '00:00:00'}
       </td>
-      <td className="whitespace-nowrap px-4 py-3.5 text-sm tabular-nums text-slate-600 dark:text-slate-300">
+      <td className="whitespace-nowrap px-4 py-3.5 text-sm font-semibold tabular-nums text-muted-foreground/90">
         {(item.corridas_ofertadas || 0).toLocaleString('pt-BR')}
       </td>
-      <td className="whitespace-nowrap px-4 py-3.5 text-right text-sm font-medium tabular-nums text-emerald-600 dark:text-emerald-400">
+      <td className="whitespace-nowrap px-4 py-3.5 text-right text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
         {(item.corridas_aceitas || 0).toLocaleString('pt-BR')}
       </td>
-      <td className="whitespace-nowrap px-4 py-3.5 text-right text-sm font-medium tabular-nums text-rose-600 dark:text-rose-400">
+      <td className="whitespace-nowrap px-4 py-3.5 text-right text-sm font-bold tabular-nums text-rose-600 dark:text-rose-400">
         {(item.corridas_rejeitadas || 0).toLocaleString('pt-BR')}
       </td>
-      <td className="whitespace-nowrap px-4 py-3.5 text-right text-sm font-medium tabular-nums text-violet-600 dark:text-violet-400">
+      <td className="whitespace-nowrap px-4 py-3.5 text-right text-sm font-bold tabular-nums text-violet-600 dark:text-violet-400">
         {(item.corridas_completadas || 0).toLocaleString('pt-BR')}
       </td>
       <td className="py-3.5 px-4 text-center">

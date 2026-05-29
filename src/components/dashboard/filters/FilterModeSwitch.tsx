@@ -2,43 +2,57 @@ import React from 'react';
 import { cn } from '@/lib/utils';
 
 interface FilterModeSwitchProps {
-    isModoIntervalo: boolean;
-    onToggle: () => void;
+  isModoIntervalo: boolean;
+  onToggle: () => void;
+  className?: string;
 }
 
-export const FilterModeSwitch: React.FC<FilterModeSwitchProps> = ({ isModoIntervalo, onToggle }) => {
-    return (
-        <div className="flex items-center gap-2.5 rounded-2xl border border-slate-200/70 bg-white/72 px-3 py-2.5 shadow-[0_10px_28px_-24px_rgba(15,23,42,0.6)] dark:border-slate-800/70 dark:bg-slate-900/72 sm:gap-3 sm:justify-start">
-            <span className={cn(
-                "text-[11px] uppercase tracking-[0.14em] transition-colors duration-300 sm:text-sm sm:tracking-normal",
-                !isModoIntervalo ? "text-blue-600 dark:text-blue-400 font-black" : "text-slate-500 font-semibold dark:text-slate-400"
-            )}>
-                Ano/Semana
-            </span>
-            <button
-                type="button"
-                onClick={onToggle}
-                className={cn(
-                    "relative inline-flex h-7 w-12 shrink-0 items-center rounded-full shadow-inner transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2",
-                    isModoIntervalo ? "bg-gradient-to-r from-blue-600 to-sky-500" : "bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600"
-                )}
-                role="switch"
-                aria-checked={isModoIntervalo}
-            >
-                <span className="sr-only">Toggle Filter Mode</span>
-                <span
-                    className={cn(
-                        "inline-block h-5 w-5 rounded-full bg-white shadow-sm transition-transform duration-150",
-                        isModoIntervalo ? "translate-x-6" : "translate-x-1"
-                    )}
-                />
-            </button>
-            <span className={cn(
-                "text-[11px] uppercase tracking-[0.14em] transition-colors duration-300 sm:text-sm sm:tracking-normal",
-                isModoIntervalo ? "text-blue-600 dark:text-blue-400 font-black" : "text-slate-500 font-semibold dark:text-slate-400"
-            )}>
-                Intervalo
-            </span>
-        </div>
-    );
+export const FilterModeSwitch: React.FC<FilterModeSwitchProps> = ({ isModoIntervalo, onToggle, className }) => {
+  return (
+    <div className={cn("flex flex-col gap-1 w-full sm:w-auto", className)}>
+      {/* Label invisível superior estrutural para simetria vertical com os filtros */}
+      <span className="block h-[15px] select-none text-[10px] font-bold uppercase tracking-wider text-transparent">
+        Visualização
+      </span>
+      <div className={cn(
+        "flex items-center gap-2.5 rounded-lg border border-border bg-card px-3 h-[38px] shadow-[0_1px_2px_rgba(0,0,0,0.02)] select-none w-full",
+        "transition-all duration-150"
+      )}>
+        <span className={cn(
+          "text-[10px] font-bold uppercase tracking-wider transition-colors duration-200",
+          !isModoIntervalo ? "text-primary font-black" : "text-muted-foreground/75 hover:text-foreground"
+        )}>
+          Ano/Semana
+        </span>
+        
+        <button
+          type="button"
+          onClick={onToggle}
+          className={cn(
+            "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary/20",
+            isModoIntervalo ? "bg-primary" : "bg-muted hover:bg-muted-foreground/20"
+          )}
+          role="switch"
+          aria-checked={isModoIntervalo}
+        >
+          <span className="sr-only">Toggle Filter Mode</span>
+          <span
+            className={cn(
+              "inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-200",
+              isModoIntervalo ? "translate-x-4.5" : "translate-x-0.5"
+            )}
+          />
+        </button>
+        
+        <span className={cn(
+          "text-[10px] font-bold uppercase tracking-wider transition-colors duration-200",
+          isModoIntervalo ? "text-primary font-black" : "text-muted-foreground/75 hover:text-foreground"
+        )}>
+          Intervalo
+        </span>
+      </div>
+    </div>
+  );
 };
+
+export default FilterModeSwitch;

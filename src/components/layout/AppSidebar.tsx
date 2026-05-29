@@ -44,6 +44,7 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
       { label: 'Visão Geral', value: 'dashboard', icon: LayoutDashboard },
       { label: 'Análise', value: 'analise', icon: BarChart3 },
       { label: 'UTR', value: 'utr', icon: Gauge },
+      { label: 'Comparação', value: 'comparacao', icon: GitCompare },
     ],
   },
   {
@@ -53,15 +54,14 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
       { label: 'Valores', value: 'valores', icon: Coins },
       { label: 'Prioridade | Promo', value: 'prioridade', icon: Star },
       { label: 'Evolução', value: 'evolucao', icon: TrendingUp },
+      { label: 'Dedicado', value: 'dedicado', icon: Shield },
     ],
   },
   {
     name: 'Marketing',
     items: [
-      { label: 'Comparação', value: 'comparacao', icon: GitCompare },
       { label: 'Operacional Marketing', value: 'marketing_comparacao', icon: Megaphone },
       { label: 'Marketing', value: 'marketing', icon: Target },
-      { label: 'Dedicado', value: 'dedicado', icon: Shield },
     ],
   },
 ];
@@ -162,13 +162,19 @@ export function AppSidebar() {
         )}
       >
         {/* Header da Sidebar */}
-        <div className="flex h-14 items-center justify-between border-b border-border px-3 shrink-0">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className={cn(
+          "flex h-14 items-center border-b border-border shrink-0 transition-all duration-150",
+          collapsed ? "justify-center px-0 w-full" : "justify-between px-3"
+        )}>
+          <div className={cn("flex items-center min-w-0 transition-all duration-150", collapsed ? "justify-center gap-0 w-full" : "gap-3")}>
             {/* Logo GO Itaim */}
             <img 
               src="/logo.png" 
               alt="GO Itaim Logo" 
-              className="h-9 w-9 shrink-0 rounded-lg object-cover border border-border/40 shadow-sm"
+              className={cn(
+                "h-9 w-9 shrink-0 rounded-lg object-cover border border-border/40 shadow-sm transition-all duration-150",
+                collapsed ? "mx-auto" : ""
+              )}
             />
             
             {!collapsed && (

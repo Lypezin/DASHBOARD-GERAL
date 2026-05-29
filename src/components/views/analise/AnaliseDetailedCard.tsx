@@ -33,10 +33,10 @@ export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
             {/* Header Bar - Stripe inspired */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h2 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                    <h2 className="text-xl font-bold tracking-tight text-foreground font-outfit">
                         Análise Detalhada
                     </h2>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                    <p className="text-sm text-muted-foreground mt-0.5 font-medium">
                         Comparativo de performance por dimensões
                     </p>
                 </div>
@@ -49,18 +49,17 @@ export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
                         <button
                             onClick={onExport}
                             disabled={isExporting}
+                            type="button"
                             className="
-                                flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all
-                                bg-white dark:bg-slate-800
-                                border border-slate-200 dark:border-slate-700
-                                text-slate-600 dark:text-slate-300
-                                hover:bg-slate-50 dark:hover:bg-slate-700
-                                hover:border-slate-300 dark:hover:border-slate-600
+                                flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all
+                                bg-card hover:bg-muted/80
+                                border border-border hover:border-primary/40
+                                text-foreground
                                 disabled:opacity-50 disabled:cursor-not-allowed
-                                group
+                                group shadow-sm
                             "
                         >
-                            <Download className="w-4 h-4 text-slate-400 group-hover:text-blue-500 dark:group-hover:text-blue-400 transition-colors" />
+                            <Download className="w-4 h-4 text-muted-foreground/60 group-hover:text-primary transition-colors" />
                             {isExporting ? 'Exportando...' : 'Exportar Excel'}
                         </button>
                     )}
@@ -70,16 +69,16 @@ export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
             {/* Table Container */}
             <div className="
                 rounded-xl overflow-hidden
-                bg-white dark:bg-slate-800/30
-                border border-slate-200 dark:border-slate-700/50
-                shadow-sm dark:shadow-none
+                bg-card
+                border border-border
+                shadow-[0_1px_3px_rgba(0,0,0,0.01)]
             ">
                 {activeTable === 'dia_origem' ? (
                     loadingDiaOrigem ? (
                         <div className="p-12 text-center">
                             <div className="inline-flex flex-col items-center gap-3">
-                                <div className="w-8 h-8 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
-                                <p className="text-sm text-slate-400 dark:text-slate-500">Carregando matriz...</p>
+                                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                <p className="text-sm text-muted-foreground/60 font-semibold">Carregando matriz...</p>
                             </div>
                         </div>
                     ) : (

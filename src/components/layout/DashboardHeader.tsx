@@ -22,14 +22,14 @@ const BREADCRUMB_MAP: Record<TabType, { group: string; label: string }> = {
   dashboard: { group: 'Principal', label: 'Visão Geral' },
   analise: { group: 'Principal', label: 'Análise' },
   utr: { group: 'Principal', label: 'UTR' },
+  comparacao: { group: 'Principal', label: 'Comparação' },
   entregadores: { group: 'Operacional', label: 'Entregadores' },
   valores: { group: 'Operacional', label: 'Valores' },
   prioridade: { group: 'Operacional', label: 'Prioridade | Promo' },
   evolucao: { group: 'Operacional', label: 'Evolução' },
-  comparacao: { group: 'Marketing', label: 'Comparação' },
+  dedicado: { group: 'Operacional', label: 'Dedicado' },
   marketing_comparacao: { group: 'Marketing', label: 'Operacional | Marketing' },
   marketing: { group: 'Marketing', label: 'Marketing' },
-  dedicado: { group: 'Marketing', label: 'Dedicado' },
 };
 
 export function DashboardHeader() {
@@ -78,7 +78,7 @@ export function DashboardHeader() {
       </div>
 
       {/* Centro: Ticker de Cidades Sincronizadas Permanente em Desktop */}
-      <div className="hidden lg:flex flex-1 max-w-[18rem] xl:max-w-[32rem] mx-8 overflow-hidden">
+      <div className="hidden lg:flex flex-1 max-w-[28rem] xl:max-w-[46rem] mx-8 overflow-hidden">
         <CityLastUpdatesTicker />
       </div>
 
