@@ -42,7 +42,7 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
             <SaasPanelHeader
                 eyebrow="Comparativo"
                 title="Comparativo semanal"
-                description="Analise bi-semanal de performance, crescimento e variacao operacional."
+                description="Análise bi-semanal de performance, crescimento e variação operacional."
                 icon={BarChart3}
                 actions={(
                     <div className="flex flex-wrap items-center gap-2.5">
@@ -77,13 +77,13 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
                 <div className="grid gap-5 xl:grid-cols-[260px_minmax(0,1fr)]">
                     <div className="min-w-0">
                         <label className="mb-3 block text-[10px] font-black uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">
-                            Praca selecionada
+                                Praça selecionada
                         </label>
                         <FiltroSelect
                             label=""
                             value={pracaSelecionada ?? ''}
                             options={pracas}
-                            placeholder="Todas as pracas"
+                            placeholder="Todas as praças"
                             onChange={(value) => onPracaChange(value)}
                             disabled={shouldDisablePracaFilter}
                         />

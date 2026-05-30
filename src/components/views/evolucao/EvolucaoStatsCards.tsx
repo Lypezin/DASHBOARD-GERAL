@@ -32,6 +32,7 @@ export const EvolucaoStatsCards = React.memo<EvolucaoStatsCardsProps>(({ dadosAt
         meta={`${dadosAtivos.length} ${viewMode === 'mensal' ? 'meses' : 'semanas'} analisadas`}
         icon={Car}
         tone="blue"
+        size="lg"
         className="p-5"
       />
       <SaasMetric
@@ -40,6 +41,7 @@ export const EvolucaoStatsCards = React.memo<EvolucaoStatsCardsProps>(({ dadosAt
         meta="Tempo total trabalhado"
         icon={Clock}
         tone="amber"
+        size="lg"
         className="p-5"
       />
       <SaasMetric
@@ -48,6 +50,7 @@ export const EvolucaoStatsCards = React.memo<EvolucaoStatsCardsProps>(({ dadosAt
         meta="Corridas por período"
         icon={BarChart2}
         tone="emerald"
+        size="lg"
         className="p-5"
       />
       <SaasMetric
@@ -56,6 +59,7 @@ export const EvolucaoStatsCards = React.memo<EvolucaoStatsCardsProps>(({ dadosAt
         meta={`${viewMode === 'mensal' ? '12 meses' : '53 semanas'} disponíveis`}
         icon={Calendar}
         tone="slate"
+        size="lg"
         className="p-5"
       />
     </div>

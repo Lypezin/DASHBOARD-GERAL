@@ -42,32 +42,32 @@
 
   .dark {
     /* Refined Dark Mode Palette (Linear/Vercel Zinc style) */
-    --background: 240 10% 3.9%; /* Rich dark background #09090B */
+    --background: 222 47% 4%; /* Deep navy surface */
     --foreground: 0 0% 98%;
 
-    --card: 240 10% 5.9%; /* Deep solid card #18181B */
+    --card: 222 42% 7%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 240 10% 3.9%;
+    --popover: 222 42% 7%;
     --popover-foreground: 0 0% 98%;
 
     --primary: 217.2 91.2% 59.8%;
     --primary-foreground: 222.2 47.4% 11.2%;
 
-    --secondary: 240 3.7% 15.9%;
+    --secondary: 217 33% 17%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 240 3.7% 15.9%;
-    --muted-foreground: 240 5% 64.9%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 69%;
 
-    --accent: 240 3.7% 15.9%;
+    --accent: 217 33% 17%;
     --accent-foreground: 0 0% 98%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 240 3.7% 15.9%; /* Crisp border #27272A */
-    --input: 240 3.7% 15.9%;
+    --border: 215 28% 17%;
+    --input: 215 28% 17%;
     --ring: 224.3 76.3% 48%;
   }
 }
@@ -120,6 +120,18 @@
       opacity: 1;
       filter: blur(0px);
       transform: scale(1);
+    }
+  }
+
+  @keyframes loading-bar {
+    0% {
+      transform: translateX(-110%);
+    }
+    50% {
+      transform: translateX(70%);
+    }
+    100% {
+      transform: translateX(210%);
     }
   }
 

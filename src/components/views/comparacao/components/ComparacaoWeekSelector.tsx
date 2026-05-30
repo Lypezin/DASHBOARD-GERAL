@@ -40,7 +40,7 @@ export const ComparacaoWeekSelector: React.FC<ComparacaoWeekSelectorProps> = ({
                 <DropdownMenuTrigger asChild>
                     <Button
                         variant="outline"
-                        className="h-11 min-w-[250px] justify-between rounded-xl border-slate-200/80 bg-white/90 px-5 shadow-sm transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-sky-300 hover:bg-white dark:border-slate-800/80 dark:bg-slate-950 dark:hover:border-sky-500/40 dark:hover:bg-slate-900"
+                        className="h-11 min-w-[280px] justify-between rounded-xl border-slate-200/80 bg-white/90 px-5 shadow-sm transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-sky-300 hover:bg-white dark:border-slate-800/80 dark:bg-slate-950 dark:hover:border-sky-500/40 dark:hover:bg-slate-900"
                     >
                         <span
                             className="whitespace-nowrap font-mono text-[13px] font-bold uppercase tracking-[0.12em] text-slate-500 tabular-nums dark:text-slate-400"
@@ -51,9 +51,9 @@ export const ComparacaoWeekSelector: React.FC<ComparacaoWeekSelectorProps> = ({
                         <ChevronDown className="ml-2 h-4 w-4 text-slate-400" />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="subtle-scrollbar max-h-[400px] w-[240px] overflow-y-auto rounded-[1.4rem] border-slate-200/80 p-2 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.42)] dark:border-slate-800/70" align="start">
+                <DropdownMenuContent className="subtle-scrollbar max-h-[400px] w-[280px] overflow-y-auto rounded-[1.4rem] border-slate-200/80 p-2 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.42)] dark:border-slate-800/70" align="start">
                     <DropdownMenuLabel className="px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
-                        Semanas disponiveis
+                        Semanas disponíveis
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator className="mx-2 bg-slate-100 dark:bg-slate-800" />
                     {todasSemanas.map((semana) => {

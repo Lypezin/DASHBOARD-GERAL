@@ -108,6 +108,7 @@ export function SaasMetric({
   icon: Icon,
   tone = 'slate',
   truncate = false,
+  size = 'sm',
   className,
 }: {
   label: string;
@@ -116,6 +117,7 @@ export function SaasMetric({
   icon?: React.ElementType;
   tone?: Tone;
   truncate?: boolean;
+  size?: 'sm' | 'lg';
   className?: string;
 }) {
   const styles = toneStyles[tone];
@@ -132,7 +134,12 @@ export function SaasMetric({
         <span className="truncate">{label}</span>
       </div>
       <div
-        className={cn('min-w-0 font-mono text-sm font-semibold tabular-nums', styles.metric, truncate && 'truncate')}
+        className={cn(
+          'min-w-0 font-mono font-semibold tabular-nums',
+          size === 'lg' ? 'text-2xl tracking-tight' : 'text-sm',
+          styles.metric,
+          truncate && 'truncate'
+        )}
         title={title}
       >
         {value}
@@ -160,4 +167,3 @@ export function SaasSegmentedControl({
     </div>
   );
 }
-

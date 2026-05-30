@@ -39,15 +39,15 @@ const DashboardView = React.memo(function DashboardView({
       <section className="space-y-4">
         <DashboardSectionHeader
           title="Resumo Operacional"
-          description="Indicadores consolidados de aderencia e metricas criticas de entrega."
+          description="Indicadores consolidados de aderência e métricas críticas de entrega."
         />
         <DashboardGeneralStats aderenciaGeral={aderenciaGeral} aderenciaDia={aderenciaDia} />
       </section>
 
       <section className="space-y-4">
         <DashboardSectionHeader
-          title="Evolucao Diaria"
-          description="Acompanhamento rapido da aderencia por dia no periodo filtrado."
+          title="Evolução diária"
+          description="Acompanhamento rápido da aderência por dia no período filtrado."
         />
         <DashboardDailyPerformance aderenciaDia={aderenciaDia} />
       </section>
@@ -55,7 +55,7 @@ const DashboardView = React.memo(function DashboardView({
       <section className="space-y-4">
         <DashboardSectionHeader
           title="Detalhamento Operacional"
-          description="Quebra por turno, sub-praca, origem e dia para investigar desvios."
+          description="Quebra por turno, sub-praça, origem e dia para investigar desvios."
         />
         <DashboardOperationalDetail
           aderenciaTurno={aderenciaTurno}

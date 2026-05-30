@@ -21,6 +21,7 @@ export const ValoresStatsCards = React.memo(function ValoresStatsCards({
         meta="Soma de todas as taxas"
         icon={DollarSign}
         tone="emerald"
+        size="lg"
         className="p-5"
       />
       <SaasMetric
@@ -29,6 +30,7 @@ export const ValoresStatsCards = React.memo(function ValoresStatsCards({
         meta="Total de entregadores listados"
         icon={Users}
         tone="blue"
+        size="lg"
         className="p-5"
       />
       <SaasMetric
@@ -37,6 +39,7 @@ export const ValoresStatsCards = React.memo(function ValoresStatsCards({
         meta="Corridas aceitas no período"
         icon={Car}
         tone="blue"
+        size="lg"
         className="p-5"
       />
       <SaasMetric
@@ -45,6 +48,7 @@ export const ValoresStatsCards = React.memo(function ValoresStatsCards({
         meta="Valor médio por corrida"
         icon={BarChart3}
         tone="slate"
+        size="lg"
         className="p-5"
       />
     </div>
