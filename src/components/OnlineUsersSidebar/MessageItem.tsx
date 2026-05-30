@@ -2,7 +2,7 @@ import React, { memo, useMemo } from 'react';
 import Image from 'next/image';
 import { ChatMessage } from '@/hooks/data/useOnlineUsers';
 import { cn } from '@/lib/utils';
-import { Smile, Reply, Pin } from 'lucide-react';
+import { Smile, Reply, Pin, Paperclip } from 'lucide-react';
 
 interface MessageItemProps {
   msg: ChatMessage;
@@ -21,81 +21,76 @@ export const MessageItem = memo(function MessageItem({
   onPin,
   onReply,
   replyTarget,
-  replyTargetName
+  replyTargetName,
 }: MessageItemProps) {
   const formattedTime = useMemo(
-    () => new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    () => new Date(msg.timestamp).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
     [msg.timestamp]
   );
 
   return (
     <div
       className={cn(
-        'flex flex-col max-w-[85%] group relative mb-2.5 transition-all duration-200',
+        'group relative mb-3 flex max-w-[86%] flex-col transition-all duration-200',
         isMe ? 'ml-auto items-end' : 'mr-auto items-start'
       )}
     >
-      {/* Menu flutuante de ações da mensagem */}
       <div className={cn(
-        'absolute -top-3.5 flex items-center gap-0.5 bg-card shadow-md border border-border rounded-lg p-0.5 z-20 opacity-0 group-hover:opacity-100 transition-all duration-150 scale-90 group-hover:scale-100',
+        'absolute -top-4 z-20 flex scale-95 items-center gap-0.5 rounded-xl border border-slate-200/80 bg-white/95 p-0.5 opacity-0 shadow-lg transition-all duration-150 group-hover:scale-100 group-hover:opacity-100 dark:border-slate-800/80 dark:bg-slate-950/95',
         isMe ? 'right-2' : 'left-2'
       )}>
-        <button 
-          onClick={(e) => { e.stopPropagation(); onReact(msg.id, '👍'); }} 
+        <button
+          onClick={(e) => { e.stopPropagation(); onReact(msg.id, '👍'); }}
           type="button"
-          className="p-1.5 hover:bg-muted text-muted-foreground hover:text-primary rounded-md transition-colors" 
+          className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-blue-600 dark:text-slate-400 dark:hover:bg-slate-900"
           title="Curtir"
         >
           <Smile size={12} />
         </button>
-        <button 
-          onClick={(e) => { e.stopPropagation(); onReply(msg); }} 
+        <button
+          onClick={(e) => { e.stopPropagation(); onReply(msg); }}
           type="button"
-          className="p-1.5 hover:bg-muted text-muted-foreground hover:text-primary rounded-md transition-colors" 
+          className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-blue-600 dark:text-slate-400 dark:hover:bg-slate-900"
           title="Responder"
         >
           <Reply size={12} />
         </button>
-        <button 
-          onClick={(e) => { e.stopPropagation(); onPin(msg.id, !msg.isPinned); }} 
+        <button
+          onClick={(e) => { e.stopPropagation(); onPin(msg.id, !msg.isPinned); }}
           type="button"
-          className="p-1.5 hover:bg-muted text-muted-foreground hover:text-amber-500 rounded-md transition-colors" 
+          className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-amber-500 dark:text-slate-400 dark:hover:bg-slate-900"
           title={msg.isPinned ? 'Desafixar' : 'Fixar'}
         >
           <Pin size={12} className={cn(msg.isPinned ? 'fill-amber-500 text-amber-500' : '')} />
         </button>
       </div>
 
-      {/* Caixa de resposta referenciada */}
-      {msg.replyTo && (
+      {msg.replyTo ? (
         <div className={cn(
-          'text-[9px] px-2.5 py-1 rounded-t-lg border-x border-t w-full mb-[-1px] opacity-90 select-none font-bold uppercase tracking-wider',
-          isMe 
-            ? 'bg-primary/20 text-primary-foreground/90 border-primary/30' 
-            : 'bg-muted/70 text-muted-foreground border-border/80'
+          'mb-[-1px] w-full rounded-t-2xl border-x border-t px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] opacity-95',
+          isMe
+            ? 'border-blue-400/30 bg-blue-500/15 text-blue-100'
+            : 'border-slate-200/80 bg-slate-100/80 text-slate-500 dark:border-slate-800/80 dark:bg-slate-900/80 dark:text-slate-400'
         )}>
-          <div className="flex items-center gap-1 opacity-75 mb-0.5">
-            <Reply size={8} />
-            <span>
-              {replyTargetName || 'Mensagem antiga'}
-            </span>
+          <div className="mb-0.5 flex items-center gap-1 opacity-80">
+            <Reply size={9} />
+            <span>{replyTargetName || 'Mensagem antiga'}</span>
           </div>
-          <div className="truncate italic opacity-85 font-mono normal-case">
-            &quot;{replyTarget?.content || '...mensagem não encontrada'}&quot;
+          <div className="truncate font-mono normal-case opacity-85">
+            &quot;{replyTarget?.content || 'mensagem não encontrada'}&quot;
           </div>
         </div>
-      )}
+      ) : null}
 
-      {/* Balão da Mensagem */}
       <div className={cn(
-        'px-3 py-2 rounded-lg text-xs break-words shadow-sm relative transition-all duration-150',
-        isMe 
-          ? 'bg-primary text-primary-foreground font-semibold rounded-br-none' 
-          : 'bg-muted/50 border border-border/80 text-foreground font-semibold rounded-bl-none',
-        msg.isPinned && 'ring-1 ring-amber-500/50 bg-amber-500/10 dark:bg-amber-500/15'
+        'relative rounded-2xl px-3 py-2 text-xs shadow-sm transition-all duration-150',
+        isMe
+          ? 'rounded-br-md bg-blue-600 text-white'
+          : 'rounded-bl-md border border-slate-200/80 bg-white/90 text-slate-800 dark:border-slate-800/80 dark:bg-slate-900/80 dark:text-slate-100',
+        msg.isPinned && 'ring-1 ring-amber-500/50'
       )}>
         {msg.attachments?.map((attachment, index) => (
-          <div key={`${attachment.url}-${index}`} className="mb-2 rounded-md overflow-hidden bg-black/5 dark:bg-white/5 border border-border/40 max-w-full">
+          <div key={`${attachment.url}-${index}`} className="mb-2 max-w-full overflow-hidden rounded-xl border border-slate-200/40 bg-black/5 dark:border-white/10 dark:bg-white/5">
             {attachment.type === 'image' ? (
               <a href={attachment.url} target="_blank" rel="noopener noreferrer" className="block max-w-full">
                 <Image
@@ -104,47 +99,48 @@ export const MessageItem = memo(function MessageItem({
                   width={800}
                   height={480}
                   sizes="(max-width: 768px) 80vw, 240px"
-                  className="w-full h-auto max-h-48 object-cover hover:opacity-90 transition-opacity"
+                  className="h-auto max-h-48 w-full object-cover transition-opacity hover:opacity-90"
                 />
               </a>
             ) : (
-              <a 
-                href={attachment.url} 
-                target="_blank" 
-                rel="noopener noreferrer" 
-                className="flex items-center gap-2 p-2 bg-white/5 hover:bg-white/10 dark:bg-white/5 dark:hover:bg-white/10 transition-colors"
+              <a
+                href={attachment.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 p-2 transition-colors hover:bg-white/10"
               >
-                <div className="p-1.5 bg-muted rounded shadow-sm">📄</div>
-                <span className="underline opacity-90 truncate text-[10px]">{attachment.name || 'Anexo'}</span>
+                <span className="rounded-lg bg-white/15 p-1.5 shadow-sm">
+                  <Paperclip className="h-3.5 w-3.5" />
+                </span>
+                <span className="truncate text-[10px] underline opacity-90">{attachment.name || 'Anexo'}</span>
               </a>
             )}
           </div>
         ))}
 
-        <p className="leading-normal font-sans font-medium whitespace-pre-wrap">{msg.content}</p>
-        
+        <p className="whitespace-pre-wrap break-words font-sans font-medium leading-normal">{msg.content}</p>
+
         <div className={cn(
-          'text-[9px] mt-1.5 text-right flex items-center justify-end gap-1 font-mono select-none opacity-80',
-          isMe ? 'text-primary-foreground/75' : 'text-muted-foreground/60'
+          'mt-1.5 flex items-center justify-end gap-1 text-right font-mono text-[9px] opacity-75',
+          isMe ? 'text-white' : 'text-slate-500 dark:text-slate-400'
         )}>
-          {msg.isPinned && <Pin size={8} className="fill-current text-amber-500" />}
+          {msg.isPinned ? <Pin size={8} className="fill-current text-amber-400" /> : null}
           {formattedTime}
         </div>
       </div>
 
-      {/* Reações na base da mensagem */}
-      {msg.reactions && Object.keys(msg.reactions).length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-1 -mb-1 z-10 select-none">
+      {msg.reactions && Object.keys(msg.reactions).length > 0 ? (
+        <div className="z-10 mt-1 flex flex-wrap gap-1 select-none">
           {Object.entries(msg.reactions).map(([uid, emoji]) => (
-            <span 
-              key={`${uid}-${emoji}`} 
-              className="bg-card border border-border/60 shadow-sm rounded-full px-1.5 py-0.5 text-[9px] animate-in zoom-in-50 duration-100"
+            <span
+              key={`${uid}-${emoji}`}
+              className="rounded-full border border-slate-200/80 bg-white/95 px-1.5 py-0.5 text-[9px] shadow-sm animate-in zoom-in-50 duration-100 dark:border-slate-800/80 dark:bg-slate-950/95"
             >
               {emoji}
             </span>
           ))}
         </div>
-      )}
+      ) : null}
     </div>
   );
 });

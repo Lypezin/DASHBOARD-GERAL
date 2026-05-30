@@ -32,7 +32,7 @@ function ChatWindowComponent({
   if (!activeChatUser) return null;
 
   return (
-    <div className="absolute top-0 -left-[330px] z-[9999] flex h-[500px] w-80 flex-col overflow-hidden rounded-xl border border-border bg-card/98 backdrop-blur-md font-sans shadow-2xl transition-all duration-200 animate-in fade-in-50 slide-in-from-right-4 duration-200">
+    <div className="absolute top-0 -left-[340px] z-[9999] flex h-[520px] w-[330px] flex-col overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white/95 font-sans shadow-[0_28px_90px_-36px_rgba(15,23,42,0.48)] backdrop-blur-xl transition-all duration-200 animate-in fade-in-50 slide-in-from-right-4 dark:border-slate-800/80 dark:bg-slate-950/95 dark:shadow-black/50">
       <ChatHeader 
         activeChatUser={activeChatUser} 
         currentUser={currentUser} 

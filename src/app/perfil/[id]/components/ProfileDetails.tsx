@@ -1,93 +1,79 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Clock3, Shield, User2 } from 'lucide-react';
 import { PublicProfileData } from '../types';
+import { SaasPanel, SaasPanelHeader } from '@/components/views/shared/SaasPrimitives';
+import type { ElementType, ReactNode } from 'react';
 
 interface ProfileDetailsProps {
-    profile: PublicProfileData | null;
-    loading?: boolean;
+  profile: PublicProfileData | null;
+  loading?: boolean;
 }
 
 function formatTabLabel(currentTab?: string | null) {
-    if (!currentTab) return null;
-    return currentTab.replace(/-/g, ' ').replace(/\b\w/g, (char: string) => char.toUpperCase());
+  if (!currentTab) return null;
+  return currentTab.replace(/-/g, ' ').replace(/\b\w/g, (char: string) => char.toUpperCase());
 }
 
 export function ProfileDetails({ profile, loading }: ProfileDetailsProps) {
-    return (
-        <Card className="border-slate-200 shadow-lg dark:border-slate-800 bg-white/80 dark:bg-slate-900/80">
-            <CardHeader>
-                <CardTitle>Detalhes do perfil</CardTitle>
-                <CardDescription>Informacoes publicas exibidas na equipe e no chat</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
-                        <div className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-                            <User2 className="h-4 w-4 text-blue-500" />
-                            Nome
-                        </div>
-                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                            {profile?.full_name || 'Usuario'}
-                        </p>
-                    </div>
+  return (
+    <SaasPanel className="h-full">
+      <SaasPanelHeader
+        eyebrow="Detalhes"
+        title="Detalhes do perfil"
+        description="Informações públicas exibidas na equipe e no chat."
+        icon={User2}
+        tone="slate"
+      />
+      <div className="space-y-4 p-5">
+        <div className="grid gap-4 sm:grid-cols-2">
+          <InfoTile icon={User2} label="Nome" value={profile?.full_name || 'Usuário'} />
+          <InfoTile icon={Shield} label="Cargo" value={profile?.role || 'usuário'} capitalize />
+        </div>
 
-                    <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
-                        <div className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-                            <Shield className="h-4 w-4 text-indigo-500" />
-                            Cargo
-                        </div>
-                        <p className="mt-2 text-sm capitalize text-slate-600 dark:text-slate-300">
-                            {profile?.role || 'usuario'}
-                        </p>
-                    </div>
-                </div>
+        {profile?.current_tab ? (
+          <InfoTile icon={Activity} label="Atividade atual" value={formatTabLabel(profile.current_tab)} />
+        ) : null}
 
-                {profile?.current_tab && (
-                    <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
-                        <div className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-                            <Activity className="h-4 w-4 text-emerald-500" />
-                            Atividade atual
-                        </div>
-                        <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                            {formatTabLabel(profile.current_tab)}
-                        </p>
-                    </div>
-                )}
+        {(profile?.online_at || profile?.created_at) ? (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {profile?.online_at ? (
+              <InfoTile icon={Clock3} label="Online desde" value={new Date(profile.online_at).toLocaleString('pt-BR')} />
+            ) : null}
+            {profile?.created_at ? (
+              <InfoTile icon={Clock3} label="Membro desde" value={new Date(profile.created_at).toLocaleDateString('pt-BR')} />
+            ) : null}
+          </div>
+        ) : null}
 
-                {(profile?.online_at || profile?.created_at) && (
-                    <div className="grid gap-4 sm:grid-cols-2">
-                        {profile?.online_at && (
-                            <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
-                                <div className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    <Clock3 className="h-4 w-4 text-slate-400" />
-                                    Online desde
-                                </div>
-                                <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                                    {new Date(profile.online_at).toLocaleString()}
-                                </p>
-                            </div>
-                        )}
+        {loading ? (
+          <p className="rounded-2xl border border-slate-200/70 bg-slate-50/80 px-4 py-3 text-sm font-medium text-slate-500 dark:border-slate-800/80 dark:bg-slate-900/55 dark:text-slate-400">
+            Carregando informações adicionais do perfil...
+          </p>
+        ) : null}
+      </div>
+    </SaasPanel>
+  );
+}
 
-                        {profile?.created_at && (
-                            <div className="rounded-xl border border-slate-200 p-4 dark:border-slate-800">
-                                <div className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-200">
-                                    <Clock3 className="h-4 w-4 text-slate-400" />
-                                    Membro desde
-                                </div>
-                                <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                                    {new Date(profile.created_at).toLocaleDateString()}
-                                </p>
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {loading && (
-                    <p className="text-sm text-slate-400">
-                        Carregando informacoes adicionais do perfil...
-                    </p>
-                )}
-            </CardContent>
-        </Card>
-    );
+function InfoTile({
+  icon: Icon,
+  label,
+  value,
+  capitalize,
+}: {
+  icon: ElementType;
+  label: string;
+  value: ReactNode;
+  capitalize?: boolean;
+}) {
+  return (
+    <div className="min-w-0 rounded-2xl border border-slate-200/70 bg-white/80 p-4 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/55">
+      <div className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
+        <Icon className="h-4 w-4 text-blue-500" />
+        {label}
+      </div>
+      <p className={`mt-2 min-w-0 break-words text-sm font-medium text-slate-600 dark:text-slate-300 ${capitalize ? 'capitalize' : ''}`}>
+        {value}
+      </p>
+    </div>
+  );
 }

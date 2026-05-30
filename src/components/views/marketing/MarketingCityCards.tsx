@@ -19,10 +19,10 @@ export const MarketingCityCards = React.memo(function MarketingCityCards({
                 <div className="h-8 w-1.5 rounded-full bg-blue-600 shadow-sm" />
                 <div>
                     <h3 className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                        Metricas por cidade
+                        Métricas por cidade
                     </h3>
                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                        Distribuicao de dados por cidade
+                        Distribuição de dados por cidade
                     </p>
                 </div>
             </div>
@@ -64,7 +64,7 @@ export const MarketingCityCards = React.memo(function MarketingCityCards({
                                 <div className="flex items-center justify-between rounded-lg bg-slate-50 p-2.5 transition-colors hover:bg-slate-100 dark:bg-slate-800/50 dark:hover:bg-slate-800">
                                     <div className="flex items-center gap-2">
                                         <div className="h-2 w-2 rounded-full bg-sky-500" />
-                                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Rodando Inicio</span>
+                                        <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Rodando início</span>
                                     </div>
                                     <Badge variant="outline" className="bg-sky-50 px-2.5 py-0.5 font-mono font-bold text-sky-600 dark:border-sky-800 dark:bg-sky-900/20 dark:text-sky-300">
                                         {cityData.rodandoInicio.toLocaleString('pt-BR')}

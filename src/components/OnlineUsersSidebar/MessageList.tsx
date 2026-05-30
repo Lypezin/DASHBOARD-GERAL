@@ -39,26 +39,26 @@ function MessageListComponent({ messages, currentUser, onReact, onPin, onReply, 
   }, [onlineUsers]);
 
   return (
-    <div className="flex-1 overflow-y-auto p-3 space-y-3 bg-muted/15 subtle-scrollbar">
-      {messages.length === 0 && (
-        <div className="flex flex-col items-center justify-center h-full text-muted-foreground/60 gap-2.5 select-none">
-          <div className="p-3 bg-muted/40 border border-border/40 rounded-full shadow-sm">
-            <Smile size={24} className="text-muted-foreground/50" />
+    <div className="subtle-scrollbar flex-1 space-y-3 overflow-y-auto bg-slate-50/70 p-3 dark:bg-slate-950/70">
+      {messages.length === 0 ? (
+        <div className="flex h-full select-none flex-col items-center justify-center gap-2.5 text-slate-400">
+          <div className="rounded-full border border-slate-200/80 bg-white p-3 shadow-sm dark:border-slate-800/80 dark:bg-slate-900">
+            <Smile size={24} className="text-slate-400" />
           </div>
-          <p className="text-[10px] font-bold uppercase tracking-wider font-outfit">
-            Inicie a conversa!
+          <p className="font-outfit text-[10px] font-bold uppercase tracking-wider">
+            Inicie a conversa
           </p>
         </div>
-      )}
+      ) : null}
 
-      {hasPinnedMessages && (
-        <div className="bg-amber-500/10 border border-amber-500/20 px-3 py-1.5 flex items-center gap-2 text-[10px] text-amber-600 dark:text-amber-400 sticky top-0 z-10 mb-2 rounded-lg shadow-[0_1px_2px_rgba(0,0,0,0.01)] select-none backdrop-blur-sm">
+      {hasPinnedMessages ? (
+        <div className="sticky top-0 z-10 mb-2 flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-1.5 text-[10px] text-amber-600 shadow-sm backdrop-blur-sm select-none dark:text-amber-400">
           <Pin size={10} className="fill-current text-amber-500" />
-          <span className="truncate flex-1 font-bold uppercase tracking-wider font-outfit">
+          <span className="flex-1 truncate font-outfit font-bold uppercase tracking-wider">
             Mensagens fixadas
           </span>
         </div>
-      )}
+      ) : null}
 
       {messages.map((message) => {
         const isMe = message.from === currentUser.id;

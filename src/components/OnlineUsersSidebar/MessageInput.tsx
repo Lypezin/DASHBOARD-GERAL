@@ -45,9 +45,9 @@ function MessageInputComponent({
   };
 
   return (
-    <div className="p-3 border-t border-border bg-card/95 select-none">
+    <div className="border-t border-slate-200/80 bg-white/95 p-3 select-none dark:border-slate-800/80 dark:bg-slate-950/95">
       {replyingTo && (
-        <div className="flex items-center justify-between bg-muted border border-border border-b-0 rounded-t-lg p-2 text-[10px] font-bold text-muted-foreground select-none">
+        <div className="flex items-center justify-between rounded-t-xl border border-b-0 border-slate-200 bg-slate-50 p-2 text-[10px] font-bold text-slate-500 select-none dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
           <div className="flex items-center gap-2 overflow-hidden">
             <Reply size={12} className="shrink-0 text-primary" />
             <span className="truncate max-w-[200px] border-l-2 border-primary/40 pl-2 italic font-mono normal-case">
@@ -57,7 +57,7 @@ function MessageInputComponent({
           <button 
             onClick={() => setReplyingTo(null)} 
             type="button"
-            className="hover:bg-muted-foreground/10 rounded p-0.5 transition-colors focus:outline-none"
+            className="rounded p-0.5 transition-colors hover:bg-slate-200/70 focus:outline-none dark:hover:bg-slate-800"
           >
             <X size={12} />
           </button>
@@ -66,11 +66,11 @@ function MessageInputComponent({
 
       <form 
         onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} 
-        className={cn('flex gap-2 items-center', replyingTo && 'bg-muted p-2 rounded-b-lg border border-border border-t-0')}
+        className={cn('flex items-center gap-2', replyingTo && 'rounded-b-xl border border-t-0 border-slate-200 bg-slate-50 p-2 dark:border-slate-800 dark:bg-slate-900')}
       >
         <button
           type="button"
-          className="p-2 text-muted-foreground/60 hover:text-foreground hover:bg-muted rounded-lg transition-all focus:outline-none"
+          className="rounded-xl p-2 text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-950 focus:outline-none dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white"
           onClick={() => fileInputRef.current?.click()}
           title="Enviar Imagem/Arquivo"
         >
@@ -80,8 +80,8 @@ function MessageInputComponent({
         <div className="flex-1 relative">
           <textarea
             className={cn(
-              "w-full text-xs border border-border rounded-lg px-3 py-2 pr-2 resize-none max-h-24 subtle-scrollbar bg-muted/20 text-foreground placeholder:text-muted-foreground/50",
-              "focus:outline-none focus:border-primary/50 focus:ring-2 focus:ring-primary/10 transition-all duration-150"
+              "subtle-scrollbar max-h-24 w-full resize-none rounded-xl border border-slate-200 bg-slate-50/80 px-3 py-2 pr-2 text-xs text-slate-900 placeholder:text-slate-400 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-100 dark:placeholder:text-slate-500",
+              "transition-all duration-150 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             )}
             placeholder="Digite uma mensagem..."
             rows={1}
@@ -112,7 +112,7 @@ function MessageInputComponent({
         <button
           type="submit"
           disabled={!chatInput.trim()}
-          className="bg-primary text-primary-foreground rounded-lg p-2.5 hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 shrink-0"
+          className="shrink-0 rounded-xl bg-blue-600 p-2.5 text-white shadow-sm transition-colors hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:cursor-not-allowed disabled:opacity-50"
         >
           <ChevronRight size={16} className="stroke-[3]" />
         </button>

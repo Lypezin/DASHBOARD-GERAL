@@ -47,9 +47,9 @@ export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainSt
             badgeClass: 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300',
         },
         {
-            title: 'Aderencia Media',
+            title: 'Aderência média',
             value: `${aderenciaMedia.toFixed(1)}%`,
-            subtext: 'Media de aderencia do grupo',
+            subtext: 'Média de aderência do grupo',
             icon: CheckCircle2,
             iconClass: 'text-emerald-500',
             badgeClass: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300',
@@ -57,9 +57,9 @@ export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainSt
             progressClass: 'bg-emerald-500',
         },
         {
-            title: 'Rejeicao Media',
+            title: 'Rejeição média',
             value: `${rejeicaoMedia.toFixed(1)}%`,
-            subtext: 'Media de rejeicao no periodo',
+            subtext: 'Média de rejeição no período',
             icon: XCircle,
             iconClass: 'text-rose-500',
             badgeClass: 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300',

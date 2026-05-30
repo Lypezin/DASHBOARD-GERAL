@@ -25,14 +25,16 @@ export function useDashboardTabs() {
         // o navegador em caso de tabelas massivas, eliminando os "cliques perdidos"
         startTransition(() => {
             setActiveTabState(newTab);
-            const params = new URLSearchParams(searchParams.toString());
+            const isDashboardRoute = pathname === '/';
+            const targetPathname = isDashboardRoute ? pathname : '/';
+            const params = new URLSearchParams(isDashboardRoute ? searchParams.toString() : '');
             if (newTab === 'dashboard') {
                 params.delete('tab');
             } else {
                 params.set('tab', newTab);
             }
             const queryString = params.toString();
-            const url = queryString ? `${pathname}?${queryString}` : pathname;
+            const url = queryString ? `${targetPathname}?${queryString}` : targetPathname;
             router.replace(url, { scroll: false });
         });
     }, [pathname, router, searchParams]);

@@ -22,7 +22,7 @@ export const PrioridadeStatsCards = React.memo(function PrioridadeStatsCards({
             <HeroCard title="Aceitas" icon={CheckCircle2} value={totalAceitas.toLocaleString('pt-BR')} subtext="Total aceitas" colorFrom="from-emerald-400" colorTo="to-teal-600" iconColor="text-emerald-600" />
             <HeroCard title="Rejeitadas" icon={XCircle} value={totalRejeitadas.toLocaleString('pt-BR')} subtext="Total rejeitadas" colorFrom="from-rose-400" colorTo="to-pink-600" iconColor="text-rose-600" />
             <HeroCard title="Completadas" icon={Flag} value={totalCompletadas.toLocaleString('pt-BR')} subtext="Total completadas" colorFrom="from-sky-400" colorTo="to-blue-600" iconColor="text-sky-600" />
-            <HeroCard title="Aderencia Media" icon={BarChart3} value={`${aderenciaMedia.toFixed(1)}%`} subtext="Media geral" colorFrom="from-teal-400" colorTo="to-cyan-600" iconColor="text-teal-600" isPercentage={true} />
+            <HeroCard title="Aderência média" icon={BarChart3} value={`${aderenciaMedia.toFixed(1)}%`} subtext="Média geral" colorFrom="from-teal-400" colorTo="to-cyan-600" iconColor="text-teal-600" isPercentage={true} />
         </div>
     );
 });

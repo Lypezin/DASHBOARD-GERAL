@@ -1,21 +1,15 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 
 interface ValoresHeaderProps {
     isExporting: boolean;
     onExport: () => void;
-    isDetailed?: boolean;
-    onToggleDetailed?: (checked: boolean) => void;
 }
 
 export const ValoresHeader = React.memo(function ValoresHeader({
     isExporting,
     onExport,
-    isDetailed,
-    onToggleDetailed
 }: ValoresHeaderProps) {
     return (
         <div className="flex flex-col gap-4 rounded-3xl border border-slate-200/70 bg-white/88 p-5 shadow-[0_16px_42px_-36px_rgba(15,23,42,0.52)] dark:border-slate-800/70 dark:bg-slate-900/82 sm:flex-row sm:items-center sm:justify-between">
@@ -32,19 +26,6 @@ export const ValoresHeader = React.memo(function ValoresHeader({
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
-                {onToggleDetailed ? (
-                    <div className="flex items-center gap-2 rounded-full border border-slate-200/70 bg-slate-50/90 px-3 py-2 dark:border-slate-800/70 dark:bg-slate-800/60">
-                        <Switch
-                            id="detailed-mode"
-                            checked={isDetailed}
-                            onCheckedChange={onToggleDetailed}
-                        />
-                        <Label htmlFor="detailed-mode" className="text-sm font-medium text-slate-700 dark:text-slate-300">
-                            Visao detalhada
-                        </Label>
-                    </div>
-                ) : null}
-
                 <Button
                     variant="outline"
                     onClick={onExport}

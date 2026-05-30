@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useDashboardTabs } from '@/hooks/dashboard/useDashboardTabs';
 import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
@@ -66,6 +67,13 @@ const SIDEBAR_GROUPS: SidebarGroup[] = [
   },
 ];
 
+const SIDEBAR_LABELS: Partial<Record<TabType, string>> = {
+  dashboard: 'Visão Geral',
+  analise: 'Análise',
+  comparacao: 'Comparação',
+  evolucao: 'Evolução',
+};
+
 export function AppSidebar() {
   const { collapsed, toggleSidebar, mobileOpen, setMobileOpen } = useSidebar();
   const { activeTab, handleTabChange } = useDashboardTabs();
@@ -103,6 +111,7 @@ export function AppSidebar() {
           {group.items.map((item) => {
             const isActive = activeTab === item.value;
             const Icon = item.icon;
+            const displayLabel = SIDEBAR_LABELS[item.value] || item.label;
 
             const buttonEl = (
               <button
@@ -125,7 +134,7 @@ export function AppSidebar() {
                     transition={{ duration: 0.2 }}
                     className="truncate"
                   >
-                    {item.label}
+                    {displayLabel}
                   </motion.span>
                 )}
               </button>
@@ -138,7 +147,7 @@ export function AppSidebar() {
                     {buttonEl}
                   </TooltipTrigger>
                   <TooltipContent side="right" className="font-bold border border-border">
-                    {item.label}
+                    {displayLabel}
                   </TooltipContent>
                 </Tooltip>
               );
@@ -168,9 +177,11 @@ export function AppSidebar() {
         )}>
           <div className={cn("flex items-center min-w-0 transition-all duration-150", collapsed ? "justify-center gap-0 w-full" : "gap-3")}>
             {/* Logo GO Itaim */}
-            <img 
-              src="/logo.png" 
-              alt="GO Itaim Logo" 
+            <Image
+              src="/logo.png"
+              alt="GO Itaim Logo"
+              width={36}
+              height={36}
               className={cn(
                 "h-9 w-9 shrink-0 rounded-lg object-cover border border-border/40 shadow-sm transition-all duration-150",
                 collapsed ? "mx-auto" : ""
@@ -237,9 +248,11 @@ export function AppSidebar() {
               {/* Header Mobile */}
               <div className="flex h-14 items-center justify-between border-b border-border px-4">
                 <div className="flex items-center gap-3">
-                  <img 
-                    src="/logo.png" 
-                    alt="GO Itaim Logo" 
+                  <Image
+                    src="/logo.png"
+                    alt="GO Itaim Logo"
+                    width={32}
+                    height={32}
                     className="h-8 w-8 shrink-0 rounded-lg object-cover border border-border/30"
                   />
                   <div className="flex flex-col">
@@ -268,6 +281,7 @@ export function AppSidebar() {
                         {group.items.map((item) => {
                           const isActive = activeTab === item.value;
                           const Icon = item.icon;
+                          const displayLabel = SIDEBAR_LABELS[item.value] || item.label;
 
                           return (
                             <button
@@ -279,7 +293,7 @@ export function AppSidebar() {
                               )}
                             >
                               <Icon className="h-[18px] w-[18px]" />
-                              <span>{item.label}</span>
+                              <span>{displayLabel}</span>
                             </button>
                           );
                         })}

@@ -50,7 +50,7 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
             iconBgClass: 'bg-slate-100 dark:bg-slate-800',
         },
         {
-            title: 'Rodando Inicio',
+            title: 'Rodando início',
             icon: Rocket,
             value: safeTotals.rodandoInicio.toLocaleString('pt-BR'),
             subtext: 'Total rodando',

@@ -30,7 +30,7 @@ export const PrioridadeHeader: React.FC<PrioridadeHeaderProps> = ({ sortedEntreg
                             Prioridade / Promo
                         </h2>
                         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                            Analise detalhada de aderencia e performance dos entregadores
+                            Análise detalhada de aderência e performance dos entregadores
                         </p>
                     </div>
                     <Button

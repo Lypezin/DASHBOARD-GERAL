@@ -71,9 +71,9 @@ function resolveEntregadoresDescription(
     const start = formatDateLabel(filterPayload.p_data_inicial);
     const end = formatDateLabel(filterPayload.p_data_final);
     if (start && end) {
-      return `Consolidado de ${start} ate ${end}`;
+      return `Consolidado de ${start} até ${end}`;
     }
-    return 'Consolidado dos anos disponiveis no periodo carregado';
+    return 'Consolidado dos anos disponíveis no período carregado';
   }
 
   return fallback;
@@ -132,7 +132,7 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
     return resolveEntregadoresDescription(
       filterPayload,
       entregadoresData?.periodo_resolvido,
-      'Performance e aderencia da frota'
+        'Performance e aderência da frota'
     );
   }, [entregadoresData?.periodo_resolvido, filterPayload, isDedicado]);
 

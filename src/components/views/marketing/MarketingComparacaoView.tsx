@@ -42,7 +42,7 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
                                         Comparativo Semanal
                                     </h2>
                                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                                        Analise detalhada de volume e conversao (Operacional vs Marketing)
+                                        Análise detalhada de volume e conversão (Operacional vs Marketing)
                                     </p>
                                 </div>
                             </div>

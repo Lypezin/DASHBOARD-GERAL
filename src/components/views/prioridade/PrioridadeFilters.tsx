@@ -32,24 +32,24 @@ export const PrioridadeFilters: React.FC<PrioridadeFiltersProps> = ({
       <CardContent className="p-4">
         <div className="mb-4 flex items-center gap-2">
           <Filter className="h-4 w-4 text-slate-500" />
-          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Filtros Avancados</h3>
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-white">Filtros avançados</h3>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="flex-1">
-            <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-300">% Aderencia Minima</label>
+            <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-300">% Aderência mínima</label>
             <input type="number" placeholder="Ex: 90" value={filtroAderencia} onChange={(e) => onAderenciaChange(e.target.value)} min="0" max="100" step="0.1" className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 transition-[background-color,border-color,box-shadow] duration-150 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500" />
           </div>
           <div className="flex-1">
-            <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-300">% Rejeicao Maxima</label>
+            <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-300">% Rejeição máxima</label>
             <input type="number" placeholder="Ex: 10" value={filtroRejeicao} onChange={(e) => onRejeicaoChange(e.target.value)} min="0" max="100" step="0.1" className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 transition-[background-color,border-color,box-shadow] duration-150 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500" />
           </div>
           <div className="flex-1">
-            <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-300">% Completadas Minima</label>
+            <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-300">% Completadas mínima</label>
             <input type="number" placeholder="Ex: 80" value={filtroCompletadas} onChange={(e) => onCompletadasChange(e.target.value)} min="0" max="100" step="0.1" className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 transition-[background-color,border-color,box-shadow] duration-150 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500" />
           </div>
           <div className="flex-1">
-            <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-300">% Aceitas Minima</label>
+            <label className="mb-1.5 block text-xs font-medium text-slate-700 dark:text-slate-300">% Aceitas mínima</label>
             <input type="number" placeholder="Ex: 85" value={filtroAceitas} onChange={(e) => onAceitasChange(e.target.value)} min="0" max="100" step="0.1" className="w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-900 placeholder-slate-400 transition-[background-color,border-color,box-shadow] duration-150 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:placeholder-slate-500" />
           </div>
         </div>

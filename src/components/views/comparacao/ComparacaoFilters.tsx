@@ -38,7 +38,7 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
     onToggleSecao
 }) => {
     return (
-        <SaasPanel>
+        <SaasPanel className="overflow-visible">
             <SaasPanelHeader
                 eyebrow="Comparativo"
                 title="Comparativo semanal"

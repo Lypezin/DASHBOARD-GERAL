@@ -34,7 +34,7 @@ export const PrioridadeTable = React.memo<PrioridadeTableProps>(({
                             Prioridade / Promo
                         </h3>
                         <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Analise detalhada de entregadores
+                            Análise detalhada de entregadores
                         </p>
                     </div>
                 </div>

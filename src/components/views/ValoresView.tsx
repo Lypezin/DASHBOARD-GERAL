@@ -10,7 +10,6 @@ import { exportarValoresParaExcel } from './valores/ValoresExcelExport';
 import { safeLog } from '@/lib/errorHandler';
 import { ValoresHeader } from './valores/ValoresHeader';
 import { ValoresError, ValoresEmpty } from './valores/ValoresStates';
-import { ValoresBreakdownDisplay } from './valores/ValoresBreakdownDisplay';
 
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
@@ -19,7 +18,6 @@ import type { FilterPayload } from '@/types/filters';
 
 const ValoresView = React.memo(function ValoresView({ 
   filters, 
-  setFilters, 
   filterPayload, 
   currentUser 
 }: { 
@@ -31,12 +29,13 @@ const ValoresView = React.memo(function ValoresView({
   const { data: tabData, loading } = useTabData('valores', filterPayload, currentUser);
   const { valoresData } = useTabDataMapper({ activeTab: 'valores', tabData });
   const [isExporting, setIsExporting] = useState(false);
+  const filtrosSemDetalhamento = React.useMemo(() => ({ ...filters, detailed: false }), [filters]);
 
   const {
     sortedValores, paginatedValores, sortField, sortDirection, searchTerm, isSearching, error,
     totalGeral, totalCorridas, taxaMediaGeral, totalEntregadores, loadMore, hasMore, isLoadingMore,
-    breakdownData, loadingBreakdown, setSearchTerm, handleSort, formatarReal
-  } = useValoresData(valoresData, loading, filters);
+    setSearchTerm, handleSort, formatarReal
+  } = useValoresData(valoresData, loading, filtrosSemDetalhamento);
 
   const handleExport = useCallback(async () => {
     try { setIsExporting(true); await exportarValoresParaExcel(sortedValores); }
@@ -59,19 +58,15 @@ const ValoresView = React.memo(function ValoresView({
       </div>
 
       <div className="space-y-4">
-        <ValoresHeader isExporting={isExporting} onExport={handleExport} isDetailed={filters?.detailed} onToggleDetailed={(checked) => setFilters?.({ ...filters, detailed: checked })} />
+        <ValoresHeader isExporting={isExporting} onExport={handleExport} />
 
         <div>
           <ValoresSearch searchTerm={searchTerm} isSearching={isSearching} totalResults={totalEntregadores} onSearchChange={setSearchTerm} onClearSearch={() => setSearchTerm('')} />
         </div>
 
         <div>
-          <ValoresTable sortedValores={paginatedValores} sortField={sortField} sortDirection={sortDirection} onSort={handleSort} formatarReal={formatarReal} isDetailed={filters?.detailed} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} />
+          <ValoresTable sortedValores={paginatedValores} sortField={sortField} sortDirection={sortDirection} onSort={handleSort} formatarReal={formatarReal} isDetailed={false} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} />
         </div>
-
-        {filters?.detailed && (
-          <ValoresBreakdownDisplay data={breakdownData} loading={loadingBreakdown} formatarReal={formatarReal} />
-        )}
       </div>
     </div>
   );

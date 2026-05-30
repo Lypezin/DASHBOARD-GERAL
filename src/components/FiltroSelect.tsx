@@ -34,7 +34,7 @@ const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange,
 
   return (
     <div className="group relative flex min-w-0 flex-col gap-1" ref={wrapperRef}>
-      <span className="truncate pl-1 text-[11px] font-semibold text-slate-400">
+      <span className="pl-1 text-[11px] font-semibold text-slate-400">
         {label}
       </span>
       <div className="relative">
@@ -43,18 +43,20 @@ const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange,
           onClick={() => setIsOpen(!isOpen)}
           disabled={disabled}
           className={cn(
-            "min-h-10 w-full appearance-none rounded-xl border border-slate-200/80 text-left focus:outline-none dark:border-slate-800",
-            "bg-white px-3 py-2 pr-10 text-xs font-semibold text-slate-900 shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-200 dark:bg-slate-900 dark:text-slate-100",
+            "min-h-11 w-full appearance-none rounded-xl border border-slate-200/80 text-left focus:outline-none dark:border-slate-800",
+            "bg-white px-3 py-2 text-xs font-semibold text-slate-900 shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-200 dark:bg-slate-900 dark:text-slate-100",
             "hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white hover:shadow-md dark:hover:border-blue-500/50 dark:hover:bg-slate-900",
             isOpen ? "border-blue-400 ring-2 ring-blue-500/20" : "",
+            value ? "pr-16" : "pr-10",
             "disabled:cursor-not-allowed disabled:opacity-50"
           )}
+          title={selectedOption?.label || placeholder}
         >
-          <span className="block truncate">
+          <span className="block min-w-0 pr-1 leading-snug">
             {selectedOption ? (
-              <span className="font-semibold text-blue-700 dark:text-blue-300">{selectedOption.label}</span>
+              <span className="line-clamp-2 font-semibold text-blue-700 dark:text-blue-300">{selectedOption.label}</span>
             ) : (
-              <span className="font-normal text-slate-400">{placeholder}</span>
+              <span className="line-clamp-2 font-normal text-slate-400">{placeholder}</span>
             )}
           </span>
         </button>
@@ -86,6 +88,7 @@ const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange,
         placeholder={placeholder}
         onSelect={handleSelect}
         dropdownRef={dropdownRef}
+        anchorRef={wrapperRef}
       />
     </div>
   );

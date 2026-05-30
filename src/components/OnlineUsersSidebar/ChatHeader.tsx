@@ -20,27 +20,27 @@ function ChatHeaderComponent({ activeChatUser, currentUser, onClose }: ChatHeade
   }, [activeChatUser.last_typed, activeChatUser.typing_to, currentUser.id]);
 
   return (
-    <div className="p-3 bg-card border-b border-border flex items-center justify-between shadow-[0_1px_2px_rgba(0,0,0,0.01)] z-10 select-none">
+    <div className="z-10 flex items-center justify-between border-b border-slate-200/80 bg-white/95 p-3 shadow-sm select-none dark:border-slate-800/80 dark:bg-slate-950/95">
       <div className="flex items-center gap-2">
         <div className="relative">
           <span className={cn(
-            'absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full border-2 border-card z-10',
+            'absolute bottom-0 right-0 z-10 h-2.5 w-2.5 rounded-full border-2 border-white dark:border-slate-950',
             activeChatUser.is_idle ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'
           )} />
-          <Avatar className="h-8 w-8 border border-border/50 shadow-sm">
-            <AvatarImage src={activeChatUser.avatar_url || undefined} alt={`Avatar de ${activeChatUser.name || 'usuario'}`} className="object-cover" />
-            <AvatarFallback className="bg-muted text-muted-foreground">
+          <Avatar className="h-9 w-9 border border-slate-200/80 shadow-sm dark:border-slate-800/80">
+            <AvatarImage src={activeChatUser.avatar_url || undefined} alt={`Avatar de ${activeChatUser.name || 'usuário'}`} className="object-cover" />
+            <AvatarFallback className="bg-slate-100 text-slate-500 dark:bg-slate-900 dark:text-slate-300">
               <User className="w-8 h-8 p-1.5" />
             </AvatarFallback>
           </Avatar>
         </div>
         <div className="leading-tight flex flex-col">
-          <span className="text-sm font-black text-foreground block font-outfit">
+          <span className="block max-w-[180px] truncate font-outfit text-sm font-black text-slate-950 dark:text-white" title={activeChatUser.name}>
             {activeChatUser.name}
           </span>
-          <span className="text-[9px] text-muted-foreground/80 block font-bold uppercase tracking-wider">
+          <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             {isTyping ? (
-              <span className="text-primary animate-pulse font-extrabold">digitando...</span>
+              <span className="animate-pulse font-extrabold text-blue-600 dark:text-blue-300">digitando...</span>
             ) : (
               activeChatUser.is_idle ? 'Ausente' : 'Online'
             )}
@@ -50,7 +50,7 @@ function ChatHeaderComponent({ activeChatUser, currentUser, onClose }: ChatHeade
       <button 
         onClick={onClose} 
         type="button"
-        className="text-muted-foreground/60 hover:text-foreground p-1 hover:bg-muted rounded-full transition-colors focus:outline-none"
+        className="rounded-full p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-950 focus:outline-none dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white"
       >
         <X size={16} />
       </button>

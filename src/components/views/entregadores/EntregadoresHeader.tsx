@@ -24,7 +24,7 @@ export const EntregadoresHeader = React.memo(function EntregadoresHeader({
     disableExport = false,
     exportDisabledReason,
     title = 'Entregadores Operacional',
-    description = 'Performance e aderencia da frota',
+    description = 'Performance e aderência da frota',
     periodoResolvido,
 }: EntregadoresHeaderProps) {
     const autoSemana = periodoResolvido?.auto_semana && periodoResolvido.semana;

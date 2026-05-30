@@ -176,7 +176,7 @@ const DedicadoView = React.memo(function DedicadoView({
 
       if (!origemOrganizationId) {
         setDedicadoLoading(false);
-        setDedicadoError('Selecione uma organizacao para carregar os dados do DEDICADO.');
+        setDedicadoError('Selecione uma organização para carregar os dados do DEDICADO.');
         setDedicadoData({ origem: [], dia_origem: [] });
         return;
       }
@@ -198,8 +198,8 @@ const DedicadoView = React.memo(function DedicadoView({
           safeLog.error('Erro ao carregar resumo dedicado por origem:', error);
           setDedicadoError(
             shouldLoadDiaOrigem
-              ? 'Nao foi possivel carregar Dia x Origem agora. Tente novamente ou ajuste o periodo.'
-              : 'Nao foi possivel carregar o resumo do DEDICADO agora. As outras subguias continuam disponiveis.'
+              ? 'Não foi possível carregar Dia x Origem agora. Tente novamente ou ajuste o período.'
+              : 'Não foi possível carregar o resumo do DEDICADO agora. As outras subguias continuam disponíveis.'
           );
           setDedicadoData((current) => ({
             ...current,
@@ -369,7 +369,7 @@ const DedicadoView = React.memo(function DedicadoView({
               DEDICADO
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-              Visao separada para restaurantes e origens, com entregadores, resumo por origem e matriz Dia x Origem no mesmo lugar.
+              Visão separada para restaurantes e origens, com entregadores, resumo por origem e matriz Dia x Origem no mesmo lugar.
             </p>
           </div>
 
@@ -423,7 +423,7 @@ const DedicadoView = React.memo(function DedicadoView({
             filterPayload={dedicatedPayload}
           />
         ) : (
-          <DedicadoInlineNotice message="Selecione uma organizacao para carregar os entregadores dedicados." />
+          <DedicadoInlineNotice message="Selecione uma organização para carregar os entregadores dedicados." />
         )
       ) : null}
 
@@ -431,7 +431,7 @@ const DedicadoView = React.memo(function DedicadoView({
         hasOrganizationContext ? (
           <DedicadoRanking entregadores={rankingEntregadores} loading={loading} />
         ) : (
-          <DedicadoInlineNotice message="Selecione uma organizacao para montar o ranking do DEDICADO." />
+          <DedicadoInlineNotice message="Selecione uma organização para montar o ranking do DEDICADO." />
         )
       ) : null}
 
@@ -480,7 +480,7 @@ function DedicadoDashboard({
     { title: 'Origens', value: stats.origens.toLocaleString('pt-BR'), sub: 'restaurantes/origens no filtro', icon: BarChart3, color: 'text-sky-500' },
     { title: 'Ofertadas', value: stats.ofertadas.toLocaleString('pt-BR'), sub: `${stats.taxaAceitacao.toFixed(1)}% aceitas`, icon: Truck, color: 'text-sky-500' },
     { title: 'Aceitas', value: stats.aceitas.toLocaleString('pt-BR'), sub: `${stats.taxaCompletude.toFixed(1)}% completadas`, icon: CheckCircle2, color: 'text-emerald-500' },
-    { title: 'Rejeitadas', value: stats.rejeitadas.toLocaleString('pt-BR'), sub: `${stats.taxaRejeicao.toFixed(1)}% rejeicao`, icon: XCircle, color: 'text-rose-500' },
+    { title: 'Rejeitadas', value: stats.rejeitadas.toLocaleString('pt-BR'), sub: `${stats.taxaRejeicao.toFixed(1)}% rejeição`, icon: XCircle, color: 'text-rose-500' },
     { title: 'Horas', value: formatarHorasParaHMS(stats.segundos / 3600), sub: 'tempo entregue', icon: Clock, color: 'text-orange-500', compact: true },
   ];
 
@@ -529,7 +529,7 @@ function DedicadoDashboard({
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                     <p className="min-w-0 break-words pr-1 text-sm font-bold leading-snug text-slate-800 dark:text-slate-100">{origem.origem}</p>
                     <span className="w-fit shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-black text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
-                      Aderencia {formatMetricPercentOrNA(origem.aderencia_percentual, Boolean(origem.segundos_planejados))}
+                      Aderência {formatMetricPercentOrNA(origem.aderencia_percentual, Boolean(origem.segundos_planejados))}
                     </span>
                   </div>
                   <div className="mt-4 grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
@@ -562,7 +562,7 @@ function DedicadoDashboard({
             </div>
           ) : (
             <p className="rounded-2xl border border-dashed border-slate-200 p-8 text-center text-sm text-slate-500 dark:border-slate-800 dark:text-slate-400">
-              Nenhuma origem encontrada no resumo do periodo atual.
+              Nenhuma origem encontrada no resumo do período atual.
             </p>
           )}
         </CardContent>
@@ -587,7 +587,7 @@ function DedicadoResumo({
       <CardHeader>
         <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Resumo por Origem</CardTitle>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Dados agrupados por origem, respeitando os filtros atuais de periodo, cidade e organizacao.
+          Dados agrupados por origem, respeitando os filtros atuais de período, cidade e organização.
         </p>
       </CardHeader>
       {error ? (
@@ -620,7 +620,7 @@ function DedicadoDiaOrigem({
       <CardHeader>
         <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Dia x Origem</CardTitle>
         <p className="text-sm text-slate-500 dark:text-slate-400">
-          Matriz migrada da guia Analise e filtrada para as origens do periodo atual.
+          Matriz migrada da guia Análise e filtrada para as origens do período atual.
         </p>
       </CardHeader>
       <CardContent className="min-w-0 p-3 sm:p-6">
@@ -653,9 +653,9 @@ function DedicadoRanking({ entregadores, loading }: { entregadores: Entregador[]
       <CardHeader className="border-b border-slate-100 dark:border-slate-800">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Ranking de Aderencia</CardTitle>
+            <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Ranking de aderência</CardTitle>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Ordenado pela mesma aderencia usada na tabela de Entregadores do DEDICADO.
+              Ordenado pela mesma aderência usada na tabela de Entregadores do DEDICADO.
             </p>
           </div>
           <span className="w-fit rounded-full bg-blue-50 px-3 py-1 text-xs font-black text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
@@ -671,13 +671,13 @@ function DedicadoRanking({ entregadores, loading }: { entregadores: Entregador[]
               <tr>
                 <th className="px-5 py-4 text-left">#</th>
                 <th className="px-5 py-4 text-left">Entregador</th>
-                <th className="px-5 py-4 text-right">Aderencia</th>
+                <th className="px-5 py-4 text-right">Aderência</th>
                 <th className="px-5 py-4 text-right">Completadas</th>
                 <th className="px-5 py-4 text-right">Ofertadas</th>
                 <th className="px-5 py-4 text-right">Aceitas</th>
                 <th className="px-5 py-4 text-right">Rejeitadas</th>
                 <th className="px-5 py-4 text-right">Horas</th>
-                <th className="px-5 py-4 text-right">Rejeicao</th>
+                <th className="px-5 py-4 text-right">Rejeição</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">

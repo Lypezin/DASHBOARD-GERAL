@@ -91,7 +91,9 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
   return (
     <ErrorBoundary>
       <Suspense fallback={<DashboardSkeleton contentOnly />}>
-        {renderActiveView(activeTab, props)}
+        <div key={activeTab} className="min-w-0 animate-blur-in">
+          {renderActiveView(activeTab, props)}
+        </div>
       </Suspense>
     </ErrorBoundary>
   );

@@ -21,7 +21,7 @@ export const SidebarContainer: React.FC<SidebarContainerProps> = ({ isOpen, onCl
 
             <aside
                 className={cn(
-                    'fixed right-0 top-16 z-[9998] h-[calc(100vh-5rem)] w-[24rem] max-w-[94vw] rounded-l-[2rem] border-l border-slate-200 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] shadow-[0_24px_80px_rgba(15,23,42,0.18)] transition-transform duration-300 ease-in-out dark:border-slate-800 dark:bg-[linear-gradient(180deg,#020617_0%,#0f172a_100%)] flex flex-col',
+                    'fixed right-0 top-16 z-[9998] flex h-[calc(100vh-5rem)] w-[24rem] max-w-[94vw] flex-col rounded-l-[2rem] border-l border-slate-200/80 bg-[linear-gradient(180deg,#ffffff_0%,#f8fafc_100%)] shadow-[0_24px_80px_rgba(15,23,42,0.18)] transition-transform duration-300 ease-in-out dark:border-slate-800/80 dark:bg-[linear-gradient(180deg,#020617_0%,#0f172a_100%)]',
                     isOpen ? 'translate-x-0' : 'translate-x-full'
                 )}
                 aria-hidden={!isOpen}

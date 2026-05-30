@@ -84,7 +84,7 @@ export const ValoresTable = React.memo(function ValoresTable({
                             ) : null}
                             <SortableHeader field="total_taxas" label="Total" align="right" />
                             <SortableHeader field="numero_corridas_aceitas" label="Corridas" align="right" />
-                            <SortableHeader field="taxa_media" label="Media" align="right" className="pr-6" />
+                            <SortableHeader field="taxa_media" label="Média" align="right" className="pr-6" />
                         </TableRow>
                     </TableHeader>
                     <TableBody>

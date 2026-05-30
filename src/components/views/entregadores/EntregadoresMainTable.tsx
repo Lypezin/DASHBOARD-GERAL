@@ -67,7 +67,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                                     <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                                         {searchTerm
                                             ? `Nenhum entregador encontrado com o termo "${searchTerm}"`
-                                            : 'Nenhum entregador disponivel'}
+                                            : 'Nenhum entregador disponível'}
                                     </p>
                                     <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                                         Ajuste os filtros ou refine a busca para localizar registros.
