@@ -15,6 +15,7 @@ import type {
 import type { FilterPayload } from '@/types/filters';
 import { needsChartReady, renderActiveView } from './utils/viewRenderer';
 import { useGamification } from '@/contexts/GamificationContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface DashboardViewsRendererProps {
   activeTab: TabType;
@@ -30,7 +31,7 @@ interface DashboardViewsRendererProps {
   pracas: FilterOption[];
   subPracas: FilterOption[];
   origens: FilterOption[];
-  // Dados principais passados para as views (Restaurando arquitetura monolítica)
+  // Dados principais passados para as views
   totals: Totals | null;
   aderenciaSemanal: AderenciaSemanal[];
   aderenciaDia: AderenciaDia[];
@@ -41,7 +42,6 @@ interface DashboardViewsRendererProps {
 }
 
 export type DashboardViewRenderProps = DashboardViewsRendererProps;
-
 
 export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer(props: DashboardViewsRendererProps) {
   const { activeTab, chartReady } = props;
@@ -91,9 +91,18 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
   return (
     <ErrorBoundary>
       <Suspense fallback={<DashboardSkeleton contentOnly />}>
-        <div key={activeTab} className="min-w-0 animate-blur-in">
-          {renderActiveView(activeTab, props)}
-        </div>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 12, filter: 'blur(4px)' }}
+            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+            exit={{ opacity: 0, y: -12, filter: 'blur(4px)' }}
+            transition={{ duration: 0.22, ease: 'easeOut' }}
+            className="min-w-0 w-full"
+          >
+            {renderActiveView(activeTab, props)}
+          </motion.div>
+        </AnimatePresence>
       </Suspense>
     </ErrorBoundary>
   );
