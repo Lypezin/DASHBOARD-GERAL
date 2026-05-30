@@ -16,37 +16,31 @@ export async function exportarValoresParaExcel(valoresData: ValoresEntregador[])
         if (valoresData && valoresData.length > 0) {
             const dadosExportacao = valoresData.map(v => ({
                 'ID Entregador': v.id_entregador,
-                'Nome': v.nome_entregador,
+                Nome: v.nome_entregador,
                 'Valor Total': formatarMoeda(v.total_taxas),
-                'Corridas': v.numero_corridas_aceitas,
-                'Média': formatarMoeda(v.taxa_media)
+                Corridas: v.numero_corridas_aceitas,
+                'M\u00e9dia': formatarMoeda(v.taxa_media)
             }));
 
             const ws = XLSX.utils.json_to_sheet(dadosExportacao);
-
-            // Ajustar colunas
-            const colWidths = [
-                { wch: 15 }, // ID
-                { wch: 35 }, // Nome
-                { wch: 15 }, // Valor
-                { wch: 10 }, // Corridas
-                { wch: 15 }  // Media
+            ws['!cols'] = [
+                { wch: 15 },
+                { wch: 35 },
+                { wch: 15 },
+                { wch: 10 },
+                { wch: 15 }
             ];
-            ws['!cols'] = colWidths;
 
             XLSX.utils.book_append_sheet(wb, ws, 'Valores');
         }
 
-        // Gerar Nome do Arquivo
         const agora = new Date();
         const dataHora = agora.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
         const nomeArquivo = `valores_entregadores_${dataHora}.xlsx`;
 
-        // Download
         XLSX.writeFile(wb, nomeArquivo);
 
-        if (IS_DEV) safeLog.info(`✅ Valores exportados: ${nomeArquivo}`);
-
+        if (IS_DEV) safeLog.info(`Valores exportados: ${nomeArquivo}`);
     } catch (error) {
         safeLog.error('Erro ao exportar valores:', error);
         throw new Error('Falha ao gerar arquivo Excel de Valores.');

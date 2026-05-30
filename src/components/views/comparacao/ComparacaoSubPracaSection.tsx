@@ -26,9 +26,9 @@ export const ComparacaoSubPracaSection: React.FC<ComparacaoSubPracaSectionProps>
     return (
         <SaasPanel>
             <SaasPanelHeader
-                eyebrow="Sub-praca"
-                title="Por sub-praca"
-                description="Comparativo por recorte interno de operacao."
+                eyebrow="Sub-praça"
+                title="Por sub-praça"
+                description="Comparativo por recorte interno de operação."
                 icon={MapPin}
                 actions={<ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} size="sm" />}
             />

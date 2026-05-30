@@ -18,49 +18,43 @@ export async function exportarEntregadoresMainParaExcel(entregadores: Entregador
         if (entregadores && entregadores.length > 0) {
             const dadosExportacao = entregadores.map(e => ({
                 'ID Entregador': e.id_entregador,
-                'Nome': e.nome_entregador,
-                'Horas': formatarHorasParaHMS((e.total_segundos || 0) / 3600),
-                'Ofertadas': e.corridas_ofertadas,
-                'Aceitas': e.corridas_aceitas,
-                'Rejeitadas': e.corridas_rejeitadas,
-                'Completadas': e.corridas_completadas,
-                '% Aceitação': formatarPorcentagem(calcularPercentualAceitas(e)),
+                Nome: e.nome_entregador,
+                Horas: formatarHorasParaHMS((e.total_segundos || 0) / 3600),
+                Ofertadas: e.corridas_ofertadas,
+                Aceitas: e.corridas_aceitas,
+                Rejeitadas: e.corridas_rejeitadas,
+                Completadas: e.corridas_completadas,
+                '% Aceita\u00e7\u00e3o': formatarPorcentagem(calcularPercentualAceitas(e)),
                 '% Completude': formatarPorcentagem(calcularPercentualCompletadas(e)),
-                '% Aderência': formatarPorcentagem(e.aderencia_percentual),
-                '% Rejeição': formatarPorcentagem(e.rejeicao_percentual)
+                '% Ader\u00eancia': formatarPorcentagem(e.aderencia_percentual),
+                '% Rejei\u00e7\u00e3o': formatarPorcentagem(e.rejeicao_percentual)
             }));
 
             const ws = XLSX.utils.json_to_sheet(dadosExportacao);
-
-            // Ajustar colunas
-            const colWidths = [
-                { wch: 40 }, // ID
-                { wch: 35 }, // Nome
-                { wch: 15 }, // Horas
-                { wch: 10 }, // Ofertadas
-                { wch: 10 }, // Aceitas
-                { wch: 10 }, // Rejeitadas
-                { wch: 10 }, // Completadas
-                { wch: 15 }, // % Aceitacao
-                { wch: 15 }, // % Completude
-                { wch: 15 }, // % Aderencia
-                { wch: 15 }, // % Rejeicao
+            ws['!cols'] = [
+                { wch: 40 },
+                { wch: 35 },
+                { wch: 15 },
+                { wch: 10 },
+                { wch: 10 },
+                { wch: 10 },
+                { wch: 10 },
+                { wch: 15 },
+                { wch: 15 },
+                { wch: 15 },
+                { wch: 15 },
             ];
-            ws['!cols'] = colWidths;
 
             XLSX.utils.book_append_sheet(wb, ws, 'Entregadores Operacional');
         }
 
-        // Gerar Nome do Arquivo
         const agora = new Date();
         const dataHora = agora.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
         const nomeArquivo = `entregadores_operacional_${dataHora}.xlsx`;
 
-        // Download
         XLSX.writeFile(wb, nomeArquivo);
 
         if (IS_DEV) safeLog.info(`Entregadores Operacional exportado: ${nomeArquivo}`);
-
     } catch (error) {
         safeLog.error('Erro ao exportar entregadores operacional:', error);
         throw new Error('Falha ao gerar arquivo Excel.');

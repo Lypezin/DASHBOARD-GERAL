@@ -64,7 +64,7 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst,
 
                     <div className="relative">
                         <EntradaSaidaRowStat
-                            label="Saidas"
+                            label={'Sa\u00eddas'}
                             value={item.saidas_total || item.saidas}
                             color={ENTRADA_SAIDA_COLORS.saidas}
                             icon={ArrowDownRight}
@@ -72,7 +72,7 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst,
                         {item.saidas_novos > 0 ? (
                             <div
                                 className="absolute -right-2 -top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-amber-100 text-[10px] font-bold text-amber-600 shadow-sm dark:border-slate-900"
-                                title={`${item.saidas_novos} desistencias`}
+                                title={`${item.saidas_novos} desist\u00eancias`}
                             >
                                 !
                             </div>

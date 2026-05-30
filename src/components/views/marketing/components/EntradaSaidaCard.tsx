@@ -71,7 +71,7 @@ export const EntradaSaidaCard: React.FC<EntradaSaidaCardProps> = ({ item, isFirs
                 <div className="mb-4 flex items-center justify-between rounded-xl border border-amber-100 bg-amber-50 px-3 p-2 dark:border-amber-900/30 dark:bg-amber-900/20">
                     <div className="flex items-center gap-1.5 text-[10px] font-semibold uppercase text-amber-600/80 dark:text-amber-400/80">
                         <span className="h-1.5 w-1.5 rounded-full bg-amber-500"></span>
-                        Desistencias (Novos)
+                        Desistências (novos)
                     </div>
                     <span className="tabular-nums text-xs font-bold text-amber-700 dark:text-amber-400">
                         -{item.saidas_novos}

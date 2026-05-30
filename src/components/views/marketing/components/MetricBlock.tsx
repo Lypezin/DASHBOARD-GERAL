@@ -24,7 +24,7 @@ export const MetricBlock: React.FC<MetricBlockProps> = ({ type, marketing, total
     let totalLabelColor = isEntrada ? 'text-emerald-800/60 dark:text-emerald-300/60' : 'text-rose-800/60 dark:text-rose-300/60';
     let totalValueColor = isEntrada ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-700 dark:text-rose-400';
     const sign = isEntrada || isRetomada ? '+' : '-';
-    const titleLabel = isEntrada ? 'Entradas' : (isRetomada ? 'Retomada' : 'Saidas');
+    const titleLabel = isEntrada ? 'Entradas' : (isRetomada ? 'Retomada' : 'Sa\u00eddas');
 
     if (isRetomada) {
         bgColor = 'bg-sky-50 dark:bg-sky-950/20';

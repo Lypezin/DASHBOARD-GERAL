@@ -86,7 +86,7 @@ export const EntradaSaidaExpanded: React.FC<Props> = ({
                         />
                         <MetricBox
                             icon={ArrowDownRight}
-                            title="Saidas"
+                            title={'Sa\u00eddas'}
                             value={item.saidas_total || item.saidas}
                             mkt={item.saidas_marketing || 0}
                             ops={saidas_ops}
@@ -104,7 +104,7 @@ export const EntradaSaidaExpanded: React.FC<Props> = ({
                         >
                             <div className="mb-2 flex items-center justify-center gap-1.5">
                                 <UserX className="h-3.5 w-3.5 text-amber-500" />
-                                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Desistencias</span>
+                                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-600">Desistências</span>
                             </div>
                             <div
                                 className={`mb-1 text-xl font-bold tabular-nums ${
@@ -115,7 +115,7 @@ export const EntradaSaidaExpanded: React.FC<Props> = ({
                             </div>
                             {(item.saidas_novos || 0) > 0 && ((item.saidas_total || 0) > 0 || (item.saidas || 0) > 0) && (
                                 <div className="text-[10px] font-medium text-amber-600 dark:text-amber-400">
-                                    {Math.round(((item.saidas_novos || 0) / (item.saidas_total || item.saidas || 1)) * 100)}% das saidas
+                                    {Math.round(((item.saidas_novos || 0) / (item.saidas_total || item.saidas || 1)) * 100)}% das saídas
                                 </div>
                             )}
                         </div>

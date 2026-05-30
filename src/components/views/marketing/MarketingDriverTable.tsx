@@ -49,7 +49,7 @@ export const MarketingDriverTable: React.FC<MarketingDriverTableProps> = ({
                             <TableHead className="text-right">Horas</TableHead>
                             <TableHead className="text-right">Ofertadas</TableHead>
                             <TableHead className="text-right">Aceitas</TableHead>
-                            <TableHead className="pr-5 text-right">Concluidas</TableHead>
+                            <TableHead className="pr-5 text-right">Concluídas</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
