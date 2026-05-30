@@ -21,7 +21,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
                 <ComparacaoTabelaHeader semanasSelecionadas={semanasSelecionadas} />
                 <TableBody>
                     <ComparingTableRow
-                        label="Aderencia geral"
+                        label="Aderência geral"
                         data={dadosComparacao}
                         getValue={(d) => d?.aderencia_semanal?.[0]?.aderencia_percentual ?? 0}
                         formatValue={(v) => (
@@ -59,7 +59,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
                         formatValue={(v) => v.toLocaleString('pt-BR')}
                     />
                     <ComparingTableRow
-                        label="Taxa de aceitacao"
+                        label="Taxa de aceitação"
                         data={dadosComparacao}
                         getValue={(d) => d?.total_ofertadas ? ((d.total_aceitas ?? 0) / d.total_ofertadas) * 100 : 0}
                         formatValue={(v) => `${v.toFixed(1)}%`}

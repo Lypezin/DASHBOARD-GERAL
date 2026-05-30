@@ -17,9 +17,9 @@ export const UtrGeral = React.memo(function UtrGeral({ data }: UtrGeralProps) {
         <div className="grid gap-4 sm:grid-cols-3">
             <UtrMetricCard
                 title="UTR Consolidada"
-                subtitle="Media do periodo"
+                subtitle="Média do período"
                 value={(data.utr ?? 0).toFixed(2)}
-                suffix="indice"
+                suffix="índice"
                 icon={Activity}
                 tone="blue"
             />

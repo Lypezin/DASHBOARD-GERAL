@@ -24,10 +24,10 @@ const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView(
                     <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-sky-500 to-blue-600 shadow-sm" />
                     <div>
                         <h2 className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                            Fluxo de Entrada e Saida
+                            Fluxo de Entrada e Saída
                         </h2>
                         <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                            Analise de adesao e desligamento de entregadores
+                            Análise de adesão e desligamento de entregadores
                         </p>
                     </div>
                 </div>

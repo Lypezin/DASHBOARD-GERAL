@@ -42,7 +42,7 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
                     <TableHeader>
                         <TableRow className="border-none hover:bg-transparent">
                             <TableHead rowSpan={2} className="sticky left-0 z-20 w-[150px] bg-white pb-4 pl-6 align-bottom text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:bg-slate-950 dark:text-slate-500 sm:w-[190px] sm:pl-8">
-                                Sub-praca
+                                Sub-praça
                             </TableHead>
                             {semanasSelecionadas.map((semana) => {
                                 const semanaStr = String(semana).replace('W', '');
@@ -79,7 +79,7 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
                         {subPracasOrdenadas.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={semanasSelecionadas.length * 4 + 1} className="py-8 text-center text-slate-500 dark:text-slate-400">
-                                    Nenhum dado de sub-praca disponivel para as semanas selecionadas.
+                                    Nenhum dado de sub-praça disponível para as semanas selecionadas.
                                 </TableCell>
                             </TableRow>
                         )}

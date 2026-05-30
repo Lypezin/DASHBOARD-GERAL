@@ -51,7 +51,7 @@ export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
                     {origensOrdenadas.length > 0 && (
                         <ComparacaoOrigemRow
                             key="MEDIA DAS ORIGENS"
-                            origem="MEDIA DAS ORIGENS"
+                            origem="MÉDIA DAS ORIGENS"
                             index={-1}
                             semanasSelecionadas={semanasSelecionadas}
                             dadosPorOrigem={dadosPorOrigem}
@@ -69,7 +69,7 @@ export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
                     {origensOrdenadas.length === 0 && (
                         <TableRow>
                             <TableCell colSpan={semanasSelecionadas.length * 2 + 1} className="py-8 text-center text-sm text-slate-400">
-                                Nenhum dado de origem disponivel.
+                                Nenhum dado de origem disponível.
                             </TableCell>
                         </TableRow>
                     )}

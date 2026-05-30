@@ -32,7 +32,7 @@ export const ValoresCidadeCards: React.FC<ValoresCidadeCardsProps> = ({
         <SummaryCard
           title="Custo por Liberado"
           value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(custoPorLiberado)}
-          subtext="Media geral"
+          subtext={'M\u00e9dia geral'}
           icon={BarChart3}
           colorClass="text-sky-600 dark:text-sky-300"
           bgClass="from-sky-50 to-white dark:from-sky-900/20 dark:to-slate-900"

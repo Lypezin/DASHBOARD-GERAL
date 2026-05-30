@@ -31,7 +31,7 @@ export const EntregadoresHeader = React.memo(function EntregadoresHeader({
     const exportBlocked = isExporting || disableExport;
 
     return (
-        <div className="rounded-[1.75rem] border border-slate-200/70 bg-white/88 p-5 shadow-sm backdrop-blur dark:border-slate-800/70 dark:bg-slate-900/82">
+        <div className="rounded-[1.75rem] border border-slate-200/70 bg-white/90 p-5 shadow-sm backdrop-blur dark:border-slate-800/70 dark:bg-slate-900/80">
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div className="min-w-0">
                     <div className="mb-2 inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">

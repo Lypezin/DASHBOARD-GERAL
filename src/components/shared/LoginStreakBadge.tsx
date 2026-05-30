@@ -49,7 +49,7 @@ export const LoginStreakBadge = React.memo(function LoginStreakBadge({ className
         <Tooltip>
             <TooltipTrigger asChild>
                 <button
-                    className={`inline-flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-white/82 px-2.5 py-1.5 text-left shadow-[0_12px_28px_-24px_rgba(15,23,42,0.55)] transition-[background-color,border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:bg-white dark:border-slate-800/70 dark:bg-slate-900/78 dark:hover:bg-slate-900 ${className}`}
+                    className={`inline-flex items-center gap-1.5 rounded-full border border-slate-200/70 bg-white/80 px-2.5 py-1.5 text-left shadow-[0_12px_28px_-24px_rgba(15,23,42,0.55)] transition-[background-color,border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:bg-white dark:border-slate-800/70 dark:bg-slate-900/80 dark:hover:bg-slate-900 ${className}`}
                 >
                     <Flame className={`h-3.5 w-3.5 ${getFlameColor()}`} />
                     <span className="text-xs font-bold text-slate-700 dark:text-slate-300">{streak.current}</span>

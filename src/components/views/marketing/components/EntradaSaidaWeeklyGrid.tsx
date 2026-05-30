@@ -22,7 +22,7 @@ export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ 
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <h3 className="flex items-center gap-2 text-lg font-semibold text-slate-800 dark:text-slate-100">
                     <Calendar className="h-5 w-5 text-sky-500" />
-                    Detalhamento por Semana
+                    Detalhamento por semana
                 </h3>
                 <Badge variant="secondary" className="w-fit bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
                     {data.length} semanas
@@ -34,7 +34,7 @@ export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ 
                     <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
                         <Calendar className="h-6 w-6 text-slate-400" />
                     </div>
-                    <p className="text-slate-500 dark:text-slate-400">Nenhum dado encontrado para o periodo selecionado.</p>
+                    <p className="text-slate-500 dark:text-slate-400">Nenhum dado encontrado para o período selecionado.</p>
                 </div>
             ) : (
                 <div className="space-y-2">
@@ -43,7 +43,7 @@ export const EntradaSaidaWeeklyGrid: React.FC<EntradaSaidaWeeklyGridProps> = ({ 
                         <div className="grid flex-1 grid-cols-3 gap-8 px-4 text-center">
                             <div>Entradas</div>
                             <div>Retomada</div>
-                            <div>Saidas</div>
+                            <div>Saídas</div>
                         </div>
                         <div className="min-w-[140px] pr-12 text-right">Saldo</div>
                     </div>

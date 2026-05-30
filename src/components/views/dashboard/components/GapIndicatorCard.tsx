@@ -22,7 +22,7 @@ export const GapIndicatorCard = React.memo(function GapIndicatorCard({ gap }: Ga
               Gap de entrega detectado
             </p>
             <p className="mt-0.5 text-sm leading-relaxed text-rose-700/80 dark:text-rose-400/80">
-              O volume entregue ficou abaixo do planejado para o periodo selecionado.
+              O volume entregue ficou abaixo do planejado para o período selecionado.
             </p>
           </div>
           <div className="flex w-fit shrink-0 items-center gap-2 rounded-lg border border-rose-500/15 bg-white/70 px-3 py-2 dark:bg-rose-950/20">

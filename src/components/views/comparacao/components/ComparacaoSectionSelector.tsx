@@ -8,13 +8,13 @@ interface SecaoItem {
 }
 
 const SECOES: SecaoItem[] = [
-    { id: 'metricas', label: 'Cards de metricas' },
-    { id: 'detalhada', label: 'Analise detalhada' },
+    { id: 'metricas', label: 'Cards de métricas' },
+    { id: 'detalhada', label: 'Análise detalhada' },
     { id: 'por_dia', label: 'Tabela por dia' },
-    { id: 'aderencia_dia', label: 'Aderencia por dia' },
-    { id: 'sub_praca', label: 'Por sub praca' },
+    { id: 'aderencia_dia', label: 'Aderência por dia' },
+    { id: 'sub_praca', label: 'Por sub-praça' },
     { id: 'por_origem', label: 'Por origem' },
-    { id: 'origem_detalhada', label: 'Analise detalhada por origem' },
+    { id: 'origem_detalhada', label: 'Análise detalhada por origem' },
     { id: 'utr', label: 'UTR' },
 ];
 
@@ -52,10 +52,10 @@ export const ComparacaoSectionSelector: React.FC<ComparacaoSectionSelectorProps>
                     ? 'border-slate-900 bg-slate-900 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.7)] dark:border-white dark:bg-white dark:text-slate-900'
                     : 'border-slate-200/80 bg-white/90 text-slate-500 shadow-sm hover:-translate-y-0.5 hover:border-sky-300 hover:text-sky-600 dark:border-slate-800/80 dark:bg-slate-950 dark:text-slate-400 dark:hover:border-sky-500/50 dark:hover:text-sky-300'
                     }`}
-                title="Escolher secoes visiveis"
+                title="Escolher seções visíveis"
             >
                 <LayoutDashboard className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">Exibicao</span>
+                <span className="hidden sm:inline">Exibição</span>
                 {totalVisiveis < total ? (
                     <span className={`inline-flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-black ${open ? 'bg-white/20 text-white dark:bg-slate-900/10 dark:text-slate-900' : 'bg-sky-500 text-white'}`}>
                         {totalVisiveis}
@@ -67,7 +67,7 @@ export const ComparacaoSectionSelector: React.FC<ComparacaoSectionSelectorProps>
                 <div className="absolute right-0 top-full z-50 mt-3 min-w-[270px] overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white/95 p-3 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.42)] backdrop-blur-xl dark:border-slate-800/70 dark:bg-slate-950/90 dark:shadow-black/40">
                     <div className="mb-2 px-4 py-2">
                         <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">
-                            Configurar exibicao
+                            Configurar exibição
                         </p>
                     </div>
 

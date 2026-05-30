@@ -15,7 +15,7 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200/65 bg-white/78 shadow-[0_12px_38px_-34px_rgba(15,23,42,0.7)] transition-[background-color,border-color,box-shadow] duration-200 dark:border-slate-800/70 dark:bg-slate-950/78 supports-[backdrop-filter]:backdrop-blur-xl">
+    <header className="sticky top-0 z-50 w-full border-b border-slate-200/65 bg-white/80 shadow-[0_12px_38px_-34px_rgba(15,23,42,0.7)] transition-[background-color,border-color,box-shadow] duration-200 dark:border-slate-800/70 dark:bg-slate-950/80 supports-[backdrop-filter]:backdrop-blur-xl">
       <div className="container flex h-[4.25rem] max-w-screen-2xl items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="group flex items-center gap-3 transition-opacity hover:opacity-95" prefetch={true}>
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-blue-200/70 bg-gradient-to-br from-blue-600 via-sky-500 to-cyan-400 text-sm font-black text-white shadow-[0_12px_28px_-18px_rgba(37,99,235,0.72)] dark:border-blue-400/20">

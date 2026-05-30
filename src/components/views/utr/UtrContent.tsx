@@ -29,15 +29,15 @@ export const UtrContent = React.memo(function UtrContent({
             <SaasPanel>
                 <SaasPanelHeader
                     eyebrow="Segmentos"
-                    title="Detalhamento por Segmentos"
-                    description="Distribuicao da UTR por praca, sub-praca, origem e turno."
+                    title="Detalhamento por segmentos"
+                    description="Distribuição da UTR por praça, sub-praça, origem e turno."
                     icon={Building2}
                     tone="amber"
                 />
 
                 <div className="grid gap-4 p-4 xl:grid-cols-2">
                     <UtrSection
-                        title="Praca"
+                        title="Praça"
                         description="Desempenho por polo operacional."
                         icon={<Building2 className="h-4 w-4 text-sky-600 dark:text-sky-400" />}
                         data={porPraca}
@@ -45,7 +45,7 @@ export const UtrContent = React.memo(function UtrContent({
                     />
 
                     <UtrSection
-                        title="Sub-praca"
+                        title="Sub-praça"
                         description="Detalhamento por recorte interno."
                         icon={<MapPin className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />}
                         data={porSubPraca}
@@ -54,7 +54,7 @@ export const UtrContent = React.memo(function UtrContent({
 
                     <UtrSection
                         title="Origem"
-                        description="Distribuicao por canal operacional."
+                        description="Distribuição por canal operacional."
                         icon={<Target className="h-4 w-4 text-rose-600 dark:text-rose-400" />}
                         data={porOrigem}
                         getLabel={(item) => item.origem}

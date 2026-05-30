@@ -27,7 +27,7 @@ export const ComparacaoMetrics: React.FC<ComparacaoMetricsProps> = ({
     return (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <MetricCard
-                label="Aderencia"
+                label="Aderência"
                 value={`${aderenciaMedia}%`}
                 icon={Activity}
                 tone={aderenciaMedia >= 90 ? 'emerald' : aderenciaMedia >= 80 ? 'sky' : aderenciaMedia >= 70 ? 'amber' : 'rose'}
@@ -53,7 +53,7 @@ export const ComparacaoMetrics: React.FC<ComparacaoMetricsProps> = ({
             />
 
             <MetricCard
-                label="Taxa de aceitacao"
+                label="Taxa de aceitação"
                 value={`${taxaAceitacao}%`}
                 icon={CheckCircle2}
                 tone="emerald"

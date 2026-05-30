@@ -88,7 +88,7 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
                   {aderencia.toFixed(1)}%
                 </div>
                 <span className="pb-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-400">
-                  Aderencia
+                  Aderência
                 </span>
               </div>
               <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100 ring-1 ring-inset ring-slate-200/70 dark:bg-slate-800 dark:ring-slate-700/70">

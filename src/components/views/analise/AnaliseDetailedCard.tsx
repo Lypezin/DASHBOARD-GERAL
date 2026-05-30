@@ -32,9 +32,9 @@ export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
     return (
         <SaasPanel>
             <SaasPanelHeader
-                eyebrow="Analise operacional"
-                title="Analise Detalhada"
-                description="Comparativo de performance por dimensoes, com leitura compacta e scroll controlado."
+                eyebrow="Análise operacional"
+                title="Análise detalhada"
+                description="Comparativo de performance por dimensões, com leitura compacta e scroll controlado."
                 icon={BarChart3}
                 actions={(
                     <div className="flex flex-wrap items-center gap-3">

@@ -21,7 +21,7 @@ export const ComparacaoOrigemDetalhada: React.FC<ComparacaoOrigemDetalhadaProps>
     return (
         <div className="overflow-hidden rounded-[1.65rem] border border-slate-200/80 bg-white/95 shadow-[0_24px_70px_-52px_rgba(15,23,42,0.45)] dark:border-slate-800/80 dark:bg-slate-950/80">
             <div className="border-b border-slate-200/70 px-6 py-4 dark:border-slate-800/70">
-                <h3 className="text-sm font-semibold tracking-wide text-slate-900 dark:text-white">Analise detalhada por origem</h3>
+                <h3 className="text-sm font-semibold tracking-wide text-slate-900 dark:text-white">Análise detalhada por origem</h3>
             </div>
             <div className="divide-y divide-slate-100 dark:divide-slate-800">
                 {origens.map((origem) => (
@@ -34,7 +34,7 @@ export const ComparacaoOrigemDetalhada: React.FC<ComparacaoOrigemDetalhadaProps>
                                 <TableHeader>
                                     <TableRow className="bg-transparent hover:bg-transparent">
                                         <TableHead className="sticky left-0 z-20 min-w-[170px] border-r border-slate-100 bg-white pl-6 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-500">
-                                            Metrica
+                                            Métrica
                                         </TableHead>
                                         {semanasSelecionadas.map((semana) => (
                                             <TableHead key={semana} className="min-w-[108px] border-l border-slate-100 text-center text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 dark:border-slate-800 dark:text-slate-500">

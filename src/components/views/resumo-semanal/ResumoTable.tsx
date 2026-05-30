@@ -29,7 +29,7 @@ export const ResumoTable = React.memo(({ data, isLoading }: ResumoTableProps) =>
     }, [data]);
 
     return (
-        <div className="overflow-hidden rounded-[2rem] border border-slate-200/75 bg-white/92 shadow-[0_18px_46px_-38px_rgba(15,23,42,0.42)] dark:border-slate-800/75 dark:bg-slate-950/78">
+        <div className="overflow-hidden rounded-[2rem] border border-slate-200/75 bg-white/90 shadow-[0_18px_46px_-38px_rgba(15,23,42,0.42)] dark:border-slate-800/75 dark:bg-slate-950/80">
             <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
                 <Table className="min-w-[920px]">
                     <TableHeader className="bg-slate-50/90 dark:bg-slate-900/60">
@@ -38,9 +38,9 @@ export const ResumoTable = React.memo(({ data, isLoading }: ResumoTableProps) =>
                             <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-300">Pedidos</TableHead>
                             <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-300">Drivers</TableHead>
                             <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-300">SH</TableHead>
-                            <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-300">Aderencia Media</TableHead>
+                            <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-300">Aderência média</TableHead>
                             <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-300">UTR</TableHead>
-                            <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-300">Aderencia</TableHead>
+                            <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-300">Aderência</TableHead>
                             <TableHead className="text-right font-semibold text-slate-700 dark:text-slate-300">Rejeite</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -86,7 +86,7 @@ export const ResumoTable = React.memo(({ data, isLoading }: ResumoTableProps) =>
                         {data.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
-                                    {isLoading ? 'Carregando dados...' : 'Nenhum dado disponivel para o periodo.'}
+                                    {isLoading ? 'Carregando dados...' : 'Nenhum dado disponível para o período.'}
                                 </TableCell>
                             </TableRow>
                         )}

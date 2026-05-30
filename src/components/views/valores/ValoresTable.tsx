@@ -70,7 +70,7 @@ export const ValoresTable = React.memo(function ValoresTable({
     );
 
     return (
-        <div className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white/90 shadow-[0_18px_48px_-40px_rgba(15,23,42,0.52)] ring-1 ring-slate-100/80 dark:border-slate-800/70 dark:bg-slate-900/84 dark:ring-slate-800/50">
+        <div className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white/90 shadow-[0_18px_48px_-40px_rgba(15,23,42,0.52)] ring-1 ring-slate-100/80 dark:border-slate-800/70 dark:bg-slate-900/80 dark:ring-slate-800/50">
             <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
                 <Table>
                     <TableHeader>
@@ -79,7 +79,7 @@ export const ValoresTable = React.memo(function ValoresTable({
                             {isDetailed ? (
                                 <>
                                     <SortableHeader field="turno" label="Turno" />
-                                    <SortableHeader field="sub_praca" label="Sub praca" />
+                                    <SortableHeader field="sub_praca" label="Sub-pra\u00e7a" />
                                 </>
                             ) : null}
                             <SortableHeader field="total_taxas" label="Total" align="right" />

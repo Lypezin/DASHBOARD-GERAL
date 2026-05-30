@@ -21,7 +21,7 @@ export const MarketingFiltersHeader: React.FC<MarketingFiltersHeaderProps> = ({
                         Filtros
                     </CardTitle>
                     <CardDescription className="mt-1 text-slate-500">
-                        Selecione o periodo e a praca e depois clique em Aplicar.
+                        Selecione o período e a praça e depois clique em Aplicar.
                     </CardDescription>
                 </div>
                 {hasActiveFilters && (

@@ -62,7 +62,7 @@ export const EntregadoresMainTableHeader = React.memo(function EntregadoresMainT
     return (
         <div className="border-b border-slate-200 bg-slate-50/90 dark:border-slate-700 dark:bg-slate-900/70">
             <div className="grid min-w-[1100px] grid-cols-10 gap-4 px-6 py-3">
-                <HeaderCell label="Saude" />
+                <HeaderCell label="Saúde" />
                 <HeaderCell label="Nome" field="nome_entregador" align="left" span="col-span-2" />
                 <HeaderCell label="Horas" field="total_segundos" />
                 <HeaderCell label="Ofertadas" field="corridas_ofertadas" align="right" />
@@ -70,7 +70,7 @@ export const EntregadoresMainTableHeader = React.memo(function EntregadoresMainT
                 <HeaderCell label="% Aceitas" field="percentual_aceitas" />
                 <HeaderCell label="Completadas" field="corridas_completadas" align="right" />
                 <HeaderCell label="% Completadas" field="percentual_completadas" />
-                <HeaderCell label="Aderencia" field="aderencia_percentual" />
+                <HeaderCell label="Aderência" field="aderencia_percentual" />
             </div>
         </div>
     );

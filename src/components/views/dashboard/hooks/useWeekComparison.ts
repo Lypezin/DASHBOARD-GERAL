@@ -76,10 +76,10 @@ export function useWeekComparison({ aderenciaSemanal, filters, currentUser }: Us
                     const calcAderencia = (dados: any[]) => dados?.[0]?.aderencia_percentual || 0;
 
                     setMetrics([
-                        { label: 'Aderencia', current: calcAderencia(currData.aderencia_semanal), previous: calcAderencia(prevData.aderencia_semanal), format: 'percent' },
+                        { label: 'Ader\u00eancia', current: calcAderencia(currData.aderencia_semanal), previous: calcAderencia(prevData.aderencia_semanal), format: 'percent' },
                         { label: 'Completadas', current: currData.total_completadas || 0, previous: prevData.total_completadas || 0, format: 'number' },
                         { label: 'Ofertadas', current: currData.total_ofertadas || 0, previous: prevData.total_ofertadas || 0, format: 'number' },
-                        { label: 'Taxa Aceitacao', current: calcTaxa(currData.total_ofertadas || 0, currData.total_aceitas || 0), previous: calcTaxa(prevData.total_ofertadas || 0, prevData.total_aceitas || 0), format: 'percent' }
+                        { label: 'Taxa Aceita\u00e7\u00e3o', current: calcTaxa(currData.total_ofertadas || 0, currData.total_aceitas || 0), previous: calcTaxa(prevData.total_ofertadas || 0, prevData.total_aceitas || 0), format: 'percent' }
                     ]);
                     setCurrentWeekLabel(weeksToCompare.currentLabel);
                     setPreviousWeekLabel(weeksToCompare.previousLabel);

@@ -15,7 +15,7 @@ export const ComparacaoDailyOverview: React.FC<Props> = ({ data, state, actions,
     <>
         <Section show={sv.aderencia_dia}>
             <ComparacaoSection
-                title="Aderencia por dia"
+                title="Aderência por dia"
                 icon={<Calendar className="h-5 w-5" />}
                 description=""
                 type="dia"

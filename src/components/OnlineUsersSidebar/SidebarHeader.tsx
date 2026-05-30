@@ -20,7 +20,7 @@ export function SidebarHeader({
   myCustomStatus, setMyCustomStatus, onStatusSubmit, onClose,
 }: SidebarHeaderProps) {
   return (
-    <div className="select-none rounded-tl-[2rem] border-b border-slate-200/80 bg-white/92 p-4 dark:border-slate-800/80 dark:bg-slate-950/90">
+    <div className="select-none rounded-tl-[2rem] border-b border-slate-200/80 bg-white/90 p-4 dark:border-slate-800/80 dark:bg-slate-950/90">
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3 overflow-hidden">
           <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-[0_18px_34px_-22px_rgba(37,99,235,0.8)]">
@@ -58,7 +58,7 @@ export function SidebarHeader({
         <div className="mt-4 space-y-3.5 animate-in fade-in-50 duration-200">
           <div className="grid grid-cols-3 gap-2.5">
             <CounterTile label="Online" value={onlineCount} />
-            <CounterTile label="Disponíveis" value={availableCount} />
+            <CounterTile label={'Dispon\u00edveis'} value={availableCount} />
             <CounterTile label="Mensagens" value={unreadCount} icon={BellRing} />
           </div>
 
@@ -80,7 +80,7 @@ export function SidebarHeader({
             <Coffee size={14} className="shrink-0 text-slate-400" />
             <input
               type="text"
-              placeholder="Seu status rápido"
+              placeholder={'Seu status r\u00e1pido'}
               value={myCustomStatus}
               onChange={(e) => setMyCustomStatus(e.target.value)}
               className="w-full bg-transparent text-xs font-semibold text-slate-900 placeholder:text-slate-400 focus:outline-none dark:text-slate-100 dark:placeholder:text-slate-500"

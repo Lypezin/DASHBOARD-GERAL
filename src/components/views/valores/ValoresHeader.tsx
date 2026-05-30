@@ -12,7 +12,7 @@ export const ValoresHeader = React.memo(function ValoresHeader({
     onExport,
 }: ValoresHeaderProps) {
     return (
-        <div className="flex flex-col gap-4 rounded-3xl border border-slate-200/70 bg-white/88 p-5 shadow-[0_16px_42px_-36px_rgba(15,23,42,0.52)] dark:border-slate-800/70 dark:bg-slate-900/82 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex flex-col gap-4 rounded-3xl border border-slate-200/70 bg-white/90 p-5 shadow-[0_16px_42px_-36px_rgba(15,23,42,0.52)] dark:border-slate-800/70 dark:bg-slate-900/80 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-3">
                 <div className="h-9 w-1.5 rounded-full bg-gradient-to-b from-emerald-500 to-teal-600 shadow-sm" />
                 <div>

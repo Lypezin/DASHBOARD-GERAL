@@ -44,10 +44,10 @@ export const EntradaSaidaChart: React.FC<EntradaSaidaChartProps> = ({ data }) =>
                     <div>
                         <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-800 dark:text-slate-100">
                             <BarChart3 className="h-5 w-5 text-sky-500" />
-                            Evolucao Semanal
+                            Evolução semanal
                         </CardTitle>
                         <CardDescription className="mt-1 text-slate-500">
-                            Comparativo de entradas e saidas por semana
+                            Comparativo de entradas e saídas por semana
                         </CardDescription>
                     </div>
                 </div>

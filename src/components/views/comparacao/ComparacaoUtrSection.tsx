@@ -30,7 +30,7 @@ export const ComparacaoUtrSection: React.FC<ComparacaoUtrSectionProps> = ({
         return (
             <div className="flex items-center gap-3 rounded-[1.6rem] border border-amber-200/80 bg-amber-50/90 p-4 shadow-[0_18px_40px_-34px_rgba(217,119,6,0.35)] dark:border-amber-900/50 dark:bg-amber-950/20">
                 <AlertTriangle className="h-4 w-4 flex-shrink-0 text-amber-500" />
-                <p className="text-sm text-amber-700 dark:text-amber-300">UTR nao disponivel para as semanas selecionadas.</p>
+                <p className="text-sm text-amber-700 dark:text-amber-300">UTR não disponível para as semanas selecionadas.</p>
             </div>
         );
     }
@@ -45,7 +45,7 @@ export const ComparacaoUtrSection: React.FC<ComparacaoUtrSectionProps> = ({
                     <TableHeader>
                         <TableRow className="bg-slate-50/80 hover:bg-transparent dark:bg-slate-900/55">
                             <TableHead className="pl-6 text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">
-                                Metrica
+                                Métrica
                             </TableHead>
                             {semanasSelecionadas.map((semana) => (
                                 <TableHead key={semana} className="border-l border-slate-100 text-center text-[11px] font-medium uppercase tracking-[0.18em] text-slate-400 dark:border-slate-800 dark:text-slate-500">

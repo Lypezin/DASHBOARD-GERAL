@@ -19,8 +19,8 @@ export const UtrHeader = React.memo(function UtrHeader({
         <SaasPanel>
             <SaasPanelHeader
                 eyebrow="UTR"
-                title="Utilizacao de Recursos"
-                description="Analise detalhada de performance UTR com recortes operacionais."
+                title="Utilização de Recursos"
+                description="Análise detalhada de performance UTR com recortes operacionais."
                 icon={Activity}
                 tone="amber"
                 actions={(
@@ -37,7 +37,7 @@ export const UtrHeader = React.memo(function UtrHeader({
             />
 
             <div className="grid gap-3 border-t border-slate-200/70 bg-slate-50/60 px-4 py-3 dark:border-slate-800/80 dark:bg-slate-900/30 sm:grid-cols-2 lg:px-5">
-                <SaasMetric icon={Layers3} label="Secoes ativas" value={totalSections.toLocaleString('pt-BR')} tone="amber" />
+                <SaasMetric icon={Layers3} label="Seções ativas" value={totalSections.toLocaleString('pt-BR')} tone="amber" />
                 <SaasMetric label="Recortes exibidos" value={totalSlices.toLocaleString('pt-BR')} />
             </div>
         </SaasPanel>

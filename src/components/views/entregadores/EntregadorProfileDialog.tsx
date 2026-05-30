@@ -136,7 +136,7 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
 
     const metrics = [
         { label: 'Horas online', value: formatarHorasParaHMS((entregador.total_segundos || 0) / 3600), icon: Clock, color: 'text-blue-600' },
-        { label: 'Aderencia', value: `${entregador.aderencia_percentual.toFixed(1)}%`, icon: Target, color: 'text-emerald-600' },
+        { label: 'Ader\u00eancia', value: `${entregador.aderencia_percentual.toFixed(1)}%`, icon: Target, color: 'text-emerald-600' },
         { label: 'Completadas', value: entregador.corridas_completadas.toLocaleString('pt-BR'), icon: Activity, color: 'text-sky-600' },
         { label: 'Ofertadas', value: entregador.corridas_ofertadas.toLocaleString('pt-BR'), icon: Hash, color: 'text-slate-600' },
     ];
@@ -144,7 +144,7 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className={cn(
-                'subtle-scrollbar max-h-[88vh] overflow-y-auto rounded-[1.9rem] border border-slate-200/80 bg-white/96 shadow-[0_26px_80px_-48px_rgba(15,23,42,0.48)] dark:border-slate-800/80 dark:bg-slate-950/94',
+                'subtle-scrollbar max-h-[88vh] overflow-y-auto rounded-[1.9rem] border border-slate-200/80 bg-white/95 shadow-[0_26px_80px_-48px_rgba(15,23,42,0.48)] dark:border-slate-800/80 dark:bg-slate-950/95',
                 isDedicado ? 'max-w-5xl' : 'max-w-xl'
             )}>
                 <DialogHeader className="border-b border-slate-100 pb-4 dark:border-slate-800">
@@ -192,8 +192,8 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
                                     <span className="text-right">Ofertadas</span>
                                     <span className="text-right">Aceitas</span>
                                     <span className="text-right">Rejeitadas</span>
-                                    <span className="text-right">Concluidas</span>
-                                    <span className="text-right">Aderencia</span>
+                                    <span className="text-right">Concluídas</span>
+                                    <span className="text-right">Aderência</span>
                                 </div>
                                 <div className="divide-y divide-slate-100 dark:divide-slate-800">
                                     {origemBreakdown.map((row) => (
@@ -230,7 +230,7 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
                         </div>
 
                         <div>
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Historico recente</p>
+                            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Histórico recente</p>
                             {detail?.history && detail.history.length > 0 ? (
                                 <div className="subtle-scrollbar max-h-44 space-y-1.5 overflow-y-auto rounded-2xl border border-slate-200/70 bg-slate-50/70 p-3 dark:border-slate-800/70 dark:bg-slate-900/70">
                                     {detail.history.map((historyItem) => (

@@ -36,12 +36,12 @@ export const DashboardDailyPerformance = React.memo(function DashboardDailyPerfo
         <SaasPanel>
             <SaasPanelHeader
                 eyebrow="Semana operacional"
-                title="Leitura diaria consolidada"
-                description="Acompanhe aderencia, horas realizadas, meta e corridas por dia sem duplicidade de indicadores."
+                title="Leitura diária consolidada"
+                description="Acompanhe aderência, horas realizadas, meta e corridas por dia sem duplicidade de indicadores."
                 icon={CalendarDays}
                 actions={(
                     <div className="grid min-w-[280px] grid-cols-2 gap-2">
-                        <SaasMetric label="Media" value={`${media.toFixed(1)}%`} />
+                        <SaasMetric label="Média" value={`${media.toFixed(1)}%`} />
                         <SaasMetric
                             label={`Melhor: ${resumo.melhor.label.substring(0, 3)}`}
                             value={`${resumo.melhor.valor.toFixed(1)}%`}

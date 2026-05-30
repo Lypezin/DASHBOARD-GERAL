@@ -39,7 +39,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
     }, [sortedEntregadores, currentPage]);
 
     return (
-        <Card className="overflow-hidden border-slate-200/70 bg-white/92 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/86">
+        <Card className="overflow-hidden border-slate-200/70 bg-white/90 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/90">
             <EntregadoresMainTableHeaderCard />
 
             <CardContent className="p-0">
@@ -67,7 +67,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                                     <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                                         {searchTerm
                                             ? `Nenhum entregador encontrado com o termo "${searchTerm}"`
-                                            : 'Nenhum entregador disponível'}
+                                            : 'Nenhum entregador dispon\u00edvel'}
                                     </p>
                                     <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                                         Ajuste os filtros ou refine a busca para localizar registros.

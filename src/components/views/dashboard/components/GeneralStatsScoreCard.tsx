@@ -20,7 +20,7 @@ export const GeneralStatsScoreCard: React.FC<GeneralStatsScoreCardProps> = ({ pe
     const isHighPerf = percentual >= 90;
     const isMidPerf = percentual >= 70;
     const displayColor = progressColor || (isHighPerf ? '#10B981' : isMidPerf ? '#3B82F6' : '#EF4444');
-    const statusLabel = isHighPerf ? 'Saudavel' : isMidPerf ? 'Em atencao' : 'Critico';
+    const statusLabel = isHighPerf ? 'Saudável' : isMidPerf ? 'Em atenção' : 'Crítico';
     const StatusIcon = isHighPerf ? CheckCircle2 : isMidPerf ? TrendingUp : AlertTriangle;
     const statusClass = isHighPerf
         ? 'bg-emerald-50 text-emerald-700 ring-emerald-200/70 dark:bg-emerald-950/30 dark:text-emerald-300 dark:ring-emerald-900/50'
@@ -36,7 +36,7 @@ export const GeneralStatsScoreCard: React.FC<GeneralStatsScoreCardProps> = ({ pe
                 <div className="flex w-full items-start justify-between gap-4">
                     <div className="flex min-w-0 flex-col gap-1">
                         <div className="flex items-center gap-1.5">
-                            <h3 className="text-base font-semibold text-slate-950 dark:text-slate-50">Aderencia Geral</h3>
+                            <h3 className="text-base font-semibold text-slate-950 dark:text-slate-50">Aderência Geral</h3>
                             <Tooltip>
                                 <TooltipTrigger asChild>
                                     <button className="rounded-full text-slate-400 transition-colors hover:text-blue-600 focus:outline-none dark:text-slate-500 dark:hover:text-blue-400">
@@ -44,7 +44,7 @@ export const GeneralStatsScoreCard: React.FC<GeneralStatsScoreCardProps> = ({ pe
                                     </button>
                                 </TooltipTrigger>
                                 <TooltipContent className="max-w-[240px] border border-border text-xs">
-                                    <p>Indice percentual entre horas entregues e horas planejadas.</p>
+                                    <p>Índice percentual entre horas entregues e horas planejadas.</p>
                                 </TooltipContent>
                             </Tooltip>
                         </div>

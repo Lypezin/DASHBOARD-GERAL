@@ -32,7 +32,7 @@ export const EntradaSaidaStatsCards: React.FC<{ data: any[] }> = ({ data }) => {
         {
             title: 'Entradas',
             value: totals.entradas_total,
-            subtitle: 'Total no periodo',
+            subtitle: 'Total no per\u00edodo',
             icon: <ArrowUpRight className="h-5 w-5" />,
             colorTheme: 'emerald' as const,
             breakdown: [
@@ -72,9 +72,9 @@ export const EntradaSaidaStatsCards: React.FC<{ data: any[] }> = ({ data }) => {
             ],
         },
         {
-            title: 'Saidas',
+            title: 'Sa\u00eddas',
             value: totals.saidas_total,
-            subtitle: 'Total no periodo',
+            subtitle: 'Total no per\u00edodo',
             icon: <ArrowDownRight className="h-5 w-5" />,
             colorTheme: 'rose' as const,
             breakdown: [
@@ -98,7 +98,7 @@ export const EntradaSaidaStatsCards: React.FC<{ data: any[] }> = ({ data }) => {
         {
             title: 'Saldo Novos',
             value: `${saldo_total > 0 ? '+' : ''}${saldo_total}`,
-            subtitle: 'Entradas - Saidas',
+            subtitle: 'Entradas - Sa\u00eddas',
             icon: saldo_total >= 0 ? <TrendingUp className="h-5 w-5" /> : <TrendingDown className="h-5 w-5" />,
             colorTheme: saldo_total >= 0 ? ('blue' as const) : ('amber' as const),
             breakdown: [
@@ -107,14 +107,14 @@ export const EntradaSaidaStatsCards: React.FC<{ data: any[] }> = ({ data }) => {
             ],
         },
         {
-            title: 'Desistencias',
+            title: 'Desist\u00eancias',
             value: totals.saidas_novos,
-            subtitle: 'Sairam antes de 30 corridas',
+            subtitle: 'Sa\u00edram antes de 30 corridas',
             icon: <UserX className="h-5 w-5" />,
             colorTheme: 'amber' as const,
             breakdown: [
                 {
-                    label: '% das Saidas',
+                    label: '% das Sa\u00eddas',
                     value: `${desistenciaRate}%`,
                     icon: <AlertCircle className="h-3.5 w-3.5 text-amber-500" />,
                 },
@@ -123,12 +123,12 @@ export const EntradaSaidaStatsCards: React.FC<{ data: any[] }> = ({ data }) => {
         {
             title: 'Base Ativa',
             value: base_ativa.toLocaleString('pt-BR'),
-            subtitle: 'Ultima semana',
+            subtitle: '\u00daltima semana',
             icon: <Activity className="h-5 w-5" />,
             colorTheme: variacao_total >= 0 ? ('blue' as const) : ('amber' as const),
             breakdown: [
                 {
-                    label: 'Variacao',
+                    label: 'Varia\u00e7\u00e3o',
                     value: `${variacao_total > 0 ? '+' : ''}${variacao_total}`,
                     icon:
                         variacao_total >= 0 ? (

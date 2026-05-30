@@ -18,7 +18,7 @@ export const ValoresSearch = React.memo(function ValoresSearch({
     onClearSearch,
 }: ValoresSearchProps) {
     return (
-        <Card className="rounded-3xl border border-slate-200/70 bg-white/88 shadow-[0_16px_40px_-36px_rgba(15,23,42,0.48)] dark:border-slate-800/70 dark:bg-slate-900/82">
+        <Card className="rounded-3xl border border-slate-200/70 bg-white/90 shadow-[0_16px_40px_-36px_rgba(15,23,42,0.48)] dark:border-slate-800/70 dark:bg-slate-900/80">
             <CardContent className="p-4">
                 <div className="relative">
                     <Search className="absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />

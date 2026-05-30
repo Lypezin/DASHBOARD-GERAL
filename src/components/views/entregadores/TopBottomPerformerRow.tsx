@@ -6,10 +6,10 @@ import { formatarHorasParaHMS } from '@/utils/formatters';
 export type SortMetric = 'aderencia' | 'completadas' | 'horas' | 'rejeicao';
 
 export const metricLabels: Record<SortMetric, string> = {
-    aderencia: 'Aderencia',
+    aderencia: 'Aderência',
     completadas: 'Completadas',
     horas: 'Horas Online',
-    rejeicao: 'Rejeicao',
+    rejeicao: 'Rejeição',
 };
 
 export function getMetricValue(entregador: Entregador, metric: SortMetric): number {

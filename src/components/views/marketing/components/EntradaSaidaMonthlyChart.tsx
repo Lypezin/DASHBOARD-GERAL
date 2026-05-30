@@ -47,10 +47,10 @@ export const EntradaSaidaMonthlyChart: React.FC<EntradaSaidaMonthlyChartProps> =
                     <div>
                         <CardTitle className="flex items-center gap-2 text-lg font-semibold text-slate-800 dark:text-slate-100">
                             <BarChart3 className="h-5 w-5 text-sky-500" />
-                            Evolucao Mensal
+                            Evolução mensal
                         </CardTitle>
                         <CardDescription className="mt-1 text-slate-500">
-                            Comparativo de entradas e saidas por mes
+                            Comparativo de entradas e saídas por mês
                         </CardDescription>
                     </div>
                 </div>

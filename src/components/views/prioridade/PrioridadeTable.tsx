@@ -23,7 +23,7 @@ export const PrioridadeTable = React.memo<PrioridadeTableProps>(({
     onSort,
 }) => {
     return (
-        <Card className="overflow-hidden rounded-[2rem] border border-slate-200/75 bg-white/90 shadow-[0_18px_46px_-38px_rgba(15,23,42,0.45)] backdrop-blur-sm dark:border-slate-800/75 dark:bg-slate-950/78">
+        <Card className="overflow-hidden rounded-[2rem] border border-slate-200/75 bg-white/90 shadow-[0_18px_46px_-38px_rgba(15,23,42,0.45)] backdrop-blur-sm dark:border-slate-800/75 dark:bg-slate-950/80">
             <div className="flex flex-col justify-between gap-4 border-b border-slate-200/70 px-6 py-5 dark:border-slate-800/60 sm:flex-row sm:items-center">
                 <div className="flex items-center gap-3">
                     <div className="rounded-2xl bg-amber-50 p-2.5 dark:bg-amber-950/30">

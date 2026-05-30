@@ -35,7 +35,7 @@ function ChatHeaderComponent({ activeChatUser, currentUser, onClose }: ChatHeade
           </Avatar>
         </div>
         <div className="leading-tight flex flex-col">
-          <span className="block max-w-[180px] truncate font-outfit text-sm font-black text-slate-950 dark:text-white" title={activeChatUser.name}>
+          <span className="block max-w-[180px] truncate font-outfit text-sm font-black text-slate-950 dark:text-white" title={activeChatUser.name || undefined}>
             {activeChatUser.name}
           </span>
           <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">

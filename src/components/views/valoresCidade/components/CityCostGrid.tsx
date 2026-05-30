@@ -17,7 +17,7 @@ export const CityCostGrid: React.FC<CityCostGridProps> = ({ cidadesData }) => {
                         Custo por Liberado por Cidade
                     </h3>
                     <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                        Eficiencia de investimento por praca
+                        Eficiência de investimento por praça
                     </p>
                 </div>
             </div>
@@ -28,7 +28,7 @@ export const CityCostGrid: React.FC<CityCostGridProps> = ({ cidadesData }) => {
                         <BarChart3 className="h-full w-full" />
                     </div>
                     <p className="font-medium text-slate-500 dark:text-slate-400">
-                        Nenhum dado encontrado para o periodo selecionado.
+                        Nenhum dado encontrado para o período selecionado.
                     </p>
                 </div>
             ) : (

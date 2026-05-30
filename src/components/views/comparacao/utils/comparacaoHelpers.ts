@@ -13,10 +13,10 @@ export const COMPARACAO_METRICS: MetricConfig[] = [
     { label: 'Corridas aceitas', key: 'corridas_aceitas', color: 'text-emerald-600 dark:text-emerald-400' },
     { label: 'Corridas rejeitadas', key: 'corridas_rejeitadas', color: 'text-rose-600 dark:text-rose-400' },
     { label: 'Corridas completadas', key: 'corridas_completadas', color: 'text-sky-600 dark:text-sky-300' },
-    { label: 'Taxa de aceitacao', key: 'taxa_aceitacao', color: 'text-blue-600 dark:text-blue-400', isPercent: true },
+    { label: 'Taxa de aceitação', key: 'taxa_aceitacao', color: 'text-blue-600 dark:text-blue-400', isPercent: true },
     { label: 'Horas planejadas', key: 'horas_a_entregar', color: 'text-amber-600 dark:text-amber-400', isTime: true },
     { label: 'Horas entregues', key: 'horas_entregues', color: 'text-teal-600 dark:text-teal-400', isTime: true },
-    { label: 'Aderencia', key: 'aderencia_percentual', color: 'text-slate-900 dark:text-white font-bold', isPercent: true }
+    { label: 'Aderência', key: 'aderencia_percentual', color: 'text-slate-900 dark:text-white font-bold', isPercent: true }
 ];
 
 export function getRawValue(dayData: AderenciaDia | undefined, metricKey: string): number | string {

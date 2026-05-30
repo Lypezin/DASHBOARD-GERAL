@@ -47,12 +47,12 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
     const periodLabel =
         presentationFilters.dataInicial || presentationFilters.dataFinal
             ? `${formatDate(presentationFilters.dataInicial) || '...'} - ${formatDate(presentationFilters.dataFinal) || '...'} `
-            : 'Todo o periodo';
+            : 'Todo o per\u00edodo';
 
     const handleOpenPresentation = () => {
         if (!isMarketing) {
             toast.error('Acesso restrito', {
-                description: 'Apenas usuarios do Marketing podem acessar esta apresentacao.',
+                description: 'Apenas usu\u00e1rios do Marketing podem acessar esta apresenta\u00e7\u00e3o.',
             });
             return;
         }

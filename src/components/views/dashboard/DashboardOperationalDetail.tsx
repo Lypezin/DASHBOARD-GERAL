@@ -16,7 +16,7 @@ interface Props {
 const viewLabels: Record<ViewMode, string> = {
     dia: 'Dia',
     turno: 'Turno',
-    sub_praca: 'Sub Praca',
+    sub_praca: 'Sub Praça',
     origem: 'Origem',
     ranking: 'Ranking',
 };
@@ -82,8 +82,8 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
         <SaasPanel>
             <SaasPanelHeader
                 eyebrow="Quebra selecionada"
-                title={`Visao por ${viewLabels[viewMode]}`}
-                description={viewMode !== 'ranking' ? `${dataToRender.length} recortes analisados para investigar desvios operacionais.` : 'Ranking comparativo por sub-praca.'}
+                title={`Visão por ${viewLabels[viewMode]}`}
+                description={viewMode !== 'ranking' ? `${dataToRender.length} recortes analisados para investigar desvios operacionais.` : 'Ranking comparativo por sub-praça.'}
                 icon={Layers3}
                 tone="emerald"
                 actions={<OperationalViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />}
@@ -91,8 +91,8 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
 
             {viewMode !== 'ranking' && dataToRender.length > 0 && (
                 <div className="grid gap-3 border-b border-slate-200/70 bg-slate-50/60 px-4 py-3 dark:border-slate-800/80 dark:bg-slate-900/30 sm:grid-cols-3 lg:px-5">
-                    <SaasMetric icon={Target} label="Media do recorte" value={`${detailSummary.media.toFixed(1)}%`} />
-                    <SaasMetric label="Melhor aderencia" value={`${detailSummary.melhor?.aderencia.toFixed(1) || '0.0'}%`} tone="emerald" />
+                    <SaasMetric icon={Target} label="Média do recorte" value={`${detailSummary.media.toFixed(1)}%`} />
+                    <SaasMetric label="Melhor aderência" value={`${detailSummary.melhor?.aderencia.toFixed(1) || '0.0'}%`} tone="emerald" />
                     <SaasMetric label="Melhor grupo" value={detailSummary.melhor?.label || 'N/A'} truncate />
                 </div>
             )}
@@ -103,14 +103,14 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
                         <div className="grid grid-cols-1 gap-4 animate-fade-in lg:grid-cols-2">
                             <BenchmarkPracas subPracas={aderenciaSubPraca} />
                         </div>
-                    ) : <EmptyState text="Nenhum dado de ranking disponivel" />
+                    ) : <EmptyState text="Nenhum dado de ranking disponível" />
                 ) : dataToRender.length > 0 ? (
                     <div key={viewMode} className="grid grid-cols-1 gap-3 animate-fade-in lg:grid-cols-2 2xl:grid-cols-3">
                         {dataToRender.map((item, index) => (
                             <OperationalDetailCard key={`${viewMode}-${index}`} data={item} index={index} />
                         ))}
                     </div>
-                ) : <EmptyState text="Nenhum dado disponivel" sub="Ajuste os filtros para visualizar os dados" />}
+                ) : <EmptyState text="Nenhum dado disponível" sub="Ajuste os filtros para visualizar os dados" />}
             </div>
         </SaasPanel>
     );

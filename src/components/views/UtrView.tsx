@@ -44,7 +44,7 @@ const UtrView = React.memo(function UtrView({
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-900">
             <Activity className="h-5 w-5 text-slate-400" />
           </div>
-          <p className="text-base font-bold text-slate-950 dark:text-slate-50">Nenhum dado disponivel</p>
+          <p className="text-base font-bold text-slate-950 dark:text-slate-50">Nenhum dado disponível</p>
           <p className="mx-auto mt-1.5 max-w-sm text-xs text-slate-500 dark:text-slate-400">
             Aguarde o carregamento ou ajuste os filtros para visualizar a leitura operacional de UTR.
           </p>

@@ -43,7 +43,7 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
                     {data.length === 0 ? (
                         <TableRow>
                             <TableCell colSpan={16} className="h-24 text-center">
-                                Nenhum dado encontrado para o periodo selecionado.
+                                Nenhum dado encontrado para o período selecionado.
                             </TableCell>
                         </TableRow>
                     ) : (

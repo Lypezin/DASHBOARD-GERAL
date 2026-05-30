@@ -74,7 +74,7 @@ export async function exportarUtrParaExcel(utrData: UtrData): Promise<void> {
         // Download
         XLSX.writeFile(wb, nomeArquivo);
 
-        if (IS_DEV) safeLog.info(`✅ UTR exportada: ${nomeArquivo}`);
+        if (IS_DEV) safeLog.info(`UTR exportada: ${nomeArquivo}`);
 
     } catch (error) {
         safeLog.error('Erro ao exportar UTR:', error);

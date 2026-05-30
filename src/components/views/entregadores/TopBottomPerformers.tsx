@@ -35,7 +35,7 @@ export const TopBottomPerformers = React.memo(function TopBottomPerformers({
     if (entregadores.length < 5) return null;
 
     return (
-        <div className="space-y-4 rounded-[1.75rem] border border-slate-200/70 bg-white/88 p-5 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/82">
+        <div className="space-y-4 rounded-[1.75rem] border border-slate-200/70 bg-white/90 p-5 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/80">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                     <p className="text-lg font-black tracking-tight text-slate-950 dark:text-white">

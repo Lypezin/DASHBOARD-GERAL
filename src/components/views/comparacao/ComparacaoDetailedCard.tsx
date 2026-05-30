@@ -22,7 +22,7 @@ export const ComparacaoDetailedCard: React.FC<ComparacaoDetailedCardProps> = ({
         <SaasPanel>
             <SaasPanelHeader
                 eyebrow="Detalhamento"
-                title="Analise Detalhada"
+                title="Análise detalhada"
                 description="Comparativo consolidado entre as semanas selecionadas."
                 icon={BarChart3}
                 actions={<ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />}
