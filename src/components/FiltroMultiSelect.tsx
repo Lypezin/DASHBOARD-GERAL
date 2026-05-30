@@ -33,6 +33,17 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
     onSelectionChange(newSelected);
   };
 
+  const isWeekFilter = label.toLowerCase().includes('semana');
+  const selectedLabels = selected
+    .map((item) => options.find((option) => option.value === item)?.label || item)
+    .map((item) => isWeekFilter ? item.replace(/^Semana\s*/i, '') : item);
+
+  const selectedDisplay = isWeekFilter
+    ? selectedLabels.length <= 2
+      ? `Sem ${selectedLabels.join(', ')}`
+      : `Sem ${selectedLabels.slice(0, 2).join(', ')} +${selectedLabels.length - 2}`
+    : `${selected.length} selecionado(s)`;
+
   return (
     <div className="group relative flex min-w-0 flex-col gap-1" ref={wrapperRef}>
       <span className="truncate pl-1 text-[11px] font-semibold text-slate-400">
@@ -51,9 +62,11 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
             "disabled:cursor-not-allowed disabled:opacity-50"
           )}
         >
-          <span className="block truncate">
+          <span className={cn("block", isWeekFilter ? "whitespace-nowrap pr-1 font-mono text-[13px] tabular-nums" : "truncate")}>
             {selected.length > 0 ? (
-              <span className="font-semibold text-blue-700 dark:text-blue-300">{selected.length} selecionado(s)</span>
+              <span className="font-semibold text-blue-700 dark:text-blue-300" title={selectedLabels.join(', ')}>
+                {selectedDisplay}
+              </span>
             ) : (
               <span className="font-normal text-slate-400">{placeholder}</span>
             )}

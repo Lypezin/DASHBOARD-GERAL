@@ -71,26 +71,28 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
                 placeholder="Todos"
                 onChange={(value) => handleChange('ano', value)}
             />
-            <FiltroMultiSelect
-                label="Semana"
-                selected={selectedWeeks}
-                options={semanasOptions}
-                placeholder="Todas"
-                onSelectionChange={(values) => {
-                    setFilters(prev => {
-                        const semanas = values
-                            .map((value) => parseInt(value, 10))
-                            .filter((value) => Number.isFinite(value))
-                            .sort((a, b) => a - b);
+            <div className="min-w-[140px]">
+                <FiltroMultiSelect
+                    label="Semana"
+                    selected={selectedWeeks}
+                    options={semanasOptions}
+                    placeholder="Todas"
+                    onSelectionChange={(values) => {
+                        setFilters(prev => {
+                            const semanas = values
+                                .map((value) => parseInt(value, 10))
+                                .filter((value) => Number.isFinite(value))
+                                .sort((a, b) => a - b);
 
-                        return {
-                            ...prev,
-                            semana: semanas.length === 1 ? semanas[0] : null,
-                            semanas
-                        };
-                    });
-                }}
-            />
+                            return {
+                                ...prev,
+                                semana: semanas.length === 1 ? semanas[0] : null,
+                                semanas
+                            };
+                        });
+                    }}
+                />
+            </div>
         </>
     );
 };

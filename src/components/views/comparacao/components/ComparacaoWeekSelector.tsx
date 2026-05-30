@@ -21,18 +21,32 @@ export const ComparacaoWeekSelector: React.FC<ComparacaoWeekSelectorProps> = ({
     semanasSelecionadas,
     onToggleSemana
 }) => {
+    const selectedWeekLabels = semanasSelecionadas.map((semana) => {
+        const semanaStr = String(semana);
+        return semanaStr.includes('W')
+            ? (semanaStr.match(/W(\d+)/)?.[1] || semanaStr)
+            : semanaStr;
+    });
+
+    const triggerLabel = selectedWeekLabels.length > 0
+        ? selectedWeekLabels.length <= 2
+            ? `Sem ${selectedWeekLabels.join(', ')}`
+            : `Sem ${selectedWeekLabels.slice(0, 2).join(', ')} +${selectedWeekLabels.length - 2}`
+        : 'Adicionar semanas';
+
     return (
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button
                         variant="outline"
-                        className="h-11 min-w-[220px] justify-between rounded-xl border-slate-200/80 bg-white/90 px-5 shadow-sm transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-sky-300 hover:bg-white dark:border-slate-800/80 dark:bg-slate-950 dark:hover:border-sky-500/40 dark:hover:bg-slate-900"
+                        className="h-11 min-w-[250px] justify-between rounded-xl border-slate-200/80 bg-white/90 px-5 shadow-sm transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-sky-300 hover:bg-white dark:border-slate-800/80 dark:bg-slate-950 dark:hover:border-sky-500/40 dark:hover:bg-slate-900"
                     >
-                        <span className="truncate text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
-                            {semanasSelecionadas.length > 0
-                                ? `Semanas (+${semanasSelecionadas.length})`
-                                : 'Adicionar semanas'}
+                        <span
+                            className="whitespace-nowrap font-mono text-[13px] font-bold uppercase tracking-[0.12em] text-slate-500 tabular-nums dark:text-slate-400"
+                            title={selectedWeekLabels.length > 0 ? selectedWeekLabels.join(', ') : undefined}
+                        >
+                            {triggerLabel}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 text-slate-400" />
                     </Button>
