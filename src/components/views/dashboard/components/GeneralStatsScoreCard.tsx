@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { CircularProgress } from '@/components/ui/circular-progress';
-import { Info, TrendingUp } from 'lucide-react';
+import { Info, TrendingUp, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import {
     Tooltip,
     TooltipContent,
@@ -17,52 +17,52 @@ interface GeneralStatsScoreCardProps {
 export const GeneralStatsScoreCard: React.FC<GeneralStatsScoreCardProps> = ({ percentual, progressColor }) => {
     const { theme } = useTheme();
 
-    // Determinar cor e gradientes com base na performance real
     const isHighPerf = percentual >= 90;
     const isMidPerf = percentual >= 70;
-    
-    const displayColor = isHighPerf ? '#10B981' : isMidPerf ? '#3B82F6' : '#EF4444';
+    const displayColor = progressColor || (isHighPerf ? '#10B981' : isMidPerf ? '#3B82F6' : '#EF4444');
+    const statusLabel = isHighPerf ? 'Saudavel' : isMidPerf ? 'Em atencao' : 'Critico';
+    const StatusIcon = isHighPerf ? CheckCircle2 : isMidPerf ? TrendingUp : AlertTriangle;
+    const statusClass = isHighPerf
+        ? 'bg-emerald-50 text-emerald-700 ring-emerald-200/70 dark:bg-emerald-950/30 dark:text-emerald-300 dark:ring-emerald-900/50'
+        : isMidPerf
+        ? 'bg-blue-50 text-blue-700 ring-blue-200/70 dark:bg-blue-950/30 dark:text-blue-300 dark:ring-blue-900/50'
+        : 'bg-rose-50 text-rose-700 ring-rose-200/70 dark:bg-rose-950/30 dark:text-rose-300 dark:ring-rose-900/50';
 
     return (
-        <Card className="group relative overflow-hidden border border-border bg-card shadow-[0_1px_3px_rgba(0,0,0,0.02)] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_8px_16px_rgba(0,0,0,0.04)] dark:hover:shadow-[0_8px_24px_rgba(0,0,0,0.2)] lg:col-span-4">
-            {/* Efeito de brilho de fundo muito discreto na cor de status */}
-            <div
-                className="pointer-events-none absolute right-0 top-0 h-48 w-48 -translate-y-1/2 translate-x-1/4 rounded-full opacity-[0.06] blur-3xl transition-opacity duration-300 group-hover:opacity-[0.10] dark:opacity-[0.04]"
-                style={{ backgroundImage: `radial-gradient(circle, ${displayColor} 0%, transparent 70%)` }}
-            />
+        <Card className="group relative overflow-hidden rounded-xl border-slate-200/80 bg-white/95 shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md dark:border-slate-800/80 dark:bg-slate-900/85 lg:col-span-4">
+            <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: displayColor }} />
 
-            <CardContent className="relative z-10 flex h-full flex-col justify-between p-6">
-                {/* Topo do Card */}
-                <div className="mb-6 flex w-full items-start justify-between gap-4">
-                    <div className="flex min-w-0 flex-col gap-0.5">
+            <CardContent className="flex h-full min-h-[230px] flex-col justify-between gap-5 p-5 sm:p-6">
+                <div className="flex w-full items-start justify-between gap-4">
+                    <div className="flex min-w-0 flex-col gap-1">
                         <div className="flex items-center gap-1.5">
-                            <h3 className="text-base font-bold text-foreground font-outfit">Aderência Geral</h3>
+                            <h3 className="text-base font-semibold text-slate-950 dark:text-slate-50">Aderencia Geral</h3>
                             <Tooltip>
                                 <TooltipTrigger asChild>
-                                    <button className="rounded-full text-muted-foreground/60 transition-colors hover:text-primary focus:outline-none">
+                                    <button className="rounded-full text-slate-400 transition-colors hover:text-blue-600 focus:outline-none dark:text-slate-500 dark:hover:text-blue-400">
                                         <Info className="h-3.5 w-3.5" />
                                     </button>
                                 </TooltipTrigger>
-                                <TooltipContent className="max-w-[220px] font-bold border border-border">
-                                    <p>Índice de eficiência operacional. Relação percentual entre horas entregues e planejadas.</p>
+                                <TooltipContent className="max-w-[240px] border border-border text-xs">
+                                    <p>Indice percentual entre horas entregues e horas planejadas.</p>
                                 </TooltipContent>
                             </Tooltip>
                         </div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground/75">
+                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
                             Desempenho consolidado
                         </p>
                     </div>
-                    <div className="flex shrink-0 items-center justify-center rounded-xl border border-border bg-muted/30 p-2.5 shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-colors duration-200 group-hover:border-border/80">
-                        <TrendingUp className="h-4.5 w-4.5" style={{ color: displayColor }} />
+                    <div className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${statusClass}`}>
+                        <StatusIcon className="h-3.5 w-3.5" />
+                        {statusLabel}
                     </div>
                 </div>
 
-                {/* Gráfico circular de progresso fino e elegante */}
-                <div className="relative flex flex-1 items-center justify-center py-2">
+                <div className="flex flex-1 items-center justify-center">
                     <CircularProgress
                         value={percentual}
-                        size={130}
-                        strokeWidth={9}
+                        size={148}
+                        strokeWidth={10}
                         color={displayColor}
                         backgroundColor={theme === 'dark' ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.035)"}
                         showLabel={true}

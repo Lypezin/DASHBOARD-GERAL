@@ -15,7 +15,7 @@ export const DashboardDailyPerformance = React.memo(function DashboardDailyPerfo
     if (aderenciaDiaOrdenada.length === 0) return null;
 
     return (
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7 pt-1">
+        <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-7">
             {aderenciaDiaOrdenada.map((dia, index) => (
                 <DailyPerformanceCard
                     key={`dia-${index}`}

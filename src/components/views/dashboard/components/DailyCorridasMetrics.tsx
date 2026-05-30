@@ -7,20 +7,20 @@ interface DailyCorridasMetricsProps {
 
 export const DailyCorridasMetrics: React.FC<DailyCorridasMetricsProps> = ({ ofertadas, completadas }) => {
   return (
-    <div className="grid grid-cols-2 gap-2.5 w-full mt-3.5 pt-2.5 border-t border-border/40 select-none">
-      <div className="flex flex-col items-center min-w-0">
-        <span className="text-[9px] text-muted-foreground/60 uppercase tracking-wider font-bold truncate w-full block">
+    <div className="mt-3 grid w-full select-none grid-cols-2 gap-2 border-t border-slate-200/70 pt-3 dark:border-slate-800">
+      <div className="flex min-w-0 flex-col">
+        <span className="block w-full truncate text-[10px] font-medium text-slate-400">
           Ofertadas
         </span>
-        <span className="text-xs font-bold text-foreground font-mono mt-0.5">
+        <span className="mt-0.5 font-mono text-xs font-semibold text-slate-900 dark:text-slate-100">
           {ofertadas?.toLocaleString('pt-BR') || 0}
         </span>
       </div>
-      <div className="flex flex-col items-center min-w-0">
-        <span className="text-[9px] text-muted-foreground/60 uppercase tracking-wider font-bold truncate w-full block">
+      <div className="flex min-w-0 flex-col text-right">
+        <span className="block w-full truncate text-[10px] font-medium text-slate-400">
           Completas
         </span>
-        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">
+        <span className="mt-0.5 font-mono text-xs font-semibold text-emerald-600 dark:text-emerald-400">
           {completadas?.toLocaleString('pt-BR') || 0}
         </span>
       </div>

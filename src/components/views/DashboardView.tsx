@@ -4,14 +4,18 @@ import { DashboardDailyPerformance } from './dashboard/DashboardDailyPerformance
 import { DashboardOperationalDetail } from './dashboard/DashboardOperationalDetail';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
 import type {
-  DashboardFilters, CurrentUser, Totals, AderenciaSemanal, AderenciaDia,
-  AderenciaTurno, AderenciaSubPraca, AderenciaOrigem
+  DashboardFilters,
+  CurrentUser,
+  Totals,
+  AderenciaSemanal,
+  AderenciaDia,
+  AderenciaTurno,
+  AderenciaSubPraca,
+  AderenciaOrigem,
 } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 
 const DashboardView = React.memo(function DashboardView({
-  filterPayload,
-  totals,
   aderenciaSemanal,
   aderenciaDia,
   aderenciaTurno,
@@ -31,30 +35,27 @@ const DashboardView = React.memo(function DashboardView({
   const aderenciaGeral = useMemo(() => calculateAderenciaGeral(aderenciaSemanal), [aderenciaSemanal]);
 
   return (
-    <div className="w-full max-w-7xl mx-auto space-y-10 animate-fade-in pb-16 pt-6 px-4 sm:px-6 lg:px-8">
-      {/* Seção 1: Bento Grid de Estatísticas Principais */}
+    <div className="mx-auto w-full max-w-[1500px] space-y-9 px-4 pb-16 pt-5 animate-fade-in sm:px-6 lg:px-8">
       <section className="space-y-4">
         <DashboardSectionHeader
           title="Resumo Operacional"
-          description="Indicadores consolidados de aderência e métricas críticas de entrega."
+          description="Indicadores consolidados de aderencia e metricas criticas de entrega."
         />
         <DashboardGeneralStats aderenciaGeral={aderenciaGeral} aderenciaDia={aderenciaDia} />
       </section>
 
-      {/* Seção 2: Evolução Diária */}
       <section className="space-y-4">
         <DashboardSectionHeader
-          title="Evolução Diária"
-          description="Acompanhamento rápido da aderência por dia no período filtrado."
+          title="Evolucao Diaria"
+          description="Acompanhamento rapido da aderencia por dia no periodo filtrado."
         />
         <DashboardDailyPerformance aderenciaDia={aderenciaDia} />
       </section>
 
-      {/* Seção 3: Detalhamento Operacional */}
       <section className="space-y-4">
         <DashboardSectionHeader
           title="Detalhamento Operacional"
-          description="Quebra por turno, sub-praça, origem e dia para investigar desvios."
+          description="Quebra por turno, sub-praca, origem e dia para investigar desvios."
         />
         <DashboardOperationalDetail
           aderenciaTurno={aderenciaTurno}
@@ -73,11 +74,11 @@ export default DashboardView;
 
 function DashboardSectionHeader({ title, description }: { title: string; description: string }) {
   return (
-    <div className="flex flex-col gap-0.5 px-1">
-      <h2 className="text-lg font-black tracking-tight text-foreground sm:text-xl font-outfit">
+    <div className="flex min-w-0 flex-col gap-1 border-l-2 border-blue-500/70 pl-3">
+      <h2 className="text-xl font-semibold leading-tight text-slate-950 dark:text-slate-50">
         {title}
       </h2>
-      <p className="text-xs font-medium text-muted-foreground sm:text-sm">
+      <p className="max-w-3xl text-sm text-slate-500 dark:text-slate-400">
         {description}
       </p>
     </div>

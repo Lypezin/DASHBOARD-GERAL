@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { AderenciaSemanal, AderenciaDia } from '@/types';
 import { useGeneralStats } from './hooks/useGeneralStats';
@@ -15,15 +14,11 @@ export const DashboardGeneralStats = React.memo(function DashboardGeneralStats({
     aderenciaGeral,
     aderenciaDia,
 }: DashboardGeneralStatsProps) {
-
-    // Calcular gap de performance using custom hook
     const stats = useGeneralStats(aderenciaGeral);
 
-    // Extract sparkline data from aderenciaDia
     const sparklineData = useMemo(() => {
         if (!aderenciaDia || aderenciaDia.length < 2) return { planejado: undefined, entregue: undefined };
 
-        // Use last 8 days max for sparkline
         const days = aderenciaDia.slice(-8);
 
         return {
@@ -35,14 +30,12 @@ export const DashboardGeneralStats = React.memo(function DashboardGeneralStats({
     if (!stats) return null;
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-fade-in">
-            {/* Main Score Card */}
+        <div className="grid grid-cols-1 gap-4 animate-fade-in lg:grid-cols-12">
             <GeneralStatsScoreCard
                 percentual={stats.percentual}
                 progressColor={stats.progressColor}
             />
 
-            {/* Metrics Grid */}
             <GeneralStatsMetrics
                 stats={stats}
                 sparklinePlanejado={sparklineData.planejado}

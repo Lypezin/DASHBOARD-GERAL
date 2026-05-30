@@ -14,11 +14,13 @@ interface GeneralStatsMetricsProps {
     sparklineEntregue?: number[];
 }
 
-export const GeneralStatsMetrics = React.memo(function GeneralStatsMetrics({ stats, sparklinePlanejado, sparklineEntregue }: GeneralStatsMetricsProps) {
+export const GeneralStatsMetrics = React.memo(function GeneralStatsMetrics({
+    stats,
+    sparklinePlanejado,
+    sparklineEntregue,
+}: GeneralStatsMetricsProps) {
     return (
-        <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-6">
-
-            {/* Tempo Planejado */}
+        <div className="grid grid-cols-1 gap-4 lg:col-span-8 md:grid-cols-2">
             <StatisticCard
                 title="Tempo Planejado"
                 value={stats.planejado}
@@ -37,7 +39,6 @@ export const GeneralStatsMetrics = React.memo(function GeneralStatsMetrics({ sta
                 sparklineColor="#3b82f6"
             />
 
-            {/* Tempo Entregue */}
             <StatisticCard
                 title="Tempo Entregue"
                 value={stats.entregue}
@@ -57,7 +58,6 @@ export const GeneralStatsMetrics = React.memo(function GeneralStatsMetrics({ sta
                 sparklineColor="#10b981"
             />
 
-            {/* Gap Indicator */}
             {stats.gap && (
                 <GapIndicatorCard gap={stats.gap} />
             )}
