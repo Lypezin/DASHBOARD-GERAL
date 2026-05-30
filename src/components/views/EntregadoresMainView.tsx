@@ -71,6 +71,9 @@ function resolveEntregadoresDescription(
     const start = formatDateLabel(filterPayload.p_data_inicial);
     const end = formatDateLabel(filterPayload.p_data_final);
     if (start && end) {
+      if (start === '01/01/2020') {
+        return fallback;
+      }
       return `Consolidado de ${start} até ${end}`;
     }
     return 'Consolidado dos anos disponíveis no período carregado';
@@ -132,7 +135,7 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
     return resolveEntregadoresDescription(
       filterPayload,
       entregadoresData?.periodo_resolvido,
-        'Performance e aderência da frota'
+      'Performance e aderência da frota'
     );
   }, [entregadoresData?.periodo_resolvido, filterPayload, isDedicado]);
 

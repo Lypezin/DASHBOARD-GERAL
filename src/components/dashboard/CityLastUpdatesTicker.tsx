@@ -51,7 +51,7 @@ export function CityLastUpdatesTicker() {
                 <span className="text-foreground/90 font-bold whitespace-nowrap font-outfit">
                   {item.city}
                 </span>
-                <span className="text-[10px] font-mono opacity-80 whitespace-nowrap">
+                <span className="text-[10px] font-mono font-extrabold text-emerald-600 dark:text-emerald-400 opacity-100 whitespace-nowrap bg-emerald-500/10 dark:bg-emerald-500/15 px-1.5 py-0.5 rounded shadow-sm">
                   {item.last_update_date
                     ? format(parseISO(item.last_update_date), "dd/MM", { locale: ptBR })
                     : 'N/A'}

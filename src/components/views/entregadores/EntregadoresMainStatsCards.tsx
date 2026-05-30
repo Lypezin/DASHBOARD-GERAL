@@ -96,7 +96,7 @@ export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainSt
                         className="border-slate-200/70 bg-white/90 shadow-sm transition-[border-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-md dark:border-slate-800/70 dark:bg-slate-900/80 dark:hover:border-slate-700"
                     >
                         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-                            <CardTitle className="min-w-0 truncate text-sm font-semibold text-slate-500 dark:text-slate-400" title={card.title}>
+                            <CardTitle className="text-sm font-semibold text-slate-500 dark:text-slate-400 whitespace-normal leading-tight pr-1" title={card.title}>
                                 {card.title}
                             </CardTitle>
                             <span className={`rounded-2xl px-2.5 py-2 ${card.badgeClass}`}>

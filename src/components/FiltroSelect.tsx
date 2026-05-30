@@ -34,7 +34,7 @@ const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange,
 
   return (
     <div className="group relative flex min-w-0 flex-col gap-1" ref={wrapperRef}>
-      <span className="pl-1 text-[11px] font-semibold text-slate-400">
+      <span className="pl-1 text-[11px] font-bold text-slate-600 dark:text-slate-300">
         {label}
       </span>
       <div className="relative">
