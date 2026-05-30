@@ -28,7 +28,7 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
     return (
         <>
             <FiltroSelect
-                label="Praça"
+                label="Praca"
                 value={filters.praca ?? ''}
                 options={pracas}
                 placeholder="Todas"
@@ -36,7 +36,7 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
                 disabled={shouldDisablePracaFilter}
             />
             <FiltroMultiSelect
-                label="Sub praça"
+                label="Sub praca"
                 selected={filters.subPracas || []}
                 options={subPracas}
                 placeholder="Todas"

@@ -13,36 +13,54 @@ export const OperationalDetailMetrics: React.FC<OperationalDetailMetricsProps> =
   horasAEntregar,
   horasEntregues,
   statusColor
-}) => (
-  <div className="grid grid-cols-2 gap-3 pt-1">
-    {/* Bloco Meta */}
-    <div className={cn(
-      "bg-muted/30 dark:bg-muted/10 rounded-lg p-2.5 border border-border/60 backdrop-blur-sm shadow-[0_1px_2px_rgba(0,0,0,0.01)] transition-colors duration-200",
-      "group-hover:bg-muted/40 dark:group-hover:bg-muted/20"
-    )}>
-      <div className="flex items-center gap-1.5 mb-1 text-muted-foreground/80">
-        <Clock className="w-3.5 h-3.5 text-muted-foreground/60" />
-        <span className="text-[10px] uppercase font-bold tracking-wider">Meta</span>
-      </div>
-      <span className="font-mono font-bold text-foreground text-sm block truncate">
-        {formatarHorasParaHMS(horasAEntregar)}
-      </span>
-    </div>
+}) => {
+  const meta = formatarHorasParaHMS(horasAEntregar);
+  const real = formatarHorasParaHMS(horasEntregues);
 
-    {/* Bloco Real */}
-    <div className={cn(
-      "bg-muted/30 dark:bg-muted/10 rounded-lg p-2.5 border border-border/60 backdrop-blur-sm shadow-[0_1px_2px_rgba(0,0,0,0.01)] transition-colors duration-200",
-      "group-hover:bg-muted/40 dark:group-hover:bg-muted/20"
-    )}>
-      <div className="flex items-center gap-1.5 mb-1 text-emerald-600 dark:text-emerald-400">
-        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500/80" />
-        <span className="text-[10px] uppercase font-bold tracking-wider">Real</span>
+  return (
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      <MetricTile
+        icon={Clock}
+        label="Meta"
+        value={meta}
+        title={meta}
+        className="text-slate-600 dark:text-slate-300"
+      />
+      <MetricTile
+        icon={CheckCircle2}
+        label="Real"
+        value={real}
+        title={real}
+        className={statusColor}
+      />
+    </div>
+  );
+};
+
+function MetricTile({
+  icon: Icon,
+  label,
+  value,
+  title,
+  className,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  title: string;
+  className: string;
+}) {
+  return (
+    <div className="min-w-0 rounded-lg border border-slate-200/70 bg-slate-50/70 px-3 py-2.5 transition-colors duration-200 group-hover:bg-white dark:border-slate-800 dark:bg-slate-950/40 dark:group-hover:bg-slate-900/70">
+      <div className="mb-1 flex items-center gap-1.5 text-slate-400">
+        <Icon className="h-3.5 w-3.5" />
+        <span className="text-[11px] font-semibold">{label}</span>
       </div>
-      <span className={cn("font-mono font-bold text-sm block truncate", statusColor)}>
-        {formatarHorasParaHMS(horasEntregues)}
+      <span className={cn("block truncate font-mono text-sm font-semibold", className)} title={title}>
+        {value}
       </span>
     </div>
-  </div>
-);
+  );
+}
 
 export default OperationalDetailMetrics;

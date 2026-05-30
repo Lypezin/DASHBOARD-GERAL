@@ -56,7 +56,7 @@ export const StatisticCard = React.memo(function StatisticCard({
         : 'text-2xl sm:text-3xl';
 
     return (
-        <Card className="group relative overflow-hidden rounded-xl border-slate-200/80 bg-white/95 shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md dark:border-slate-800/80 dark:bg-slate-900/85">
+        <Card className="group relative overflow-hidden rounded-xl border-slate-200/80 bg-white/95 shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md dark:border-slate-800/80 dark:bg-slate-900/90">
             <CardContent className="relative z-10 flex min-h-[148px] items-start justify-between gap-4 p-5 sm:p-6">
                 <div className="min-w-0 flex-1 space-y-3">
                     <div className="mb-1 flex items-center gap-1.5">

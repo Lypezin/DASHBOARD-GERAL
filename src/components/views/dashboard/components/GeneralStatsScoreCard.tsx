@@ -29,7 +29,7 @@ export const GeneralStatsScoreCard: React.FC<GeneralStatsScoreCardProps> = ({ pe
         : 'bg-rose-50 text-rose-700 ring-rose-200/70 dark:bg-rose-950/30 dark:text-rose-300 dark:ring-rose-900/50';
 
     return (
-        <Card className="group relative overflow-hidden rounded-xl border-slate-200/80 bg-white/95 shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md dark:border-slate-800/80 dark:bg-slate-900/85 lg:col-span-4">
+        <Card className="group relative overflow-hidden rounded-xl border-slate-200/80 bg-white/95 shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md dark:border-slate-800/80 dark:bg-slate-900/90 lg:col-span-4">
             <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: displayColor }} />
 
             <CardContent className="flex h-full min-h-[230px] flex-col justify-between gap-5 p-5 sm:p-6">

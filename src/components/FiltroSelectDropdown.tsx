@@ -21,59 +21,49 @@ export const FiltroSelectDropdown: React.FC<FiltroSelectDropdownProps> = ({
       {isOpen && !disabled && options.length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute top-full left-0 w-full mt-2 rounded-xl bg-white/95 dark:bg-slate-900/95 supports-[backdrop-filter]:backdrop-blur-sm shadow-lg border border-slate-200/50 dark:border-slate-700/50 z-[9999] overflow-hidden animate-fade-in"
+          className="absolute left-0 top-full z-[9999] mt-2 w-full overflow-hidden rounded-xl border border-slate-200/70 bg-white/95 shadow-xl shadow-slate-900/10 animate-in fade-in-0 zoom-in-95 slide-in-from-top-1 duration-150 supports-[backdrop-filter]:backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-950/95 dark:shadow-black/30"
         >
-          <ul className="max-h-60 overflow-y-auto p-1.5 scrollbar-thin scrollbar-thumb-slate-300 dark:scrollbar-thumb-slate-600">
-            <li
-              className={cn(
-                "p-2.5 cursor-pointer rounded-lg flex items-center mb-0.5",
-                "transition-[background-color,color] duration-150 hover:bg-blue-50/50 dark:hover:bg-blue-900/10",
-                !value ? "bg-blue-50/80 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300" : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
-              )}
+          <ul className="subtle-scrollbar max-h-60 overflow-y-auto p-1.5">
+            <DropdownOption
+              selected={!value}
+              label={placeholder || 'Todos'}
               onClick={() => onSelect(null)}
-            >
-              <div className="flex items-center flex-1">
-                <div className={cn(
-                  "mr-3 flex h-4 w-4 items-center justify-center rounded border transition-colors",
-                  !value
-                    ? "bg-blue-600 border-blue-600 text-white"
-                    : "border-slate-300 dark:border-slate-600 bg-transparent"
-                )}>
-                  {!value && <Check className="h-3 w-3" strokeWidth={3} />}
-                </div>
-                <span className="text-sm font-medium">{placeholder || 'Todos'}</span>
-              </div>
-            </li>
+            />
 
-            {options.map((option) => {
-              const isSelected = value === option.value;
-              return (
-                <li
-                  key={option.value}
-                  className={cn(
-                    "p-2.5 cursor-pointer rounded-lg flex items-center mb-0.5 last:mb-0",
-                    "transition-[background-color,color] duration-150 hover:bg-blue-50/50 dark:hover:bg-blue-900/10",
-                    isSelected ? "bg-blue-50/80 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300" : "text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100"
-                  )}
-                  onClick={() => onSelect(option.value)}
-                >
-                  <div className="flex items-center flex-1">
-                    <div className={cn(
-                      "mr-3 flex h-4 w-4 items-center justify-center rounded border transition-colors",
-                      isSelected
-                        ? "bg-blue-600 border-blue-600 text-white"
-                        : "border-slate-300 dark:border-slate-600 bg-transparent"
-                    )}>
-                      {isSelected && <Check className="h-3 w-3" strokeWidth={3} />}
-                    </div>
-                    <span className="text-sm font-medium">{option.label}</span>
-                  </div>
-                </li>
-              );
-            })}
+            {options.map((option) => (
+              <DropdownOption
+                key={option.value}
+                selected={value === option.value}
+                label={option.label}
+                onClick={() => onSelect(option.value)}
+              />
+            ))}
           </ul>
         </div>
       )}
     </>
   );
 };
+
+function DropdownOption({ selected, label, onClick }: { selected: boolean; label: string; onClick: () => void }) {
+  return (
+    <li
+      className={cn(
+        "mb-0.5 flex cursor-pointer items-center rounded-lg p-2.5 last:mb-0",
+        "transition-[background-color,color] duration-150 hover:bg-blue-50/80 dark:hover:bg-blue-950/30",
+        selected ? "bg-blue-50/80 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300" : "text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
+      )}
+      onClick={onClick}
+    >
+      <div className="flex flex-1 items-center">
+        <div className={cn(
+          "mr-3 flex h-4 w-4 items-center justify-center rounded border transition-colors",
+          selected ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300 bg-transparent dark:border-slate-600"
+        )}>
+          {selected && <Check className="h-3 w-3" strokeWidth={3} />}
+        </div>
+        <span className="truncate text-sm font-medium">{label}</span>
+      </div>
+    </li>
+  );
+}

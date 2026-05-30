@@ -49,11 +49,12 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
         <div key={`dia-${index}`} className="h-full min-w-0 select-none">
           <Card
             className={cn(
-              "h-full cursor-help rounded-xl border bg-white/95 shadow-sm transition-[border-color,box-shadow,transform] duration-200 dark:bg-slate-900/85",
+              "h-full cursor-help rounded-xl border bg-white/95 shadow-sm animate-fade-in transition-[border-color,box-shadow,transform] duration-200 dark:bg-slate-900/90",
               isToday ? "ring-1 ring-blue-300/70 dark:ring-blue-900/60" : "",
               borderStatusClass,
               "hover:-translate-y-0.5 hover:shadow-md dark:border-slate-800/80"
             )}
+            style={{ animationDelay: `${Math.min(index * 35, 180)}ms` }}
           >
             <CardContent className="flex h-full min-h-[172px] flex-col justify-between p-4">
               <div className="flex w-full items-center justify-between gap-2">

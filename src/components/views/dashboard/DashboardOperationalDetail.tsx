@@ -55,26 +55,24 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
 
     return (
         <div className="space-y-4">
-            {/* Toggle de Visualização Compacto à direita */}
-            <div className="flex justify-end pt-1">
+            <div className="flex min-w-0 justify-start lg:justify-end">
                 <OperationalViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />
             </div>
 
-            {/* Grid de Cards Operacionais */}
             <div className="min-w-0">
                 {viewMode === 'ranking' ? (
                     aderenciaSubPraca.length > 0 ? (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 animate-fade-in">
+                        <div className="grid grid-cols-1 gap-4 animate-fade-in lg:grid-cols-2">
                             <BenchmarkPracas subPracas={aderenciaSubPraca} />
                         </div>
-                    ) : <EmptyState text="Nenhum dado de ranking disponível" />
+                    ) : <EmptyState text="Nenhum dado de ranking disponivel" />
                 ) : dataToRender.length > 0 ? (
-                    <div key={viewMode} className="grid grid-cols-1 gap-4 animate-fade-in md:grid-cols-2 lg:grid-cols-3">
+                    <div key={viewMode} className="grid grid-cols-1 gap-4 animate-fade-in md:grid-cols-2 xl:grid-cols-3">
                         {dataToRender.map((item, index) => (
-                            <OperationalDetailCard key={`${viewMode}-${index}`} data={item} />
+                            <OperationalDetailCard key={`${viewMode}-${index}`} data={item} index={index} />
                         ))}
                     </div>
-                ) : <EmptyState text="Nenhum dado disponível" sub="Ajuste os filtros para visualizar os dados" />}
+                ) : <EmptyState text="Nenhum dado disponivel" sub="Ajuste os filtros para visualizar os dados" />}
             </div>
         </div>
     );
@@ -83,9 +81,9 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
 DashboardOperationalDetail.displayName = 'DashboardOperationalDetail';
 
 const EmptyState = ({ text, sub }: { text: string; sub?: string }) => (
-    <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground/80">
-        <BarChart3 className="h-10 w-10 mb-3 opacity-20 text-foreground" />
-        <p className="text-sm font-bold">{text}</p>
-        {sub && <p className="text-xs mt-1 opacity-70">{sub}</p>}
+    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-200/80 bg-white/70 py-12 text-center text-slate-500 dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-400">
+        <BarChart3 className="mb-3 h-10 w-10 opacity-30" />
+        <p className="text-sm font-semibold">{text}</p>
+        {sub && <p className="mt-1 text-xs opacity-70">{sub}</p>}
     </div>
 );

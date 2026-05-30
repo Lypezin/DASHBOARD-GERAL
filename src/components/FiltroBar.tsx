@@ -62,20 +62,18 @@ const FiltroBar = React.memo(function FiltroBar({
   const { anosOptions, semanasOptions } = useFiltroBarOptions(anos, semanas, filters);
 
   return (
-    <div className="relative z-10 font-sans w-full">
-      <div className="flex flex-col gap-4 xl:flex-row xl:items-end w-full">
-        {/* Toggle Mode Switch - Alinhamento natural com label embutido */}
-        <div className="min-w-fit shrink-0 w-full sm:w-auto">
+    <div className="relative z-10 w-full">
+      <div className="flex w-full flex-col gap-3 xl:flex-row xl:items-end">
+        <div className="w-full shrink-0 sm:w-auto">
           <FilterModeSwitch
             isModoIntervalo={showDateRangeFilters}
             onToggle={handleModeToggle}
           />
         </div>
 
-        <div className="hidden xl:block mx-1 h-[38px] w-px bg-border/80 shrink-0 self-end mb-0.5" />
+        <div className="hidden h-10 w-px shrink-0 self-end bg-slate-200/80 dark:bg-slate-800/80 xl:block" />
 
-        {/* Filters Group - CSS Grid Simétrico e Responsivo */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5 min-w-0 flex-1">
+        <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-6">
           <FilterPrimarySection
             isModoIntervalo={showDateRangeFilters}
             filters={filters}
@@ -97,9 +95,8 @@ const FiltroBar = React.memo(function FiltroBar({
           />
         </div>
 
-        {/* Clear Button - Alinhamento natural com label embutido */}
         {hasActiveFilters && (
-          <div className="shrink-0 w-full sm:w-auto">
+          <div className="w-full shrink-0 sm:w-auto">
             <FilterClearButton onClear={handleClearFiltersClick} />
           </div>
         )}

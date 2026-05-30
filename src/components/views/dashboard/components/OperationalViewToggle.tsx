@@ -1,4 +1,5 @@
 import React from 'react';
+import { CalendarDays, Clock3, MapPin, Route, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export type ViewMode = 'dia' | 'turno' | 'sub_praca' | 'origem' | 'ranking';
@@ -9,6 +10,14 @@ interface OperationalViewToggleProps {
   className?: string;
 }
 
+const options: Array<{ mode: ViewMode; label: string; icon: React.ElementType }> = [
+  { mode: 'dia', label: 'Dia', icon: CalendarDays },
+  { mode: 'turno', label: 'Turno', icon: Clock3 },
+  { mode: 'sub_praca', label: 'Sub Praca', icon: MapPin },
+  { mode: 'origem', label: 'Origem', icon: Route },
+  { mode: 'ranking', label: 'Ranking', icon: Trophy },
+];
+
 export const OperationalViewToggle: React.FC<OperationalViewToggleProps> = ({
   viewMode,
   onViewModeChange,
@@ -16,10 +25,10 @@ export const OperationalViewToggle: React.FC<OperationalViewToggleProps> = ({
 }) => {
   return (
     <div className={cn(
-      "flex p-1 bg-muted/40 border border-border/40 rounded-lg max-w-full overflow-x-auto flex-nowrap subtle-scrollbar select-none gap-1",
+      "subtle-scrollbar flex max-w-full gap-1 overflow-x-auto rounded-xl border border-slate-200/70 bg-white/80 p-1 shadow-sm backdrop-blur dark:border-slate-800/70 dark:bg-slate-950/60",
       className
     )}>
-      {(['dia', 'turno', 'sub_praca', 'origem', 'ranking'] as const).map((mode) => {
+      {options.map(({ mode, label, icon: Icon }) => {
         const isActive = viewMode === mode;
         return (
           <button
@@ -27,17 +36,15 @@ export const OperationalViewToggle: React.FC<OperationalViewToggleProps> = ({
             onClick={() => onViewModeChange(mode)}
             type="button"
             className={cn(
-              "px-4 py-1.5 rounded-md text-xs font-semibold transition-all duration-200 whitespace-nowrap",
+              "inline-flex h-9 items-center justify-center gap-2 whitespace-nowrap rounded-lg px-3 text-xs font-semibold transition-[background-color,color,box-shadow,transform] duration-200",
+              "focus:outline-none focus:ring-2 focus:ring-blue-500/20",
               isActive
-                ? "bg-background text-foreground shadow-[0_1px_3px_rgba(0,0,0,0.06)] ring-1 ring-border/30 font-bold"
-                : "text-muted-foreground/70 hover:text-foreground hover:bg-muted/60"
+                ? "bg-slate-950 text-white shadow-sm dark:bg-white dark:text-slate-950"
+                : "text-slate-500 hover:-translate-y-0.5 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-slate-100"
             )}
           >
-            {mode === 'sub_praca' 
-              ? 'Sub Praça' 
-              : mode === 'ranking' 
-              ? 'Ranking Sub Praça' 
-              : mode.charAt(0).toUpperCase() + mode.slice(1)}
+            <Icon className="h-3.5 w-3.5" />
+            {label}
           </button>
         );
       })}

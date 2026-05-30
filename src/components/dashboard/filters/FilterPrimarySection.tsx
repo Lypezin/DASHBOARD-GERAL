@@ -24,7 +24,7 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
 }) => {
     if (isModoIntervalo) {
         return (
-            <div className="col-span-2 min-w-0">
+            <div className="col-span-1 min-w-0 sm:col-span-2">
                 <FiltroDateRange
                     dataInicial={filters?.dataInicial ?? null}
                     dataFinal={filters?.dataFinal ?? null}
