@@ -27,7 +27,7 @@ export const DateRangeActions: React.FC<DateRangeActionsProps> = ({
           onClick={onApply}
           disabled={!canApply}
           className={cn(
-            "h-[38px] flex-1 bg-primary text-primary-foreground hover:bg-primary/90 sm:min-w-[100px] sm:flex-none rounded-lg text-xs font-bold shadow-sm"
+            "h-[38px] flex-1 bg-primary text-primary-foreground hover:bg-primary/90 sm:min-w-[80px] sm:flex-none rounded-lg text-xs font-bold shadow-sm"
           )}
           title={canApply ? 'Aplicar filtro de datas' : 'Nenhuma alteração para aplicar'}
         >
@@ -38,7 +38,7 @@ export const DateRangeActions: React.FC<DateRangeActionsProps> = ({
           <Button
             variant="outline"
             onClick={onClear}
-            className="h-[38px] flex-1 sm:min-w-[100px] sm:flex-none rounded-lg text-xs font-bold"
+            className="h-[38px] flex-1 sm:min-w-[80px] sm:flex-none rounded-lg text-xs font-bold"
             title="Limpar filtro de datas"
           >
             <X className="h-3.5 w-3.5 mr-1" />

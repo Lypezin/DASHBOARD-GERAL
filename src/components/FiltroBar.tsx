@@ -73,7 +73,9 @@ const FiltroBar = React.memo(function FiltroBar({
 
         <div className="hidden h-10 w-px shrink-0 self-end bg-slate-200/80 dark:bg-slate-800/80 xl:block" />
 
-        <div className="grid min-w-0 flex-1 grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6">
+        <div className={`grid min-w-0 flex-1 grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 ${
+          showDateRangeFilters ? "xl:grid-cols-7" : "xl:grid-cols-6"
+        }`}>
           <FilterPrimarySection
             isModoIntervalo={showDateRangeFilters}
             filters={filters}
