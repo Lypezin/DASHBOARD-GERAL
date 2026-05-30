@@ -31,7 +31,7 @@ const DashboardView = React.memo(function DashboardView({
   const aderenciaGeral = useMemo(() => calculateAderenciaGeral(aderenciaSemanal), [aderenciaSemanal]);
 
   return (
-    <div className="space-y-10 animate-fade-in pb-16 pt-2">
+    <div className="w-full max-w-7xl mx-auto space-y-10 animate-fade-in pb-16 pt-6 px-4 sm:px-6 lg:px-8">
       {/* Seção 1: Bento Grid de Estatísticas Principais */}
       <section className="space-y-4">
         <DashboardSectionHeader

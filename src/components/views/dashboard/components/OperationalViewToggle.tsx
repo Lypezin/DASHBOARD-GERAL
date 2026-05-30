@@ -16,7 +16,7 @@ export const OperationalViewToggle: React.FC<OperationalViewToggleProps> = ({
 }) => {
   return (
     <div className={cn(
-      "flex p-0.5 bg-muted/65 border border-border/40 rounded-lg max-w-full overflow-x-auto flex-nowrap subtle-scrollbar select-none",
+      "flex p-1 bg-muted/40 border border-border/40 rounded-lg max-w-full overflow-x-auto flex-nowrap subtle-scrollbar select-none gap-1",
       className
     )}>
       {(['dia', 'turno', 'sub_praca', 'origem', 'ranking'] as const).map((mode) => {
@@ -27,10 +27,10 @@ export const OperationalViewToggle: React.FC<OperationalViewToggleProps> = ({
             onClick={() => onViewModeChange(mode)}
             type="button"
             className={cn(
-              "px-3.5 py-1.5 rounded-md text-xs font-bold transition-all duration-150 whitespace-nowrap",
+              "px-4 py-1.5 rounded-md text-xs font-semibold transition-all duration-200 whitespace-nowrap",
               isActive
-                ? "bg-card text-foreground shadow-sm font-black"
-                : "text-muted-foreground/80 hover:text-foreground"
+                ? "bg-background text-foreground shadow-[0_1px_3px_rgba(0,0,0,0.06)] ring-1 ring-border/30 font-bold"
+                : "text-muted-foreground/70 hover:text-foreground hover:bg-muted/60"
             )}
           >
             {mode === 'sub_praca' 

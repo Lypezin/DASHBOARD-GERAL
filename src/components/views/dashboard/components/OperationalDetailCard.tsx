@@ -104,6 +104,28 @@ export const OperationalDetailCard: React.FC<OperationalDetailCardProps> = ({ da
                                 horasEntregues={data.horasEntregues}
                                 statusColor={statusColor}
                             />
+
+                            {/* Mostrar corridas no rodapé como na Evolução Diária */}
+                            {data.metrics && (
+                                <div className="pt-3 mt-3 border-t border-border/40 w-full flex justify-between px-2">
+                                     <div className="flex flex-col items-center min-w-0">
+                                        <span className="text-[9px] text-muted-foreground/60 uppercase tracking-wider font-bold truncate">
+                                          Ofertadas
+                                        </span>
+                                        <span className="text-xs font-bold text-foreground font-mono mt-0.5">
+                                          {data.metrics.ofertadas?.toLocaleString('pt-BR') || 0}
+                                        </span>
+                                      </div>
+                                      <div className="flex flex-col items-center min-w-0">
+                                        <span className="text-[9px] text-muted-foreground/60 uppercase tracking-wider font-bold truncate">
+                                          Completas
+                                        </span>
+                                        <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 font-mono mt-0.5">
+                                          {data.metrics.completadas?.toLocaleString('pt-BR') || 0}
+                                        </span>
+                                      </div>
+                                </div>
+                            )}
                         </div>
                     </CardContent>
                 </Card>
