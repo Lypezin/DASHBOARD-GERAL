@@ -1,6 +1,6 @@
 /**
- * Configuração do Gráfico de Evolução.
- * Refatorado para user módulos em ./config/
+ * Configuração do gráfico de Evolução.
+ * Refatorado para usar módulos em ./config/
  */
 
 export * from './config/metricConfig';

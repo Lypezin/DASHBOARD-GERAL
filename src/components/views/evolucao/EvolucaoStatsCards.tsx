@@ -25,7 +25,7 @@ export const EvolucaoStatsCards = React.memo<EvolucaoStatsCardsProps>(({ dadosAt
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <SaasMetric
         label="Total de corridas"
         value={totalCorridas.toLocaleString('pt-BR')}
@@ -43,6 +43,7 @@ export const EvolucaoStatsCards = React.memo<EvolucaoStatsCardsProps>(({ dadosAt
         tone="amber"
         size="lg"
         className="p-5"
+        truncate
       />
       <SaasMetric
         label={`Média ${viewMode === 'mensal' ? 'mensal' : 'semanal'}`}

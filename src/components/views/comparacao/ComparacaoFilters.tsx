@@ -64,10 +64,10 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
                             disabled={semanasSelecionadas.length !== 2 || dadosComparacaoLength !== 2}
                             type="button"
                             className="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-950 px-4 text-[11px] font-black uppercase tracking-[0.18em] text-white shadow-sm transition-[background-color,box-shadow,transform,opacity] duration-200 hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-30 disabled:grayscale dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
-                            title={semanasSelecionadas.length !== 2 ? 'Selecione exatamente 2 semanas' : 'Gerar apresentacao'}
+                            title={semanasSelecionadas.length !== 2 ? 'Selecione exatamente 2 semanas' : 'Gerar apresentação'}
                         >
                             <Presentation className="h-4 w-4" />
-                            Apresentacao
+                            Apresentação
                         </button>
                     </div>
                 )}
@@ -77,7 +77,7 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
                 <div className="grid gap-5 xl:grid-cols-[260px_minmax(0,1fr)]">
                     <div className="min-w-0">
                         <label className="mb-3 block text-[10px] font-black uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">
-                                Praça selecionada
+                            Praça selecionada
                         </label>
                         <FiltroSelect
                             label=""

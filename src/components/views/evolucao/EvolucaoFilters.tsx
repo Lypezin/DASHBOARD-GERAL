@@ -33,7 +33,7 @@ export const EvolucaoFilters: React.FC<EvolucaoFiltersProps> = ({
       />
 
       <div className="p-4 sm:p-5">
-        <div className="rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 dark:border-slate-800/80 dark:bg-slate-900/55">
+        <div className="rounded-[1.5rem] border border-slate-200/80 bg-gradient-to-br from-slate-50 to-white p-4 shadow-inner dark:border-slate-800/80 dark:from-slate-900/65 dark:to-slate-950/65">
           <EvolucaoMetricsSelector
             selectedMetrics={selectedMetrics}
             onMetricsChange={onMetricsChange}

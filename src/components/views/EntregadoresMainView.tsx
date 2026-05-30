@@ -174,7 +174,7 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
       />
 
       {loading || isRefreshing ? (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm font-medium text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-200">
+        <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-4 py-3 text-sm font-semibold text-emerald-700 shadow-sm dark:border-emerald-900/60 dark:bg-emerald-950/25 dark:text-emerald-200">
           Atualizando a busca com os filtros atuais...
         </div>
       ) : null}

@@ -10,7 +10,7 @@ export const createEvolucaoChartOptions = (
     responsive: true,
     maintainAspectRatio: false,
     layout: {
-        padding: { top: 12, right: 16, bottom: isSemanal ? 80 : 20, left: 12 },
+        padding: { top: 12, right: 14, bottom: 12, left: 8 },
     },
     animation: {
         duration: 300,
@@ -26,9 +26,9 @@ export const createEvolucaoChartOptions = (
         legend: {
             position: 'top' as const,
             align: 'center' as const,
-            display: true,
+            display: false,
             labels: {
-                font: { size: 14, weight: 'bold' as const, family: "'Inter', 'system-ui', sans-serif" },
+                font: { size: 13, weight: '700' as const, family: "'Outfit', 'Inter', 'system-ui', sans-serif" },
                 padding: 16,
                 usePointStyle: true,
                 pointStyle: 'circle',
@@ -59,6 +59,6 @@ export const createEvolucaoChartOptions = (
     scales: evolucaoScales(isSemanal, isDarkMode, selectedMetrics, yAxisRange),
     elements: {
         line: { borderCapStyle: 'round' as const, borderJoinStyle: 'round' as const },
-        point: { hoverBorderWidth: 4, radius: isSemanal ? 4 : 6, hoverRadius: isSemanal ? 8 : 10 },
+        point: { hoverBorderWidth: 3, radius: isSemanal ? 3 : 4, hoverRadius: isSemanal ? 7 : 8 },
     },
 });

@@ -1,5 +1,3 @@
-import { CHART_CONSTANTS, adjustColorOpacity } from '@/utils/charts';
-
 export const segundosParaHoras = (segundos: number): number => {
     return segundos / 3600;
 };
@@ -28,37 +26,37 @@ export const getMetricConfig = (
         case 'horas':
             return {
                 ...common,
-                label: '⏱️ Horas Trabalhadas',
+                label: 'Horas trabalhadas',
                 data: mapData(d => {
                     const s = d.total_segundos;
                     return segundosParaHoras(typeof s === 'string' ? parseFloat(s) : Number(s) || 0);
                 }),
-                borderColor: 'rgba(251, 146, 60, 1)',
-                pointColor: 'rgb(251, 146, 60)',
-                backgroundColor: createGradient('rgba(251, 146, 60,', '253, 186, 116', '234, 88, 12')
+                borderColor: 'rgba(245, 158, 11, 1)',
+                pointColor: 'rgb(245, 158, 11)',
+                backgroundColor: createGradient('rgba(245, 158, 11,', '252, 211, 77', '217, 119, 6')
             };
         case 'ofertadas':
             return {
                 ...common,
-                label: '📢 Corridas Ofertadas',
+                label: 'Corridas ofertadas',
                 data: mapData(d => d.corridas_ofertadas ?? d.ofertadas),
-                borderColor: 'rgba(139, 92, 246, 1)',
-                pointColor: 'rgb(139, 92, 246)',
-                backgroundColor: createGradient('rgba(139, 92, 246,', '167, 139, 250', '124, 58, 237')
+                borderColor: 'rgba(6, 182, 212, 1)',
+                pointColor: 'rgb(6, 182, 212)',
+                backgroundColor: createGradient('rgba(6, 182, 212,', '103, 232, 249', '8, 145, 178')
             };
         case 'aceitas':
             return {
                 ...common,
-                label: '✅ Corridas Aceitas',
+                label: 'Corridas aceitas',
                 data: mapData(d => d.corridas_aceitas ?? d.aceitas),
                 borderColor: 'rgba(16, 185, 129, 1)',
                 pointColor: 'rgb(16, 185, 129)',
                 backgroundColor: createGradient('rgba(16, 185, 129,', '52, 211, 153', '5, 150, 105')
             };
-        default: // completadas
+        default:
             return {
                 ...common,
-                label: '🚗 Corridas Completadas',
+                label: 'Corridas completadas',
                 data: mapData(d => d.corridas_completadas ?? d.completadas ?? d.total_corridas),
                 borderColor: 'rgba(37, 99, 235, 1)',
                 pointColor: 'rgb(37, 99, 235)',
@@ -72,10 +70,9 @@ const createGradient = (baseRgbaPrefix: string, startColor: string, endColor: st
         const { ctx, chartArea } = context.chart;
         if (!chartArea) return `${baseRgbaPrefix} 0.2)`;
         const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-        gradient.addColorStop(0, `rgba(${startColor}, 0.5)`);
-        gradient.addColorStop(0.3, `${baseRgbaPrefix} 0.35)`);
-        gradient.addColorStop(0.7, `rgba(${endColor}, 0.15)`);
-        gradient.addColorStop(1, `${baseRgbaPrefix} 0.00)`);
+        gradient.addColorStop(0, `rgba(${startColor}, 0.30)`);
+        gradient.addColorStop(0.45, `${baseRgbaPrefix} 0.14)`);
+        gradient.addColorStop(1, `rgba(${endColor}, 0.00)`);
         return gradient;
     };
 };

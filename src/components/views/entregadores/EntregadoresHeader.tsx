@@ -1,6 +1,6 @@
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, UsersRound } from 'lucide-react';
+import { SaasPanel, SaasPanelHeader } from '@/components/views/shared/SaasPrimitives';
 
 interface EntregadoresHeaderProps {
     onExport: () => void;
@@ -31,33 +31,29 @@ export const EntregadoresHeader = React.memo(function EntregadoresHeader({
     const exportBlocked = isExporting || disableExport;
 
     return (
-        <div className="rounded-[1.75rem] border border-slate-200/70 bg-white/90 p-5 shadow-sm backdrop-blur dark:border-slate-800/70 dark:bg-slate-900/80">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                <div className="min-w-0">
-                    <div className="mb-2 inline-flex rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-slate-600 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
-                        Entregadores
-                    </div>
-                    <h2 className="text-2xl font-black tracking-tight text-slate-950 dark:text-white">
-                        {title}
-                    </h2>
-                    <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
-                        {autoSemana
-                            ? `Performance da frota na semana ${periodoResolvido.semana} de ${periodoResolvido.ano}`
-                            : description}
-                    </p>
-                </div>
-                <Button
-                    variant="outline"
-                    onClick={onExport}
-                    disabled={exportBlocked}
-                    title={disableExport ? exportDisabledReason : undefined}
-                    className="w-full shrink-0 gap-2 rounded-2xl border-slate-200 bg-white px-4 py-2.5 font-semibold shadow-sm transition-colors hover:bg-slate-50 sm:w-auto dark:border-slate-700 dark:bg-slate-950 dark:hover:bg-slate-900"
-                >
-                    <Download className="h-4 w-4" />
-                    {isExporting ? 'Exportando...' : disableExport ? 'Aguarde a busca' : 'Exportar Excel'}
-                </Button>
-            </div>
-        </div>
+        <SaasPanel>
+            <SaasPanelHeader
+                eyebrow="Frota"
+                title={title}
+                description={autoSemana
+                    ? `Performance da frota na semana ${periodoResolvido.semana} de ${periodoResolvido.ano}`
+                    : description}
+                icon={UsersRound}
+                tone="emerald"
+                actions={(
+                    <button
+                        onClick={onExport}
+                        disabled={exportBlocked}
+                        title={disableExport ? exportDisabledReason : undefined}
+                        type="button"
+                        className="group inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200/80 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-[border-color,background-color,color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-emerald-300 hover:text-emerald-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800/80 dark:bg-slate-950 dark:text-slate-300 dark:hover:border-emerald-500/40 dark:hover:text-emerald-300"
+                    >
+                        <Download className="h-4 w-4 text-slate-400 transition-colors group-hover:text-emerald-500" />
+                        {isExporting ? 'Exportando...' : disableExport ? 'Aguarde a busca' : 'Exportar Excel'}
+                    </button>
+                )}
+            />
+        </SaasPanel>
     );
 });
 

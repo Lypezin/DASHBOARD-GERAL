@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Entregador } from '@/types';
 import { EntregadoresMainTableHeaderCard } from './components/EntregadoresMainTableHeaderCard';
 import { EntregadoresMainTableHeader } from './components/EntregadoresMainTableHeader';
@@ -39,45 +38,43 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
     }, [sortedEntregadores, currentPage]);
 
     return (
-        <Card className="overflow-hidden border-slate-200/70 bg-white/90 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/90">
+        <div className="overflow-hidden rounded-[2rem] border border-slate-200/75 bg-white/90 shadow-[0_18px_48px_-40px_rgba(15,23,42,0.52)] ring-1 ring-slate-100/80 dark:border-slate-800/75 dark:bg-slate-950/80 dark:ring-slate-800/50">
             <EntregadoresMainTableHeaderCard />
 
-            <CardContent className="p-0">
-                <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
-                    <div className="min-w-[1100px]">
-                        <EntregadoresMainTableHeader
-                            sortField={sortField}
-                            sortDirection={sortDirection}
-                            onSort={onSort}
-                        />
+            <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
+                <div className="min-w-[1320px]">
+                    <EntregadoresMainTableHeader
+                        sortField={sortField}
+                        sortDirection={sortDirection}
+                        onSort={onSort}
+                    />
 
-                        <div className="subtle-scrollbar max-h-[600px] overflow-y-auto">
-                            {currentItems.length > 0 ? (
-                                <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                                    {currentItems.map((entregador, index) => (
-                                        <EntregadoresMainTableRow
-                                            key={`${entregador.id_entregador}-${index}`}
-                                            entregador={entregador}
-                                            onClick={onRowClick}
-                                        />
-                                    ))}
-                                </div>
-                            ) : (
-                                <div className="px-6 py-14 text-center">
-                                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                        {searchTerm
-                                            ? `Nenhum entregador encontrado com o termo "${searchTerm}"`
-                                            : 'Nenhum entregador dispon\u00edvel'}
-                                    </p>
-                                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                                        Ajuste os filtros ou refine a busca para localizar registros.
-                                    </p>
-                                </div>
-                            )}
-                        </div>
+                    <div className="subtle-scrollbar max-h-[640px] overflow-y-auto">
+                        {currentItems.length > 0 ? (
+                            <div className="divide-y divide-slate-100/80 dark:divide-slate-800/80">
+                                {currentItems.map((entregador, index) => (
+                                    <EntregadoresMainTableRow
+                                        key={`${entregador.id_entregador}-${index}`}
+                                        entregador={entregador}
+                                        onClick={onRowClick}
+                                    />
+                                ))}
+                            </div>
+                        ) : (
+                            <div className="px-6 py-14 text-center">
+                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                    {searchTerm
+                                        ? `Nenhum entregador encontrado com o termo "${searchTerm}"`
+                                        : 'Nenhum entregador disponível'}
+                                </p>
+                                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                    Ajuste os filtros ou refine a busca para localizar registros.
+                                </p>
+                            </div>
+                        )}
                     </div>
                 </div>
-            </CardContent>
+            </div>
 
             <EntregadoresPagination
                 currentPage={currentPage}
@@ -86,7 +83,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                 itemsPerPage={ITEMS_PER_PAGE}
                 onPageChange={setCurrentPage}
             />
-        </Card>
+        </div>
     );
 });
 
