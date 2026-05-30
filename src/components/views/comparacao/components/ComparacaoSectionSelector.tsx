@@ -50,7 +50,7 @@ export const ComparacaoSectionSelector: React.FC<ComparacaoSectionSelectorProps>
                 onClick={() => setOpen((prev) => !prev)}
                 className={`inline-flex items-center gap-2.5 rounded-full border px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] transition-[background-color,border-color,color,box-shadow,transform] duration-200 ${open
                     ? 'border-slate-900 bg-slate-900 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.7)] dark:border-white dark:bg-white dark:text-slate-900'
-                    : 'border-slate-200/80 bg-white/82 text-slate-500 shadow-[0_12px_26px_-22px_rgba(15,23,42,0.45)] hover:-translate-y-0.5 hover:border-sky-300 hover:text-sky-600 dark:border-slate-800/80 dark:bg-slate-900/82 dark:text-slate-400 dark:hover:border-sky-500/50 dark:hover:text-sky-300'
+                    : 'border-slate-200/80 bg-white/90 text-slate-500 shadow-sm hover:-translate-y-0.5 hover:border-sky-300 hover:text-sky-600 dark:border-slate-800/80 dark:bg-slate-950 dark:text-slate-400 dark:hover:border-sky-500/50 dark:hover:text-sky-300'
                     }`}
                 title="Escolher secoes visiveis"
             >
@@ -64,7 +64,7 @@ export const ComparacaoSectionSelector: React.FC<ComparacaoSectionSelectorProps>
             </button>
 
             {open ? (
-                <div className="absolute right-0 top-full z-50 mt-3 min-w-[270px] overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white/94 p-3 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.42)] backdrop-blur-xl dark:border-slate-800/70 dark:bg-slate-950/92 dark:shadow-black/40">
+                <div className="absolute right-0 top-full z-50 mt-3 min-w-[270px] overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white/95 p-3 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.42)] backdrop-blur-xl dark:border-slate-800/70 dark:bg-slate-950/90 dark:shadow-black/40">
                     <div className="mb-2 px-4 py-2">
                         <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">
                             Configurar exibicao

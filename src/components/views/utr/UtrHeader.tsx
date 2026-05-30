@@ -1,6 +1,6 @@
 import React from 'react';
-import { Download } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Activity, Download, Layers3 } from 'lucide-react';
+import { SaasMetric, SaasPanel, SaasPanelHeader } from '@/components/views/shared/SaasPrimitives';
 
 interface UtrHeaderProps {
     isExporting: boolean;
@@ -11,28 +11,36 @@ interface UtrHeaderProps {
 
 export const UtrHeader = React.memo(function UtrHeader({
     isExporting,
-    onExport
+    onExport,
+    totalSections,
+    totalSlices
 }: UtrHeaderProps) {
     return (
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
-            <div className="space-y-0.5">
-                <h1 className="text-lg font-black tracking-tight text-foreground sm:text-xl font-outfit">
-                    Utilização de Recursos (UTR)
-                </h1>
-                <p className="text-xs font-medium text-muted-foreground sm:text-sm">
-                    Análise detalhada de performance UTR com recortes operacionais.
-                </p>
+        <SaasPanel>
+            <SaasPanelHeader
+                eyebrow="UTR"
+                title="Utilizacao de Recursos"
+                description="Analise detalhada de performance UTR com recortes operacionais."
+                icon={Activity}
+                tone="amber"
+                actions={(
+                    <button
+                        onClick={onExport}
+                        disabled={isExporting}
+                        type="button"
+                        className="group inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200/80 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-[border-color,background-color,color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-amber-300 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800/80 dark:bg-slate-950 dark:text-slate-300 dark:hover:border-amber-500/40 dark:hover:text-amber-300"
+                    >
+                        <Download className="h-4 w-4 text-slate-400 transition-colors group-hover:text-amber-500" />
+                        {isExporting ? 'Exportando...' : 'Exportar Dados'}
+                    </button>
+                )}
+            />
+
+            <div className="grid gap-3 border-t border-slate-200/70 bg-slate-50/60 px-4 py-3 dark:border-slate-800/80 dark:bg-slate-900/30 sm:grid-cols-2 lg:px-5">
+                <SaasMetric icon={Layers3} label="Secoes ativas" value={totalSections.toLocaleString('pt-BR')} tone="amber" />
+                <SaasMetric label="Recortes exibidos" value={totalSlices.toLocaleString('pt-BR')} />
             </div>
-            <Button
-                variant="outline"
-                onClick={onExport}
-                disabled={isExporting}
-                className="flex items-center gap-2 px-4 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-card border-border hover:bg-muted text-muted-foreground hover:text-foreground shrink-0 self-start md:self-auto shadow-[0_1px_2px_rgba(0,0,0,0.01)]"
-            >
-                <Download className="h-4 w-4 text-muted-foreground/60" />
-                {isExporting ? 'Exportando...' : 'Exportar Dados'}
-            </Button>
-        </div>
+        </SaasPanel>
     );
 });
 

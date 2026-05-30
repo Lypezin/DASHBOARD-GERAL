@@ -35,7 +35,7 @@ const DashboardView = React.memo(function DashboardView({
   const aderenciaGeral = useMemo(() => calculateAderenciaGeral(aderenciaSemanal), [aderenciaSemanal]);
 
   return (
-    <div className="mx-auto w-full max-w-[1500px] space-y-9 px-4 pb-16 pt-5 animate-fade-in sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-[1600px] space-y-9 px-4 pb-16 pt-5 animate-fade-in sm:px-6 lg:px-8">
       <section className="space-y-4">
         <DashboardSectionHeader
           title="Resumo Operacional"

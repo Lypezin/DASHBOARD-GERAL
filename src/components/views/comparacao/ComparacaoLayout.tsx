@@ -20,7 +20,7 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
     actions
 }: ComparacaoLayoutProps) {
     return (
-        <div className="mx-auto w-full max-w-[1800px] space-y-8 px-4 pb-8 animate-fade-in sm:px-6 lg:px-8">
+        <div className="mx-auto w-full max-w-[1600px] space-y-8 px-4 pb-8 animate-fade-in sm:px-6 lg:px-8">
             <ComparacaoFilters
                 pracas={pracas}
                 todasSemanas={data.todasSemanas}
@@ -40,7 +40,7 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
             {state.loading && <DashboardSkeleton contentOnly />}
 
             {state.error && !state.loading && (
-                <div className="animate-fade-in rounded-[2.4rem] border border-rose-200/70 bg-white/94 px-4 py-16 text-center shadow-[0_20px_60px_-44px_rgba(190,24,93,0.35)] dark:border-rose-900/40 dark:bg-slate-950/78">
+                <div className="animate-fade-in rounded-[2rem] border border-rose-200/70 bg-white/95 px-4 py-16 text-center shadow-[0_20px_60px_-44px_rgba(190,24,93,0.35)] dark:border-rose-900/40 dark:bg-slate-950/80">
                     <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-rose-100/90 dark:bg-rose-950/50">
                         <AlertCircle className="h-8 w-8 text-rose-500 dark:text-rose-300" />
                     </div>
@@ -60,7 +60,7 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
             )}
 
             {!state.loading && state.semanasSelecionadas.length > 2 && (
-                <div className="animate-fade-in rounded-[2.4rem] border border-slate-200/80 bg-white/95 px-4 py-20 text-center shadow-[0_24px_70px_-50px_rgba(15,23,42,0.34)] dark:border-slate-800/80 dark:bg-slate-950/78">
+                <div className="animate-fade-in rounded-[2rem] border border-slate-200/80 bg-white/95 px-4 py-20 text-center shadow-[0_24px_70px_-50px_rgba(15,23,42,0.34)] dark:border-slate-800/80 dark:bg-slate-950/80">
                     <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-sky-50 dark:bg-sky-950/30">
                         <Calendar className="h-10 w-10 text-sky-500 dark:text-sky-300" />
                     </div>

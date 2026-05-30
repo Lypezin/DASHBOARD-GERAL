@@ -31,7 +31,7 @@ const UtrView = React.memo(function UtrView({
 
   if (loading) {
     return (
-      <div className="space-y-5 animate-fade-in pt-4">
+      <div className="mx-auto w-full max-w-[1600px] space-y-5 px-4 pt-4 animate-fade-in sm:px-6 lg:px-8">
         <TableSkeleton rows={6} columns={4} />
       </div>
     );
@@ -39,14 +39,16 @@ const UtrView = React.memo(function UtrView({
 
   if (!utrData || !utrData.geral) {
     return (
-      <div className="rounded-xl border border-dashed border-border bg-card px-6 py-12 text-center shadow-[0_1px_2px_rgba(0,0,0,0.01)]">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
-          <Activity className="h-5 w-5 text-muted-foreground" />
+      <div className="mx-auto w-full max-w-[1600px] px-4 pt-4 sm:px-6 lg:px-8">
+        <div className="rounded-[1.65rem] border border-dashed border-slate-200/80 bg-white/95 px-6 py-14 text-center shadow-sm dark:border-slate-800 dark:bg-slate-950/70">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-900">
+            <Activity className="h-5 w-5 text-slate-400" />
+          </div>
+          <p className="text-base font-bold text-slate-950 dark:text-slate-50">Nenhum dado disponivel</p>
+          <p className="mx-auto mt-1.5 max-w-sm text-xs text-slate-500 dark:text-slate-400">
+            Aguarde o carregamento ou ajuste os filtros para visualizar a leitura operacional de UTR.
+          </p>
         </div>
-        <p className="text-base font-bold text-foreground">Nenhum dado disponível</p>
-        <p className="mx-auto mt-1.5 max-w-sm text-xs text-muted-foreground">
-          Aguarde o carregamento ou ajuste os filtros para visualizar a leitura operacional de UTR.
-        </p>
       </div>
     );
   }
@@ -55,7 +57,7 @@ const UtrView = React.memo(function UtrView({
   const totalSlices = porPraca.length + porSubPraca.length + porOrigem.length + porTurno.length;
 
   return (
-    <div className="flex flex-col gap-8 pb-16 pt-2 w-full animate-fade-in">
+    <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-8 px-4 pb-16 pt-4 animate-fade-in sm:px-6 lg:px-8">
       <UtrHeader
         isExporting={isExporting}
         onExport={handleExport}

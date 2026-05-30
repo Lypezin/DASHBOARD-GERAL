@@ -1,10 +1,6 @@
-/**
- * AnaliseTableTabs - Underline-style minimal tabs inspired by Stripe/GitHub.
- * Funciona perfeitamente em light e dark mode.
- */
-
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { SaasSegmentedControl } from '@/components/views/shared/SaasPrimitives';
 
 type TableType = 'dia' | 'turno' | 'sub_praca' | 'origem' | 'dia_origem';
 
@@ -18,36 +14,34 @@ export const AnaliseTableTabs = React.memo(function AnaliseTableTabs({
   onTableChange,
 }: AnaliseTableTabsProps) {
   const tabs: { id: TableType; label: string }[] = [
-    { id: 'dia', label: 'Por Dia' },
-    { id: 'turno', label: 'Por Turno' },
-    { id: 'sub_praca', label: 'Por Sub Praça' },
-    { id: 'origem', label: 'Por Origem' },
+    { id: 'dia', label: 'Dia' },
+    { id: 'turno', label: 'Turno' },
+    { id: 'sub_praca', label: 'Sub Praca' },
+    { id: 'origem', label: 'Origem' },
   ];
 
   return (
-    <div className="flex items-center border-b border-border/80 w-full md:w-auto shrink-0 select-none pb-0">
-      <div className="flex gap-4">
-        {tabs.map((tab) => {
-          const isActive = activeTable === tab.id;
-          
-          return (
-            <button
-              key={tab.id}
-              onClick={() => onTableChange(tab.id)}
-              className={cn(
-                "relative pb-2 text-xs font-bold transition-all whitespace-nowrap focus:outline-none",
-                "border-b-2 -mb-[1px]",
-                isActive
-                  ? "border-primary text-foreground"
-                  : "border-transparent text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <span className="px-1">{tab.label}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
+    <SaasSegmentedControl className="w-full md:w-auto">
+      {tabs.map((tab) => {
+        const isActive = activeTable === tab.id;
+
+        return (
+          <button
+            key={tab.id}
+            onClick={() => onTableChange(tab.id)}
+            type="button"
+            className={cn(
+              'inline-flex h-9 items-center justify-center whitespace-nowrap rounded-xl px-3.5 text-xs font-semibold transition-[background-color,color,box-shadow,transform] duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20',
+              isActive
+                ? 'bg-white text-slate-950 shadow-sm ring-1 ring-slate-200/70 dark:bg-slate-950 dark:text-slate-50 dark:ring-slate-800'
+                : 'text-slate-500 hover:-translate-y-0.5 hover:bg-white/70 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-100'
+            )}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </SaasSegmentedControl>
   );
 });
 

@@ -27,7 +27,7 @@ export const ComparacaoWeekSelector: React.FC<ComparacaoWeekSelectorProps> = ({
                 <DropdownMenuTrigger asChild>
                     <Button
                         variant="outline"
-                        className="h-11 min-w-[220px] justify-between rounded-full border-slate-200/80 bg-white/88 px-5 shadow-[0_12px_26px_-22px_rgba(15,23,42,0.45)] transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-sky-300 hover:bg-white dark:border-slate-800/80 dark:bg-slate-900/85 dark:hover:border-sky-500/40 dark:hover:bg-slate-900"
+                        className="h-11 min-w-[220px] justify-between rounded-xl border-slate-200/80 bg-white/90 px-5 shadow-sm transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-sky-300 hover:bg-white dark:border-slate-800/80 dark:bg-slate-950 dark:hover:border-sky-500/40 dark:hover:bg-slate-900"
                     >
                         <span className="truncate text-xs font-bold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
                             {semanasSelecionadas.length > 0

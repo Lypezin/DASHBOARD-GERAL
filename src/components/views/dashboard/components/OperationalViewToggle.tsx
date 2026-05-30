@@ -1,6 +1,7 @@
 import React from 'react';
 import { CalendarDays, Clock3, MapPin, Route, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { SaasSegmentedControl } from '@/components/views/shared/SaasPrimitives';
 
 export type ViewMode = 'dia' | 'turno' | 'sub_praca' | 'origem' | 'ranking';
 
@@ -24,10 +25,7 @@ export const OperationalViewToggle: React.FC<OperationalViewToggleProps> = ({
   className
 }) => {
   return (
-    <div className={cn(
-      "subtle-scrollbar flex max-w-full gap-1 overflow-x-auto rounded-2xl border border-slate-200/70 bg-slate-100/80 p-1 shadow-inner backdrop-blur dark:border-slate-800/70 dark:bg-slate-900/70",
-      className
-    )}>
+    <SaasSegmentedControl className={className}>
       {options.map(({ mode, label, icon: Icon }) => {
         const isActive = viewMode === mode;
         return (
@@ -48,7 +46,7 @@ export const OperationalViewToggle: React.FC<OperationalViewToggleProps> = ({
           </button>
         );
       })}
-    </div>
+    </SaasSegmentedControl>
   );
 };
 

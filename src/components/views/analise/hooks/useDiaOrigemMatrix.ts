@@ -1,10 +1,27 @@
 import { useMemo } from 'react';
 import { AderenciaDiaOrigem } from '@/types';
 
-export const DIAS_ORDEM = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
+export const DIAS_ORDEM = ['Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta', 'Sabado', 'Domingo'];
+
+const DIA_CANONICO: Record<string, string> = {
+    segunda: 'Segunda',
+    terca: 'Terca',
+    terça: 'Terca',
+    quarta: 'Quarta',
+    quinta: 'Quinta',
+    sexta: 'Sexta',
+    sabado: 'Sabado',
+    sábado: 'Sabado',
+    domingo: 'Domingo',
+};
+
+function normalizeDia(value: string) {
+    const base = value.split('-')[0].trim().toLowerCase();
+    const ascii = base.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return DIA_CANONICO[base] || DIA_CANONICO[ascii] || value;
+}
 
 export function useDiaOrigemMatrix(data: AderenciaDiaOrigem[]) {
-    // Processar dados para a matriz: Origens (Linhas) x Dias (Colunas)
     const matrix = useMemo(() => {
         const origensMap = new Map<string, Map<string, number>>();
         const origensSet = new Set<string>();
@@ -13,7 +30,7 @@ export function useDiaOrigemMatrix(data: AderenciaDiaOrigem[]) {
         if (Array.isArray(data) && data.length > 0) {
             data.forEach(item => {
                 const itemAny = item as any;
-                const dia = String(itemAny.dia || itemAny.dia_da_semana || itemAny.dia_semana || itemAny.data || '');
+                const dia = normalizeDia(String(itemAny.dia || itemAny.dia_da_semana || itemAny.dia_semana || itemAny.data || ''));
                 const origem = String(itemAny.origem || itemAny.nome_origem || 'N/D');
                 const segundos = Number(itemAny.segundos_realizados || itemAny.horas_entregues_segundos || 0);
 
@@ -25,7 +42,7 @@ export function useDiaOrigemMatrix(data: AderenciaDiaOrigem[]) {
                     const diaMap = origensMap.get(origem)!;
                     const novoTotal = (diaMap.get(dia) || 0) + segundos;
                     diaMap.set(dia, novoTotal);
-                    
+
                     if (novoTotal > maxVolume) maxVolume = novoTotal;
                 }
             });
@@ -35,7 +52,6 @@ export function useDiaOrigemMatrix(data: AderenciaDiaOrigem[]) {
         return { origens: sortedOrigens, dataMap: origensMap, maxVolume };
     }, [data]);
 
-    // Calcular totais por coluna (Dia)
     const columnTotals = useMemo(() => {
         const totals = new Map<string, number>();
         DIAS_ORDEM.forEach(dia => {
@@ -52,11 +68,10 @@ export function useDiaOrigemMatrix(data: AderenciaDiaOrigem[]) {
         return Array.from(columnTotals.values()).reduce((a, b) => a + b, 0);
     }, [columnTotals]);
 
-    // Função para calcular a cor do heatmap
     const getHeatmapClass = (segundos: number) => {
-        if (segundos === 0) return '';
-        const intensity = (segundos / matrix.maxVolume);
-        
+        if (segundos === 0 || matrix.maxVolume === 0) return '';
+        const intensity = segundos / matrix.maxVolume;
+
         if (intensity > 0.8) return 'bg-blue-600/90 text-white dark:bg-blue-500/90';
         if (intensity > 0.6) return 'bg-blue-500/70 text-white dark:bg-blue-500/70';
         if (intensity > 0.4) return 'bg-blue-400/50 text-slate-900 dark:text-white dark:bg-blue-500/50';

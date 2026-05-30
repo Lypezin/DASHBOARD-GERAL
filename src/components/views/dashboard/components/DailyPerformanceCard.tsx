@@ -50,7 +50,7 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
         <div
           key={`dia-${index}`}
           className={cn(
-            "group relative flex min-h-[216px] min-w-0 cursor-help select-none flex-col justify-between overflow-hidden border-r border-slate-200/70 bg-white/80 p-4 transition-[background-color,box-shadow,transform] duration-300 last:border-r-0 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_18px_48px_-34px_rgba(15,23,42,0.55)] dark:border-slate-800/80 dark:bg-slate-950/30 dark:hover:bg-slate-900/70",
+            "group relative flex min-h-[208px] min-w-0 cursor-help select-none flex-col justify-between overflow-hidden border-r border-slate-200/70 bg-white/80 p-3.5 transition-[background-color,box-shadow,transform] duration-300 last:border-r-0 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_18px_48px_-34px_rgba(15,23,42,0.55)] dark:border-slate-800/80 dark:bg-slate-950/30 dark:hover:bg-slate-900/70",
             isToday ? "bg-blue-50/80 ring-1 ring-inset ring-blue-200/80 dark:bg-blue-950/20 dark:ring-blue-900/50" : ""
           )}
           style={{ animationDelay: `${Math.min(index * 35, 180)}ms` }}
@@ -77,17 +77,17 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
                 )}
               </div>
 
-              <div className={cn("rounded-full px-2 py-1 text-[10px] font-semibold ring-1", softStatusClass)}>
+              <div className={cn("shrink-0 rounded-full px-2 py-1 text-[10px] font-semibold ring-1", softStatusClass)}>
                 {statusLabel}
               </div>
             </div>
 
             <div>
               <div className="flex items-end justify-between gap-2">
-                <div className={cn("font-mono text-2xl font-semibold leading-none tracking-tight", statusColor)}>
+                <div className={cn("font-mono text-[1.55rem] font-semibold leading-none tracking-tight tabular-nums", statusColor)}>
                   {aderencia.toFixed(1)}%
                 </div>
-                <span className="pb-0.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+                <span className="pb-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-400">
                   Aderencia
                 </span>
               </div>
@@ -101,18 +101,18 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
           </div>
 
           <div className="space-y-3">
-            <div className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-3 shadow-sm transition-colors duration-300 group-hover:bg-white dark:border-slate-800/80 dark:bg-slate-900/50 dark:group-hover:bg-slate-900/80">
-              <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
+            <div className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-2.5 shadow-sm transition-colors duration-300 group-hover:bg-white dark:border-slate-800/80 dark:bg-slate-900/50 dark:group-hover:bg-slate-900/80">
+              <div className="mb-1.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-slate-400">
                 Horas realizadas
               </div>
               <span
-                className="block truncate font-mono text-sm font-semibold text-slate-950 dark:text-slate-50"
+                className="block whitespace-nowrap font-mono text-[13px] font-semibold text-slate-950 tabular-nums dark:text-slate-50"
                 title={horasEntregues}
               >
                 {horasEntregues}
               </span>
               <span
-                className="mt-1 block truncate font-mono text-[11px] font-medium text-slate-400"
+                className="mt-1 block whitespace-nowrap font-mono text-[10px] font-medium text-slate-400 tabular-nums"
                 title={`Meta: ${horasMeta}`}
               >
                 Meta {horasMeta}

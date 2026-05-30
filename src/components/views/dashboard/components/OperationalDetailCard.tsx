@@ -88,7 +88,7 @@ export const OperationalDetailCard: React.FC<OperationalDetailCardProps> = ({ da
                         <div className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-3 dark:border-slate-800/80 dark:bg-slate-900/50">
                             <div className="mb-2 flex justify-between text-xs font-semibold text-slate-400">
                                 <span>Progresso de aderencia</span>
-                                <span className={statusColor}>{Math.min(data.aderencia, 100).toFixed(0)}%</span>
+                                <span className={statusColor}>{isHighPerf ? 'Forte' : isMidPerf ? 'Em ajuste' : 'Abaixo'}</span>
                             </div>
                             <div className="h-2 w-full overflow-hidden rounded-full bg-white ring-1 ring-inset ring-slate-200/70 dark:bg-slate-950 dark:ring-slate-700/70">
                                 <div
@@ -148,10 +148,10 @@ function MetricCount({
 
     return (
         <div className="min-w-0 rounded-xl bg-slate-50/70 px-2.5 py-2 ring-1 ring-slate-200/70 dark:bg-slate-900/50 dark:ring-slate-800/80">
-            <span className="block truncate text-[10px] font-semibold uppercase tracking-[0.12em] text-slate-400">
+            <span className="block text-[9px] font-semibold uppercase tracking-[0.1em] text-slate-400">
                 {label}
             </span>
-            <span className={cn("mt-1 block truncate font-mono text-sm font-semibold", valueClass)}>
+            <span className={cn("mt-1 block whitespace-nowrap font-mono text-[13px] font-semibold tabular-nums", valueClass)}>
                 {value?.toLocaleString('pt-BR') || 0}
             </span>
         </div>

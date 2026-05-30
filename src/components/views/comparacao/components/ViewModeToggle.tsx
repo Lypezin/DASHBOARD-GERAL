@@ -1,5 +1,6 @@
 import React from 'react';
 import { FileSpreadsheet, BarChart2 } from 'lucide-react';
+import { SaasSegmentedControl } from '@/components/views/shared/SaasPrimitives';
 
 interface ViewModeToggleProps {
     viewMode: 'table' | 'chart';
@@ -15,27 +16,49 @@ export const ViewModeToggle: React.FC<ViewModeToggleProps> = ({
     const isSmall = size === 'sm';
 
     return (
-        <div className="inline-flex rounded-full border border-slate-200/80 bg-slate-100/85 p-1 shadow-[0_12px_26px_-22px_rgba(15,23,42,0.42)] dark:border-slate-800/80 dark:bg-slate-900/78">
-            <button
+        <SaasSegmentedControl>
+            <ModeButton
+                active={viewMode === 'table'}
                 onClick={() => onViewModeChange('table')}
-                className={`flex items-center gap-1 rounded-full font-medium transition-[background-color,color,box-shadow,transform] duration-200 ${isSmall ? 'px-3 py-1.5 text-[11px]' : 'px-3.5 py-2 text-xs'} ${viewMode === 'table'
-                    ? 'bg-white text-slate-900 shadow-sm shadow-slate-200/70 dark:bg-slate-50 dark:text-slate-900'
-                    : 'text-slate-500 hover:-translate-y-0.5 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                    }`}
-            >
-                <FileSpreadsheet className={isSmall ? 'h-3 w-3' : 'h-3.5 w-3.5'} />
-                Tabela
-            </button>
-            <button
+                icon={FileSpreadsheet}
+                label="Tabela"
+                small={isSmall}
+            />
+            <ModeButton
+                active={viewMode === 'chart'}
                 onClick={() => onViewModeChange('chart')}
-                className={`flex items-center gap-1 rounded-full font-medium transition-[background-color,color,box-shadow,transform] duration-200 ${isSmall ? 'px-3 py-1.5 text-[11px]' : 'px-3.5 py-2 text-xs'} ${viewMode === 'chart'
-                    ? 'bg-white text-slate-900 shadow-sm shadow-slate-200/70 dark:bg-slate-50 dark:text-slate-900'
-                    : 'text-slate-500 hover:-translate-y-0.5 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200'
-                    }`}
-            >
-                <BarChart2 className={isSmall ? 'h-3 w-3' : 'h-3.5 w-3.5'} />
-                Grafico
-            </button>
-        </div>
+                icon={BarChart2}
+                label="Grafico"
+                small={isSmall}
+            />
+        </SaasSegmentedControl>
     );
 };
+
+function ModeButton({
+    active,
+    onClick,
+    icon: Icon,
+    label,
+    small,
+}: {
+    active: boolean;
+    onClick: () => void;
+    icon: React.ElementType;
+    label: string;
+    small: boolean;
+}) {
+    return (
+        <button
+            onClick={onClick}
+            type="button"
+            className={`${small ? 'h-8 px-3 text-[11px]' : 'h-9 px-3.5 text-xs'} inline-flex items-center gap-1.5 rounded-xl font-semibold transition-[background-color,color,box-shadow,transform] duration-200 ${active
+                ? 'bg-white text-slate-950 shadow-sm ring-1 ring-slate-200/70 dark:bg-slate-950 dark:text-slate-50 dark:ring-slate-800'
+                : 'text-slate-500 hover:-translate-y-0.5 hover:bg-white/70 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-100'
+                }`}
+        >
+            <Icon className={small ? 'h-3 w-3' : 'h-3.5 w-3.5'} />
+            {label}
+        </button>
+    );
+}

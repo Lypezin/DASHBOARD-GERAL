@@ -56,7 +56,7 @@ function MetricTile({
         <Icon className="h-3.5 w-3.5" />
         <span className="text-[10px] font-semibold uppercase tracking-[0.14em]">{label}</span>
       </div>
-      <span className={cn("block truncate font-mono text-sm font-semibold", className)} title={title}>
+      <span className={cn("block whitespace-nowrap font-mono text-[13px] font-semibold tabular-nums", className)} title={title}>
         {value}
       </span>
     </div>
