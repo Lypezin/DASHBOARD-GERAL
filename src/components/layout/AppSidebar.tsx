@@ -178,7 +178,7 @@ export function AppSidebar() {
           <div className={cn("flex items-center min-w-0 transition-all duration-150", collapsed ? "justify-center gap-0 w-full" : "gap-3")}>
             {/* Logo GO Itaim */}
             <Image
-              src="/logo.png"
+              src="/logo.svg"
               alt="GO Itaim Logo"
               width={36}
               height={36}
@@ -249,7 +249,7 @@ export function AppSidebar() {
               <div className="flex h-14 items-center justify-between border-b border-border px-4">
                 <div className="flex items-center gap-3">
                   <Image
-                    src="/logo.png"
+                    src="/logo.svg"
                     alt="GO Itaim Logo"
                     width={32}
                     height={32}
