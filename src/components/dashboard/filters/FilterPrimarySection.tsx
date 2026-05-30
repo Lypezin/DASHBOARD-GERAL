@@ -71,7 +71,7 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
                 placeholder="Todos"
                 onChange={(value) => handleChange('ano', value)}
             />
-            <div className="min-w-[180px]">
+            <div className="min-w-0">
                 <FiltroMultiSelect
                     label="Semana"
                     selected={selectedWeeks}
