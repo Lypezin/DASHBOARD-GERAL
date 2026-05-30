@@ -178,12 +178,12 @@ export function AppSidebar() {
           <div className={cn("flex items-center min-w-0 transition-all duration-150", collapsed ? "justify-center gap-0 w-full" : "gap-3")}>
             {/* Logo GO Itaim */}
             <Image
-              src="/logo.svg"
+              src="/logo.png"
               alt="GO Itaim Logo"
               width={36}
               height={36}
               className={cn(
-                "h-9 w-9 shrink-0 rounded-lg object-cover border border-border/40 shadow-sm transition-all duration-150",
+                "h-9 w-9 shrink-0 rounded-lg object-contain border border-border/40 shadow-sm transition-all duration-150",
                 collapsed ? "mx-auto" : ""
               )}
             />
@@ -249,11 +249,11 @@ export function AppSidebar() {
               <div className="flex h-14 items-center justify-between border-b border-border px-4">
                 <div className="flex items-center gap-3">
                   <Image
-                    src="/logo.svg"
+                    src="/logo.png"
                     alt="GO Itaim Logo"
                     width={32}
                     height={32}
-                    className="h-8 w-8 shrink-0 rounded-lg object-cover border border-border/30"
+                    className="h-8 w-8 shrink-0 rounded-lg object-contain border border-border/30"
                   />
                   <div className="flex flex-col">
                     <span className="text-sm font-black text-foreground">Dashboard Geral</span>
