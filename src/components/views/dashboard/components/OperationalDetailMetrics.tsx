@@ -51,10 +51,10 @@ function MetricTile({
   className: string;
 }) {
   return (
-    <div className="min-w-0 rounded-lg border border-slate-200/70 bg-slate-50/70 px-3 py-2.5 transition-colors duration-200 group-hover:bg-white dark:border-slate-800 dark:bg-slate-950/40 dark:group-hover:bg-slate-900/70">
+    <div className="min-w-0 rounded-2xl border border-slate-200/70 bg-white/80 px-3 py-2.5 shadow-sm transition-colors duration-200 group-hover:bg-white dark:border-slate-800/80 dark:bg-slate-900/50 dark:group-hover:bg-slate-900/75">
       <div className="mb-1 flex items-center gap-1.5 text-slate-400">
         <Icon className="h-3.5 w-3.5" />
-        <span className="text-[11px] font-semibold">{label}</span>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.14em]">{label}</span>
       </div>
       <span className={cn("block truncate font-mono text-sm font-semibold", className)} title={title}>
         {value}
