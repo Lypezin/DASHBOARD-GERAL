@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { EntregadoresData } from '@/types';
+import { motion } from 'framer-motion';
 import { usePrioridadeViewController } from './prioridade/usePrioridadeViewController';
 import { PrioridadeEmptyState, PrioridadeErrorState } from './prioridade/components/PrioridadeEmptyStates';
 import { PrioridadeLayout } from './prioridade/PrioridadeLayout';
@@ -36,30 +36,37 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
   }
 
   return (
-    <PrioridadeLayout
-      sortedEntregadores={state.sortedEntregadores}
-      paginatedEntregadores={state.paginatedEntregadores}
-      dataFiltradaLength={state.dataFiltrada.length}
-      hasMore={state.hasMore}
-      onLoadMore={actions.loadMore}
-      sortField={state.sortField}
-      sortDirection={state.sortDirection}
-      searchTerm={state.searchTerm}
-      isSearching={state.isSearching}
-      filtroAderencia={state.filtroAderencia}
-      filtroRejeicao={state.filtroRejeicao}
-      filtroCompletadas={state.filtroCompletadas}
-      filtroAceitas={state.filtroAceitas}
-      stats={state.stats}
-      onSearchChange={actions.setSearchTerm}
-      onClearSearch={() => actions.setSearchTerm('')}
-      onAderenciaChange={actions.setFiltroAderencia}
-      onRejeicaoChange={actions.setFiltroRejeicao}
-      onCompletadasChange={actions.setFiltroCompletadas}
-      onAceitasChange={actions.setFiltroAceitas}
-      onClearFilters={actions.handleClearFilters}
-      onSort={actions.handleSort}
-    />
+    <motion.div
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
+      className="w-full"
+    >
+      <PrioridadeLayout
+        sortedEntregadores={state.sortedEntregadores}
+        paginatedEntregadores={state.paginatedEntregadores}
+        dataFiltradaLength={state.dataFiltrada.length}
+        hasMore={state.hasMore}
+        onLoadMore={actions.loadMore}
+        sortField={state.sortField}
+        sortDirection={state.sortDirection}
+        searchTerm={state.searchTerm}
+        isSearching={state.isSearching}
+        filtroAderencia={state.filtroAderencia}
+        filtroRejeicao={state.filtroRejeicao}
+        filtroCompletadas={state.filtroCompletadas}
+        filtroAceitas={state.filtroAceitas}
+        stats={state.stats}
+        onSearchChange={actions.setSearchTerm}
+        onClearSearch={() => actions.setSearchTerm('')}
+        onAderenciaChange={actions.setFiltroAderencia}
+        onRejeicaoChange={actions.setFiltroRejeicao}
+        onCompletadasChange={actions.setFiltroCompletadas}
+        onAceitasChange={actions.setFiltroAceitas}
+        onClearFilters={actions.handleClearFilters}
+        onSort={actions.handleSort}
+      />
+    </motion.div>
   );
 });
 

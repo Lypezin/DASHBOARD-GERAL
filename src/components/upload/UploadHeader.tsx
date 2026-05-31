@@ -24,7 +24,7 @@ export function UploadHeader({
     onOrgChange
 }: UploadHeaderProps) {
     return (
-        <div className="relative overflow-hidden rounded-3xl border border-slate-200/70 bg-white/90 p-5 shadow-sm dark:border-slate-800/70 dark:bg-slate-950/80 sm:p-7 md:p-8">
+        <div className="relative overflow-hidden rounded-[1.65rem] border border-slate-200/80 bg-white/80 p-6 shadow-[0_12px_36px_-24px_rgba(15,23,42,0.18)] backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/40 sm:p-7 md:p-8">
             {/* Subtle accent line */}
             <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
             
@@ -34,7 +34,7 @@ export function UploadHeader({
                         <Upload className="h-6 w-6 text-blue-600 dark:text-blue-300" />
                     </div>
                     <div className="space-y-1.5">
-                        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white md:text-3xl">
+                        <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white md:text-3xl">
                             Central de Upload
                         </h1>
                         <p className="max-w-[440px] text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
@@ -46,12 +46,12 @@ export function UploadHeader({
                 {/* Seletor de organização visível apenas para admins globais/master. */}
                 {isAuthorized && user?.id && organizations.length > 0 && (
                     <div className="flex w-full min-w-0 flex-col gap-2 md:w-[320px]">
-                        <label className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-0.5">
+                        <label className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-0.5">
                             <Building2 className="h-3 w-3" />
                             Organização
                         </label>
                         <Select value={selectedOrgId} onValueChange={onOrgChange} disabled={isLoadingOrgs}>
-                            <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50/80 text-sm text-slate-700 shadow-none hover:bg-slate-100 transition-colors focus:ring-1 focus:ring-slate-300 dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-200 dark:hover:bg-slate-800">
+                            <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50/60 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-100/80 focus:ring-4 focus:ring-blue-500/10 focus:outline-none dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:bg-slate-900/80">
                                 <SelectValue placeholder="Selecione uma organização" />
                             </SelectTrigger>
                             <SelectContent>

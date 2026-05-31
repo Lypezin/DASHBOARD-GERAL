@@ -12,6 +12,23 @@ import {
 import { PageLoading } from '@/components/ui/loading';
 import { BarChart2, Megaphone, DollarSign } from 'lucide-react';
 import { useUploadPageLogic } from './useUploadPageLogic';
+import { motion, Variants } from 'framer-motion';
+
+const containerVariants: Variants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.08,
+      delayChildren: 0.05
+    },
+  },
+};
+
+const itemVariants: Variants = {
+  hidden: { opacity: 0, y: 15 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } },
+};
 
 export default function UploadPage() {
   const {
@@ -42,71 +59,84 @@ export default function UploadPage() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-[linear-gradient(180deg,#f8fbff_0%,#f1f5f9_100%)] p-4 sm:p-6 md:p-10 dark:bg-[linear-gradient(180deg,#020617_0%,#0f172a_100%)]">
-        <div className="mx-auto max-w-[1600px] space-y-8">
-          <UploadHeader
-            isAuthorized={isAuthorized} user={user}
-            organizations={organizations} selectedOrgId={selectedOrgId}
-            isLoadingOrgs={isLoadingOrgs} onOrgChange={setSelectedOrgId}
-          />
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="show"
+          className="mx-auto max-w-[1600px] space-y-8"
+        >
+          <motion.div variants={itemVariants}>
+            <UploadHeader
+              isAuthorized={isAuthorized} user={user}
+              organizations={organizations} selectedOrgId={selectedOrgId}
+              isLoadingOrgs={isLoadingOrgs} onOrgChange={setSelectedOrgId}
+            />
+          </motion.div>
 
           <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-3">
-            <UploadSection
-              title="Corridas" description="Upload de dados de corridas"
-              icon={<BarChart2 className="h-5 w-5" />}
-              files={corridasUpload.files} onFileChange={corridasUpload.handleFileChange}
-              onRemoveFile={corridasUpload.removeFile} onUpload={corridasUpload.handleUpload}
-              uploading={corridasUpload.uploading} progress={corridasUpload.progress}
-              progressLabel={corridasUpload.progressLabel} message={corridasUpload.message}
-              disabled={uploadsDisabled}
-              variant="default" dataAttribute="corridas"
-              tips={[
-                { text: 'Certifique-se de que a planilha contém todas as colunas necessárias' },
-                { text: 'O sistema processa automaticamente grandes volumes de dados' },
-                { text: 'Aguarde a conclusão do upload antes de navegar' },
-              ]}
-              expectedColumns={Object.keys(COLUMN_MAP)} isRefreshingMVs={corridasUpload.isRefreshingMVs}
-              mvRefreshProgress={corridasUpload.mvRefreshProgress} mvRefreshStatus={corridasUpload.mvRefreshStatus}
-            />
+            <motion.div variants={itemVariants} className="h-full">
+              <UploadSection
+                title="Corridas" description="Upload de dados de corridas"
+                icon={<BarChart2 className="h-5 w-5" />}
+                files={corridasUpload.files} onFileChange={corridasUpload.handleFileChange}
+                onRemoveFile={corridasUpload.removeFile} onUpload={corridasUpload.handleUpload}
+                uploading={corridasUpload.uploading} progress={corridasUpload.progress}
+                progressLabel={corridasUpload.progressLabel} message={corridasUpload.message}
+                disabled={uploadsDisabled}
+                variant="default" dataAttribute="corridas"
+                tips={[
+                  { text: 'Certifique-se de que a planilha contém todas as colunas necessárias' },
+                  { text: 'O sistema processa automaticamente grandes volumes de dados' },
+                  { text: 'Aguarde a conclusão do upload antes de navegar' },
+                ]}
+                expectedColumns={Object.keys(COLUMN_MAP)} isRefreshingMVs={corridasUpload.isRefreshingMVs}
+                mvRefreshProgress={corridasUpload.mvRefreshProgress} mvRefreshStatus={corridasUpload.mvRefreshStatus}
+              />
+            </motion.div>
 
-            <UploadSection
-              title="Marketing" description="Upload de dados de Marketing"
-              icon={<Megaphone className="h-5 w-5" />}
-              files={marketingState.files} onFileChange={marketingState.handleFileChange}
-              onRemoveFile={marketingState.removeFile} onUpload={handleMarketingUpload}
-              uploading={marketingUpload.uploading} progress={marketingUpload.progress}
-              progressLabel={marketingUpload.progressLabel} message={marketingUpload.message}
-              disabled={uploadsDisabled}
-              variant="marketing" dataAttribute="marketing"
-              tips={[
-                { text: 'Sobrescrita: Todos os dados anteriores serão removidos' },
-                { text: 'Formato de data: DD/MM/YYYY' },
-              ]}
-              expectedColumns={Object.keys(MARKETING_COLUMN_MAP)}
-            />
+            <motion.div variants={itemVariants} className="h-full">
+              <UploadSection
+                title="Marketing" description="Upload de dados de Marketing"
+                icon={<Megaphone className="h-5 w-5" />}
+                files={marketingState.files} onFileChange={marketingState.handleFileChange}
+                onRemoveFile={marketingState.removeFile} onUpload={handleMarketingUpload}
+                uploading={marketingUpload.uploading} progress={marketingUpload.progress}
+                progressLabel={marketingUpload.progressLabel} message={marketingUpload.message}
+                disabled={uploadsDisabled}
+                variant="marketing" dataAttribute="marketing"
+                tips={[
+                  { text: 'Sobrescrita: Todos os dados anteriores serão removidos' },
+                  { text: 'Formato de data: DD/MM/YYYY' },
+                ]}
+                expectedColumns={Object.keys(MARKETING_COLUMN_MAP)}
+              />
+            </motion.div>
 
-            <UploadSection
-              title="Valores por Cidade" description="Upload de valores por cidade"
-              icon={<DollarSign className="h-5 w-5" />}
-              files={valoresCidadeState.files} onFileChange={valoresCidadeState.handleFileChange}
-              onRemoveFile={valoresCidadeState.removeFile} onUpload={handleValoresCidadeUpload}
-              uploading={valoresCidadeUpload.uploading} progress={valoresCidadeUpload.progress}
-              progressLabel={valoresCidadeUpload.progressLabel} message={valoresCidadeUpload.message}
-              disabled={uploadsDisabled}
-              variant="valores" dataAttribute="valores-cidade"
-              tips={[
-                { text: 'Sobrescrita: Todos os dados anteriores serão removidos' },
-                { text: 'Colunas obrigatórias: DATA, ID, CIDADE, VALOR' },
-              ]}
-              expectedColumns={Object.keys(VALORES_CIDADE_COLUMN_MAP)}
-            />
+            <motion.div variants={itemVariants} className="h-full">
+              <UploadSection
+                title="Valores por Cidade" description="Upload de valores por cidade"
+                icon={<DollarSign className="h-5 w-5" />}
+                files={valoresCidadeState.files} onFileChange={valoresCidadeState.handleFileChange}
+                onRemoveFile={valoresCidadeState.removeFile} onUpload={handleValoresCidadeUpload}
+                uploading={valoresCidadeUpload.uploading} progress={valoresCidadeUpload.progress}
+                progressLabel={valoresCidadeUpload.progressLabel} message={valoresCidadeUpload.message}
+                disabled={uploadsDisabled}
+                variant="valores" dataAttribute="valores-cidade"
+                tips={[
+                  { text: 'Sobrescrita: Todos os dados anteriores serão removidos' },
+                  { text: 'Colunas obrigatórias: DATA, ID, CIDADE, VALOR' },
+                ]}
+                expectedColumns={Object.keys(VALORES_CIDADE_COLUMN_MAP)}
+              />
+            </motion.div>
           </div>
 
-          <div className="flex justify-center pb-12">
+          <motion.div variants={itemVariants} className="flex justify-center pb-12">
             <div className="w-full max-w-4xl">
               <UploadRefreshMVs />
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
     </ErrorBoundary>
   );

@@ -3,6 +3,7 @@
 import React from 'react';
 import { BarChart3, Download, LayoutDashboard, ListChecks, Table2, Trophy, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { motion, AnimatePresence } from 'framer-motion';
 import { safeLog } from '@/lib/errorHandler';
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
@@ -343,14 +344,21 @@ const DedicadoView = React.memo(function DedicadoView({
                     key={tab.id}
                     onClick={() => setActiveSubTab(tab.id)}
                     className={cn(
-                      'inline-flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-2.5 py-2 text-[11px] font-bold transition-colors sm:gap-2 sm:px-3.5 sm:text-xs',
+                      'relative inline-flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-2.5 py-2 text-[11px] font-bold transition-all sm:gap-2 sm:px-3.5 sm:text-xs focus:outline-none',
                       active
-                        ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/20'
-                        : 'text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white'
+                        ? 'text-white'
+                        : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
                     )}
                   >
-                    <Icon className="h-4 w-4 shrink-0" />
-                    <span className="min-w-0 text-center leading-tight">{tab.label}</span>
+                    {active && (
+                      <motion.div
+                        layoutId="activeSubTab"
+                        className="absolute inset-0 rounded-xl bg-blue-600 shadow-sm shadow-blue-600/20"
+                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                    <Icon className="h-4 w-4 shrink-0 relative z-10" />
+                    <span className="min-w-0 text-center leading-tight relative z-10">{tab.label}</span>
                   </button>
                 );
               })}
@@ -359,38 +367,49 @@ const DedicadoView = React.memo(function DedicadoView({
         </div>
       </div>
 
-      {activeSubTab === 'dashboard' ? (
-        <DedicadoDashboard loading={dedicadoLoading} error={dedicadoError} stats={stats} topOrigens={dedicatedOrigem.slice(0, 8)} />
-      ) : null}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeSubTab}
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -8 }}
+          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full"
+        >
+          {activeSubTab === 'dashboard' ? (
+            <DedicadoDashboard loading={dedicadoLoading} error={dedicadoError} stats={stats} topOrigens={dedicatedOrigem.slice(0, 8)} />
+          ) : null}
 
-      {activeSubTab === 'entregadores' ? (
-        hasOrganizationContext ? (
-          <EntregadoresMainContent
-            entregadoresData={entregadoresData}
-            loading={loading}
-            variant="dedicado"
-            filterPayload={dedicatedPayload}
-          />
-        ) : (
-          <DedicadoInlineNotice message="Selecione uma organização para carregar os entregadores dedicados." />
-        )
-      ) : null}
+          {activeSubTab === 'entregadores' ? (
+            hasOrganizationContext ? (
+              <EntregadoresMainContent
+                entregadoresData={entregadoresData}
+                loading={loading}
+                variant="dedicado"
+                filterPayload={dedicatedPayload}
+              />
+            ) : (
+              <DedicadoInlineNotice message="Selecione uma organização para carregar os entregadores dedicados." />
+            )
+          ) : null}
 
-      {activeSubTab === 'ranking' ? (
-        hasOrganizationContext ? (
-          <DedicadoRanking entregadores={rankingEntregadores} loading={loading} />
-        ) : (
-          <DedicadoInlineNotice message="Selecione uma organização para montar o ranking do DEDICADO." />
-        )
-      ) : null}
+          {activeSubTab === 'ranking' ? (
+            hasOrganizationContext ? (
+              <DedicadoRanking entregadores={rankingEntregadores} loading={loading} />
+            ) : (
+              <DedicadoInlineNotice message="Selecione uma organização para montar o ranking do DEDICADO." />
+            )
+          ) : null}
 
-      {activeSubTab === 'resumo' ? (
-        <DedicadoResumo rows={resumoOrigemRows} loading={dedicadoLoading} error={dedicadoError} />
-      ) : null}
+          {activeSubTab === 'resumo' ? (
+            <DedicadoResumo rows={resumoOrigemRows} loading={dedicadoLoading} error={dedicadoError} />
+          ) : null}
 
-      {activeSubTab === 'dia_origem' ? (
-        <DedicadoDiaOrigem data={dedicatedDiaOrigem} dayDateMap={dayDateMap} loading={dedicadoLoading} error={dedicadoError} />
-      ) : null}
+          {activeSubTab === 'dia_origem' ? (
+            <DedicadoDiaOrigem data={dedicatedDiaOrigem} dayDateMap={dayDateMap} loading={dedicadoLoading} error={dedicadoError} />
+          ) : null}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 });

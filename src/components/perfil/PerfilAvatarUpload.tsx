@@ -68,7 +68,10 @@ export const PerfilAvatarUpload: React.FC<PerfilAvatarUploadProps> = ({ avatarUr
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
       >
-        <Avatar className="h-28 w-28 cursor-pointer border-4 border-white shadow-2xl ring-1 ring-white/50 transition-all duration-200 hover:ring-blue-300 dark:border-slate-950 dark:ring-slate-700">
+        <Avatar 
+          className="h-28 w-28 cursor-pointer border-4 border-white shadow-2xl ring-1 ring-white/50 transition-all duration-200 hover:ring-blue-300 dark:border-slate-950 dark:ring-slate-700"
+          onClick={() => fileInputRef.current?.click()}
+        >
           <AvatarImage src={avatarUrl || ''} alt="Foto de perfil" className="object-cover" />
           <AvatarFallback className="bg-slate-100 text-slate-400 dark:bg-slate-900">
             {uploading ? <Loader2 className="h-9 w-9 animate-spin text-blue-600" /> : <Camera className="h-9 w-9" />}

@@ -62,7 +62,7 @@ export function DedicadoDashboard({
           return (
             <Card key={card.title} className="min-w-0 border-slate-200/70 bg-white/90 shadow-sm transition-[border-color,box-shadow] hover:border-slate-300/80 hover:shadow-md dark:border-slate-800/70 dark:bg-slate-900/85 dark:hover:border-slate-700">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="min-w-0 truncate text-sm font-semibold text-slate-500 dark:text-slate-400">{card.title}</CardTitle>
+                <CardTitle className="text-sm font-semibold text-slate-500 dark:text-slate-400 whitespace-normal break-words leading-tight pr-1">{card.title}</CardTitle>
                 <Icon className={cn('h-4 w-4 shrink-0', card.color)} />
               </CardHeader>
               <CardContent>
