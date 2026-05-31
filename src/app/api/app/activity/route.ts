@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { loadAuthenticatedUser } from '@/app/api/_shared/authenticatedUser';
-import { createClient } from '@/utils/supabase/server';
+import { createServiceRoleClient } from '@/utils/supabase/admin';
 
 export const runtime = 'nodejs';
 
@@ -43,8 +43,9 @@ export async function POST(request: Request) {
         return NextResponse.json({ success: false, error: 'Sessao nao permitida para este usuario.' }, { status: 403 });
     }
 
-    const supabase = createClient();
-    const { error } = await supabase.rpc('registrar_atividade', {
+    const supabase = createServiceRoleClient();
+    const { error } = await supabase.rpc('registrar_atividade_for_user', {
+        p_user_id: auth.user.id,
         p_session_id: sessionId,
         p_action_type: actionType,
         p_action_details: description,

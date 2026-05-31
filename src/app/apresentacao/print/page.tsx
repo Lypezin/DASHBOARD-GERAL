@@ -4,7 +4,8 @@ import { parsePrintParams, createFilterPayload, generatePrintStyles } from '@/ut
 import { processPrintData } from '@/utils/apresentacao/printDataProcessor';
 import { ReportSlides } from './components/ReportSlides';
 
-import { createClient } from '@/utils/supabase/server';
+import { loadCurrentUserProfile } from '@/app/api/_shared/currentUserProfile';
+import { createServiceRoleClient } from '@/utils/supabase/admin';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,13 +37,23 @@ export default async function PrintablePage({ searchParams }: PageProps) {
 
   const { praca, ano1, ano2, semanaNum1, semanaNum2, numeroSemana1, numeroSemana2 } = params;
 
-  // Inicializar cliente Supabase Server com cookies
-  const supabase = createClient();
+  const auth = await loadCurrentUserProfile({ requireApproved: true });
+  if ('failure' in auth) {
+    return (
+      <div style={{ background: '#0f172a', color: 'white', padding: 24, minHeight: '100vh' }}>
+        <h1>Acesso restrito</h1>
+        <p>{auth.failure.message}</p>
+      </div>
+    );
+  }
+
+  const supabase = createServiceRoleClient();
+  const organizationPayload = { p_organization_id: auth.profile.organization_id || null };
 
   // Buscar os dois conjuntos de dados via RPC com cliente autenticado
   const [semana1Result, semana2Result] = await Promise.all([
-    supabase.rpc('dashboard_resumo', createFilterPayload(ano1, semanaNum1, praca)),
-    supabase.rpc('dashboard_resumo', createFilterPayload(ano2, semanaNum2, praca)),
+    supabase.rpc('dashboard_resumo', { ...createFilterPayload(ano1, semanaNum1, praca), ...organizationPayload }),
+    supabase.rpc('dashboard_resumo', { ...createFilterPayload(ano2, semanaNum2, praca), ...organizationPayload }),
   ]);
 
   const semana1 = (semana1Result.error ? null : semana1Result.data) as DashboardResumoData | null;

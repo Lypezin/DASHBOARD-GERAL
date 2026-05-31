@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { loadAuthenticatedUser } from '@/app/api/_shared/authenticatedUser';
-import { createClient } from '@/utils/supabase/server';
+import { hasElevatedRole, loadCurrentUserProfile } from '@/app/api/_shared/currentUserProfile';
+import { createServiceRoleClient } from '@/utils/supabase/admin';
 
 export const runtime = 'nodejs';
 
@@ -17,20 +17,27 @@ function normalizeString(value: unknown, maxLength: number) {
 }
 
 export async function POST(request: Request) {
-    const auth = await loadAuthenticatedUser();
+    const auth = await loadCurrentUserProfile({ requireApproved: true });
     if ('failure' in auth) {
         return NextResponse.json({ data: null, error: auth.failure.message }, { status: auth.failure.status });
     }
 
     const body = await request.json().catch(() => null) as DetailBody | null;
     const entregadorId = normalizeString(body?.entregadorId, 120);
-    const organizationId = normalizeString(body?.organizationId, 120);
+    const requestedOrganizationId = normalizeString(body?.organizationId, 120);
+    const organizationId = hasElevatedRole(auth.profile)
+        ? requestedOrganizationId || auth.profile.organization_id || null
+        : auth.profile.organization_id || null;
 
     if (!entregadorId) {
         return NextResponse.json({ data: null, error: 'Entregador invalido para consulta.' }, { status: 400 });
     }
 
-    const supabase = createClient();
+    if (!organizationId) {
+        return NextResponse.json({ data: null, error: 'Organizacao invalida para consulta.' }, { status: 400 });
+    }
+
+    const supabase = createServiceRoleClient();
     const { data, error } = await supabase.rpc('get_entregador_detail', {
         p_entregador_id: entregadorId,
         p_org_id: organizationId,

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { useOrganization } from '@/contexts/OrganizationContext';
+import { safeRpc } from '@/lib/rpcWrapper';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 const WEEKS_CACHE_TTL_MS = 5 * 60 * 1000;
@@ -62,11 +62,10 @@ async function fetchAvailableWeeks(ano: number, organizationId?: string | null) 
     if (activeRequest) return activeRequest;
 
     const request = (async () => {
-        const { data, error } = await supabase
-            .rpc('get_available_weeks', {
-                p_ano_iso: ano,
-                p_organization_id: organizationId,
-            });
+        const { data, error } = await safeRpc<{ semana_iso?: number }[]>('get_available_weeks', {
+            p_ano_iso: ano,
+            p_organization_id: organizationId,
+        }, { validateParams: false });
 
         if (error) {
             throw error;

@@ -6,7 +6,7 @@ import { MarketingReportSlides } from './components/MarketingReportSlides';
 import { createClient } from '@/utils/supabase/server';
 import { redirect } from 'next/navigation';
 import { MARKETING_PRESENTATION_WEEKLY_CITIES } from '@/constants/marketing';
-import { normalizeCurrentUserProfile } from '@/app/api/_shared/currentUserProfile';
+import { loadCurrentUserProfile } from '@/app/api/_shared/currentUserProfile';
 
 import { Metadata } from 'next';
 
@@ -29,20 +29,19 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
     const supabase = createClient();
     
     // 1. Verificar Autenticação e Role no Servidor
-    const { data: { user: authUser } } = await supabase.auth.getUser();
-    
-    if (!authUser) {
+    const profileResult = await loadCurrentUserProfile({ requireApproved: true });
+
+    if ('failure' in profileResult && profileResult.failure.status === 401) {
         redirect('/login');
     }
 
-    const { data: profileData, error: profileError } = await supabase.rpc('get_current_user_profile');
-    const profile = normalizeCurrentUserProfile(profileData) as {
+    const profile = 'profile' in profileResult ? profileResult.profile as {
         role?: string;
         is_admin?: boolean;
         organization_id?: string | null;
-    } | null;
+    } : null;
 
-    if (profileError || !profile) {
+    if (!profile) {
         return (
             <div style={{ background: '#0f172a', color: 'white', padding: 48, textAlign: 'center', fontFamily: 'sans-serif', minHeight: '100vh' }}>
                 <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Acesso Restrito</h1>

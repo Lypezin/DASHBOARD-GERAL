@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { loadAuthenticatedUser } from '@/app/api/_shared/authenticatedUser';
-import { createClient } from '@/utils/supabase/server';
+import { createServiceRoleClient } from '@/utils/supabase/admin';
 
 export const runtime = 'nodejs';
 
@@ -20,7 +20,7 @@ export async function GET() {
         return NextResponse.json({ data: null, error: auth.failure.message }, { status: auth.failure.status });
     }
 
-    const supabase = createClient();
+    const supabase = createServiceRoleClient();
     const { data, error } = await supabase.rpc('get_gamification_leaderboard');
 
     if (error) {
@@ -43,8 +43,11 @@ export async function POST(request: Request) {
         return NextResponse.json({ data: null, error: 'Tipo de interacao invalido.' }, { status: 400 });
     }
 
-    const supabase = createClient();
-    const { data, error } = await supabase.rpc('register_interaction', { p_interaction_type: interactionType });
+    const supabase = createServiceRoleClient();
+    const { data, error } = await supabase.rpc('register_interaction_for_user', {
+        p_user_id: auth.user.id,
+        p_interaction_type: interactionType,
+    });
 
     if (error) {
         return NextResponse.json({ data: null, error: error.message, details: error }, { status: 500 });

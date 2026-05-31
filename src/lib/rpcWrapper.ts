@@ -4,6 +4,7 @@ import { rpcRateLimiter } from './rateLimiter';
 import { checkMockClient, isClientReady } from '@/lib/rpc/clientChecker';
 import { normalizeParams, validateAndSanitize } from '@/lib/rpc/validationInterceptor';
 import { executeRpcRequest } from '@/lib/rpc/requestHandler';
+import { executeSecureRpcProxy, shouldUseSecureRpcProxy } from '@/lib/rpc/secureRpcProxy';
 
 const DEFAULT_TIMEOUT = RPC_TIMEOUTS.DEFAULT;
 
@@ -27,6 +28,10 @@ export async function safeRpc<T = unknown>(
 
   const normalized = normalizeParams(params);
   const finalParams = validateAndSanitize(normalized, functionName, validateParams);
+
+  if (!client && shouldUseSecureRpcProxy(functionName)) {
+    return executeSecureRpcProxy<T>(functionName, finalParams, timeout);
+  }
 
   return executeRpcRequest<T>(functionName, finalParams, timeout, client);
 }
