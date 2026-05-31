@@ -3,7 +3,7 @@
 import React from 'react';
 import { BarChart3, Download, LayoutDashboard, ListChecks, Table2, Trophy, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { safeLog } from '@/lib/errorHandler';
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
@@ -80,6 +80,7 @@ const DedicadoView = React.memo(function DedicadoView({
   const [dedicadoLoading, setDedicadoLoading] = React.useState(false);
   const [dedicadoError, setDedicadoError] = React.useState<string | null>(null);
   const [isExporting, setIsExporting] = React.useState(false);
+  const shouldReduceMotion = useReducedMotion();
   const filterPayloadKey = React.useMemo(() => createRequestKey(filterPayload), [filterPayload]);
   const dedicatedPayload = React.useMemo<FilterPayload>(() => {
     const payload = JSON.parse(filterPayloadKey) as FilterPayload;
@@ -306,6 +307,13 @@ const DedicadoView = React.memo(function DedicadoView({
     }));
   }, [dedicatedOrigem]);
 
+  const subTabMotionProps = {
+    initial: shouldReduceMotion ? false : { opacity: 0, y: 10, scale: 0.996 },
+    animate: shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 },
+    exit: shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.998 },
+    transition: { duration: shouldReduceMotion ? 0.01 : 0.18, ease: [0.22, 1, 0.36, 1] },
+  } as const;
+
   return (
     <div className="mx-auto flex w-full max-w-[1500px] min-w-0 flex-col gap-6 px-3 pb-10 sm:px-6 lg:px-8 animate-fade-in">
       <div className="min-w-0 overflow-hidden rounded-3xl border border-blue-200/60 bg-gradient-to-br from-blue-50 via-white to-slate-50 p-5 shadow-sm dark:border-blue-900/40 dark:from-blue-950/30 dark:via-slate-950 dark:to-slate-950 sm:p-6">
@@ -367,14 +375,11 @@ const DedicadoView = React.memo(function DedicadoView({
         </div>
       </div>
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={activeSubTab}
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -8 }}
-          transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-          className="w-full"
+          {...subTabMotionProps}
+          className="w-full transform-gpu will-change-transform"
         >
           {activeSubTab === 'dashboard' ? (
             <DedicadoDashboard loading={dedicadoLoading} error={dedicadoError} stats={stats} topOrigens={dedicatedOrigem.slice(0, 8)} />

@@ -3,6 +3,7 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import TabButton from '@/components/TabButton';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 
@@ -35,6 +36,7 @@ const MarketingView = React.memo(function MarketingView() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
+  const shouldReduceMotion = useReducedMotion();
 
   const activeSubTab = searchParams.get('mkt_tab') || 'dashboard';
 
@@ -43,6 +45,21 @@ const MarketingView = React.memo(function MarketingView() {
     params.set('mkt_tab', tab);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
+
+  const content = (() => {
+    switch (activeSubTab) {
+      case 'resultados':
+        return <ResultadosView />;
+      case 'valores-cidade':
+        return <ValoresCidadeView />;
+      case 'entrada-saida':
+        return <MarketingEntradaSaidaView />;
+      case 'apresentacao':
+        return <MarketingPresentationView />;
+      default:
+        return <MarketingDashboardView />;
+    }
+  })();
 
   return (
     <div className="mx-auto max-w-7xl space-y-5 px-3 py-6 animate-fade-in sm:px-6 sm:py-7 lg:px-8">
@@ -88,11 +105,18 @@ const MarketingView = React.memo(function MarketingView() {
         </div>
       </div>
 
-      {activeSubTab === 'dashboard' && <MarketingDashboardView />}
-      {activeSubTab === 'resultados' && <ResultadosView />}
-      {activeSubTab === 'valores-cidade' && <ValoresCidadeView />}
-      {activeSubTab === 'entrada-saida' && <MarketingEntradaSaidaView />}
-      {activeSubTab === 'apresentacao' && <MarketingPresentationView />}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={activeSubTab}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 10, scale: 0.996 }}
+          animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+          exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.998 }}
+          transition={{ duration: shouldReduceMotion ? 0.01 : 0.18, ease: [0.22, 1, 0.36, 1] }}
+          className="min-w-0 transform-gpu will-change-transform"
+        >
+          {content}
+        </motion.div>
+      </AnimatePresence>
     </div>
   );
 });

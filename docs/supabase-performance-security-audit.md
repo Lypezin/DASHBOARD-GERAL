@@ -45,6 +45,29 @@ Projeto auditado: `ulmobmmlkevxswxpcyza`
 - Foram adicionados cache curto e dedupe em voo também em `/api/dashboard/data`, `/api/app/secure-rpc`
   e `/api/dedicado/origens`, cobrindo Dashboard, UTR, Entregadores, Valores, DEDICADO, Evolução,
   Comparação, Análise e Marketing sem alterar RPCs, filtros ou payloads principais.
+- As transições internas foram padronizadas em Marketing, Comparação, Evolução e DEDICADO com
+  `AnimatePresence`, `transform-gpu` e respeito a `prefers-reduced-motion`, reduzindo troca brusca
+  entre skeleton, conteúdo, erro e subguias.
+- As RPCs de metadados de filtros do dashboard foram reescritas para evitar a view pesada
+  `vw_dashboard_resumo_current` quando o retorno é apenas lista distinta. Medições finais:
+  `list_pracas_disponiveis` ~52ms, `listar_anos_disponiveis` ~3ms,
+  `listar_todas_semanas` ~31ms, `get_available_weeks(2026, org)` ~15ms,
+  `get_dashboard_dimension_options(praca, org)` ~67ms.
+- `get_dashboard_dimension_options` agora respeita explicitamente `p_organization_id` em chamadas
+  `service_role`, alinhando o escopo real da RPC com a validação feita no proxy `/api/app/secure-rpc`.
+- Foi adicionado um índice leve por `praca` em `mv_dashboard_resumo` e
+  `tb_dashboard_resumo_incremental`. A versão covering foi testada e descartada por custo maior
+  de armazenamento para ganho pequeno.
+- `get_fluxo_semanal` foi reescrita para calcular `activation_week`, `last_active_week` e
+  `total_rides` em uma única agregação sobre o acumulado por entregador, eliminando o CTE
+  intermediário `activation_weeks` e o join de volta em todas as linhas. A saída foi comparada
+  semana a semana em maio/2026 e manteve `entradas`, `saídas`, `retomada`, `base_ativa` e
+  `retomada_origins` iguais. Medição pós-migração: resumo mensal ~1,49s; detalhe semanal com
+  nomes ~1,40s.
+- `vw_entregadores_agregado_current` foi alinhada ao modelo de overlay por escopo
+  `organization_id + data_do_periodo + praca + sub_praca + origem`, coerente com
+  `refresh_entregadores_agregado_incremental`. O payload agregado de Entregadores 2026 foi
+  comparado antes da troca: 5.603 entregadores, `diff_rows = 0` e mesmas corridas completadas.
 - Dois índices experimentais testados em `mv_corridas_agregadas`/incremental não trouxeram
   ganho real e foram removidos na mesma rodada para evitar bloat e novos avisos.
 - As RPCs otimizadas continuam `SECURITY DEFINER`, com `EXECUTE` apenas para `postgres` e
@@ -128,10 +151,10 @@ Snapshot adicional de 2026-05-29:
 | `realtime.list_changes` | muitas chamadas | Ja reduzido no frontend pausando presenca/chat em aba oculta. |
 | `listar_entregadores_v2` com `ano + praca` | media historica alta | Criar caminho paginado/resumido ou limitar ano inteiro sem busca. |
 | `listar_valores_entregadores` anual | media historica alta | Aplicar mesma estrategia de paginacao/resumo. |
-| `get_fluxo_semanal` | ainda relevante | Preferir MV/colunas prontas e reduzir nomes detalhados quando nao precisa. |
-| `list_pracas_disponiveis` | chamada repetida e lenta | Ja recebeu cache server-side curto na rota admin. |
+| `get_fluxo_semanal` | ainda relevante | Reescrita parcial aplicada; segue candidato a MV dedicada se cold start precisar ficar sub-500ms. |
+| `list_pracas_disponiveis` | chamada repetida de filtros | Reescrita para tabelas base + índice leve por `praca`; mediu ~52ms. |
 | `get_city_last_updates` | chamada repetida | Ja recebeu cache server-side curto. |
-| `get_available_weeks` | chamada repetida | Ja recebeu cache/dedupe client-side por ano/organizacao. |
+| `get_available_weeks` | chamada repetida por ano/organizacao | Reescrita para tabelas base; mediu ~15ms com `2026 + organizacao`. |
 
 ## Funcoes SECURITY DEFINER
 
@@ -203,6 +226,12 @@ Estas estavam executaveis por `authenticated`, mas nao apareceram como RPC liter
 - `DEDICADO` deixou de disparar busca de entregadores quando a subguia ativa nao precisa disso.
 - Limite de retry em tabs para evitar loading infinito em erro 500/rate limit.
 - Cache curto e dedupe em voo para chamadas idênticas de `/api/dashboard/data`, `/api/app/secure-rpc` e `/api/dedicado/origens`, evitando requests duplicados durante troca de aba/render.
+- RPCs de filtros do dashboard (`list_pracas_disponiveis`, `listar_anos_disponiveis`,
+  `listar_todas_semanas`, `get_available_weeks`, `get_dashboard_dimension_options` e auxiliares
+  por praça) foram otimizadas para reduzir latência fria antes mesmo do cache.
+- `get_fluxo_semanal` e `vw_entregadores_agregado_current` receberam ajustes estruturais de banco
+  para reduzir custo de troca nas subguias Marketing Entrada/Saída, Entregadores, Prioridade e
+  Valores sem alterar payloads públicos.
 - Tabela de Entregadores ajustada para rolagem horizontal unica entre cabecalho e linhas, reduzindo desalinhamento/overflow em telas menores.
 - Logs diretos de componentes ativos foram padronizados em `safeLog`, reduzindo ruido no console sem mudar comportamento.
 - `react-window` e o prototipo nao utilizado `VirtualizedTable` foram removidos, reduzindo dependencia morta e codigo sem contrato ativo.
