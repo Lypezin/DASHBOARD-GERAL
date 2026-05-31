@@ -22,6 +22,16 @@ type FluxoRequestBody = {
     praca?: unknown;
 };
 
+type FluxoCacheEntry = {
+    data: unknown[];
+    expiresAt: number;
+};
+
+const FLUXO_CACHE_TTL_MS = 2 * 60 * 1000;
+const FLUXO_CACHE_MAX_ENTRIES = 80;
+const fluxoCache = new Map<string, FluxoCacheEntry>();
+const fluxoInFlight = new Map<string, Promise<unknown[]>>();
+
 function normalizeDate(value: unknown) {
     return typeof value === 'string' && ISO_DATE_RE.test(value) ? value : null;
 }
@@ -33,11 +43,52 @@ function normalizePraca(value: unknown) {
     return trimmed ? trimmed.slice(0, 120) : null;
 }
 
+function buildFluxoCacheKey(params: {
+    dataInicial: string;
+    dataFinal: string;
+    includeNames: boolean;
+    organizationId: string;
+    praca: string | null;
+}) {
+    return [
+        params.organizationId,
+        params.dataInicial,
+        params.dataFinal,
+        params.praca || 'all',
+        params.includeNames ? 'names' : 'summary',
+    ].join('|');
+}
+
+function getCachedFluxo(cacheKey: string) {
+    const cached = fluxoCache.get(cacheKey);
+
+    if (!cached) return null;
+
+    if (cached.expiresAt <= Date.now()) {
+        fluxoCache.delete(cacheKey);
+        return null;
+    }
+
+    return cached.data;
+}
+
+function setCachedFluxo(cacheKey: string, data: unknown[]) {
+    fluxoCache.set(cacheKey, {
+        data,
+        expiresAt: Date.now() + FLUXO_CACHE_TTL_MS,
+    });
+
+    if (fluxoCache.size > FLUXO_CACHE_MAX_ENTRIES) {
+        const oldestKey = fluxoCache.keys().next().value;
+        if (oldestKey) fluxoCache.delete(oldestKey);
+    }
+}
+
 export async function POST(request: Request) {
     try {
         const auth = await loadCurrentUserProfile({
             requireApproved: true,
-            notApprovedMessage: 'Usuario ainda nao aprovado.',
+            notApprovedMessage: 'Usuário ainda não aprovado.',
         });
 
         if ('failure' in auth) {
@@ -57,33 +108,71 @@ export async function POST(request: Request) {
         const includeNames = body?.includeNames === true;
 
         if (!dataInicial || !dataFinal) {
-            return NextResponse.json({ data: null, error: 'Periodo invalido para consulta.' }, { status: 400 });
+            return NextResponse.json({ data: null, error: 'Período inválido para consulta.' }, { status: 400 });
         }
 
         if (!organizationId || !UUID_RE.test(organizationId)) {
-            return NextResponse.json({ data: null, error: 'Organizacao invalida para consulta.' }, { status: 400 });
+            return NextResponse.json({ data: null, error: 'Organização inválida para consulta.' }, { status: 400 });
         }
 
         if (!hasElevatedRole(auth.profile)) {
             if (!profileOrganizationId || organizationId !== profileOrganizationId) {
-                return NextResponse.json({ data: null, error: 'Organizacao nao permitida para este usuario.' }, { status: 403 });
+                return NextResponse.json({ data: null, error: 'Organização não permitida para este usuário.' }, { status: 403 });
             }
         }
 
-        const admin = createServiceRoleClient();
-        const { data, error } = await admin.rpc('get_fluxo_semanal', {
-            p_data_inicial: dataInicial,
-            p_data_final: dataFinal,
-            p_include_names: includeNames,
-            p_organization_id: organizationId,
-            p_praca: praca,
+        const cacheKey = buildFluxoCacheKey({
+            dataInicial,
+            dataFinal,
+            includeNames,
+            organizationId,
+            praca,
         });
 
-        if (error) {
-            return NextResponse.json({ data: null, error: error.message, details: error }, { status: 500 });
+        const cached = getCachedFluxo(cacheKey);
+        if (cached) {
+            return NextResponse.json({ data: cached, error: null, cached: true });
         }
 
-        return NextResponse.json({ data: Array.isArray(data) ? data : [], error: null });
+        let requestPromise = fluxoInFlight.get(cacheKey);
+
+        if (!requestPromise) {
+            requestPromise = (async () => {
+                const admin = createServiceRoleClient();
+                const { data, error } = await admin.rpc('get_fluxo_semanal', {
+                    p_data_inicial: dataInicial,
+                    p_data_final: dataFinal,
+                    p_include_names: includeNames,
+                    p_organization_id: organizationId,
+                    p_praca: praca,
+                });
+
+                if (error) {
+                    throw Object.assign(new Error(error.message), { details: error });
+                }
+
+                return Array.isArray(data) ? data : [];
+            })();
+
+            fluxoInFlight.set(cacheKey, requestPromise);
+        }
+
+        try {
+            const data = await requestPromise;
+            setCachedFluxo(cacheKey, data);
+            return NextResponse.json({ data, error: null, cached: false });
+        } catch (rpcError) {
+            const message = rpcError instanceof Error ? rpcError.message : 'Erro ao consultar fluxo semanal.';
+            const details = typeof rpcError === 'object' && rpcError !== null && 'details' in rpcError
+                ? (rpcError as { details: unknown }).details
+                : rpcError;
+
+            return NextResponse.json({ data: null, error: message, details }, { status: 500 });
+        } finally {
+            if (fluxoInFlight.get(cacheKey) === requestPromise) {
+                fluxoInFlight.delete(cacheKey);
+            }
+        }
     } catch (error) {
         if (isServiceRoleConfigError(error)) {
             const payload = getServiceRoleConfigErrorPayload();

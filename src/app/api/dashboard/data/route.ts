@@ -8,6 +8,7 @@ import {
     getServiceRoleConfigErrorPayload,
     isServiceRoleConfigError,
 } from '@/utils/supabase/admin';
+import { createRequestKey } from '@/utils/request/createRequestKey';
 
 export const runtime = 'nodejs';
 
@@ -16,6 +17,15 @@ const UTR_ALLOWED_PARAMS = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_or
 const ENTREGADORES_ALLOWED_PARAMS = ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_only_dedicados', 'p_search'] as const;
 const VALORES_ALLOWED_PARAMS = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id'] as const;
 const VALORES_DETALHADOS_ALLOWED_PARAMS = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_limit', 'p_offset'] as const;
+const CACHE_TTL_BY_MODE_MS: Record<DashboardDataMode, number> = {
+    utr: 90_000,
+    entregadores: 90_000,
+    valores: 90_000,
+    valores_detalhados: 30_000,
+    valores_breakdown: 90_000,
+    resumo_local: 90_000,
+};
+const MAX_CACHE_ENTRIES = 120;
 
 type DashboardDataMode = 'utr' | 'entregadores' | 'valores' | 'valores_detalhados' | 'valores_breakdown' | 'resumo_local';
 
@@ -23,6 +33,86 @@ type DashboardDataRequest = {
     mode?: unknown;
     payload?: unknown;
 };
+
+type DashboardDataCacheEntry = {
+    data: unknown;
+    expiresAt: number;
+};
+
+const dashboardDataCache = new Map<string, DashboardDataCacheEntry>();
+const inFlightDashboardData = new Map<string, Promise<unknown>>();
+
+function getCacheKey(mode: DashboardDataMode, payload: Record<string, unknown>) {
+    return createRequestKey({ mode, payload });
+}
+
+function getCachedData(cacheKey: string) {
+    const entry = dashboardDataCache.get(cacheKey);
+    const now = Date.now();
+
+    if (entry && entry.expiresAt > now) {
+        return entry.data;
+    }
+
+    if (entry) {
+        dashboardDataCache.delete(cacheKey);
+    }
+
+    if (dashboardDataCache.size > MAX_CACHE_ENTRIES) {
+        let removed = 0;
+        for (const [key, value] of dashboardDataCache.entries()) {
+            if (removed >= 20) break;
+            if (value.expiresAt <= now) {
+                dashboardDataCache.delete(key);
+                removed++;
+            }
+        }
+
+        while (dashboardDataCache.size > MAX_CACHE_ENTRIES) {
+            const oldestKey = dashboardDataCache.keys().next().value as string | undefined;
+            if (!oldestKey) break;
+            dashboardDataCache.delete(oldestKey);
+        }
+    }
+
+    return null;
+}
+
+function setCachedData(cacheKey: string, mode: DashboardDataMode, data: unknown) {
+    dashboardDataCache.set(cacheKey, {
+        data,
+        expiresAt: Date.now() + CACHE_TTL_BY_MODE_MS[mode],
+    });
+}
+
+async function resolveWithCache(
+    mode: DashboardDataMode,
+    payload: Record<string, unknown>,
+    fetcher: () => Promise<unknown>,
+) {
+    const cacheKey = getCacheKey(mode, payload);
+    const cached = getCachedData(cacheKey);
+
+    if (cached !== null) {
+        return { data: cached, cached: true };
+    }
+
+    const existingRequest = inFlightDashboardData.get(cacheKey);
+    if (existingRequest) {
+        return { data: await existingRequest, cached: true };
+    }
+
+    const request = fetcher();
+    inFlightDashboardData.set(cacheKey, request);
+
+    try {
+        const data = await request;
+        setCachedData(cacheKey, mode, data);
+        return { data, cached: false };
+    } finally {
+        inFlightDashboardData.delete(cacheKey);
+    }
+}
 
 function normalizeMode(value: unknown): DashboardDataMode | null {
     if (
@@ -93,7 +183,7 @@ export async function POST(request: Request) {
     try {
         const auth = await loadCurrentUserProfile({
             requireApproved: true,
-            notApprovedMessage: 'Usuario ainda nao aprovado.',
+            notApprovedMessage: 'Usuário ainda não aprovado.',
         });
 
         if ('failure' in auth) {
@@ -104,7 +194,7 @@ export async function POST(request: Request) {
         const mode = normalizeMode(body?.mode);
 
         if (!mode) {
-            return NextResponse.json({ data: null, error: 'Modo de dados do dashboard invalido.' }, { status: 400 });
+            return NextResponse.json({ data: null, error: 'Modo de dados do dashboard inválido.' }, { status: 400 });
         }
 
         const source = asObject(body?.payload);
@@ -115,18 +205,18 @@ export async function POST(request: Request) {
             const organizationId = resolveOrganizationId(source, profileOrganizationId);
 
             if (!organizationId || !UUID_RE.test(organizationId)) {
-                return NextResponse.json({ data: null, error: 'Organizacao invalida para resumo semanal.' }, { status: 400 });
+                return NextResponse.json({ data: null, error: 'Organização inválida para resumo semanal.' }, { status: 400 });
             }
 
             if (!hasElevatedRole(auth.profile)) {
                 if (!profileOrganizationId || organizationId !== profileOrganizationId) {
-                    return NextResponse.json({ data: null, error: 'Organizacao nao permitida para este usuario.' }, { status: 403 });
+                    return NextResponse.json({ data: null, error: 'Organização não permitida para este usuário.' }, { status: 403 });
                 }
             }
 
             const year = Number(source.p_ano);
             if (!Number.isFinite(year) || year < 2020 || year > 2100) {
-                return NextResponse.json({ data: null, error: 'Ano invalido para resumo semanal.' }, { status: 400 });
+                return NextResponse.json({ data: null, error: 'Ano inválido para resumo semanal.' }, { status: 400 });
             }
 
             const params = {
@@ -135,29 +225,27 @@ export async function POST(request: Request) {
                 p_pracas: normalizePracas(source.p_pracas),
             };
 
-            const [driversResult, pedidosResult] = await Promise.all([
-                admin.rpc('resumo_semanal_drivers', params),
-                admin.rpc('resumo_semanal_pedidos', params),
-            ]);
+            const { data, cached } = await resolveWithCache('resumo_local', params, async () => {
+                const [driversResult, pedidosResult] = await Promise.all([
+                    admin.rpc('resumo_semanal_drivers', params),
+                    admin.rpc('resumo_semanal_pedidos', params),
+                ]);
 
-            if (driversResult.error || pedidosResult.error) {
-                const errorMessage = driversResult.error?.message || pedidosResult.error?.message || 'Erro ao consultar resumo semanal.';
-                return NextResponse.json({
-                    data: null,
-                    error: errorMessage,
-                    details: {
-                        drivers: driversResult.error || null,
-                        pedidos: pedidosResult.error || null,
-                    },
-                }, { status: 500 });
-            }
+                if (driversResult.error || pedidosResult.error) {
+                    const errorMessage = driversResult.error?.message || pedidosResult.error?.message || 'Erro ao consultar resumo semanal.';
+                    throw new Error(errorMessage);
+                }
 
-            return NextResponse.json({
-                data: {
+                return {
                     drivers: Array.isArray(driversResult.data) ? driversResult.data : [],
                     pedidos: Array.isArray(pedidosResult.data) ? pedidosResult.data : [],
-                },
+                };
+            });
+
+            return NextResponse.json({
+                data,
                 error: null,
+                cached,
             });
         }
 
@@ -172,12 +260,12 @@ export async function POST(request: Request) {
         const organizationId = resolveOrganizationId(payload, profileOrganizationId);
 
         if (!organizationId || !UUID_RE.test(organizationId)) {
-            return NextResponse.json({ data: null, error: 'Organizacao invalida para consulta.' }, { status: 400 });
+            return NextResponse.json({ data: null, error: 'Organização inválida para consulta.' }, { status: 400 });
         }
 
         if (!hasElevatedRole(auth.profile)) {
             if (!profileOrganizationId || organizationId !== profileOrganizationId) {
-                return NextResponse.json({ data: null, error: 'Organizacao nao permitida para este usuario.' }, { status: 403 });
+                return NextResponse.json({ data: null, error: 'Organização não permitida para este usuário.' }, { status: 403 });
             }
         }
 
@@ -198,13 +286,17 @@ export async function POST(request: Request) {
                     ? 'listar_valores_entregadores_detalhado'
                     : 'obter_resumo_valores_breakdown';
 
-        const { data, error } = await admin.rpc(rpcName, payload);
+        const { data, cached } = await resolveWithCache(mode, payload, async () => {
+            const { data: rpcData, error } = await admin.rpc(rpcName, payload);
 
-        if (error) {
-            return NextResponse.json({ data: null, error: error.message, details: error }, { status: 500 });
-        }
+            if (error) {
+                throw new Error(error.message);
+            }
 
-        return NextResponse.json({ data: data ?? null, error: null });
+            return rpcData ?? null;
+        });
+
+        return NextResponse.json({ data, error: null, cached });
     } catch (error) {
         if (isServiceRoleConfigError(error)) {
             const payload = getServiceRoleConfigErrorPayload();

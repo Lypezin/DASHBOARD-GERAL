@@ -4,6 +4,52 @@ Data da coleta: 2026-05-29
 
 Projeto auditado: `ulmobmmlkevxswxpcyza`
 
+## Atualização de 2026-05-31
+
+- Security Advisor revalidado: 0 avisos.
+- Foram removidos 5 índices sem uso e sem dependência de FK/PK/unique:
+  `idx_mv_dashboard_org_v3`, `idx_mv_corridas_agregadas_entregador_v3`,
+  `idx_mv_corridas_agregadas_org_v3`, `idx_mv_entregadores_summary_activation_v3`,
+  `idx_mv_ativacao_org_week_v3`.
+- Os 12 índices pequenos de FK foram recriados de propósito. Ao removê-los, o advisor trocou
+  `unused_index` por `unindexed_foreign_keys`, que é um estado pior. Portanto eles devem ficar,
+  mesmo que aparecam como pouco usados.
+- Performance Advisor atual: 12 avisos `unused_index` referentes a índices de FK pequenos e
+  1 aviso `auth_db_connections_absolute`, que depende de configuração do Auth no painel Supabase,
+  não de SQL.
+- `dashboard_evolucao_bundle` foi otimizada para limitar o CTE base ao ano solicitado quando não há
+  intervalo customizado. Medição com `2026/organização ativa`: ~1801ms antes, ~418ms depois.
+- `listar_entregadores_v2` recebeu fast path para `ano + semana + organização` sem filtros extras.
+  Medição com `2026/21/organização ativa`: ~1311ms antes, ~126ms depois.
+- `listar_valores_entregadores` recebeu fast path equivalente para `ano + semana + organização`.
+  Medição com `2026/21/organização ativa`: ~1434ms antes, ~85ms depois.
+- Revalidação adicional em `2026-05-31`: `listar_entregadores_v2` com `2026 + SAO PAULO`
+  mediu ~73ms; `dashboard_dedicado_origens_v2` com `2026 + SAO PAULO` mediu ~84ms.
+- `listar_valores_entregadores` com `2026 + SAO PAULO` ainda ficou em ~518ms e segue como
+  candidato secundário para reduzir temp spill em filtros anuais.
+- `vw_corridas_agregadas_current` foi simplificada para tratar a tabela incremental como
+  substituição completa do escopo `organization_id + week_start_date + praca`, alinhado com
+  `refresh_corridas_agregadas_incremental`. O ramo removido retornava 0 linhas e custava ~2,2s.
+- A leitura base de `vw_corridas_agregadas_current` para a organização ativa até `2026-05-25`
+  caiu de ~2,4s para ~109ms.
+- `get_fluxo_semanal` continua sendo a RPC mais pesada de Marketing, mas caiu de ~5,6s para
+  ~1,76s no período `2026-05-01` a `2026-05-31`. Foi adicionado cache curto e dedupe na rota
+  `/api/marketing/fluxo` para tornar navegações repetidas/filtros iguais praticamente
+  imediatos sem alterar os cálculos da RPC.
+- Revalidação posterior mediu `get_fluxo_semanal` em ~1,9s no cenário frio/quente de maio/2026.
+  Uma reescrita usando `mv_entregadores_ativacao` foi descartada porque alterou `entradas_total`
+  e `saidas_mkt_count`; portanto não é segura sem revisar a regra de negócio.
+- `get_fluxo_semanal(date, date, uuid, text)` e `get_fluxo_semanal(date, date, uuid, text, boolean)`
+  receberam `work_mem = 64MB` no nível da função para remover temp spill em disco. A medição ficou
+  em ~1,6s, mas com `Temp Read/Write = 0`.
+- Foram adicionados cache curto e dedupe em voo também em `/api/dashboard/data`, `/api/app/secure-rpc`
+  e `/api/dedicado/origens`, cobrindo Dashboard, UTR, Entregadores, Valores, DEDICADO, Evolução,
+  Comparação, Análise e Marketing sem alterar RPCs, filtros ou payloads principais.
+- Dois índices experimentais testados em `mv_corridas_agregadas`/incremental não trouxeram
+  ganho real e foram removidos na mesma rodada para evitar bloat e novos avisos.
+- As RPCs otimizadas continuam `SECURITY DEFINER`, com `EXECUTE` apenas para `postgres` e
+  `service_role`; o advisor de segurança permaneceu zerado depois das alterações.
+
 ## Estado seguro atual
 
 - O acesso read-only via Management API foi validado com usuario de banco `postgres`.
@@ -156,7 +202,7 @@ Estas estavam executaveis por `authenticated`, mas nao apareceram como RPC liter
 - Timer da sidebar de pessoas online so roda quando o painel esta aberto.
 - `DEDICADO` deixou de disparar busca de entregadores quando a subguia ativa nao precisa disso.
 - Limite de retry em tabs para evitar loading infinito em erro 500/rate limit.
-- Dedupe em voo para chamadas identicas de `/api/dashboard/data` e `/api/dedicado/origens`, evitando requests duplicados durante troca de aba/render.
+- Cache curto e dedupe em voo para chamadas idênticas de `/api/dashboard/data`, `/api/app/secure-rpc` e `/api/dedicado/origens`, evitando requests duplicados durante troca de aba/render.
 - Tabela de Entregadores ajustada para rolagem horizontal unica entre cabecalho e linhas, reduzindo desalinhamento/overflow em telas menores.
 - Logs diretos de componentes ativos foram padronizados em `safeLog`, reduzindo ruido no console sem mudar comportamento.
 - `react-window` e o prototipo nao utilizado `VirtualizedTable` foram removidos, reduzindo dependencia morta e codigo sem contrato ativo.

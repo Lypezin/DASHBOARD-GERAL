@@ -15,7 +15,7 @@ import type {
 import type { FilterPayload } from '@/types/filters';
 import { needsChartReady, renderActiveView } from './utils/viewRenderer';
 import { useGamification } from '@/contexts/GamificationContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 interface DashboardViewsRendererProps {
   activeTab: TabType;
@@ -46,6 +46,7 @@ export type DashboardViewRenderProps = DashboardViewsRendererProps;
 export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer(props: DashboardViewsRendererProps) {
   const { activeTab, chartReady } = props;
   const { registerInteraction } = useGamification();
+  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     const interactionMap = {
@@ -94,11 +95,11 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={activeTab}
-            initial={{ opacity: 0, y: 12, filter: 'blur(4px)' }}
-            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-            exit={{ opacity: 0, y: -12, filter: 'blur(4px)' }}
-            transition={{ duration: 0.22, ease: 'easeOut' }}
-            className="min-w-0 w-full"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 10, scale: 0.996 }}
+            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.998 }}
+            transition={{ duration: shouldReduceMotion ? 0.01 : 0.18, ease: [0.22, 1, 0.36, 1] }}
+            className="min-w-0 w-full transform-gpu will-change-transform"
           >
             {renderActiveView(activeTab, props)}
           </motion.div>

@@ -9,10 +9,14 @@ import {
   getServiceRoleConfigErrorPayload,
   isServiceRoleConfigError,
 } from '@/utils/supabase/admin';
+import { createRequestKey } from '@/utils/request/createRequestKey';
 
 export const runtime = 'nodejs';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const SECURE_RPC_CACHE_TTL_MS = 60_000;
+const SECURE_RPC_DETAIL_CACHE_TTL_MS = 20_000;
+const MAX_SECURE_RPC_CACHE_ENTRIES = 160;
 
 const ALLOWED_RPC = new Set([
   'dashboard_evolucao_bundle',
@@ -65,6 +69,92 @@ type SecureRpcBody = {
   params?: unknown;
 };
 
+type SecureRpcCacheEntry = {
+  data: unknown;
+  expiresAt: number;
+};
+
+const secureRpcCache = new Map<string, SecureRpcCacheEntry>();
+const inFlightSecureRpc = new Map<string, Promise<unknown>>();
+
+function getSecureRpcCacheTtl(functionName: string) {
+  return functionName === 'get_entregador_detail' || functionName === 'get_entregadores_details'
+    ? SECURE_RPC_DETAIL_CACHE_TTL_MS
+    : SECURE_RPC_CACHE_TTL_MS;
+}
+
+function getSecureRpcCacheKey(functionName: string, params: Record<string, unknown>, profile: CurrentUserProfile) {
+  return createRequestKey({
+    functionName,
+    params,
+    scope: {
+      id: profile.id,
+      role: profile.role,
+      organization_id: profile.organization_id,
+      assigned_pracas: normalizeAssignedPracas(profile),
+    },
+  });
+}
+
+function cleanupSecureRpcCache(now: number) {
+  if (secureRpcCache.size <= MAX_SECURE_RPC_CACHE_ENTRIES) return;
+
+  let removed = 0;
+  for (const [key, value] of secureRpcCache.entries()) {
+    if (removed >= 30) break;
+    if (value.expiresAt <= now) {
+      secureRpcCache.delete(key);
+      removed++;
+    }
+  }
+
+  while (secureRpcCache.size > MAX_SECURE_RPC_CACHE_ENTRIES) {
+    const oldestKey = secureRpcCache.keys().next().value as string | undefined;
+    if (!oldestKey) break;
+    secureRpcCache.delete(oldestKey);
+  }
+}
+
+async function resolveSecureRpcWithCache(
+  functionName: string,
+  params: Record<string, unknown>,
+  profile: CurrentUserProfile,
+  fetcher: () => Promise<unknown>,
+) {
+  const cacheKey = getSecureRpcCacheKey(functionName, params, profile);
+  const now = Date.now();
+  const cached = secureRpcCache.get(cacheKey);
+
+  if (cached && cached.expiresAt > now) {
+    return { data: cached.data, cached: true };
+  }
+
+  if (cached) {
+    secureRpcCache.delete(cacheKey);
+  }
+
+  cleanupSecureRpcCache(now);
+
+  const existingRequest = inFlightSecureRpc.get(cacheKey);
+  if (existingRequest) {
+    return { data: await existingRequest, cached: true };
+  }
+
+  const request = fetcher();
+  inFlightSecureRpc.set(cacheKey, request);
+
+  try {
+    const data = await request;
+    secureRpcCache.set(cacheKey, {
+      data,
+      expiresAt: Date.now() + getSecureRpcCacheTtl(functionName),
+    });
+    return { data, cached: false };
+  } finally {
+    inFlightSecureRpc.delete(cacheKey);
+  }
+}
+
 function asParams(value: unknown) {
   return value && typeof value === 'object' && !Array.isArray(value)
     ? { ...(value as Record<string, unknown>) }
@@ -109,7 +199,7 @@ function ensureAuthorizedOrganization(
 
   if (!hasElevatedRole(profile)) {
     if (!profileOrgId) {
-      return { error: 'Organizacao invalida para este usuario.' };
+      return { error: 'Organização inválida para este usuário.' };
     }
 
     nextParams[orgKey] = profileOrgId;
@@ -121,7 +211,7 @@ function ensureAuthorizedOrganization(
     String(nextParams[orgKey]).trim() &&
     !requestedOrgId
   ) {
-    return { error: 'Organizacao invalida para consulta.' };
+    return { error: 'Organização inválida para consulta.' };
   }
 
   return { params: nextParams };
@@ -142,7 +232,7 @@ function ensurePracaScope(
   const praca = typeof nextParams.p_praca === 'string' ? nextParams.p_praca.trim() : '';
 
   if (praca && !isAllPraca(praca) && !allowed.has(praca.toUpperCase())) {
-    return { error: 'Praca nao permitida para este usuario.' };
+    return { error: 'Praça não permitida para este usuário.' };
   }
 
   if (Array.isArray(nextParams.p_pracas)) {
@@ -151,7 +241,7 @@ function ensurePracaScope(
       .filter((item) => item && allowed.has(item.toUpperCase()));
 
     if (scoped.length === 0) {
-      return { error: 'Nenhuma praca permitida foi informada.' };
+      return { error: 'Nenhuma praça permitida foi informada.' };
     }
 
     nextParams.p_pracas = scoped;
@@ -160,7 +250,7 @@ function ensurePracaScope(
 
   if (!praca || isAllPraca(praca)) {
     if (functionName === 'get_marketing_comparison_weekly' && assigned.length !== 1) {
-      return { error: 'Informe uma praca permitida para esta consulta.' };
+      return { error: 'Informe uma praça permitida para esta consulta.' };
     }
 
     if (assigned.length === 1) {
@@ -212,7 +302,7 @@ export async function POST(request: Request) {
   try {
     const auth = await loadCurrentUserProfile({
       requireApproved: true,
-      notApprovedMessage: 'Usuario ainda nao aprovado.',
+      notApprovedMessage: 'Usuário ainda não aprovado.',
     });
 
     if ('failure' in auth) {
@@ -223,7 +313,7 @@ export async function POST(request: Request) {
     const functionName = typeof body?.functionName === 'string' ? body.functionName : '';
 
     if (!ALLOWED_RPC.has(functionName)) {
-      return NextResponse.json({ data: null, error: 'RPC protegida nao permitida.' }, { status: 400 });
+      return NextResponse.json({ data: null, error: 'RPC protegida não permitida.' }, { status: 400 });
     }
 
     if (functionName === 'get_current_user_profile') {
@@ -235,7 +325,7 @@ export async function POST(request: Request) {
     }
 
     if (FULL_CITY_ACCESS_ONLY.has(functionName) && !hasFullCityAccess(auth.profile)) {
-      return NextResponse.json({ data: null, error: 'Usuario sem permissao para esta consulta.' }, { status: 403 });
+      return NextResponse.json({ data: null, error: 'Usuário sem permissão para esta consulta.' }, { status: 403 });
     }
 
     let params = clampPagination(asParams(body?.params));
@@ -253,15 +343,22 @@ export async function POST(request: Request) {
     params = pracaScope.params || params;
 
     const admin = createServiceRoleClient();
-    const { data, error } = await admin.rpc(functionName, params);
+    const { data, cached } = await resolveSecureRpcWithCache(functionName, params, auth.profile, async () => {
+      const { data: rpcData, error } = await admin.rpc(functionName, params);
 
-    if (error) {
-      return NextResponse.json({ data: null, error: error.message, details: error }, { status: 500 });
-    }
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      return functionName === 'list_pracas_disponiveis'
+        ? filterPracasResult(rpcData, auth.profile)
+        : rpcData ?? null;
+    });
 
     return NextResponse.json({
-      data: functionName === 'list_pracas_disponiveis' ? filterPracasResult(data, auth.profile) : data ?? null,
+      data,
       error: null,
+      cached,
     });
   } catch (error) {
     if (isServiceRoleConfigError(error)) {
