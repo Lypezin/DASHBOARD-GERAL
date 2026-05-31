@@ -17,6 +17,9 @@ Projeto auditado: `ulmobmmlkevxswxpcyza`
 - Performance Advisor atual: 12 avisos `unused_index` referentes a índices de FK pequenos e
   1 aviso `auth_db_connections_absolute`, que depende de configuração do Auth no painel Supabase,
   não de SQL.
+- Auditoria dos 12 `unused_index` atuais: todos batem exatamente com uma coluna de FK, todos têm
+  `idx_scan = 0` no snapshot e todos são pequenos (8-16 kB). Decisão: manter. O ganho máximo de
+  armazenamento seria irrelevante, e removê-los reabre o aviso pior de `unindexed_foreign_keys`.
 - `dashboard_evolucao_bundle` foi otimizada para limitar o CTE base ao ano solicitado quando não há
   intervalo customizado. Medição com `2026/organização ativa`: ~1801ms antes, ~418ms depois.
 - `listar_entregadores_v2` recebeu fast path para `ano + semana + organização` sem filtros extras.
@@ -64,12 +67,34 @@ Projeto auditado: `ulmobmmlkevxswxpcyza`
   semana a semana em maio/2026 e manteve `entradas`, `saídas`, `retomada`, `base_ativa` e
   `retomada_origins` iguais. Medição pós-migração: resumo mensal ~1,49s; detalhe semanal com
   nomes ~1,40s.
+- A sobrecarga de resumo de `get_fluxo_semanal(..., includeNames=false)` deixou de carregar
+  `nome_entregador`, porque o payload dessa chamada sempre retorna arrays de nomes vazios. O hash
+  do JSON foi validado antes/depois em maio/2026 sem praça e com `SAO PAULO`
+  (`9c8658413a78071d2f924328257ad2f2` e `0b86580ec0f09340e9574c41e8ef9ad0`). Medição atual:
+  resumo geral ~1,33s; resumo com `SAO PAULO` ~637ms.
 - `vw_entregadores_agregado_current` foi alinhada ao modelo de overlay por escopo
   `organization_id + data_do_periodo + praca + sub_praca + origem`, coerente com
   `refresh_entregadores_agregado_incremental`. O payload agregado de Entregadores 2026 foi
   comparado antes da troca: 5.603 entregadores, `diff_rows = 0` e mesmas corridas completadas.
 - Dois índices experimentais testados em `mv_corridas_agregadas`/incremental não trouxeram
   ganho real e foram removidos na mesma rodada para evitar bloat e novos avisos.
+- O caminho anual de `listar_valores_entregadores` foi reavaliado com `EXPLAIN`: usa o índice
+  covering `idx_mv_entregadores_agregado_org_data_cover_v4` e mediu ~624ms quente para 2026
+  inteiro. Testes alternativos com overlay direto em incremental e chave normalizada ficaram
+  piores (~916ms a ~3,1s), então não foi aplicado índice/view adicional sem ganho comprovado.
+- As RPCs `resumo_semanal_drivers` e `resumo_semanal_pedidos` foram identificadas como gargalo
+  real do Resumo Semanal: ~7,06s e ~8,26s para 2026 antes do ajuste, com temp spill. O primeiro
+  ajuste aplicado foi `work_mem = 96MB` no nível das duas funções. Revalidação inicial: ~0,91s e
+  ~1,59s, respectivamente, sem temp spill.
+- Revalidação posterior mostrou que o planner ainda lia 450k-672k linhas anuais via índice simples
+  de `ano_iso`. Foi criado o índice covering `idx_dados_corridas_resumo_semanal_v1`
+  (`organization_id`, `ano_iso`, `semana_numero`, `id_da_pessoa_entregadora`) com `INCLUDE` das
+  colunas usadas por slots/aderência. Tamanho: 311 MB. Plano confirmado com `Index Only Scan`;
+  medições quentes após `VACUUM (ANALYZE)`: `resumo_semanal_drivers` ~343-351ms e
+  `resumo_semanal_pedidos` ~485-494ms para 2026 inteiro.
+- As transições internas foram ampliadas para UTR, Entregadores, Valores, Prioridade Promo,
+  Marketing Dashboard, Resultados, Valores por Cidade e Resumo Semanal usando o primitive
+  `ViewTransition`, com `AnimatePresence`, `transform-gpu` e respeito a `prefers-reduced-motion`.
 - As RPCs otimizadas continuam `SECURITY DEFINER`, com `EXECUTE` apenas para `postgres` e
   `service_role`; o advisor de segurança permaneceu zerado depois das alterações.
 
@@ -120,6 +145,7 @@ Nao remover nesta fase. Eles aparecem com uso real e sustentam refresh/RPCs impo
 | --- | --- | ---: | ---: |
 | `idx_dados_corridas_dashboard_perf` | `dados_corridas` | 529 MB | 8143 scans |
 | `idx_dados_corridas_entregador_semanal` | `dados_corridas` | 507 MB | 1134 scans |
+| `idx_dados_corridas_resumo_semanal_v1` | `dados_corridas` | 311 MB | 15 scans no benchmark pós-criação |
 | `idx_dados_corridas_agg_v3` | `dados_corridas` | 240 MB | 507248 scans |
 | `idx_mv_entregadores_agregado_org_ano_cover_v4` | `mv_entregadores_agregado` | 213 MB | 677 scans |
 | `idx_mv_entregadores_agregado_org_data_cover_v4` | `mv_entregadores_agregado` | 213 MB | 195 scans |
@@ -232,6 +258,11 @@ Estas estavam executaveis por `authenticated`, mas nao apareceram como RPC liter
 - `get_fluxo_semanal` e `vw_entregadores_agregado_current` receberam ajustes estruturais de banco
   para reduzir custo de troca nas subguias Marketing Entrada/Saída, Entregadores, Prioridade e
   Valores sem alterar payloads públicos.
+- `resumo_semanal_drivers` e `resumo_semanal_pedidos` receberam `work_mem` local e um índice
+  covering dedicado para reduzir o Resumo Semanal de vários segundos para aproximadamente
+  350-500ms em cenário quente.
+- Um primitive compartilhado `ViewTransition` foi adicionado ao app para padronizar transição entre
+  skeleton, erro, vazio e conteúdo nas guias que ainda retornavam estados abruptos.
 - Tabela de Entregadores ajustada para rolagem horizontal unica entre cabecalho e linhas, reduzindo desalinhamento/overflow em telas menores.
 - Logs diretos de componentes ativos foram padronizados em `safeLog`, reduzindo ruido no console sem mudar comportamento.
 - `react-window` e o prototipo nao utilizado `VirtualizedTable` foram removidos, reduzindo dependencia morta e codigo sem contrato ativo.

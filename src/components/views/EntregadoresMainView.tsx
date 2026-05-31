@@ -17,6 +17,7 @@ import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
 import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
 import { applyAllYearsDateRangeToPayload } from '@/utils/filters/allYearsRange';
+import { ViewTransition } from '@/components/ui/view-transition';
 import type { CurrentUser, EntregadoresData } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 
@@ -139,68 +140,76 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
     );
   }, [entregadoresData?.periodo_resolvido, filterPayload, isDedicado]);
 
-  if (loading && !entregadoresData) return <DashboardSkeleton contentOnly />;
+  if (loading && !entregadoresData) {
+    return (
+      <ViewTransition stateKey={`${variant}-loading`}>
+        <DashboardSkeleton contentOnly />
+      </ViewTransition>
+    );
+  }
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <EntregadoresHeader
-        onExport={handleExport}
-        isExporting={isExporting}
-        disableExport={loading || isRefreshing}
-        exportDisabledReason="Aguarde a busca terminar para exportar os dados corretos."
-        title={isDedicado ? 'Entregadores por Origem' : undefined}
-        description={resolvedDescription}
-        periodoResolvido={entregadoresData?.periodo_resolvido}
-      />
-
-      <EntregadoresMainStatsCards
-        totalEntregadores={stats.totalEntregadores}
-        aderenciaMedia={stats.aderenciaMedia}
-        rejeicaoMedia={stats.rejeicaoMedia}
-        totalCorridas={stats.totalCorridasCompletadas}
-        totalHoras={formatarHorasParaHMS(stats.totalSegundos / 3600)}
-        totalTitle={isDedicado ? 'Total de Entregadores' : undefined}
-        totalSubtext={isDedicado ? 'Entregadores nas origens do filtro' : undefined}
-        corridasTitle={isDedicado ? 'Completadas' : undefined}
-        corridasSubtext={isDedicado ? 'Total completado nas origens' : undefined}
-      />
-
-      <EntregadoresMainSearch
-        searchTerm={effectiveSearchTerm}
-        onSearchChange={handleSearchChange}
-        showInactiveOnly={showInactiveOnly}
-        onShowInactiveOnlyChange={setShowInactiveOnly}
-        isSearching={loading || isRefreshing}
-      />
-
-      {loading || isRefreshing ? (
-        <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-4 py-3 text-sm font-semibold text-emerald-700 shadow-sm dark:border-emerald-900/60 dark:bg-emerald-950/25 dark:text-emerald-200">
-          Atualizando a busca com os filtros atuais...
-        </div>
-      ) : null}
-
-      <EntregadoresMainTable
-        sortedEntregadores={sortedEntregadores}
-        sortField={sortField}
-        sortDirection={sortDirection}
-        onSort={handleSort}
-        searchTerm={effectiveSearchTerm}
-        onRowClick={handleRowClick}
-      />
-
-      {showPerformers ? <DeferredTopBottomPerformers entregadores={sortedEntregadores} /> : null}
-
-      {selectedEntregador ? (
-        <DeferredEntregadorProfileDialog
-          entregador={selectedEntregador}
-          open={profileOpen}
-          onOpenChange={setProfileOpen}
-          organizationId={typeof filterPayload?.p_organization_id === 'string' ? filterPayload.p_organization_id : undefined}
-          variant={variant}
-          filterPayload={filterPayload}
+    <ViewTransition stateKey={`${variant}-content`}>
+      <div className="space-y-6 animate-fade-in">
+        <EntregadoresHeader
+          onExport={handleExport}
+          isExporting={isExporting}
+          disableExport={loading || isRefreshing}
+          exportDisabledReason="Aguarde a busca terminar para exportar os dados corretos."
+          title={isDedicado ? 'Entregadores por Origem' : undefined}
+          description={resolvedDescription}
+          periodoResolvido={entregadoresData?.periodo_resolvido}
         />
-      ) : null}
-    </div>
+
+        <EntregadoresMainStatsCards
+          totalEntregadores={stats.totalEntregadores}
+          aderenciaMedia={stats.aderenciaMedia}
+          rejeicaoMedia={stats.rejeicaoMedia}
+          totalCorridas={stats.totalCorridasCompletadas}
+          totalHoras={formatarHorasParaHMS(stats.totalSegundos / 3600)}
+          totalTitle={isDedicado ? 'Total de Entregadores' : undefined}
+          totalSubtext={isDedicado ? 'Entregadores nas origens do filtro' : undefined}
+          corridasTitle={isDedicado ? 'Completadas' : undefined}
+          corridasSubtext={isDedicado ? 'Total completado nas origens' : undefined}
+        />
+
+        <EntregadoresMainSearch
+          searchTerm={effectiveSearchTerm}
+          onSearchChange={handleSearchChange}
+          showInactiveOnly={showInactiveOnly}
+          onShowInactiveOnlyChange={setShowInactiveOnly}
+          isSearching={loading || isRefreshing}
+        />
+
+        {loading || isRefreshing ? (
+          <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-4 py-3 text-sm font-semibold text-emerald-700 shadow-sm dark:border-emerald-900/60 dark:bg-emerald-950/25 dark:text-emerald-200">
+            Atualizando a busca com os filtros atuais...
+          </div>
+        ) : null}
+
+        <EntregadoresMainTable
+          sortedEntregadores={sortedEntregadores}
+          sortField={sortField}
+          sortDirection={sortDirection}
+          onSort={handleSort}
+          searchTerm={effectiveSearchTerm}
+          onRowClick={handleRowClick}
+        />
+
+        {showPerformers ? <DeferredTopBottomPerformers entregadores={sortedEntregadores} /> : null}
+
+        {selectedEntregador ? (
+          <DeferredEntregadorProfileDialog
+            entregador={selectedEntregador}
+            open={profileOpen}
+            onOpenChange={setProfileOpen}
+            organizationId={typeof filterPayload?.p_organization_id === 'string' ? filterPayload.p_organization_id : undefined}
+            variant={variant}
+            filterPayload={filterPayload}
+          />
+        ) : null}
+      </div>
+    </ViewTransition>
   );
 });
 

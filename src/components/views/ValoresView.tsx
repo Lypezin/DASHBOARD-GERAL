@@ -13,6 +13,7 @@ import { ValoresError, ValoresEmpty } from './valores/ValoresStates';
 
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
+import { ViewTransition } from '@/components/ui/view-transition';
 import type { CurrentUser } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 
@@ -43,32 +44,58 @@ const ValoresView = React.memo(function ValoresView({
     finally { setIsExporting(false); }
   }, [sortedValores]);
 
-  if (loading && !valoresData) return <DashboardSkeleton contentOnly />;
-  if (error && !valoresData) return <ValoresError error={error} />;
+  if (loading && !valoresData) {
+    return (
+      <ViewTransition stateKey="valores-loading">
+        <DashboardSkeleton contentOnly />
+      </ViewTransition>
+    );
+  }
+
+  if (error && !valoresData) {
+    return (
+      <ViewTransition stateKey="valores-error">
+        <ValoresError error={error} />
+      </ViewTransition>
+    );
+  }
 
   if (!valoresData || !Array.isArray(valoresData)) {
-    if (!loading) return <ValoresEmpty />;
-    return <DashboardSkeleton contentOnly />;
+    if (!loading) {
+      return (
+        <ViewTransition stateKey="valores-empty">
+          <ValoresEmpty />
+        </ViewTransition>
+      );
+    }
+
+    return (
+      <ViewTransition stateKey="valores-loading">
+        <DashboardSkeleton contentOnly />
+      </ViewTransition>
+    );
   }
 
   return (
-    <div className="space-y-6 animate-fade-in w-full max-w-[1800px] mx-auto pb-10">
-      <div>
-        <ValoresStatsCards totalGeral={totalGeral} totalEntregadores={totalEntregadores} totalCorridas={totalCorridas} taxaMediaGeral={taxaMediaGeral} formatarReal={formatarReal} />
-      </div>
-
-      <div className="space-y-4">
-        <ValoresHeader isExporting={isExporting} onExport={handleExport} />
-
+    <ViewTransition stateKey="valores-content">
+      <div className="space-y-6 animate-fade-in w-full max-w-[1800px] mx-auto pb-10">
         <div>
-          <ValoresSearch searchTerm={searchTerm} isSearching={isSearching} totalResults={totalEntregadores} onSearchChange={setSearchTerm} onClearSearch={() => setSearchTerm('')} />
+          <ValoresStatsCards totalGeral={totalGeral} totalEntregadores={totalEntregadores} totalCorridas={totalCorridas} taxaMediaGeral={taxaMediaGeral} formatarReal={formatarReal} />
         </div>
 
-        <div>
-          <ValoresTable sortedValores={paginatedValores} sortField={sortField} sortDirection={sortDirection} onSort={handleSort} formatarReal={formatarReal} isDetailed={false} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} />
+        <div className="space-y-4">
+          <ValoresHeader isExporting={isExporting} onExport={handleExport} />
+
+          <div>
+            <ValoresSearch searchTerm={searchTerm} isSearching={isSearching} totalResults={totalEntregadores} onSearchChange={setSearchTerm} onClearSearch={() => setSearchTerm('')} />
+          </div>
+
+          <div>
+            <ValoresTable sortedValores={paginatedValores} sortField={sortField} sortDirection={sortDirection} onSort={handleSort} formatarReal={formatarReal} isDetailed={false} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} />
+          </div>
         </div>
       </div>
-    </div>
+    </ViewTransition>
   );
 });
 

@@ -12,6 +12,7 @@ import { handleExportExcelResumoSemanal } from './resumo-semanal/ResumoSemanalEx
 import { handleCopyTable as copyTableHelper } from './resumo-semanal/utils/copyHelpers';
 import { SelectedPracasTags } from './resumo-semanal/SelectedPracasTags';
 import { useDashboardEvolucao } from '@/hooks/dashboard/useDashboardEvolucao';
+import { ViewTransition } from '@/components/ui/view-transition';
 import type { FilterPayload } from '@/types/filters';
 
 interface ResumoSemanalViewProps {
@@ -67,7 +68,8 @@ export const ResumoSemanalView = React.memo(({
     }, [displayRows]);
 
     return (
-        <div className="mx-auto w-full max-w-[1400px] space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 p-6">
+        <ViewTransition stateKey="resumo-semanal-content">
+            <div className="mx-auto w-full max-w-[1400px] space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 p-6">
             <Card className="border-none bg-white/50 shadow-sm backdrop-blur-sm dark:bg-slate-900/50">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="bg-gradient-to-r from-blue-600 to-sky-600 bg-clip-text text-xl font-bold text-transparent">
@@ -91,7 +93,8 @@ export const ResumoSemanalView = React.memo(({
                     <ResumoTable data={displayRows} isLoading={!!isLoading} />
                 </CardContent>
             </Card>
-        </div>
+            </div>
+        </ViewTransition>
     );
 });
 

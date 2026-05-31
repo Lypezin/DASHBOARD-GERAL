@@ -8,6 +8,7 @@ import { ResultadosErrorState } from './resultados/ResultadosErrorState';
 import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 import { handleExportExcelResultados } from './resultados/ResultadosExcelExport';
 import { BarChart3 } from 'lucide-react';
+import { ViewTransition } from '@/components/ui/view-transition';
 
 const ResultadosView = React.memo(function ResultadosView() {
   const {
@@ -25,18 +26,25 @@ const ResultadosView = React.memo(function ResultadosView() {
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-fade-in">
-        <TableSkeleton rows={8} columns={4} />
-      </div>
+      <ViewTransition stateKey="resultados-loading">
+        <div className="space-y-6 animate-fade-in">
+          <TableSkeleton rows={8} columns={4} />
+        </div>
+      </ViewTransition>
     );
   }
 
   if (error) {
-    return <ResultadosErrorState error={error} />;
+    return (
+      <ViewTransition stateKey="resultados-error">
+        <ResultadosErrorState error={error} />
+      </ViewTransition>
+    );
   }
 
   return (
-    <div className="space-y-8 pb-8 animate-fade-in">
+    <ViewTransition stateKey="resultados-content">
+      <div className="space-y-8 pb-8 animate-fade-in">
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">
@@ -77,7 +85,8 @@ const ResultadosView = React.memo(function ResultadosView() {
         totalLiberado={totais.totalLiberado}
         atendentesData={atendentesData}
       />
-    </div>
+      </div>
+    </ViewTransition>
   );
 });
 

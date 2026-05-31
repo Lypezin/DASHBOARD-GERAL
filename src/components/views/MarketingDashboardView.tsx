@@ -7,6 +7,7 @@ import { MarketingCityCards } from './marketing/MarketingCityCards';
 import { useMarketingData } from './marketing/useMarketingData';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { MarketingDashboardError } from './marketing/components/MarketingDashboardError';
+import { ViewTransition } from '@/components/ui/view-transition';
 
 const DashboardSectionHeader = ({ title, subtitle }: { title: string; subtitle: string }) => (
   <div className="flex items-center gap-3 px-2">
@@ -21,23 +22,38 @@ const DashboardSectionHeader = ({ title, subtitle }: { title: string; subtitle: 
 const MarketingDashboardView = React.memo(function MarketingDashboardView() {
   const { loading, error, totals, citiesData, filters, handleFilterChange } = useMarketingData();
 
-  if (loading) return <DashboardSkeleton contentOnly />;
-  if (error) return <MarketingDashboardError error={error} />;
+  if (loading) {
+    return (
+      <ViewTransition stateKey="marketing-dashboard-loading">
+        <DashboardSkeleton contentOnly />
+      </ViewTransition>
+    );
+  }
+
+  if (error) {
+    return (
+      <ViewTransition stateKey="marketing-dashboard-error">
+        <MarketingDashboardError error={error} />
+      </ViewTransition>
+    );
+  }
 
   return (
-    <div className="space-y-6 pb-8 animate-fade-in">
-      <MarketingFiltersSection filters={filters} onFilterChange={handleFilterChange} />
+    <ViewTransition stateKey="marketing-dashboard-content">
+      <div className="space-y-6 pb-8 animate-fade-in">
+        <MarketingFiltersSection filters={filters} onFilterChange={handleFilterChange} />
 
-      <div className="space-y-4">
-        <DashboardSectionHeader
-          title="Visão geral de conversão"
-          subtitle="Indicadores principais de desempenho do funil"
-        />
-        <MarketingStatsCards totals={totals} />
+        <div className="space-y-4">
+          <DashboardSectionHeader
+            title="Visão geral de conversão"
+            subtitle="Indicadores principais de desempenho do funil"
+          />
+          <MarketingStatsCards totals={totals} />
+        </div>
+
+        <MarketingCityCards citiesData={citiesData} />
       </div>
-
-      <MarketingCityCards citiesData={citiesData} />
-    </div>
+    </ViewTransition>
   );
 });
 

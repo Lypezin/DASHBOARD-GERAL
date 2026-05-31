@@ -9,6 +9,7 @@ import { ValoresCidadeFilters } from './valoresCidade/ValoresCidadeFilters';
 import { ValoresCidadeCards } from './valoresCidade/ValoresCidadeCards';
 import { ValoresCidadeHeader } from './valoresCidade/ValoresCidadeHeader';
 import { ValoresCidadeFeedback } from './valoresCidade/ValoresCidadeFeedback';
+import { ViewTransition } from '@/components/ui/view-transition';
 
 const ValoresCidadeView = React.memo(function ValoresCidadeView() {
   const { isAuthenticated, errorMessage, loading: authLoading } = useValoresCidadeAuth();
@@ -21,31 +22,41 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
   );
 
   if (!isAuthenticated) {
-    return <ValoresCidadeAuth loading={authLoading} errorMessage={errorMessage} />;
+    return (
+      <ViewTransition stateKey={authLoading ? 'valores-cidade-auth-loading' : 'valores-cidade-auth'}>
+        <ValoresCidadeAuth loading={authLoading} errorMessage={errorMessage} />
+      </ViewTransition>
+    );
   }
 
   if (loading || error) {
-    return <ValoresCidadeFeedback loading={loading} error={error} />;
+    return (
+      <ViewTransition stateKey={loading ? 'valores-cidade-loading' : 'valores-cidade-error'}>
+        <ValoresCidadeFeedback loading={loading} error={error} />
+      </ViewTransition>
+    );
   }
 
   return (
-    <div className="space-y-6 animate-fade-in pb-8">
-      <div className="space-y-4">
-        <ValoresCidadeHeader />
-        <ValoresCidadeFilters
-          filter={filter}
-          filterEnviados={filterEnviados}
-          onFilterChange={handleFilterChange}
-          onFilterEnviadosChange={handleFilterEnviadosChange}
+    <ViewTransition stateKey="valores-cidade-content">
+      <div className="space-y-6 animate-fade-in pb-8">
+        <div className="space-y-4">
+          <ValoresCidadeHeader />
+          <ValoresCidadeFilters
+            filter={filter}
+            filterEnviados={filterEnviados}
+            onFilterChange={handleFilterChange}
+            onFilterEnviadosChange={handleFilterEnviadosChange}
+          />
+        </div>
+
+        <ValoresCidadeCards
+          totalGeral={totalGeral}
+          custoPorLiberado={custoPorLiberado}
+          cidadesData={cidadesData}
         />
       </div>
-
-      <ValoresCidadeCards
-        totalGeral={totalGeral}
-        custoPorLiberado={custoPorLiberado}
-        cidadesData={cidadesData}
-      />
-    </div>
+    </ViewTransition>
   );
 });
 

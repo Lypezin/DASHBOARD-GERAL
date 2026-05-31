@@ -1,11 +1,11 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
 import { usePrioridadeViewController } from './prioridade/usePrioridadeViewController';
 import { PrioridadeEmptyState, PrioridadeErrorState } from './prioridade/components/PrioridadeEmptyStates';
 import { PrioridadeLayout } from './prioridade/PrioridadeLayout';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+import { ViewTransition } from '@/components/ui/view-transition';
 
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
@@ -24,24 +24,31 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
   const { state, actions } = usePrioridadeViewController(prioridadeData, loading);
 
   if (state.loading) {
-    return <DashboardSkeleton contentOnly />;
+    return (
+      <ViewTransition stateKey="prioridade-loading">
+        <DashboardSkeleton contentOnly />
+      </ViewTransition>
+    );
   }
 
   if (!state.entregadoresData) {
-    return <PrioridadeErrorState />;
+    return (
+      <ViewTransition stateKey="prioridade-error">
+        <PrioridadeErrorState />
+      </ViewTransition>
+    );
   }
 
   if (state.entregadoresData.entregadores.length === 0) {
-    return <PrioridadeEmptyState />;
+    return (
+      <ViewTransition stateKey="prioridade-empty">
+        <PrioridadeEmptyState />
+      </ViewTransition>
+    );
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 15 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.32, ease: [0.16, 1, 0.3, 1] }}
-      className="w-full"
-    >
+    <ViewTransition stateKey="prioridade-content" className="w-full">
       <PrioridadeLayout
         sortedEntregadores={state.sortedEntregadores}
         paginatedEntregadores={state.paginatedEntregadores}
@@ -66,7 +73,7 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
         onClearFilters={actions.handleClearFilters}
         onSort={actions.handleSort}
       />
-    </motion.div>
+    </ViewTransition>
   );
 });
 
