@@ -64,6 +64,22 @@ const FULL_CITY_ACCESS_ONLY = new Set([
   'get_valores_cidade_resumo',
 ]);
 
+const RPCS_WITHOUT_CITY_SCOPE = new Set([
+  'get_available_weeks',
+  'get_city_last_updates',
+  'listar_anos_disponiveis',
+  'listar_todas_semanas',
+  'list_pracas_disponiveis',
+]);
+
+const RPCS_SUPPORTING_PRACAS_ARRAY = new Set([
+  'dashboard_resumo',
+  'get_dashboard_dimension_options',
+  'get_origens_by_praca',
+  'get_subpracas_by_praca',
+  'get_turnos_by_praca',
+]);
+
 type SecureRpcBody = {
   functionName?: unknown;
   params?: unknown;
@@ -176,9 +192,45 @@ function normalizeAssignedPracas(profile: CurrentUserProfile) {
     : [];
 }
 
+function normalizePracaKey(value: string) {
+  return value
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/\s+/g, ' ')
+    .toUpperCase();
+}
+
 function isAllPraca(value: string) {
   const normalized = value.trim().toLowerCase();
   return normalized === '' || normalized === 'todas' || normalized === 'todos' || normalized === 'all';
+}
+
+function splitPracas(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => splitPracas(item));
+  }
+
+  if (typeof value !== 'string') return [];
+
+  return value
+    .split(',')
+    .map((item) => item.trim())
+    .filter((item) => item && !isAllPraca(item));
+}
+
+function uniquePracas(pracas: string[]) {
+  const seen = new Set<string>();
+  const unique: string[] = [];
+
+  for (const praca of pracas) {
+    const key = normalizePracaKey(praca);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    unique.push(praca);
+  }
+
+  return unique;
 }
 
 function ensureAuthorizedOrganization(
@@ -217,7 +269,7 @@ function ensureAuthorizedOrganization(
   return { params: nextParams };
 }
 
-function ensurePracaScope(
+function ensurePracaScopeLegacy(
   functionName: string,
   params: Record<string, unknown>,
   profile: CurrentUserProfile
@@ -227,7 +279,7 @@ function ensurePracaScope(
   const assigned = normalizeAssignedPracas(profile);
   if (assigned.length === 0) return { params };
 
-  const allowed = new Set(assigned.map((item) => item.toUpperCase()));
+  const allowed = new Set(assigned.map(normalizePracaKey));
   const nextParams = { ...params };
   const praca = typeof nextParams.p_praca === 'string' ? nextParams.p_praca.trim() : '';
 
@@ -263,6 +315,68 @@ function ensurePracaScope(
   return { params: nextParams };
 }
 
+function ensurePracaScope(
+  functionName: string,
+  params: Record<string, unknown>,
+  profile: CurrentUserProfile
+) {
+  if (hasFullCityAccess(profile)) return { params };
+  if (RPCS_WITHOUT_CITY_SCOPE.has(functionName)) {
+    const nextParams = { ...params };
+    delete nextParams.p_pracas;
+    return { params: nextParams };
+  }
+
+  const assigned = uniquePracas(normalizeAssignedPracas(profile));
+  if (assigned.length === 0) return { params };
+
+  const allowedByKey = new Map(assigned.map((item) => [normalizePracaKey(item), item]));
+  const supportsPracasArray = RPCS_SUPPORTING_PRACAS_ARRAY.has(functionName);
+  const nextParams = { ...params };
+  const requestedPracas = uniquePracas([
+    ...splitPracas(nextParams.p_praca),
+    ...splitPracas(nextParams.p_pracas),
+  ]);
+
+  if (requestedPracas.length > 0) {
+    const scoped = requestedPracas
+      .map((item) => allowedByKey.get(normalizePracaKey(item)))
+      .filter((item): item is string => Boolean(item));
+
+    if (scoped.length !== requestedPracas.length) {
+      return { error: 'Praca nao permitida para este usuario.' };
+    }
+
+    if (supportsPracasArray) {
+      nextParams.p_pracas = scoped;
+      delete nextParams.p_praca;
+      return { params: nextParams };
+    }
+
+    if (scoped.length === 1) {
+      nextParams.p_praca = scoped[0];
+      delete nextParams.p_pracas;
+      return { params: nextParams };
+    }
+
+    return { error: 'Selecione uma unica praca permitida para esta consulta.' };
+  }
+
+  if (supportsPracasArray) {
+    nextParams.p_pracas = assigned;
+    delete nextParams.p_praca;
+    return { params: nextParams };
+  }
+
+  if (assigned.length === 1) {
+    nextParams.p_praca = assigned[0];
+    delete nextParams.p_pracas;
+    return { params: nextParams };
+  }
+
+  return { error: 'Selecione uma praca permitida para esta consulta.' };
+}
+
 function clampPagination(params: Record<string, unknown>) {
   const nextParams = { ...params };
 
@@ -294,7 +408,7 @@ function filterPracasResult(data: unknown, profile: CurrentUserProfile) {
         ? String((item as Record<string, unknown>).praca || '')
         : '';
 
-    return allowed.has(praca.toUpperCase());
+    return allowed.has(normalizePracaKey(praca));
   });
 }
 
