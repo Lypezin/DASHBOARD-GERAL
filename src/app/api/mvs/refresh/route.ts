@@ -12,10 +12,23 @@ import type { PendingMV } from '@/types/upload';
 
 export const runtime = 'nodejs';
 
+type QueueStatePayload = {
+    full_pending_count?: number;
+    full_in_progress_count?: number;
+    incremental_pending_count?: number;
+    full_worker_scheduled?: boolean;
+    incremental_worker_scheduled?: boolean;
+};
+
+type RpcCallResult = {
+    data: unknown;
+    error: string | null;
+};
+
 async function requireApprovedUser() {
     const auth = await loadCurrentUserProfile({
         requireApproved: true,
-        notApprovedMessage: 'Usuario nao aprovado.',
+        notApprovedMessage: 'Usuário não aprovado.',
     });
 
     if ('failure' in auth) {
@@ -35,17 +48,22 @@ async function fetchPendingMVs(admin = createServiceRoleClient()) {
     return (Array.isArray(data) ? data : []) as PendingMV[];
 }
 
-type QueueStatePayload = {
-    full_pending_count?: number;
-    full_in_progress_count?: number;
-    incremental_pending_count?: number;
-    full_worker_scheduled?: boolean;
-    incremental_worker_scheduled?: boolean;
-};
-
 async function fetchQueueState(admin = createServiceRoleClient()) {
     const { data } = await admin.rpc('get_mv_refresh_queue_state');
     return (data ?? null) as QueueStatePayload | null;
+}
+
+async function tryRpc(
+    admin: ReturnType<typeof createServiceRoleClient>,
+    functionName: string,
+    params?: Record<string, unknown>
+): Promise<RpcCallResult> {
+    const { data, error } = await admin.rpc(functionName, params);
+
+    return {
+        data: data ?? null,
+        error: error?.message || null,
+    };
 }
 
 async function healRefreshQueueSnapshot(admin = createServiceRoleClient()) {
@@ -63,6 +81,7 @@ async function healRefreshQueueSnapshot(admin = createServiceRoleClient()) {
     const fullWorkerScheduled = state?.full_worker_scheduled === true;
     if (fullPending > 0 && fullInProgress === 0 && !fullWorkerScheduled) {
         await admin.rpc('clear_stale_full_mv_refresh_flags');
+        await admin.rpc('ensure_mv_refresh_worker_scheduled');
         state = await fetchQueueState(admin);
     }
 
@@ -84,7 +103,7 @@ export async function GET() {
             return NextResponse.json({ ...getServiceRoleConfigErrorPayload(), pending: [] }, { status: 503 });
         }
 
-        const message = error instanceof Error ? error.message : 'Erro ao consultar fila de atualizacao.';
+        const message = error instanceof Error ? error.message : 'Erro ao consultar fila de atualização.';
         return NextResponse.json({ success: false, error: message, pending: [] }, { status: 500 });
     }
 }
@@ -108,57 +127,48 @@ export async function POST(request: Request) {
             normalizedReason.startsWith('bulk_insert:');
 
         if (requireAdmin && !hasElevatedRole(auth.profile)) {
-            return NextResponse.json({ success: false, error: 'Apenas administradores podem executar esta atualizacao.' }, { status: 403 });
+            return NextResponse.json({ success: false, error: 'Apenas administradores podem executar esta atualização.' }, { status: 403 });
         }
 
         const admin = createServiceRoleClient();
-        const incrementalResult: unknown = null;
-        const incrementalError: string | null = null;
-        let incrementalSucceeded = !isUploadRefresh;
-        let incrementalWorkerResult: unknown = null;
-        let incrementalWorkerError: string | null = null;
-        let staleCleanupResult: unknown = null;
-        let queueState: unknown = null;
 
         if (isUploadRefresh) {
-            incrementalSucceeded = true;
-
-            const { data: immediateData, error: immediateError } = await admin.rpc('process_incremental_refresh_impacts', {
-                p_limit: 1000,
+            const immediateResult = await tryRpc(admin, 'process_incremental_refresh_impacts', {
+                p_limit: 50,
                 p_include_corridas: true,
             });
 
-            if (immediateError) {
-                throw new Error(immediateError.message || 'Falha ao processar atualização incremental imediata.');
-            }
-
-            const { data: workerData, error: workerError } = await admin.rpc('ensure_incremental_refresh_worker_scheduled');
-            incrementalWorkerResult = workerData ?? null;
-            incrementalWorkerError = workerError?.message || null;
+            const incrementalWorker = await tryRpc(admin, 'ensure_incremental_refresh_worker_scheduled');
+            const fullWorker = await tryRpc(admin, 'ensure_mv_refresh_worker_scheduled');
 
             const { data: stateAfterWorker } = await admin.rpc('get_mv_refresh_queue_state');
             const pendingIncrementals = Number((stateAfterWorker as QueueStatePayload | null)?.incremental_pending_count || 0);
-            if (incrementalWorkerError && pendingIncrementals > 0) {
-                throw new Error(incrementalWorkerError);
+            const pendingFull = Number((stateAfterWorker as QueueStatePayload | null)?.full_pending_count || 0);
+
+            if (incrementalWorker.error && pendingIncrementals > 0) {
+                throw new Error(incrementalWorker.error);
+            }
+
+            if (fullWorker.error && pendingFull > 0) {
+                throw new Error(fullWorker.error);
             }
 
             const { data: cleanupData } = await admin.rpc('clear_stale_full_mv_refresh_flags');
-            staleCleanupResult = cleanupData ?? null;
-
             const { data: stateData } = await admin.rpc('get_mv_refresh_queue_state');
-            queueState = stateData ?? null;
 
             return NextResponse.json({
                 success: true,
                 queued: false,
                 incremental_mode: true,
-                incremental_result: immediateData ?? incrementalResult,
-                incremental_error: incrementalError,
-                incremental_succeeded: incrementalSucceeded,
-                incremental_worker_result: incrementalWorkerResult,
-                incremental_worker_error: incrementalWorkerError,
-                stale_cleanup_result: staleCleanupResult,
-                queue_state: queueState,
+                incremental_result: immediateResult.data,
+                incremental_error: immediateResult.error,
+                incremental_succeeded: immediateResult.error === null,
+                incremental_worker_result: incrementalWorker.data,
+                incremental_worker_error: incrementalWorker.error,
+                full_worker_result: fullWorker.data,
+                full_worker_error: fullWorker.error,
+                stale_cleanup_result: cleanupData ?? null,
+                queue_state: stateData ?? null,
                 queue_reason: reason,
                 queue_result: null,
                 worker_result: null,
@@ -166,30 +176,28 @@ export async function POST(request: Request) {
             });
         }
 
-        const queueReason = reason;
         const { data: queueResult, error: queueError } = await admin.rpc('enqueue_mv_refresh', {
             include_secondary: includeSecondary,
-            reason: queueReason
+            reason
         });
 
         if (queueError) {
-            throw new Error(queueError.message || 'Falha ao enfileirar atualizacao.');
+            throw new Error(queueError.message || 'Falha ao enfileirar atualização.');
         }
 
         const pending = await fetchPendingMVs(admin);
         const { data: stateData } = await admin.rpc('get_mv_refresh_queue_state');
-        queueState = stateData ?? null;
 
         return NextResponse.json({
             success: true,
             queued: true,
-            incremental_result: incrementalResult,
-            incremental_error: incrementalError,
-            incremental_succeeded: incrementalSucceeded,
-            queue_reason: queueReason,
+            incremental_result: null,
+            incremental_error: null,
+            incremental_succeeded: true,
+            queue_reason: reason,
             queue_result: queueResult,
             worker_result: queueResult?.worker_result ?? null,
-            queue_state: queueState,
+            queue_state: stateData ?? null,
             pending
         });
     } catch (error) {
@@ -197,7 +205,7 @@ export async function POST(request: Request) {
             return NextResponse.json(getServiceRoleConfigErrorPayload(), { status: 503 });
         }
 
-        const message = error instanceof Error ? error.message : 'Erro ao enfileirar atualizacao.';
+        const message = error instanceof Error ? error.message : 'Erro ao enfileirar atualização.';
         return NextResponse.json({ success: false, error: message }, { status: 500 });
     }
 }
