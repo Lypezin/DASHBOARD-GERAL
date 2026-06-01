@@ -1,9 +1,7 @@
 
 import React from 'react';
-import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
 
 import { UserProfile } from '@/hooks/auth/types';
 
@@ -31,10 +29,7 @@ export const DesktopNavLinks: React.FC<DesktopNavLinksProps> = ({ user }) => {
                     <Button
                         variant={pathname === '/upload' ? 'secondary' : 'ghost'}
                         size="sm"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            window.location.href = '/upload';
-                        }}
+                        onClick={() => router.push('/upload')}
                         className="text-sm font-medium"
                     >
                         Upload
@@ -42,10 +37,7 @@ export const DesktopNavLinks: React.FC<DesktopNavLinksProps> = ({ user }) => {
                     <Button
                         variant={pathname === '/admin' ? 'secondary' : 'ghost'}
                         size="sm"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            window.location.href = '/admin';
-                        }}
+                        onClick={() => router.push('/admin')}
                         className="text-sm font-medium"
                     >
                         Admin

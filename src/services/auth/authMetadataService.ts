@@ -1,6 +1,7 @@
 
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
+import { getAppApiData } from '@/utils/app/fetchAppApi';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -19,12 +20,10 @@ export async function syncOrganizationIdToMetadata(): Promise<boolean> {
             return false;
         }
 
-        // Buscar organization_id do perfil
-        const { data: profile, error: profileError } = await supabase
-            .from('user_profiles')
-            .select('organization_id')
-            .eq('id', user.id)
-            .maybeSingle();
+        // Buscar organization_id pelo proxy interno para respeitar RLS sem expor service role.
+        const { data: profile, error: profileError } = await getAppApiData<{
+            organization_id?: string | null;
+        }>('/api/app/current-user-profile');
 
         if (profileError || !profile) {
             if (IS_DEV) {

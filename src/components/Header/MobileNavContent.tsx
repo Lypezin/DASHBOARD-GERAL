@@ -47,20 +47,14 @@ export const MobileNavContent: React.FC<MobileNavContentProps> = ({ user, onLogo
                     <Button
                         variant={pathname === '/upload' ? 'default' : 'ghost'}
                         className="w-full justify-start"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            window.location.href = '/upload';
-                        }}
+                        onClick={() => router.push('/upload')}
                     >
                         Upload
                     </Button>
                     <Button
                         variant={pathname === '/admin' ? 'default' : 'ghost'}
                         className="w-full justify-start"
-                        onClick={(e) => {
-                            e.preventDefault();
-                            window.location.href = '/admin';
-                        }}
+                        onClick={() => router.push('/admin')}
                     >
                         Admin
                     </Button>

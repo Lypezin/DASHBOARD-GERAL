@@ -1,138 +1,72 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { supabase } from '@/lib/supabaseClient';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
-import { ActivityLog, MonitoringStats, UserProfile } from './types';
-import { processActiveUsers, processTopPages, processUserTime } from './monitoringTransformers';
+import { getAppApiData } from '@/utils/app/fetchAppApi';
+import { MonitoringStats } from './types';
 
 export type { MonitoringStats };
 
+const EMPTY_STATS: MonitoringStats = {
+  activeUsers: [],
+  topPages: [],
+  userTime: [],
+  summary: {
+    totalVisits: 0,
+    totalTimeSeconds: 0,
+    uniqueUsers24h: 0,
+    activeUsersNow: 0,
+    monitoredPages: 0,
+  },
+};
+
 export function useMonitoringData() {
-    const [stats, setStats] = useState<MonitoringStats>({
-        activeUsers: [],
-        topPages: [],
-        userTime: [],
-        summary: {
-            totalVisits: 0,
-            totalTimeSeconds: 0,
-            uniqueUsers24h: 0,
-            activeUsersNow: 0,
-            monitoredPages: 0
-        }
-    });
-    const [loading, setLoading] = useState(true);
-    const [refreshing, setRefreshing] = useState(false);
-    const [error, setError] = useState<string | null>(null);
-    const [lastUpdated, setLastUpdated] = useState<string | null>(null);
-    const requestInFlightRef = useRef(false);
-    const profilesCacheRef = useRef<Map<string, UserProfile>>(new Map());
+  const [stats, setStats] = useState<MonitoringStats>(EMPTY_STATS);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  const requestInFlightRef = useRef(false);
 
-    const fetchData = useCallback(async (background = false) => {
-        if (requestInFlightRef.current) return;
-        requestInFlightRef.current = true;
+  const fetchData = useCallback(async (background = false) => {
+    if (requestInFlightRef.current) return;
+    requestInFlightRef.current = true;
 
-        if (background) setRefreshing(true);
-        else setLoading(true);
-        if (!background) setError(null);
+    if (background) setRefreshing(true);
+    else setLoading(true);
+    if (!background) setError(null);
 
-        try {
-            const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-            const { data: logs, error: logsError } = await supabase
-                .from('user_activity_logs')
-                .select('user_id, entered_at, last_seen, exited_at, path, duration_seconds')
-                .gte('entered_at', yesterday)
-                .order('entered_at', { ascending: false });
+    try {
+      const result = await getAppApiData<MonitoringStats>('/api/admin/monitoring');
+      if (result.error || !result.data) {
+        throw new Error(result.error || 'Erro ao carregar dados de monitoramento');
+      }
 
-            if (logsError) throw logsError;
+      setStats(result.data);
+      setLastUpdated(new Date().toISOString());
+    } catch (err: unknown) {
+      safeLog.error('Monitoring fetch error:', err);
+      const msg = err instanceof Error ? err.message : '';
+      if (msg.includes('relation "user_activity_logs" does not exist')) {
+        setError('Tabela de logs não encontrada. Verifique a criação de user_activity_logs no Supabase.');
+      } else {
+        setError(msg || 'Erro ao carregar dados de monitoramento');
+      }
+    } finally {
+      requestInFlightRef.current = false;
+      if (background) setRefreshing(false);
+      else setLoading(false);
+    }
+  }, []);
 
-            const safeLogs = (logs || []) as ActivityLog[];
-            if (safeLogs.length === 0) {
-                setStats({
-                    activeUsers: [],
-                    topPages: [],
-                    userTime: [],
-                    summary: {
-                        totalVisits: 0,
-                        totalTimeSeconds: 0,
-                        uniqueUsers24h: 0,
-                        activeUsersNow: 0,
-                        monitoredPages: 0
-                    }
-                });
-                setLastUpdated(new Date().toISOString());
-                return;
-            }
+  useEffect(() => {
+    void fetchData();
 
-            const userIds = Array.from(new Set(safeLogs.map(l => l.user_id).filter(Boolean)));
-            const missingProfileIds = userIds.filter(id => !profilesCacheRef.current.has(id));
+    const interval = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      void fetchData(true);
+    }, 30000);
 
-            if (missingProfileIds.length > 0) {
-                const { data: profiles, error: profilesError } = await supabase
-                    .from('user_profiles')
-                    .select('id, full_name, avatar_url, email')
-                    .in('id', missingProfileIds);
+    return () => clearInterval(interval);
+  }, [fetchData]);
 
-                if (profilesError) {
-                    safeLog.warn('Error fetching profiles:', profilesError);
-                } else {
-                    profiles?.forEach(profile => {
-                        profilesCacheRef.current.set(profile.id, profile);
-                    });
-                }
-            }
-
-            const profileMap = new Map<string, UserProfile>();
-            userIds.forEach(id => {
-                const profile = profilesCacheRef.current.get(id);
-                if (profile) {
-                    profileMap.set(id, profile);
-                }
-            });
-
-            const activeUsers = processActiveUsers(safeLogs, profileMap);
-            const topPages = processTopPages(safeLogs);
-            const userTime = processUserTime(safeLogs, profileMap);
-            const totalVisits = userTime.reduce((acc, item) => acc + item.totalVisits, 0);
-            const totalTimeSeconds = userTime.reduce((acc, item) => acc + item.totalTimeSeconds, 0);
-
-            setStats({
-                activeUsers,
-                topPages,
-                userTime,
-                summary: {
-                    totalVisits,
-                    totalTimeSeconds,
-                    uniqueUsers24h: userIds.length,
-                    activeUsersNow: activeUsers.length,
-                    monitoredPages: topPages.length
-                }
-            });
-            setLastUpdated(new Date().toISOString());
-
-        } catch (err: unknown) {
-            safeLog.error('Monitoring fetch error:', err);
-            const msg = err instanceof Error ? err.message : '';
-            if (msg.includes('relation "user_activity_logs" does not exist')) {
-                setError("Tabela de logs não encontrada. Por favor execute o script SQL.");
-            } else {
-                setError(msg || 'Erro ao carregar dados de monitoramento');
-            }
-        } finally {
-            requestInFlightRef.current = false;
-            if (background) setRefreshing(false);
-            else setLoading(false);
-        }
-    }, []);
-
-    useEffect(() => {
-        void fetchData();
-
-        const interval = setInterval(() => {
-            if (typeof document !== 'undefined' && document.hidden) return;
-            void fetchData(true);
-        }, 30000);
-
-        return () => clearInterval(interval);
-    }, [fetchData]);
-
-    return { stats, loading, refreshing, error, lastUpdated, refresh: () => fetchData(true) };
+  return { stats, loading, refreshing, error, lastUpdated, refresh: () => fetchData(true) };
 }

@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useParams, useSearchParams } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, UserCircle } from 'lucide-react';
@@ -46,13 +45,17 @@ export default function PublicPerfilPage() {
 
     const fetchProfile = async () => {
       try {
-        const { data, error } = await supabase
-          .from('user_profiles')
-          .select('id, full_name, avatar_url, created_at')
-          .eq('id', profileId)
-          .maybeSingle();
+        const response = await fetch(`/api/profile/public/${profileId}`, {
+          method: 'GET',
+          credentials: 'same-origin',
+          cache: 'no-store',
+        });
+        const payload = await response.json().catch(() => null) as {
+          data?: Pick<PublicProfileData, 'id' | 'full_name' | 'avatar_url' | 'created_at'> | null;
+        } | null;
+        const data = payload?.data;
 
-        if (cancelled || error || !data) return;
+        if (cancelled || !response.ok || !data) return;
 
         setProfile((prev) => ({
           id: data.id,
@@ -90,7 +93,7 @@ export default function PublicPerfilPage() {
               description="Informações públicas exibidas na equipe e no chat."
               icon={UserCircle}
               actions={(
-                <Link href="/">
+                <Link href="/" prefetch>
                   <Button variant="outline" className="h-10 gap-2 rounded-xl border-slate-200/80 bg-white/85 px-4 text-slate-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-white dark:border-slate-800/80 dark:bg-slate-950/80 dark:text-slate-200 dark:hover:bg-slate-900">
                     <ArrowLeft className="h-4 w-4" />
                     Voltar ao Dashboard

@@ -42,7 +42,6 @@ function DashboardShellContent() {
     timeoutMs: 1200,
   });
 
-  // Calcular aderência geral para alimentar o favicon animado em tempo real
   const aderenciaGeral = React.useMemo(() => {
     if (!data.aderenciaSemanal) return undefined;
     return calculateAderenciaGeral(data.aderenciaSemanal);
@@ -51,11 +50,17 @@ function DashboardShellContent() {
   const percentualAderencia = aderenciaGeral?.aderencia_percentual || 0;
 
   if (auth.isCheckingAuth) return <DashboardAuthLoading />;
+  if (auth.hasSessionWithoutProfile) {
+    return (
+      <DashboardErrorState
+        error={auth.error || 'Não foi possível carregar seu perfil. Tente atualizar a sessão.'}
+      />
+    );
+  }
   if (!auth.isAuthenticated) return null;
 
   return (
     <div className="relative min-h-screen">
-      {/* Favicon dinâmico sincronizado com os dados filtrados atuais */}
       <FaviconManager percentual={percentualAderencia} />
 
       {showActivityTracker ? (
@@ -72,7 +77,6 @@ function DashboardShellContent() {
 
         {!ui.loading && !ui.error && (
           <div className="space-y-6 animate-fade-in">
-            {/* Cabeçalho de Filtros */}
             <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
               <div className="min-w-0 flex-1">
                 <DashboardFiltersContainer
@@ -91,7 +95,6 @@ function DashboardShellContent() {
               {showLoginBadge ? <DeferredLoginStreakBadge className="self-start xl:self-auto shrink-0" /> : null}
             </div>
 
-            {/* Área de Visualização Principal */}
             <main className="min-w-0">
               <DashboardViewsRenderer
                 activeTab={ui.activeTab}

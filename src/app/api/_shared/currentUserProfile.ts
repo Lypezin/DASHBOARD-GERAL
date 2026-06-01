@@ -11,6 +11,8 @@ export type CurrentUserProfile = {
   organization_id?: string | null;
   assigned_pracas?: string[] | null;
   avatar_url?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
 };
 
 type ProfileFailure = {
@@ -76,12 +78,75 @@ export async function loadCurrentUserProfile(
   const admin = createServiceRoleClient();
   const { data: profileData, error: profileError } = await admin
     .from('user_profiles')
-    .select('id, email, full_name, role, is_admin, is_approved, organization_id, assigned_pracas, avatar_url')
+    .select('id, email, full_name, role, is_admin, is_approved, organization_id, assigned_pracas, avatar_url, created_at, updated_at')
     .eq('id', auth.user.id)
     .maybeSingle();
   const profile = normalizeProfileRow(normalizeCurrentUserProfile(profileData));
 
   if (profileError || !profile) {
+    if (!profileError) {
+      const metadata = auth.user.user_metadata || {};
+      const fullName =
+        typeof metadata.full_name === 'string' && metadata.full_name.trim()
+          ? metadata.full_name.trim()
+          : typeof metadata.fullName === 'string' && metadata.fullName.trim()
+            ? metadata.fullName.trim()
+            : typeof metadata.name === 'string' && metadata.name.trim()
+              ? metadata.name.trim()
+              : auth.user.id;
+
+      const { data: createdProfile, error: createError } = await admin
+        .from('user_profiles')
+        .insert({
+          id: auth.user.id,
+          email: typeof auth.user.email === 'string' ? auth.user.email : null,
+          full_name: fullName,
+          is_admin: false,
+          is_approved: false,
+          assigned_pracas: [],
+          role: 'user',
+        })
+        .select('id, email, full_name, role, is_admin, is_approved, organization_id, assigned_pracas, avatar_url, created_at, updated_at')
+        .maybeSingle();
+
+      const normalizedCreatedProfile = normalizeProfileRow(normalizeCurrentUserProfile(createdProfile));
+
+      if (!createError && normalizedCreatedProfile) {
+        if (requireApproved) {
+          return {
+            failure: {
+              status: 403,
+              message: notApprovedMessage,
+            },
+          };
+        }
+
+        return { profile: normalizedCreatedProfile };
+      }
+
+      if (createError?.code === '23505') {
+        const { data: racedProfile } = await admin
+          .from('user_profiles')
+          .select('id, email, full_name, role, is_admin, is_approved, organization_id, assigned_pracas, avatar_url, created_at, updated_at')
+          .eq('id', auth.user.id)
+          .maybeSingle();
+
+        const normalizedRacedProfile = normalizeProfileRow(normalizeCurrentUserProfile(racedProfile));
+        if (normalizedRacedProfile) {
+          if (requireApproved && normalizedRacedProfile.is_approved !== true) {
+            return {
+              failure: {
+                status: 403,
+                message: notApprovedMessage,
+              },
+            };
+          }
+
+          return { profile: normalizedRacedProfile };
+        }
+      }
+    }
+
     return {
       failure: {
         status: 403,

@@ -121,18 +121,23 @@ export async function POST(request: Request) {
         let queueState: unknown = null;
 
         if (isUploadRefresh) {
-            const { data: stateBefore } = await admin.rpc('get_mv_refresh_queue_state');
-            const pendingBefore = Number((stateBefore as QueueStatePayload | null)?.incremental_pending_count || 0);
             incrementalSucceeded = true;
+
+            const { data: immediateData, error: immediateError } = await admin.rpc('process_incremental_refresh_impacts', {
+                p_limit: 250,
+                p_include_corridas: true,
+            });
+
+            if (immediateError) {
+                throw new Error(immediateError.message || 'Falha ao processar atualização incremental imediata.');
+            }
 
             const { data: workerData, error: workerError } = await admin.rpc('ensure_incremental_refresh_worker_scheduled');
             incrementalWorkerResult = workerData ?? null;
             incrementalWorkerError = workerError?.message || null;
 
-            const pendingIncrementals = Math.max(
-                pendingBefore,
-                Number((workerData as { pending_count?: number } | null)?.pending_count || 0)
-            );
+            const { data: stateAfterWorker } = await admin.rpc('get_mv_refresh_queue_state');
+            const pendingIncrementals = Number((stateAfterWorker as QueueStatePayload | null)?.incremental_pending_count || 0);
             if (incrementalWorkerError && pendingIncrementals > 0) {
                 throw new Error(incrementalWorkerError);
             }
@@ -147,7 +152,7 @@ export async function POST(request: Request) {
                 success: true,
                 queued: false,
                 incremental_mode: true,
-                incremental_result: incrementalResult,
+                incremental_result: immediateData ?? incrementalResult,
                 incremental_error: incrementalError,
                 incremental_succeeded: incrementalSucceeded,
                 incremental_worker_result: incrementalWorkerResult,

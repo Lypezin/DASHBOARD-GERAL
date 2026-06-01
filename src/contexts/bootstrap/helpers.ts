@@ -1,5 +1,4 @@
 import type { User } from '@supabase/supabase-js';
-import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import type { CurrentUser } from '@/types';
 import { getAppApiData } from '@/utils/app/fetchAppApi';
@@ -55,29 +54,6 @@ export async function hydrateAvatarUrl(
   authUser: User,
   profile: BootstrapProfile | null
 ): Promise<BootstrapProfile | null> {
-  if (!authUser || !profile || profile.avatar_url) {
-    return profile;
-  }
-
-  try {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .select('avatar_url')
-      .eq('id', authUser.id)
-      .single();
-
-    if (!error && data?.avatar_url) {
-      return {
-        ...profile,
-        avatar_url: data.avatar_url,
-      };
-    }
-  } catch (error) {
-    if (IS_DEV) {
-      safeLog.warn('[AppBootstrap] Falha ao hidratar avatar_url do perfil:', error);
-    }
-  }
-
   return profile;
 }
 

@@ -2,6 +2,7 @@ import { createClient } from '@/utils/supabase/server';
 
 export type AuthenticatedUser = {
   id: string;
+  email?: string | null;
   user_metadata?: Record<string, unknown> | null;
 };
 

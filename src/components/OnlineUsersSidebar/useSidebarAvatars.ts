@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { supabase } from '@/lib/supabaseClient';
 import { OnlineUser } from '@/hooks/data/useOnlineUsers';
+import { postAppApiData } from '@/utils/app/fetchAppApi';
 
 export function useSidebarAvatars(onlineUsers: OnlineUser[]) {
     const [avatarOverrides, setAvatarOverrides] = useState<Record<string, string>>({});
@@ -22,11 +22,10 @@ export function useSidebarAvatars(onlineUsers: OnlineUser[]) {
                 avatarLookupAttemptedRef.current.add(userId);
             });
 
-            const { data, error } = await supabase
-                .from('user_profiles')
-                .select('id, avatar_url')
-                .in('id', missingAvatarUserIds)
-                .not('avatar_url', 'is', null);
+            const { data, error } = await postAppApiData<Array<{ id: string; avatar_url: string | null }>>(
+                '/api/profile/avatars',
+                { ids: missingAvatarUserIds }
+            );
 
             if (isCancelled || error || !data?.length) {
                 return;

@@ -2,11 +2,26 @@
 
 import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
-import { supabase } from '@/lib/supabaseClient';
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { safeLog } from '@/lib/errorHandler';
 
 const HEARTBEAT_INTERVAL_MS = 180000;
+
+async function sendActivityUpdate(body: Record<string, unknown>) {
+    const response = await fetch('/api/app/activity-log', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin',
+        cache: 'no-store',
+        keepalive: true,
+        body: JSON.stringify(body),
+    });
+
+    if (!response.ok) {
+        const payload = await response.json().catch(() => null);
+        throw new Error(payload?.error || `Erro HTTP ${response.status}`);
+    }
+}
 
 export function UserActivityTracker() {
     const pathname = usePathname();
@@ -31,15 +46,13 @@ export function UserActivityTracker() {
 
             if (visitIdRef.current && startTimeRef.current) {
                 const duration = Math.round((Date.now() - startTimeRef.current) / 1000);
-                supabase
-                    .from('user_activity_logs')
-                    .update({
-                        exited_at: new Date().toISOString(),
-                        duration_seconds: duration,
-                        last_seen: new Date().toISOString()
-                    })
-                    .eq('id', visitIdRef.current)
-                    .then();
+                void sendActivityUpdate({
+                    id: visitIdRef.current,
+                    action: 'close',
+                    durationSeconds: duration,
+                }).catch((error) => {
+                    safeLog.warn('Failed to close activity session:', error);
+                });
             }
 
             visitIdRef.current = null;
@@ -54,32 +67,34 @@ export function UserActivityTracker() {
             startTimeRef.current = now;
 
             try {
-                const { data, error } = await supabase
-                    .from('user_activity_logs')
-                    .insert({
-                        user_id: authUserId,
-                        path: pathname,
-                        entered_at: new Date().toISOString(),
-                        last_seen: new Date().toISOString()
-                    })
-                    .select('id')
-                    .single();
+                const response = await fetch('/api/app/activity-log', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    cache: 'no-store',
+                    body: JSON.stringify({ path: pathname }),
+                });
 
-                if (data && !error) {
-                    visitIdRef.current = data.id;
+                const payload = await response.json().catch(() => null) as {
+                    data?: { id?: string } | null;
+                    error?: string | null;
+                } | null;
+                const id = payload?.data?.id;
+
+                if (response.ok && id) {
+                    visitIdRef.current = id;
                     heartbeatRef.current = setInterval(() => {
                         if (!visitIdRef.current || document.hidden) return;
 
-                        supabase
-                            .from('user_activity_logs')
-                            .update({ last_seen: new Date().toISOString() })
-                            .eq('id', visitIdRef.current)
-                            .then(({ error: heartbeatError }) => {
-                                if (heartbeatError) safeLog.error('Heartbeat error:', heartbeatError);
-                            });
+                        void sendActivityUpdate({
+                            id: visitIdRef.current,
+                            action: 'heartbeat',
+                        }).catch((heartbeatError) => {
+                            safeLog.error('Heartbeat error:', heartbeatError);
+                        });
                     }, HEARTBEAT_INTERVAL_MS);
                 } else {
-                    safeLog.error('Failed to start activity session:', error);
+                    safeLog.error('Failed to start activity session:', payload?.error || response.statusText);
                     visitIdRef.current = null;
                 }
             } catch (error) {

@@ -15,6 +15,7 @@ export interface UserProfile {
   is_approved: boolean;
   avatar_url?: string | null;
   created_at?: string;
+  updated_at?: string;
 }
 
 export const usePerfilData = () => {
@@ -55,7 +56,7 @@ export const usePerfilData = () => {
 
       // Fetch Avatar and additional dates
       if (profile?.id) {
-        const { avatarUrl, createdAt } = await fetchUserAvatar(profile.id);
+        const { avatarUrl, createdAt } = await fetchUserAvatar(profile);
 
         if (avatarUrl) {
           setUser(prev => prev ? { ...prev, avatar_url: avatarUrl } : null);
