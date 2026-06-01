@@ -73,12 +73,57 @@ const RPCS_WITHOUT_CITY_SCOPE = new Set([
 ]);
 
 const RPCS_SUPPORTING_PRACAS_ARRAY = new Set([
-  'dashboard_resumo',
   'get_dashboard_dimension_options',
   'get_origens_by_praca',
   'get_subpracas_by_praca',
   'get_turnos_by_praca',
 ]);
+
+const INTERNAL_SCOPED_PRACAS_PARAM = '__secure_scoped_pracas';
+
+const DASHBOARD_ARRAY_FIELDS = [
+  { outputKey: 'aderencia_semanal', aliases: ['aderencia_semanal', 'semanal'], keys: ['semana'] },
+  { outputKey: 'aderencia_dia', aliases: ['aderencia_dia', 'dia'], keys: ['data', 'dia', 'dia_iso'] },
+  { outputKey: 'aderencia_turno', aliases: ['aderencia_turno', 'turno'], keys: ['turno'] },
+  { outputKey: 'aderencia_sub_praca', aliases: ['aderencia_sub_praca', 'sub_praca'], keys: ['sub_praca'] },
+  { outputKey: 'aderencia_origem', aliases: ['aderencia_origem', 'origem'], keys: ['origem'] },
+  { outputKey: 'aderencia_dia_origem', aliases: ['aderencia_dia_origem', 'dia_origem'], keys: ['data', 'dia', 'dia_iso', 'origem'] },
+];
+
+const DASHBOARD_ALIAS_BY_OUTPUT: Record<string, string> = {
+  aderencia_semanal: 'semanal',
+  aderencia_dia: 'dia',
+  aderencia_turno: 'turno',
+  aderencia_sub_praca: 'sub_praca',
+  aderencia_origem: 'origem',
+  aderencia_dia_origem: 'dia_origem',
+};
+
+const DASHBOARD_ROW_SUM_FIELDS = [
+  'segundos_planejados',
+  'segundos_realizados',
+  'corridas_ofertadas',
+  'corridas_aceitas',
+  'corridas_rejeitadas',
+  'corridas_completadas',
+  'total_drivers',
+  'total_slots',
+];
+
+const DASHBOARD_TOTAL_SUM_FIELDS = [
+  'total_ofertadas',
+  'total_aceitas',
+  'total_completadas',
+  'total_rejeitadas',
+  'total_valor_bruto_centavos',
+];
+
+const DASHBOARD_NESTED_TOTAL_SUM_FIELDS = [
+  'corridas_ofertadas',
+  'corridas_aceitas',
+  'corridas_rejeitadas',
+  'corridas_completadas',
+];
 
 type SecureRpcBody = {
   functionName?: unknown;
@@ -233,6 +278,180 @@ function uniquePracas(pracas: string[]) {
   return unique;
 }
 
+function asDashboardRecord(value: unknown): Record<string, unknown> {
+  if (Array.isArray(value)) {
+    const first = value[0];
+    return first && typeof first === 'object' ? first as Record<string, unknown> : {};
+  }
+
+  return value && typeof value === 'object' ? value as Record<string, unknown> : {};
+}
+
+function toFiniteNumber(value: unknown) {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? numberValue : 0;
+}
+
+function formatSeconds(totalSeconds: number) {
+  const safeSeconds = Math.max(0, Math.round(totalSeconds));
+  const hours = Math.floor(safeSeconds / 3600);
+  const minutes = Math.floor((safeSeconds % 3600) / 60);
+  const seconds = safeSeconds % 60;
+
+  return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+}
+
+function percentage(numerator: number, denominator: number) {
+  return denominator > 0 ? Number(((numerator / denominator) * 100).toFixed(1)) : 0;
+}
+
+function recomputeDashboardMetricRow(row: Record<string, unknown>) {
+  const segundosPlanejados = toFiniteNumber(row.segundos_planejados);
+  const segundosRealizados = toFiniteNumber(row.segundos_realizados);
+  const ofertadas = toFiniteNumber(row.corridas_ofertadas);
+  const aceitas = toFiniteNumber(row.corridas_aceitas);
+  const completadas = toFiniteNumber(row.corridas_completadas);
+
+  row.aderencia_percentual = percentage(segundosRealizados, segundosPlanejados);
+  row.taxa_aceitacao = percentage(aceitas, ofertadas);
+  row.taxa_completude = percentage(completadas, aceitas);
+
+  if ('segundos_planejados' in row) row.horas_a_entregar = formatSeconds(segundosPlanejados);
+  if ('segundos_realizados' in row) row.horas_entregues = formatSeconds(segundosRealizados);
+
+  return row;
+}
+
+function getDashboardRowKey(row: Record<string, unknown>, keyFields: string[]) {
+  return keyFields
+    .map((field) => String(row[field] ?? ''))
+    .join('|');
+}
+
+function mergeDashboardRows(rows: Record<string, unknown>[], keyFields: string[]) {
+  const grouped = new Map<string, Record<string, unknown>>();
+
+  for (const row of rows) {
+    const key = getDashboardRowKey(row, keyFields);
+    const current = grouped.get(key);
+
+    if (!current) {
+      const nextRow = { ...row };
+      for (const field of DASHBOARD_ROW_SUM_FIELDS) {
+        if (field in nextRow) nextRow[field] = toFiniteNumber(nextRow[field]);
+      }
+      grouped.set(key, nextRow);
+      continue;
+    }
+
+    for (const field of DASHBOARD_ROW_SUM_FIELDS) {
+      if (field in row || field in current) {
+        current[field] = toFiniteNumber(current[field]) + toFiniteNumber(row[field]);
+      }
+    }
+  }
+
+  return Array.from(grouped.values()).map(recomputeDashboardMetricRow);
+}
+
+function mergeDashboardDimensions(records: Record<string, unknown>[]) {
+  const dimensionKeys = ['anos', 'semanas', 'pracas', 'sub_pracas', 'origens', 'turnos'];
+  const dimensions: Record<string, unknown[]> = {};
+
+  for (const key of dimensionKeys) {
+    const seen = new Set<string>();
+    const values: unknown[] = [];
+
+    for (const record of records) {
+      const recordDimensions = record.dimensoes && typeof record.dimensoes === 'object'
+        ? record.dimensoes as Record<string, unknown>
+        : {};
+      const items = Array.isArray(recordDimensions[key]) ? recordDimensions[key] as unknown[] : [];
+
+      for (const item of items) {
+        const itemKey = String(item);
+        if (seen.has(itemKey)) continue;
+        seen.add(itemKey);
+        values.push(item);
+      }
+    }
+
+    dimensions[key] = values;
+  }
+
+  return dimensions;
+}
+
+function mergeDashboardResumoResults(results: unknown[]) {
+  const records = results.map(asDashboardRecord).filter((record) => Object.keys(record).length > 0);
+  const merged: Record<string, unknown> = {
+    total_ofertadas: 0,
+    total_aceitas: 0,
+    total_completadas: 0,
+    total_rejeitadas: 0,
+    aderencia_semanal: [],
+    aderencia_dia: [],
+    aderencia_turno: [],
+    aderencia_sub_praca: [],
+    aderencia_origem: [],
+    aderencia_dia_origem: [],
+    dimensoes: { anos: [], semanas: [], pracas: [], sub_pracas: [], origens: [], turnos: [] },
+  };
+
+  if (records.length === 0) return merged;
+
+  for (const record of records) {
+    for (const field of DASHBOARD_TOTAL_SUM_FIELDS) {
+      if (field in record || field in merged) {
+        merged[field] = toFiniteNumber(merged[field]) + toFiniteNumber(record[field]);
+      }
+    }
+
+    const totals = record.totais && typeof record.totais === 'object'
+      ? record.totais as Record<string, unknown>
+      : {};
+    const mergedTotals = merged.totais && typeof merged.totais === 'object'
+      ? merged.totais as Record<string, unknown>
+      : {};
+
+    for (const field of DASHBOARD_NESTED_TOTAL_SUM_FIELDS) {
+      mergedTotals[field] = toFiniteNumber(mergedTotals[field]) + toFiniteNumber(totals[field]);
+    }
+
+    merged.totais = mergedTotals;
+  }
+
+  merged.dimensoes = mergeDashboardDimensions(records);
+
+  for (const field of DASHBOARD_ARRAY_FIELDS) {
+    const rows = records.flatMap((record) =>
+      field.aliases.flatMap((alias) => {
+        const value = record[alias];
+        return Array.isArray(value) ? value.filter((item) => item && typeof item === 'object') as Record<string, unknown>[] : [];
+      })
+    );
+
+    const mergedRows = mergeDashboardRows(rows, field.keys);
+    merged[field.outputKey] = mergedRows;
+    merged[DASHBOARD_ALIAS_BY_OUTPUT[field.outputKey]] = mergedRows;
+  }
+
+  return merged;
+}
+
+function getInternalScopedPracas(params: Record<string, unknown>) {
+  const value = params[INTERNAL_SCOPED_PRACAS_PARAM];
+  return Array.isArray(value)
+    ? value.map((item) => String(item).trim()).filter(Boolean)
+    : [];
+}
+
+function stripInternalParams(params: Record<string, unknown>) {
+  const nextParams = { ...params };
+  delete nextParams[INTERNAL_SCOPED_PRACAS_PARAM];
+  return nextParams;
+}
+
 function ensureAuthorizedOrganization(
   functionName: string,
   params: Record<string, unknown>,
@@ -353,6 +572,13 @@ function ensurePracaScope(
       return { params: nextParams };
     }
 
+    if (functionName === 'dashboard_resumo' && scoped.length > 1) {
+      nextParams[INTERNAL_SCOPED_PRACAS_PARAM] = scoped;
+      delete nextParams.p_praca;
+      delete nextParams.p_pracas;
+      return { params: nextParams };
+    }
+
     if (scoped.length === 1) {
       nextParams.p_praca = scoped[0];
       delete nextParams.p_pracas;
@@ -365,6 +591,13 @@ function ensurePracaScope(
   if (supportsPracasArray) {
     nextParams.p_pracas = assigned;
     delete nextParams.p_praca;
+    return { params: nextParams };
+  }
+
+  if (functionName === 'dashboard_resumo' && assigned.length > 1) {
+    nextParams[INTERNAL_SCOPED_PRACAS_PARAM] = assigned;
+    delete nextParams.p_praca;
+    delete nextParams.p_pracas;
     return { params: nextParams };
   }
 
@@ -458,7 +691,28 @@ export async function POST(request: Request) {
 
     const admin = createServiceRoleClient();
     const { data, cached } = await resolveSecureRpcWithCache(functionName, params, auth.profile, async () => {
-      const { data: rpcData, error } = await admin.rpc(functionName, params);
+      const scopedPracas = functionName === 'dashboard_resumo' ? getInternalScopedPracas(params) : [];
+
+      if (functionName === 'dashboard_resumo' && scopedPracas.length > 1) {
+        const baseParams = stripInternalParams(params);
+        const results = await Promise.all(scopedPracas.map(async (praca) => {
+          const { data: rpcData, error } = await admin.rpc(functionName, {
+            ...baseParams,
+            p_praca: praca,
+          });
+
+          if (error) {
+            throw new Error(`Erro em ${praca}: ${error.message}`);
+          }
+
+          return rpcData ?? null;
+        }));
+
+        return mergeDashboardResumoResults(results);
+      }
+
+      const rpcParams = stripInternalParams(params);
+      const { data: rpcData, error } = await admin.rpc(functionName, rpcParams);
 
       if (error) {
         throw new Error(error.message);
