@@ -122,7 +122,15 @@ export function AppBootstrapProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     void refresh(false);
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const authClient = supabase.auth;
+    if (!authClient || typeof authClient.onAuthStateChange !== 'function') {
+      if (IS_DEV) {
+        safeLog.warn('[AppBootstrap] Cliente de auth do Supabase indisponível para escutar mudanças de sessão.');
+      }
+      return;
+    }
+
+    const { data: { subscription } } = authClient.onAuthStateChange((event, session) => {
       if (event === 'SIGNED_OUT') {
         clearBootstrapCache();
         setState({
@@ -175,7 +183,9 @@ export function AppBootstrapProvider({ children }: { children: React.ReactNode }
 
   const handleLogout = useCallback(async () => {
     try {
-      await supabase.auth.signOut();
+      if (supabase.auth && typeof supabase.auth.signOut === 'function') {
+        await supabase.auth.signOut();
+      }
     } catch (error) {
       safeLog.error('[AppBootstrap] Erro ao fazer logout:', error);
     }

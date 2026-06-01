@@ -9,7 +9,7 @@ import { useDashboardFilterOptions } from './useDashboardFilterOptions';
 import { useDashboardMainData } from './useDashboardMainData';
 
 export function useDashboardPage() {
-  const { isCheckingAuth, isAuthenticated, hasSessionWithoutProfile, error: authError, refresh: refreshAuth, currentUser } = useDashboardAuthWrapper();
+  const { isCheckingAuth, isAuthenticated, hasSessionWithoutProfile, hasMissingOrganization, error: authError, refresh: refreshAuth, currentUser } = useDashboardAuthWrapper();
   const { activeTab, handleTabChange } = useDashboardTabs();
   const needsChartRuntime = ['evolucao', 'comparacao', 'marketing_comparacao'].includes(activeTab);
   const chartReady = useChartRegistration(needsChartRuntime);
@@ -65,7 +65,7 @@ export function useDashboardPage() {
   });
 
   return {
-    auth: { isCheckingAuth, isAuthenticated, hasSessionWithoutProfile, error: authError, refresh: refreshAuth, currentUser },
+    auth: { isCheckingAuth, isAuthenticated, hasSessionWithoutProfile, hasMissingOrganization, error: authError, refresh: refreshAuth, currentUser },
     ui: { activeTab, handleTabChange, chartReady, loading: mainData.loading, error: mainData.error },
     data: mainData,
     filters: {

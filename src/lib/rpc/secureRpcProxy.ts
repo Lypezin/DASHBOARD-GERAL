@@ -45,6 +45,7 @@ export async function executeSecureRpcProxy<T>(
     const response = await fetch('/api/app/secure-rpc', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'same-origin',
       cache: 'no-store',
       signal: controller.signal,
       body: JSON.stringify({ functionName, params: params || {} }),

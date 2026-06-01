@@ -45,6 +45,7 @@ export const chatService = {
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: 'same-origin',
             body: JSON.stringify({
                 messageId: msgId,
                 emoji,

@@ -12,6 +12,30 @@ function createSafeRpcStub() {
     return stub;
 }
 
+function createSafeAuthStub() {
+    const emptyUserResponse = Promise.resolve({
+        data: { user: null, session: null },
+        error: { message: 'Cliente Supabase não está disponível.', code: 'CLIENT_NOT_READY' },
+    });
+
+    return {
+        getSession: () => emptyUserResponse,
+        getUser: () => emptyUserResponse,
+        signOut: () => Promise.resolve({ error: null }),
+        updateUser: () => Promise.resolve({
+            data: { user: null },
+            error: { message: 'Cliente Supabase não está disponível.', code: 'CLIENT_NOT_READY' },
+        }),
+        onAuthStateChange: () => ({
+            data: {
+                subscription: {
+                    unsubscribe: () => {},
+                },
+            },
+        }),
+    };
+}
+
 export const supabaseProxy = new Proxy({} as SupabaseClient, {
     get(_target, prop) {
         if (prop === '_recreate') return () => recreateSupabaseClient();
@@ -20,7 +44,7 @@ export const supabaseProxy = new Proxy({} as SupabaseClient, {
             const client = getSupabaseClient();
             if (!client) {
                 if (prop === 'rpc') return createSafeRpcStub();
-                if (prop === 'auth') return {};
+                if (prop === 'auth') return createSafeAuthStub();
                 return undefined;
             }
 
@@ -42,7 +66,7 @@ export const supabaseProxy = new Proxy({} as SupabaseClient, {
             return value;
         } catch (error) {
             if (prop === 'rpc') return createSafeRpcStub();
-            if (prop === 'auth') return {};
+            if (prop === 'auth') return createSafeAuthStub();
             return undefined;
         }
     }

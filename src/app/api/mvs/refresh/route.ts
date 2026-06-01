@@ -124,7 +124,7 @@ export async function POST(request: Request) {
             incrementalSucceeded = true;
 
             const { data: immediateData, error: immediateError } = await admin.rpc('process_incremental_refresh_impacts', {
-                p_limit: 250,
+                p_limit: 1000,
                 p_include_corridas: true,
             });
 

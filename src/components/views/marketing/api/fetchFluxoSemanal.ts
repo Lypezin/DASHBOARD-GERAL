@@ -31,6 +31,7 @@ export async function fetchFluxoSemanal<T = Record<string, unknown>>(
             headers: {
                 'Content-Type': 'application/json',
             },
+            credentials: 'same-origin',
             cache: 'no-store',
             body: requestKey,
         });

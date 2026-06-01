@@ -66,6 +66,8 @@ export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentU
         dataFinal,
     ]);
 
+    const effectiveOrganizationId = organizationId || currentUserOrganizationId;
+
     const currentUserKey = useMemo(() => {
         return currentUser ? JSON.stringify({
             id: currentUserId,
@@ -73,9 +75,9 @@ export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentU
             role: currentUserRole,
             assigned_pracas: assignedPracasKey,
             organization_id: currentUserOrganizationId,
-            context_organization_id: organizationId
+            context_organization_id: effectiveOrganizationId
         }) : 'null';
-    }, [assignedPracasKey, currentUser, currentUserId, currentUserOrganizationId, currentUserRole, isCurrentUserAdmin, organizationId]);
+    }, [assignedPracasKey, currentUser, currentUserId, currentUserOrganizationId, currentUserRole, effectiveOrganizationId, isCurrentUserAdmin]);
 
     const stableFilters = useMemo(() => ({
         ano,
@@ -106,12 +108,12 @@ export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentU
                 safeLog.info('[useDashboardKeys] Gerando payload', {
                     filters: { ...stableFilters },
                     user_set: !!stableCurrentUser,
-                    organizationId
+                    organizationId: effectiveOrganizationId
                 });
             } catch (e) { /* ignore */ }
         }
-        return buildFilterPayload(stableFilters, stableCurrentUser, organizationId);
-    }, [organizationId, stableCurrentUser, stableFilters]);
+        return buildFilterPayload(stableFilters, stableCurrentUser, effectiveOrganizationId);
+    }, [effectiveOrganizationId, stableCurrentUser, stableFilters]);
 
     const filterPayloadKey = useMemo(() => createRequestKey(filterPayload), [filterPayload]);
 

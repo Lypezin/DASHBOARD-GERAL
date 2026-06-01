@@ -57,6 +57,13 @@ function DashboardShellContent() {
       />
     );
   }
+  if (auth.hasMissingOrganization) {
+    return (
+      <DashboardErrorState
+        error={auth.error || 'Seu usuário está aprovado, mas ainda não possui uma organização vinculada.'}
+      />
+    );
+  }
   if (!auth.isAuthenticated) return null;
 
   return (
