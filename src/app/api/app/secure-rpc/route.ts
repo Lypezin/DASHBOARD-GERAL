@@ -399,7 +399,7 @@ function filterPracasResult(data: unknown, profile: CurrentUserProfile) {
   const assigned = normalizeAssignedPracas(profile);
   if (assigned.length === 0 || !Array.isArray(data)) return [];
 
-  const allowed = new Set(assigned.map((item) => item.toUpperCase()));
+  const allowed = new Set(assigned.map(normalizePracaKey));
 
   return data.filter((item) => {
     const praca = typeof item === 'string'

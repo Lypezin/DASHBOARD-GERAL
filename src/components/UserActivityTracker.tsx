@@ -4,13 +4,14 @@ import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { safeLog } from '@/lib/errorHandler';
+import { buildAppAuthHeaders } from '@/utils/app/appAuthHeaders';
 
 const HEARTBEAT_INTERVAL_MS = 180000;
 
 async function sendActivityUpdate(body: Record<string, unknown>) {
     const response = await fetch('/api/app/activity-log', {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: await buildAppAuthHeaders({ 'Content-Type': 'application/json' }),
         credentials: 'same-origin',
         cache: 'no-store',
         keepalive: true,
@@ -69,7 +70,7 @@ export function UserActivityTracker() {
             try {
                 const response = await fetch('/api/app/activity-log', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: await buildAppAuthHeaders({ 'Content-Type': 'application/json' }),
                     credentials: 'same-origin',
                     cache: 'no-store',
                     body: JSON.stringify({ path: pathname }),

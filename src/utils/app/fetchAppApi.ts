@@ -1,3 +1,5 @@
+import { buildAppAuthHeaders } from './appAuthHeaders';
+
 type ApiErrorShape = {
     error?: string | null;
 };
@@ -14,6 +16,7 @@ export async function getAppApiData<T>(path: string): Promise<{ data: T | null; 
     const request = (async (): Promise<{ data: T | null; error: string | null }> => {
         const response = await fetch(path, {
             method: 'GET',
+            headers: await buildAppAuthHeaders(),
             credentials: 'same-origin',
             cache: 'no-store',
         });
@@ -36,9 +39,9 @@ export async function getAppApiData<T>(path: string): Promise<{ data: T | null; 
 export async function postAppApiData<T>(path: string, body?: Record<string, unknown>): Promise<{ data: T | null; error: string | null }> {
     const response = await fetch(path, {
         method: 'POST',
-        headers: {
+        headers: await buildAppAuthHeaders({
             'Content-Type': 'application/json',
-        },
+        }),
         credentials: 'same-origin',
         cache: 'no-store',
         body: JSON.stringify(body || {}),

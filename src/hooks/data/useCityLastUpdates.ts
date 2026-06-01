@@ -1,44 +1,48 @@
 import { useEffect, useRef, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { getAppApiData } from '@/utils/app/fetchAppApi';
+import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 
 interface CityUpdateInfo {
   city: string;
   last_update_date: string;
 }
 
-let globalCache: CityUpdateInfo[] | null = null;
-let globalPromise: Promise<CityUpdateInfo[] | null> | null = null;
-let globalCacheTime = 0;
+const globalCache = new Map<string, { data: CityUpdateInfo[]; timestamp: number }>();
+const globalPromises = new Map<string, Promise<CityUpdateInfo[] | null>>();
 
 const CACHE_TTL = 30 * 60 * 1000;
-const SESSION_CACHE_KEY = 'city_last_updates_cache_v2';
+const SESSION_CACHE_KEY_PREFIX = 'city_last_updates_cache_v3';
 
-function readSessionCache() {
+function getSessionCacheKey(scopeKey: string) {
+  return `${SESSION_CACHE_KEY_PREFIX}:${scopeKey}`;
+}
+
+function readSessionCache(scopeKey: string) {
   if (typeof window === 'undefined') return null;
 
   try {
-    const raw = sessionStorage.getItem(SESSION_CACHE_KEY);
+    const raw = sessionStorage.getItem(getSessionCacheKey(scopeKey));
     if (!raw) return null;
 
     const parsed = JSON.parse(raw) as { timestamp: number; data: CityUpdateInfo[] };
     if (Date.now() - parsed.timestamp > CACHE_TTL || !Array.isArray(parsed.data)) {
-      sessionStorage.removeItem(SESSION_CACHE_KEY);
+      sessionStorage.removeItem(getSessionCacheKey(scopeKey));
       return null;
     }
 
     return parsed;
   } catch {
-    sessionStorage.removeItem(SESSION_CACHE_KEY);
+    sessionStorage.removeItem(getSessionCacheKey(scopeKey));
     return null;
   }
 }
 
-function writeSessionCache(data: CityUpdateInfo[]) {
+function writeSessionCache(scopeKey: string, data: CityUpdateInfo[]) {
   if (typeof window === 'undefined') return;
 
   try {
-    sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify({
+    sessionStorage.setItem(getSessionCacheKey(scopeKey), JSON.stringify({
       timestamp: Date.now(),
       data,
     }));
@@ -48,59 +52,90 @@ function writeSessionCache(data: CityUpdateInfo[]) {
 }
 
 export function useCityLastUpdates() {
-  const sessionCacheRef = useRef(readSessionCache());
-  const initialCache = globalCache || sessionCacheRef.current?.data || [];
+  const { hasResolved, isAuthenticated, profile } = useAppBootstrap();
+  const scopeKey = profile?.organization_id || 'no-org';
+  const sessionCacheRef = useRef<{ scopeKey: string; value: ReturnType<typeof readSessionCache> } | null>(null);
+  const cachedEntry = globalCache.get(scopeKey);
+  const sessionCache = sessionCacheRef.current?.scopeKey === scopeKey
+    ? sessionCacheRef.current.value
+    : readSessionCache(scopeKey);
+
+  if (!sessionCacheRef.current || sessionCacheRef.current.scopeKey !== scopeKey) {
+    sessionCacheRef.current = { scopeKey, value: sessionCache };
+  }
+
+  const initialCache = cachedEntry?.data || sessionCache?.data || [];
 
   const [data, setData] = useState<CityUpdateInfo[]>(initialCache);
-  const [loading, setLoading] = useState(initialCache.length === 0);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let mounted = true;
 
     async function fetchUpdates() {
-      const sessionCache = sessionCacheRef.current;
-
-      if (!globalCache && sessionCache?.data) {
-        globalCache = sessionCache.data;
-        globalCacheTime = sessionCache.timestamp;
-      }
-
-      if (globalCache && Date.now() - globalCacheTime < CACHE_TTL) {
+      if (!hasResolved || !isAuthenticated) {
         if (mounted) {
-          setData(globalCache);
+          setData([]);
           setLoading(false);
         }
         return;
       }
 
-      if (!globalPromise) {
-        globalPromise = (async () => {
+      const currentSessionCache = sessionCacheRef.current?.scopeKey === scopeKey
+        ? sessionCacheRef.current.value
+        : readSessionCache(scopeKey);
+
+      if (!globalCache.has(scopeKey) && currentSessionCache?.data) {
+        globalCache.set(scopeKey, {
+          data: currentSessionCache.data,
+          timestamp: currentSessionCache.timestamp,
+        });
+      }
+
+      const currentCache = globalCache.get(scopeKey);
+      if (currentCache && Date.now() - currentCache.timestamp < CACHE_TTL) {
+        if (mounted) {
+          setData(currentCache.data);
+          setLoading(false);
+        }
+        return;
+      }
+
+      if (mounted) {
+        setData([]);
+        setLoading(true);
+      }
+
+      if (!globalPromises.has(scopeKey)) {
+        globalPromises.set(scopeKey, (async () => {
           try {
             const { data, error } = await getAppApiData<CityUpdateInfo[]>('/api/app/city-updates');
             if (error) {
               safeLog.error('Error fetching city updates:', error);
-              globalPromise = null;
+              globalPromises.delete(scopeKey);
               return null;
             }
 
             if (data) {
-              globalCache = data as CityUpdateInfo[];
-              globalCacheTime = Date.now();
-              writeSessionCache(globalCache);
+              const nextData = data as CityUpdateInfo[];
+              globalCache.set(scopeKey, {
+                data: nextData,
+                timestamp: Date.now(),
+              });
+              writeSessionCache(scopeKey, nextData);
             }
 
-            globalPromise = null;
-            return globalCache;
+            globalPromises.delete(scopeKey);
+            return globalCache.get(scopeKey)?.data || null;
           } catch (err: unknown) {
             safeLog.error('Unexpected error fetching updates:', err);
-            globalPromise = null;
+            globalPromises.delete(scopeKey);
             return null;
           }
-        })();
+        })());
       }
 
-      if (mounted) setLoading(true);
-      const result = await globalPromise;
+      const result = await globalPromises.get(scopeKey);
 
       if (mounted) {
         if (result) setData(result);
@@ -113,7 +148,7 @@ export function useCityLastUpdates() {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [hasResolved, isAuthenticated, scopeKey]);
 
   return { data, loading };
 }
