@@ -87,7 +87,7 @@ function readFirstSeenDate(row: Record<string, unknown>) {
 async function fetchFirstSeenAggregate(
   supabase: ReturnType<typeof createServiceRoleClient>,
   ids: string[],
-  organizationId: string,
+  organizationId: string | null,
   allowedPracas: string[] | null,
 ) {
   const result = new Map<string, string | null>();
@@ -96,9 +96,12 @@ async function fetchFirstSeenAggregate(
     let query = supabase
       .from('dados_corridas')
       .select('id_da_pessoa_entregadora, primeira_data_aparicao:data_do_periodo.min()')
-      .eq('organization_id', organizationId)
       .in('id_da_pessoa_entregadora', chunk)
       .not('data_do_periodo', 'is', null);
+
+    if (organizationId) {
+      query = query.eq('organization_id', organizationId);
+    }
 
     if (allowedPracas) {
       query = query.in('praca', allowedPracas);
@@ -122,15 +125,18 @@ async function fetchFirstSeenAggregate(
 async function fetchOneFirstSeen(
   supabase: ReturnType<typeof createServiceRoleClient>,
   id: string,
-  organizationId: string,
+  organizationId: string | null,
   allowedPracas: string[] | null,
 ) {
   let query = supabase
     .from('dados_corridas')
     .select('data_do_periodo')
-    .eq('organization_id', organizationId)
     .eq('id_da_pessoa_entregadora', id)
     .not('data_do_periodo', 'is', null);
+
+  if (organizationId) {
+    query = query.eq('organization_id', organizationId);
+  }
 
   if (allowedPracas) {
     query = query.in('praca', allowedPracas);
@@ -151,7 +157,7 @@ async function fetchOneFirstSeen(
 async function fetchFirstSeenFallback(
   supabase: ReturnType<typeof createServiceRoleClient>,
   ids: string[],
-  organizationId: string,
+  organizationId: string | null,
   allowedPracas: string[] | null,
 ) {
   const result = new Map<string, string | null>();
@@ -193,12 +199,12 @@ export async function POST(request: Request) {
   const fullCityAccess = hasFullCityAccess(auth.profile);
   const organizationId = resolveOrganizationId(body, auth.profile.organization_id, fullCityAccess);
 
-  if (!organizationId) {
-    return NextResponse.json({ data: null, error: 'Organizacao invalida para consulta.' }, { status: 400 });
-  }
-
   const assignedPracas = normalizeAssignedPracas(auth.profile.assigned_pracas);
   const allowedPracas = fullCityAccess ? null : assignedPracas;
+
+  if (!fullCityAccess && !organizationId) {
+    return NextResponse.json({ data: null, error: 'Organizacao invalida para consulta.' }, { status: 400 });
+  }
 
   if (!fullCityAccess && assignedPracas.length === 0) {
     const emptyData: FirstSeenRow[] = entregadorIds.map((id) => ({

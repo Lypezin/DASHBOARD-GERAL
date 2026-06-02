@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Entregador } from '@/types';
 import { calculateHealthScore, HealthBadge } from '@/components/ui/HealthBadge';
 import { formatarHorasParaHMS } from '@/utils/formatters';
@@ -205,6 +205,9 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
                             <p className="truncate text-xs text-slate-500">{entregador.id_entregador}</p>
                         </div>
                     </DialogTitle>
+                    <DialogDescription className="sr-only">
+                        Dados operacionais consolidados do entregador selecionado.
+                    </DialogDescription>
                 </DialogHeader>
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
