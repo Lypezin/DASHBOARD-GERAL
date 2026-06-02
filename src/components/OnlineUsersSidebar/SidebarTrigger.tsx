@@ -31,20 +31,20 @@ export function SidebarTrigger({
     return (
         <div
             className={cn(
-                'group fixed bottom-6 right-6 z-[99999] rounded-2xl border border-slate-200 bg-white/95 text-slate-700 shadow-xl backdrop-blur-sm transition-[transform,opacity,box-shadow,background-color,border-color] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(15,23,42,0.14)] dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-100',
+                'group fixed bottom-6 right-5 z-[99999] w-[17rem] max-w-[calc(100vw-2rem)] transform-gpu rounded-2xl border border-slate-200 bg-white/95 text-slate-700 shadow-xl backdrop-blur-sm transition-[transform,opacity,box-shadow,background-color,border-color] duration-500 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(15,23,42,0.14)] dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-100',
                 isOpen && 'pointer-events-none translate-y-4 opacity-0',
-                !isOpen && isMinimized && 'translate-x-[calc(100%-1.1rem)] opacity-80 hover:translate-x-[calc(100%-2.15rem)] hover:opacity-100'
+                !isOpen && isMinimized && 'translate-x-[calc(100%-3.15rem)] scale-95 opacity-90 hover:translate-x-[calc(100%-4rem)] hover:scale-100 hover:opacity-100'
             )}
         >
             {isMinimized ? (
-                <span className="pointer-events-none absolute left-1.5 top-1/2 h-8 w-1.5 -translate-y-1/2 rounded-full bg-blue-600 shadow-[0_0_0_4px_rgba(37,99,235,0.12)] dark:bg-blue-500" />
+                <span className="pointer-events-none absolute left-1.5 top-1/2 h-9 w-1.5 -translate-y-1/2 rounded-full bg-blue-600 shadow-[0_0_0_4px_rgba(37,99,235,0.12)] dark:bg-blue-500" />
             ) : null}
 
             {!isMinimized ? (
                 <button
                     type="button"
                     onClick={handleMinimize}
-                    className="absolute -right-2 -top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-lg transition-colors hover:bg-slate-50 hover:text-slate-950 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white"
+                    className="absolute right-2 top-2 z-10 flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white/95 text-slate-500 shadow-sm transition-colors hover:bg-slate-50 hover:text-slate-950 focus:outline-none focus:ring-2 focus:ring-blue-500/30 dark:border-slate-800 dark:bg-slate-950/95 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white"
                     title="Esconder chat"
                     aria-label="Esconder chat"
                 >
@@ -55,7 +55,7 @@ export function SidebarTrigger({
             <button
                 type="button"
                 onClick={handleOpen}
-                className="flex items-center gap-3 rounded-2xl px-3 py-3 text-left"
+                className="flex w-full items-center gap-3 rounded-2xl px-3 py-3 pr-10 text-left"
                 title={isMinimized ? 'Mostrar painel da equipe' : 'Abrir painel da equipe'}
                 aria-label="Abrir painel da equipe"
             >

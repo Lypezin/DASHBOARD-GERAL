@@ -13,6 +13,8 @@ interface OnlineUsersSidebarProps {
     currentUser: CurrentUser | null;
     currentTab: string;
     initialOpen?: boolean;
+    initialMinimized?: boolean;
+    onMinimizedChange?: (value: boolean) => void;
     preloadRealtime?: boolean;
 }
 
@@ -20,9 +22,11 @@ export function OnlineUsersSidebar({
     currentUser,
     currentTab,
     initialOpen = false,
+    initialMinimized = false,
+    onMinimizedChange,
     preloadRealtime = false
 }: OnlineUsersSidebarProps) {
-    const [isMinimized, setIsMinimized] = useState(false);
+    const [isMinimized, setInternalMinimized] = useState(initialMinimized);
     const {
         isOpen, setIsOpen, onlineUsersData, searchTerm, setSearchTerm,
         myCustomStatus, setMyCustomStatus, activeChatUser,
@@ -47,16 +51,17 @@ export function OnlineUsersSidebar({
         clearTyping: () => setTypingTo(null)
     });
 
+    const setIsMinimized = useCallback((value: boolean) => {
+        setInternalMinimized(value);
+        onMinimizedChange?.(value);
+    }, [onMinimizedChange]);
+
     const handleCloseSidebar = useCallback(() => setIsOpen(false), [setIsOpen]);
-    const handleMinimizeSidebar = useCallback(() => {
-        setIsOpen(false);
-        setIsMinimized(true);
-    }, [setIsOpen]);
     const handleOpenUserChat = useCallback((user: OnlineUser) => {
         setActiveChatUser(user);
         setIsMinimized(false);
         setIsOpen(true);
-    }, [setActiveChatUser, setIsOpen]);
+    }, [setActiveChatUser, setIsMinimized, setIsOpen]);
 
     if (!currentUser) return null;
 
@@ -102,7 +107,7 @@ export function OnlineUsersSidebar({
                     myCustomStatus={myCustomStatus}
                     setMyCustomStatus={setMyCustomStatus}
                     onStatusSubmit={setCustomStatus}
-                    onClose={handleMinimizeSidebar}
+                    onClose={handleCloseSidebar}
                 />
 
                 <UserList
