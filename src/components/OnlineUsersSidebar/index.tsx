@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { CurrentUser } from '@/types';
 import { useSidebarController } from './useSidebarController';
 import { SidebarTrigger } from './SidebarTrigger';
@@ -22,6 +22,7 @@ export function OnlineUsersSidebar({
     initialOpen = false,
     preloadRealtime = false
 }: OnlineUsersSidebarProps) {
+    const [isMinimized, setIsMinimized] = useState(false);
     const {
         isOpen, setIsOpen, onlineUsersData, searchTerm, setSearchTerm,
         myCustomStatus, setMyCustomStatus, activeChatUser,
@@ -47,8 +48,13 @@ export function OnlineUsersSidebar({
     });
 
     const handleCloseSidebar = useCallback(() => setIsOpen(false), [setIsOpen]);
+    const handleMinimizeSidebar = useCallback(() => {
+        setIsOpen(false);
+        setIsMinimized(true);
+    }, [setIsOpen]);
     const handleOpenUserChat = useCallback((user: OnlineUser) => {
         setActiveChatUser(user);
+        setIsMinimized(false);
         setIsOpen(true);
     }, [setActiveChatUser, setIsOpen]);
 
@@ -61,6 +67,8 @@ export function OnlineUsersSidebar({
                 setIsOpen={setIsOpen}
                 onlineCount={onlineUsers.length}
                 unreadCount={totalUnread}
+                isMinimized={isMinimized}
+                setIsMinimized={setIsMinimized}
             />
 
             <SidebarContainer isOpen={isOpen} onClose={handleCloseSidebar}>
@@ -94,7 +102,7 @@ export function OnlineUsersSidebar({
                     myCustomStatus={myCustomStatus}
                     setMyCustomStatus={setMyCustomStatus}
                     onStatusSubmit={setCustomStatus}
-                    onClose={handleCloseSidebar}
+                    onClose={handleMinimizeSidebar}
                 />
 
                 <UserList

@@ -6,17 +6,32 @@ interface SidebarTriggerProps {
     setIsOpen: (v: boolean) => void;
     onlineCount: number;
     unreadCount: number;
+    isMinimized?: boolean;
+    setIsMinimized?: (v: boolean) => void;
 }
 
-export function SidebarTrigger({ isOpen, setIsOpen, onlineCount, unreadCount }: SidebarTriggerProps) {
+export function SidebarTrigger({
+    isOpen,
+    setIsOpen,
+    onlineCount,
+    unreadCount,
+    isMinimized = false,
+    setIsMinimized,
+}: SidebarTriggerProps) {
+    const handleOpen = () => {
+        setIsMinimized?.(false);
+        setIsOpen(true);
+    };
+
     return (
         <button
-            onClick={() => setIsOpen(true)}
+            onClick={handleOpen}
             className={cn(
-                'fixed bottom-6 right-6 z-[99999] flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/95 px-3 py-3 text-slate-700 shadow-xl backdrop-blur-sm transition-[transform,opacity,box-shadow,background-color,border-color] duration-200 hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(15,23,42,0.14)] dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-100',
-                isOpen && 'pointer-events-none translate-y-4 opacity-0'
+                'fixed bottom-6 right-6 z-[99999] flex items-center gap-3 rounded-2xl border border-slate-200 bg-white/95 px-3 py-3 text-slate-700 shadow-xl backdrop-blur-sm transition-[transform,opacity,box-shadow,background-color,border-color] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_30px_rgba(15,23,42,0.14)] dark:border-slate-800 dark:bg-slate-900/95 dark:text-slate-100',
+                isOpen && 'pointer-events-none translate-y-4 opacity-0',
+                !isOpen && isMinimized && 'translate-x-[calc(100%-3.75rem)] hover:translate-x-[calc(100%-4.25rem)]'
             )}
-            title="Abrir painel da equipe"
+            title={isMinimized ? 'Mostrar painel da equipe' : 'Abrir painel da equipe'}
             aria-label="Abrir painel da equipe"
         >
             <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-blue-600 text-white shadow-lg">
