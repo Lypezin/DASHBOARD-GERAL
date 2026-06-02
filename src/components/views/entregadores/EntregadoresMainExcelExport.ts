@@ -3,6 +3,7 @@ import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { calcularPercentualAceitas, calcularPercentualCompletadas } from './EntregadoresUtils';
 import { formatarHorasParaHMS } from '@/utils/formatters';
+import { fetchEntregadoresFirstSeen, formatFirstSeenDate } from './fetchEntregadoresFirstSeen';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -10,15 +11,30 @@ const formatarPorcentagem = (valor: number) => {
     return (valor / 100).toLocaleString('pt-BR', { style: 'percent', minimumFractionDigits: 1 });
 };
 
-export async function exportarEntregadoresMainParaExcel(entregadores: Entregador[]): Promise<void> {
+export async function exportarEntregadoresMainParaExcel(
+    entregadores: Entregador[],
+    options: { organizationId?: string | null } = {}
+): Promise<void> {
     try {
         const XLSX = await loadXLSX();
         const wb = XLSX.utils.book_new();
 
         if (entregadores && entregadores.length > 0) {
+            let firstSeenById = new Map<string, string | null>();
+
+            try {
+                firstSeenById = await fetchEntregadoresFirstSeen(
+                    entregadores.map((entregador) => entregador.id_entregador),
+                    options.organizationId
+                );
+            } catch (error) {
+                safeLog.error('Erro ao buscar primeira aparicao para exportacao:', error);
+            }
+
             const dadosExportacao = entregadores.map(e => ({
                 'ID Entregador': e.id_entregador,
                 Nome: e.nome_entregador,
+                'Primeira aparição': formatFirstSeenDate(e.primeira_data_aparicao || firstSeenById.get(e.id_entregador)),
                 Horas: formatarHorasParaHMS((e.total_segundos || 0) / 3600),
                 Ofertadas: e.corridas_ofertadas,
                 Aceitas: e.corridas_aceitas,
@@ -34,6 +50,7 @@ export async function exportarEntregadoresMainParaExcel(entregadores: Entregador
             ws['!cols'] = [
                 { wch: 40 },
                 { wch: 35 },
+                { wch: 18 },
                 { wch: 15 },
                 { wch: 10 },
                 { wch: 10 },

@@ -121,7 +121,8 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
     handleSort
   } = useEntregadoresMainSort(entregadoresData, effectiveSearchTerm);
 
-  const { isExporting, handleExport } = useEntregadoresExport(sortedEntregadores);
+  const organizationId = typeof filterPayload?.p_organization_id === 'string' ? filterPayload.p_organization_id : null;
+  const { isExporting, handleExport } = useEntregadoresExport(sortedEntregadores, organizationId);
   const { selectedEntregador, profileOpen, setProfileOpen, handleRowClick } = useEntregadorProfile();
   const stats = useEntregadoresMainStats(sortedEntregadores);
   const showPerformers = useDeferredMount({
@@ -203,7 +204,7 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
             entregador={selectedEntregador}
             open={profileOpen}
             onOpenChange={setProfileOpen}
-            organizationId={typeof filterPayload?.p_organization_id === 'string' ? filterPayload.p_organization_id : undefined}
+            organizationId={organizationId || undefined}
             variant={variant}
             filterPayload={filterPayload}
           />

@@ -8,6 +8,7 @@ export interface Entregador {
     aderencia_percentual: number;
     rejeicao_percentual: number;
     total_segundos: number;
+    primeira_data_aparicao?: string | null;
 }
 
 export interface EntregadoresData {

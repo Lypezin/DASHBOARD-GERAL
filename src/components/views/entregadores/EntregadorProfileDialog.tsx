@@ -5,10 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Entregador } from '@/types';
 import { calculateHealthScore, HealthBadge } from '@/components/ui/HealthBadge';
 import { formatarHorasParaHMS } from '@/utils/formatters';
-import { Clock, Target, Hash, Activity, Store } from 'lucide-react';
-import { TagManager } from './TagManager';
-import { MetaEditor } from './MetaEditor';
-import { useEntregadorDetail } from './hooks/useEntregadorDetail';
+import { Activity, CalendarDays, CheckCircle2, Clock, Hash, Percent, Store, Target, XCircle } from 'lucide-react';
 import { safeLog } from '@/lib/errorHandler';
 import { cn } from '@/lib/utils';
 import { buildDedicadoFilterPayload } from '../dedicado/rpcFallback';
@@ -18,6 +15,8 @@ import {
 } from '../dedicado/metrics';
 import type { FilterPayload } from '@/types/filters';
 import { fetchDedicadoApi } from '@/utils/dedicado/fetchDedicadoApi';
+import { calcularPercentualAceitas, calcularPercentualCompletadas } from './EntregadoresUtils';
+import { fetchEntregadoresFirstSeen, formatFirstSeenDate } from './fetchEntregadoresFirstSeen';
 
 interface OrigemBreakdownRow {
     origem: string;
@@ -58,9 +57,10 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
     filterPayload,
 }: Props) {
     const isDedicado = variant === 'dedicado';
-    const { detail, loading, loadDetail } = useEntregadorDetail(entregador, open, organizationId, !isDedicado);
     const [origemBreakdown, setOrigemBreakdown] = React.useState<OrigemBreakdownRow[]>([]);
     const [origemLoading, setOrigemLoading] = React.useState(false);
+    const [firstSeenDate, setFirstSeenDate] = React.useState<string | null>(entregador?.primeira_data_aparicao || null);
+    const [firstSeenLoading, setFirstSeenLoading] = React.useState(false);
 
     const origemPayloadKey = React.useMemo(() => {
         if (!entregador || !isDedicado) return '';
@@ -125,6 +125,46 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
         };
     }, [open, isDedicado, origemPayloadKey]);
 
+    React.useEffect(() => {
+        let cancelled = false;
+
+        async function loadFirstSeenDate() {
+            if (!open || !entregador?.id_entregador) {
+                setFirstSeenDate(null);
+                setFirstSeenLoading(false);
+                return;
+            }
+
+            if (entregador.primeira_data_aparicao) {
+                setFirstSeenDate(entregador.primeira_data_aparicao);
+                setFirstSeenLoading(false);
+                return;
+            }
+
+            setFirstSeenLoading(true);
+
+            try {
+                const firstSeenById = await fetchEntregadoresFirstSeen([entregador.id_entregador], organizationId);
+                if (!cancelled) {
+                    setFirstSeenDate(firstSeenById.get(entregador.id_entregador) || null);
+                }
+            } catch (error) {
+                if (!cancelled) {
+                    safeLog.error('Erro ao carregar primeira aparicao do entregador:', error);
+                    setFirstSeenDate(null);
+                }
+            } finally {
+                if (!cancelled) setFirstSeenLoading(false);
+            }
+        }
+
+        void loadFirstSeenDate();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [entregador, open, organizationId]);
+
     if (!entregador) return null;
 
     const hs = calculateHealthScore(
@@ -134,18 +174,28 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
         entregador.total_segundos
     );
 
+    const percentualAceitas = calcularPercentualAceitas(entregador);
+    const percentualCompletadas = calcularPercentualCompletadas(entregador);
+    const firstSeenLabel = firstSeenLoading ? 'Carregando...' : formatFirstSeenDate(firstSeenDate);
+
     const metrics = [
+        { label: 'Primeira aparição', value: firstSeenLabel, icon: CalendarDays, color: 'text-violet-600' },
         { label: 'Horas online', value: formatarHorasParaHMS((entregador.total_segundos || 0) / 3600), icon: Clock, color: 'text-blue-600' },
-        { label: 'Ader\u00eancia', value: `${entregador.aderencia_percentual.toFixed(1)}%`, icon: Target, color: 'text-emerald-600' },
-        { label: 'Completadas', value: entregador.corridas_completadas.toLocaleString('pt-BR'), icon: Activity, color: 'text-sky-600' },
+        { label: 'Aderência', value: `${entregador.aderencia_percentual.toFixed(1)}%`, icon: Target, color: 'text-emerald-600' },
         { label: 'Ofertadas', value: entregador.corridas_ofertadas.toLocaleString('pt-BR'), icon: Hash, color: 'text-slate-600' },
+        { label: 'Aceitas', value: entregador.corridas_aceitas.toLocaleString('pt-BR'), icon: CheckCircle2, color: 'text-emerald-600' },
+        { label: 'Rejeitadas', value: entregador.corridas_rejeitadas.toLocaleString('pt-BR'), icon: XCircle, color: 'text-rose-600' },
+        { label: 'Completadas', value: entregador.corridas_completadas.toLocaleString('pt-BR'), icon: Activity, color: 'text-sky-600' },
+        { label: '% Aceitação', value: `${percentualAceitas.toFixed(1)}%`, icon: Percent, color: 'text-emerald-600' },
+        { label: '% Completude', value: `${percentualCompletadas.toFixed(1)}%`, icon: Percent, color: 'text-blue-600' },
+        { label: '% Rejeição', value: `${entregador.rejeicao_percentual.toFixed(1)}%`, icon: Percent, color: 'text-rose-600' },
     ];
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className={cn(
                 'subtle-scrollbar max-h-[88vh] overflow-y-auto rounded-[1.9rem] border border-slate-200/80 bg-white/95 shadow-[0_26px_80px_-48px_rgba(15,23,42,0.48)] dark:border-slate-800/80 dark:bg-slate-950/95',
-                isDedicado ? 'max-w-5xl' : 'max-w-xl'
+                isDedicado ? 'max-w-5xl' : 'max-w-3xl'
             )}>
                 <DialogHeader className="border-b border-slate-100 pb-4 dark:border-slate-800">
                     <DialogTitle className="flex items-center gap-3">
@@ -157,14 +207,14 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-5">
                     {metrics.map((metric) => (
                         <div key={metric.label} className="rounded-2xl border border-slate-200/80 bg-slate-50/90 p-3.5 dark:border-slate-800 dark:bg-slate-900/80">
                             <div className="mb-1 flex items-center gap-2">
                                 <metric.icon className={`h-3.5 w-3.5 ${metric.color}`} />
                                 <span className="text-[11px] font-medium text-slate-500 dark:text-slate-400">{metric.label}</span>
                             </div>
-                            <p className="text-base font-bold text-slate-900 dark:text-slate-100">{metric.value}</p>
+                            <p className="truncate text-base font-bold text-slate-900 dark:text-slate-100" title={metric.value}>{metric.value}</p>
                         </div>
                     ))}
                 </div>
@@ -214,43 +264,6 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
                                 {origemLoading ? 'Carregando origens...' : 'Nenhum detalhamento por origem encontrado para o filtro atual.'}
                             </div>
                         )}
-                    </div>
-                ) : null}
-
-                {!isDedicado ? (
-                    <>
-                        <div>
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Tags</p>
-                            <TagManager entregadorId={entregador.id_entregador} organizationId={organizationId} onUpdate={loadDetail} />
-                        </div>
-
-                        <div>
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Metas</p>
-                            <MetaEditor entregadorId={entregador.id_entregador} organizationId={organizationId} metas={detail?.metas || []} onUpdate={loadDetail} />
-                        </div>
-
-                        <div>
-                            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">Histórico recente</p>
-                            {detail?.history && detail.history.length > 0 ? (
-                                <div className="subtle-scrollbar max-h-44 space-y-1.5 overflow-y-auto rounded-2xl border border-slate-200/70 bg-slate-50/70 p-3 dark:border-slate-800/70 dark:bg-slate-900/70">
-                                    {detail.history.map((historyItem) => (
-                                        <div key={historyItem.id} className="flex items-center gap-2 text-xs">
-                                            <span className="h-2 w-2 flex-shrink-0 rounded-full bg-blue-400" />
-                                            <span className="text-slate-600 dark:text-slate-300">{historyItem.event_type.replace(/_/g, ' ')}</span>
-                                            <span className="ml-auto text-[10px] text-slate-400">{new Date(historyItem.created_at).toLocaleDateString('pt-BR')}</span>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <span className="text-xs text-slate-400">Sem registros</span>
-                            )}
-                        </div>
-                    </>
-                ) : null}
-
-                {loading ? (
-                    <div className="absolute inset-0 flex items-center justify-center rounded-[1.9rem] bg-white/55 dark:bg-slate-950/55">
-                        <div className="h-6 w-6 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
                     </div>
                 ) : null}
             </DialogContent>

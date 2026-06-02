@@ -32,6 +32,12 @@ function chooseDisplayName(current: string, next: string) {
     return cleanNext.length > cleanCurrent.length ? cleanNext : cleanCurrent;
 }
 
+function chooseEarliestDate(current?: string | null, next?: string | null) {
+    if (!current) return next || null;
+    if (!next) return current;
+    return next < current ? next : current;
+}
+
 function mergeEntregadoresById(entregadores: Entregador[]) {
     const merged = new Map<string, Entregador>();
 
@@ -52,6 +58,7 @@ function mergeEntregadoresById(entregadores: Entregador[]) {
                 total_segundos: normalizeNumber(entregador.total_segundos),
                 aderencia_percentual: normalizeNumber(entregador.aderencia_percentual),
                 rejeicao_percentual: normalizeNumber(entregador.rejeicao_percentual),
+                primeira_data_aparicao: entregador.primeira_data_aparicao || null,
             });
             continue;
         }
@@ -62,6 +69,10 @@ function mergeEntregadoresById(entregadores: Entregador[]) {
         current.corridas_rejeitadas += normalizeNumber(entregador.corridas_rejeitadas);
         current.corridas_completadas += normalizeNumber(entregador.corridas_completadas);
         current.total_segundos += normalizeNumber(entregador.total_segundos);
+        current.primeira_data_aparicao = chooseEarliestDate(
+            current.primeira_data_aparicao,
+            entregador.primeira_data_aparicao
+        );
 
         current.aderencia_percentual = current.corridas_ofertadas > 0
             ? (current.corridas_aceitas / current.corridas_ofertadas) * 100
