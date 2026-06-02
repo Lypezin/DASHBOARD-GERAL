@@ -27,7 +27,8 @@ const ValoresView = React.memo(function ValoresView({
   filterPayload: FilterPayload; 
   currentUser: CurrentUser | null; 
 }) {
-  const { data: tabData, loading } = useTabData('valores', filterPayload, currentUser);
+  const valoresPayload = React.useMemo(() => ({ ...filterPayload, detailed: false }), [filterPayload]);
+  const { data: tabData, loading } = useTabData('valores', valoresPayload, currentUser);
   const { valoresData } = useTabDataMapper({ activeTab: 'valores', tabData });
   const [isExporting, setIsExporting] = useState(false);
   const filtrosSemDetalhamento = React.useMemo(() => ({ ...filters, detailed: false }), [filters]);

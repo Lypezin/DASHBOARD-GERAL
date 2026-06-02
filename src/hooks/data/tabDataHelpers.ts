@@ -5,8 +5,14 @@ export type TabData = UtrData | EntregadoresData | ValoresEntregador[] | null;
 export const processTabSuccessData = (tab: string, result: any): TabData => {
     let processedData: TabData;
     if (tab === 'valores') {
-        const list = Array.isArray(result.data) ? result.data as ValoresEntregador[] : [];
-        if (result.total !== undefined) (list as any).total = result.total;
+        const rawData = result?.data;
+        const list = Array.isArray(rawData)
+            ? rawData as ValoresEntregador[]
+            : Array.isArray(rawData?.entregadores)
+                ? rawData.entregadores as ValoresEntregador[]
+                : [];
+        const total = result?.total ?? rawData?.total;
+        if (total !== undefined) (list as any).total = total;
         processedData = list;
     } else {
         processedData = result.data as TabData;

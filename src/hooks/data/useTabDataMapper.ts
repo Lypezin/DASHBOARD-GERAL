@@ -30,6 +30,11 @@ export function useTabDataMapper({ activeTab, tabData }: TabDataMapperProps) {
     if (Array.isArray(tabData)) {
       return tabData as ValoresEntregador[];
     }
+    if (Array.isArray(tabData?.entregadores)) {
+      const list = tabData.entregadores as ValoresEntregador[];
+      if (tabData.total !== undefined) (list as any).total = tabData.total;
+      return list;
+    }
     return [];
   }, [activeTab, tabData]);
 
