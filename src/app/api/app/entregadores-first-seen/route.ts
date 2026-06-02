@@ -95,7 +95,7 @@ async function fetchFirstSeenAggregate(
   for (const chunk of chunkArray(ids, AGGREGATE_CHUNK_SIZE)) {
     let query = supabase
       .from('dados_corridas')
-      .select('id_da_pessoa_entregadora, primeira_data_aparicao:data_do_periodo.min()')
+      .select('id_da_pessoa_entregadora, data_do_periodo.min()')
       .in('id_da_pessoa_entregadora', chunk)
       .not('data_do_periodo', 'is', null);
 

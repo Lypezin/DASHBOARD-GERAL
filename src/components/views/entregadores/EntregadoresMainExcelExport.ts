@@ -29,12 +29,13 @@ export async function exportarEntregadoresMainParaExcel(
                 );
             } catch (error) {
                 safeLog.error('Erro ao buscar primeira aparicao para exportacao:', error);
+                throw new Error('Nao foi possivel buscar a primeira aparicao dos entregadores para o Excel.');
             }
 
             const dadosExportacao = entregadores.map(e => ({
                 'ID Entregador': e.id_entregador,
                 Nome: e.nome_entregador,
-                'Primeira aparição': formatFirstSeenDate(e.primeira_data_aparicao || firstSeenById.get(e.id_entregador)),
+                'Primeira aparição': formatFirstSeenDate(firstSeenById.get(e.id_entregador) ?? e.primeira_data_aparicao),
                 Horas: formatarHorasParaHMS((e.total_segundos || 0) / 3600),
                 Ofertadas: e.corridas_ofertadas,
                 Aceitas: e.corridas_aceitas,
@@ -74,6 +75,6 @@ export async function exportarEntregadoresMainParaExcel(
         if (IS_DEV) safeLog.info(`Entregadores Operacional exportado: ${nomeArquivo}`);
     } catch (error) {
         safeLog.error('Erro ao exportar entregadores operacional:', error);
-        throw new Error('Falha ao gerar arquivo Excel.');
+        throw error instanceof Error ? error : new Error('Falha ao gerar arquivo Excel.');
     }
 }
