@@ -33,7 +33,7 @@ const UtrView = React.memo(function UtrView({
   let stateKey = 'utr-content';
   let content: React.ReactNode;
 
-  if (loading) {
+  if (loading && (!utrData || !utrData.geral)) {
     stateKey = 'utr-loading';
     content = (
       <div className="mx-auto w-full max-w-[1600px] space-y-5 px-4 pt-4 animate-fade-in sm:px-6 lg:px-8">
@@ -67,6 +67,12 @@ const UtrView = React.memo(function UtrView({
           totalSections={sectionCount}
           totalSlices={totalSlices}
         />
+
+        {loading ? (
+          <div className="rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/25 dark:text-blue-200">
+            Atualizando UTR com os filtros atuais...
+          </div>
+        ) : null}
 
         <UtrContent
           utrData={utrData}

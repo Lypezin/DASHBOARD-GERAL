@@ -12,6 +12,8 @@ import { useDashboardPage } from '@/hooks/dashboard/useDashboardPage';
 import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
 import { FaviconManager } from '@/components/layout/FaviconManager';
+import { preloadDashboardView } from '@/config/dynamicImports';
+import type { TabType } from '@/types';
 
 const DeferredActivityTracker = dynamic(
   () => import('@/components/dashboard/ActivityTracker').then((mod) => ({ default: mod.ActivityTracker })),
@@ -48,6 +50,62 @@ function DashboardShellContent() {
   }, [data.aderenciaSemanal]);
 
   const percentualAderencia = aderenciaGeral?.aderencia_percentual || 0;
+  const hasMainData = Boolean(data.totals)
+    || data.aderenciaSemanal.length > 0
+    || data.aderenciaDia.length > 0
+    || data.aderenciaTurno.length > 0
+    || data.aderenciaSubPraca.length > 0
+    || data.aderenciaOrigem.length > 0
+    || data.aderenciaDiaOrigem.length > 0;
+  const showInitialLoading = ui.loading && !hasMainData;
+
+  React.useEffect(() => {
+    if (!auth.isAuthenticated) return;
+
+    const tabsToWarm: TabType[] = [
+      'analise',
+      'utr',
+      'comparacao',
+      'entregadores',
+      'valores',
+      'prioridade',
+      'evolucao',
+      'dedicado',
+      'marketing_comparacao',
+      'marketing',
+    ];
+    let cancelled = false;
+    let idleId: number | null = null;
+    let timeoutId: number | null = null;
+
+    const warmSequentially = () => {
+      let index = 0;
+      const warmNext = () => {
+        if (cancelled || index >= tabsToWarm.length) return;
+        preloadDashboardView(tabsToWarm[index]);
+        index += 1;
+        timeoutId = window.setTimeout(warmNext, 140);
+      };
+
+      warmNext();
+    };
+
+    if (typeof window.requestIdleCallback === 'function') {
+      idleId = window.requestIdleCallback(warmSequentially, { timeout: 1800 });
+    } else {
+      timeoutId = window.setTimeout(warmSequentially, 900);
+    }
+
+    return () => {
+      cancelled = true;
+      if (idleId !== null && typeof window.cancelIdleCallback === 'function') {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [auth.isAuthenticated]);
 
   if (auth.isCheckingAuth) return <DashboardAuthLoading />;
   if (auth.hasSessionWithoutProfile) {
@@ -79,10 +137,10 @@ function DashboardShellContent() {
       ) : null}
 
       <div className="relative z-10 px-4 py-6 sm:px-6 lg:px-8">
-        {ui.loading && <DashboardLoadingState />}
+        {showInitialLoading && <DashboardLoadingState />}
         {ui.error && <DashboardErrorState error={ui.error} />}
 
-        {!ui.loading && !ui.error && (
+        {!showInitialLoading && !ui.error && (
           <div className="space-y-6 animate-fade-in">
             <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
               <div className="min-w-0 flex-1">
@@ -101,6 +159,12 @@ function DashboardShellContent() {
               </div>
               {showLoginBadge ? <DeferredLoginStreakBadge className="self-start xl:self-auto shrink-0" /> : null}
             </div>
+
+            {ui.loading ? (
+              <div className="rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/25 dark:text-blue-200">
+                Atualizando indicadores com os filtros atuais...
+              </div>
+            ) : null}
 
             <main className="min-w-0">
               <DashboardViewsRenderer

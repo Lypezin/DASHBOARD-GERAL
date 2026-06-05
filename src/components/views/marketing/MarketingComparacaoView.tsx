@@ -25,12 +25,18 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
                 </Alert>
             )}
 
-            {loading ? (
+            {loading && data.length === 0 ? (
                 <div className="flex justify-center py-24">
                     <Loader2 className="h-10 w-10 animate-spin text-sky-600" />
                 </div>
             ) : (
                 <>
+                    {loading ? (
+                        <div className="rounded-2xl border border-sky-200/70 bg-sky-50/80 px-4 py-3 text-sm font-semibold text-sky-800 shadow-sm dark:border-sky-900/50 dark:bg-sky-950/25 dark:text-sky-200">
+                            Atualizando comparativo semanal...
+                        </div>
+                    ) : null}
+
                     <MarketingSummaryCards totals={totals} />
 
                     <div className="space-y-4">

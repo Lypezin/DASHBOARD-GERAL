@@ -34,16 +34,16 @@ const EvolucaoView = React.memo(function EvolucaoView({
   });
 
   const motionProps = {
-    initial: shouldReduceMotion ? false : { opacity: 0, y: 10, scale: 0.996 },
-    animate: shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 },
-    exit: shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.998 },
-    transition: { duration: shouldReduceMotion ? 0.01 : 0.18, ease: [0.22, 1, 0.36, 1] },
+    initial: shouldReduceMotion ? false : { opacity: 0, y: 6 },
+    animate: shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 },
+    exit: shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 },
+    transition: { duration: shouldReduceMotion ? 0.01 : 0.13, ease: [0.22, 1, 0.36, 1] },
   } as const;
 
   return (
     <div className="space-y-8 max-w-[1800px] mx-auto animate-fade-in">
       <AnimatePresence mode="wait" initial={false}>
-        {state.loading ? (
+        {state.loading && state.totalPeriodos === 0 ? (
           <motion.div key="evolucao-loading" {...motionProps} className="min-w-0 transform-gpu will-change-transform">
             <DashboardSkeleton contentOnly />
           </motion.div>
@@ -53,6 +53,12 @@ const EvolucaoView = React.memo(function EvolucaoView({
             {...motionProps}
             className="min-w-0 space-y-8 transform-gpu will-change-transform"
           >
+            {state.loading ? (
+              <div className="rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/25 dark:text-blue-200">
+                Atualizando evolucao com os filtros atuais...
+              </div>
+            ) : null}
+
             <EvolucaoFilters
               viewMode={state.viewMode}
               onViewModeChange={actions.setViewMode}

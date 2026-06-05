@@ -32,6 +32,26 @@ const MarketingPresentationView = dynamic(() => import('./marketing/MarketingPre
   loading: () => <DashboardSkeleton contentOnly />,
 });
 
+const marketingSubTabLoaders: Record<string, () => Promise<unknown>> = {
+  dashboard: () => import('./MarketingDashboardView'),
+  resultados: () => import('./ResultadosView'),
+  'valores-cidade': () => import('./ValoresCidadeView'),
+  'entrada-saida': () => import('./marketing/MarketingEntradaSaidaView'),
+  apresentacao: () => import('./marketing/MarketingPresentationView'),
+};
+
+const preloadedMarketingSubTabs = new Set<string>();
+
+function preloadMarketingSubTab(tab: string) {
+  const loader = marketingSubTabLoaders[tab];
+  if (!loader || preloadedMarketingSubTabs.has(tab)) return;
+
+  preloadedMarketingSubTabs.add(tab);
+  void loader().catch(() => {
+    preloadedMarketingSubTabs.delete(tab);
+  });
+}
+
 const MarketingView = React.memo(function MarketingView() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -41,10 +61,33 @@ const MarketingView = React.memo(function MarketingView() {
   const activeSubTab = searchParams.get('mkt_tab') || 'dashboard';
 
   const handleTabChange = (tab: string) => {
+    preloadMarketingSubTab(tab);
     const params = new URLSearchParams(searchParams.toString());
     params.set('mkt_tab', tab);
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   };
+
+  React.useEffect(() => {
+    let cancelled = false;
+    const tabs = ['dashboard', 'resultados', 'valores-cidade', 'entrada-saida', 'apresentacao'];
+    const warmSequentially = () => {
+      let index = 0;
+      const warmNext = () => {
+        if (cancelled || index >= tabs.length) return;
+        preloadMarketingSubTab(tabs[index]);
+        index += 1;
+        window.setTimeout(warmNext, 160);
+      };
+
+      warmNext();
+    };
+
+    const timeoutId = window.setTimeout(warmSequentially, 700);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timeoutId);
+    };
+  }, []);
 
   const content = (() => {
     switch (activeSubTab) {
@@ -80,26 +123,36 @@ const MarketingView = React.memo(function MarketingView() {
               label="Dashboard"
               active={activeSubTab === 'dashboard'}
               onClick={() => handleTabChange('dashboard')}
+              onMouseEnter={() => preloadMarketingSubTab('dashboard')}
+              onFocus={() => preloadMarketingSubTab('dashboard')}
             />
             <TabButton
               label="Resultados"
               active={activeSubTab === 'resultados'}
               onClick={() => handleTabChange('resultados')}
+              onMouseEnter={() => preloadMarketingSubTab('resultados')}
+              onFocus={() => preloadMarketingSubTab('resultados')}
             />
             <TabButton
               label="Valores por Cidade"
               active={activeSubTab === 'valores-cidade'}
               onClick={() => handleTabChange('valores-cidade')}
+              onMouseEnter={() => preloadMarketingSubTab('valores-cidade')}
+              onFocus={() => preloadMarketingSubTab('valores-cidade')}
             />
             <TabButton
               label="Entrada/Saída"
               active={activeSubTab === 'entrada-saida'}
               onClick={() => handleTabChange('entrada-saida')}
+              onMouseEnter={() => preloadMarketingSubTab('entrada-saida')}
+              onFocus={() => preloadMarketingSubTab('entrada-saida')}
             />
             <TabButton
               label="Apresentação"
               active={activeSubTab === 'apresentacao'}
               onClick={() => handleTabChange('apresentacao')}
+              onMouseEnter={() => preloadMarketingSubTab('apresentacao')}
+              onFocus={() => preloadMarketingSubTab('apresentacao')}
             />
           </div>
         </div>
@@ -108,10 +161,10 @@ const MarketingView = React.memo(function MarketingView() {
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
           key={activeSubTab}
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 10, scale: 0.996 }}
-          animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
-          exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.998 }}
-          transition={{ duration: shouldReduceMotion ? 0.01 : 0.18, ease: [0.22, 1, 0.36, 1] }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
+          animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+          exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
+          transition={{ duration: shouldReduceMotion ? 0.01 : 0.13, ease: [0.22, 1, 0.36, 1] }}
           className="min-w-0 transform-gpu will-change-transform"
         >
           {content}

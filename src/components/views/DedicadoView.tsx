@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React from 'react';
 import { BarChart3, Download, LayoutDashboard, ListChecks, Table2, Trophy, Users } from 'lucide-react';
@@ -24,7 +24,7 @@ import type { FilterPayload } from '@/types/filters';
 import { fetchDedicadoApi } from '@/utils/dedicado/fetchDedicadoApi';
 import { createRequestKey } from '@/utils/request/createRequestKey';
 
-// Importação dos subcomponentes modulares extraídos
+// ImportaÃ§Ã£o dos subcomponentes modulares extraÃ­dos
 import { DedicadoDashboard } from './dedicado/DedicadoDashboard';
 import { DedicadoResumo } from './dedicado/DedicadoResumo';
 import { DedicadoDiaOrigem, buildDayDateMap } from './dedicado/DedicadoDiaOrigem';
@@ -66,6 +66,51 @@ interface DedicadoOrigensPayload {
     semana?: number | null;
     auto_semana?: boolean;
   };
+}
+
+const DEDICADO_ORIGENS_CACHE_TTL_MS = 5 * 60 * 1000;
+const dedicadoOrigensCache = new Map<string, { timestamp: number; data: DedicadoOrigensPayload }>();
+const dedicadoOrigensRequests = new Map<string, Promise<DedicadoOrigensPayload>>();
+
+function getCachedDedicadoOrigens(cacheKey: string) {
+  const cached = dedicadoOrigensCache.get(cacheKey);
+  if (!cached) return null;
+
+  if (Date.now() - cached.timestamp > DEDICADO_ORIGENS_CACHE_TTL_MS) {
+    dedicadoOrigensCache.delete(cacheKey);
+    return null;
+  }
+
+  return cached.data;
+}
+
+async function fetchDedicadoOrigensWithDedupe(cacheKey: string, requestWithMode: Record<string, unknown>) {
+  const activeRequest = dedicadoOrigensRequests.get(cacheKey);
+  if (activeRequest) return activeRequest;
+
+  const request = (async () => {
+    const { data, error } = await fetchDedicadoApi<DedicadoOrigensPayload>('summary', requestWithMode);
+    if (error) throw error;
+
+    const normalized = {
+      totais: data?.totais || {},
+      origem: Array.isArray(data?.origem) ? data.origem : [],
+      dia_origem: Array.isArray(data?.dia_origem) ? data.dia_origem : [],
+      periodo_resolvido: data?.periodo_resolvido,
+    };
+
+    dedicadoOrigensCache.set(cacheKey, {
+      timestamp: Date.now(),
+      data: normalized,
+    });
+
+    return normalized;
+  })().finally(() => {
+    dedicadoOrigensRequests.delete(cacheKey);
+  });
+
+  dedicadoOrigensRequests.set(cacheKey, request);
+  return request;
 }
 
 const DedicadoView = React.memo(function DedicadoView({
@@ -127,7 +172,7 @@ const DedicadoView = React.memo(function DedicadoView({
 
       if (!origemOrganizationId) {
         setDedicadoLoading(false);
-        setDedicadoError('Selecione uma organização para carregar os dados do DEDICADO.');
+        setDedicadoError('Selecione uma organizaÃ§Ã£o para carregar os dados do DEDICADO.');
         setDedicadoData({ origem: [], dia_origem: [] });
         return;
       }
@@ -141,23 +186,11 @@ const DedicadoView = React.memo(function DedicadoView({
           ...requestPayload,
           p_include_dia_origem: shouldLoadDiaOrigem,
         };
-        const { data, error } = await fetchDedicadoApi<DedicadoOrigensPayload>('summary', requestWithMode);
+        const cacheKey = createRequestKey(requestWithMode);
+        const cached = getCachedDedicadoOrigens(cacheKey);
+        const data = cached || await fetchDedicadoOrigensWithDedupe(cacheKey, requestWithMode);
 
         if (cancelled) return;
-
-        if (error) {
-          safeLog.error('Erro ao carregar resumo dedicado por origem:', error);
-          setDedicadoError(
-            shouldLoadDiaOrigem
-              ? 'Não foi possível carregar Dia x Origem agora. Tente novamente ou ajuste o período.'
-              : 'Não foi possível carregar o resumo do DEDICADO agora. As outras subguias continuam disponíveis.'
-          );
-          setDedicadoData((current) => ({
-            ...current,
-            ...(shouldLoadDiaOrigem ? { dia_origem: [] } : { origem: [], totais: {} }),
-          }));
-          return;
-        }
 
         setDedicadoData({
           totais: data?.totais || {},
@@ -308,10 +341,10 @@ const DedicadoView = React.memo(function DedicadoView({
   }, [dedicatedOrigem]);
 
   const subTabMotionProps = {
-    initial: shouldReduceMotion ? false : { opacity: 0, y: 10, scale: 0.996 },
-    animate: shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 },
-    exit: shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.998 },
-    transition: { duration: shouldReduceMotion ? 0.01 : 0.18, ease: [0.22, 1, 0.36, 1] },
+    initial: shouldReduceMotion ? false : { opacity: 0, y: 6 },
+    animate: shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 },
+    exit: shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 },
+    transition: { duration: shouldReduceMotion ? 0.01 : 0.13, ease: [0.22, 1, 0.36, 1] },
   } as const;
 
   return (
@@ -327,7 +360,7 @@ const DedicadoView = React.memo(function DedicadoView({
               DEDICADO
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-              Visão separada para restaurantes e origens, com entregadores, resumo por origem e matriz Dia x Origem no mesmo lugar.
+              VisÃ£o separada para restaurantes e origens, com entregadores, resumo por origem e matriz Dia x Origem no mesmo lugar.
             </p>
           </div>
 
@@ -394,7 +427,7 @@ const DedicadoView = React.memo(function DedicadoView({
                 filterPayload={dedicatedPayload}
               />
             ) : (
-              <DedicadoInlineNotice message="Selecione uma organização para carregar os entregadores dedicados." />
+              <DedicadoInlineNotice message="Selecione uma organizaÃ§Ã£o para carregar os entregadores dedicados." />
             )
           ) : null}
 
@@ -402,7 +435,7 @@ const DedicadoView = React.memo(function DedicadoView({
             hasOrganizationContext ? (
               <DedicadoRanking entregadores={rankingEntregadores} loading={loading} />
             ) : (
-              <DedicadoInlineNotice message="Selecione uma organização para montar o ranking do DEDICADO." />
+              <DedicadoInlineNotice message="Selecione uma organizaÃ§Ã£o para montar o ranking do DEDICADO." />
             )
           ) : null}
 

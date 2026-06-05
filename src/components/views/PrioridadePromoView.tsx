@@ -23,7 +23,7 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
   const { prioridadeData } = useTabDataMapper({ activeTab: 'prioridade', tabData });
   const { state, actions } = usePrioridadeViewController(prioridadeData, loading);
 
-  if (state.loading) {
+  if (state.loading && !state.entregadoresData) {
     return (
       <ViewTransition stateKey="prioridade-loading">
         <DashboardSkeleton contentOnly />
@@ -49,6 +49,11 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
 
   return (
     <ViewTransition stateKey="prioridade-content" className="w-full">
+      {state.loading ? (
+        <div className="mb-4 rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/25 dark:text-blue-200">
+          Atualizando prioridade com os filtros atuais...
+        </div>
+      ) : null}
       <PrioridadeLayout
         sortedEntregadores={state.sortedEntregadores}
         paginatedEntregadores={state.paginatedEntregadores}

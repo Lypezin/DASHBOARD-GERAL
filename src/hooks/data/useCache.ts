@@ -1,89 +1,91 @@
 /**
- * Hook para gerenciar cache de dados
- * Centraliza lógica de cache reutilizável
- * Implementa cache hierárquico: memória + sessionStorage
+ * Hook para gerenciar cache de dados.
+ * Centraliza memoria + sessionStorage com uma camada global compartilhada
+ * entre montagens de guias diferentes.
  */
 
-import { useRef } from 'react';
+import { useCallback, useRef } from 'react';
 import { CacheEntry, isCacheValid, createCacheEntry } from '@/types/cache';
 import { CACHE } from '@/constants/config';
 import { getFromSessionStorage, setToSessionStorage } from '@/hooks/cache/sessionStorage';
 
 interface UseCacheOptions<T> {
-  /** TTL do cache em milissegundos (padrão: CACHE.TAB_DATA_TTL) */
   ttl?: number;
-  /** Função para gerar chaves de cache */
   getCacheKey: (params: any) => string;
 }
 
-/**
- * Hook para gerenciar cache de dados
- */
+const globalCache = new Map<string, CacheEntry<unknown>>();
+const MAX_GLOBAL_CACHE_ENTRIES = 24;
+
+function touchGlobalCacheEntry(key: string, entry: CacheEntry<unknown>) {
+  globalCache.delete(key);
+  globalCache.set(key, entry);
+}
+
+function pruneGlobalCache(ttl: number): void {
+  for (const [key, entry] of globalCache.entries()) {
+    if (!isCacheValid(entry, ttl)) {
+      globalCache.delete(key);
+    }
+  }
+
+  while (globalCache.size > MAX_GLOBAL_CACHE_ENTRIES) {
+    const oldestKey = globalCache.keys().next().value;
+    if (!oldestKey) break;
+    globalCache.delete(oldestKey);
+  }
+}
+
 export function useCache<T>(options: UseCacheOptions<T>) {
   const { ttl = CACHE.TAB_DATA_TTL, getCacheKey } = options;
-  const cacheRef = useRef<Map<string, CacheEntry<T>>>(new Map());
+  const ttlRef = useRef(ttl);
+  const getCacheKeyRef = useRef(getCacheKey);
 
-  /**
-   * Obtém dados do cache se válidos (memória primeiro, depois sessionStorage)
-   */
-  const getCached = (params: any): T | null => {
-    const key = getCacheKey(params);
+  ttlRef.current = ttl;
+  getCacheKeyRef.current = getCacheKey;
 
-    // Tentar memória primeiro (mais rápido)
-    const cached = cacheRef.current.get(key);
-    if (cached && isCacheValid(cached, ttl)) {
-      return cached.data;
+  const getCached = useCallback((params: any): T | null => {
+    const key = getCacheKeyRef.current(params);
+    const ttlMs = ttlRef.current;
+
+    pruneGlobalCache(ttlMs);
+
+    const cached = globalCache.get(key);
+    if (cached && isCacheValid(cached, ttlMs)) {
+      touchGlobalCacheEntry(key, cached);
+      return cached.data as T;
     }
 
-    // Tentar sessionStorage
-    const sessionData = getFromSessionStorage<T>(key, ttl);
+    const sessionData = getFromSessionStorage<T>(key, ttlMs);
     if (sessionData !== null) {
-      // Restaurar na memória para acesso rápido
-      cacheRef.current.set(key, createCacheEntry(sessionData, ttl));
+      touchGlobalCacheEntry(key, createCacheEntry(sessionData, ttlMs) as CacheEntry<unknown>);
       return sessionData;
     }
 
     return null;
-  };
+  }, []);
 
-  /**
-   * Armazena dados no cache (memória + sessionStorage)
-   */
-  const setCached = (params: any, data: T): void => {
-    const key = getCacheKey(params);
+  const setCached = useCallback((params: any, data: T): void => {
+    const key = getCacheKeyRef.current(params);
+    const ttlMs = ttlRef.current;
 
-    // Salvar na memória
-    cacheRef.current.set(key, createCacheEntry(data, ttl));
+    touchGlobalCacheEntry(key, createCacheEntry(data, ttlMs) as CacheEntry<unknown>);
+    pruneGlobalCache(ttlMs);
+    setToSessionStorage(key, data, ttlMs);
+  }, []);
 
-    // Salvar no sessionStorage (persistência entre recarregamentos)
-    setToSessionStorage(key, data, ttl);
-  };
+  const clearCache = useCallback((): void => {
+    globalCache.clear();
+  }, []);
 
-  /**
-   * Limpa o cache
-   */
-  const clearCache = (): void => {
-    cacheRef.current.clear();
-  };
+  const removeCached = useCallback((params: any): void => {
+    const key = getCacheKeyRef.current(params);
+    globalCache.delete(key);
+  }, []);
 
-  /**
-   * Remove entrada específica do cache
-   */
-  const removeCached = (params: any): void => {
-    const key = getCacheKey(params);
-    cacheRef.current.delete(key);
-  };
-
-  /**
-   * Limpa entradas expiradas do cache
-   */
-  const cleanExpired = (): void => {
-    for (const [key, entry] of cacheRef.current.entries()) {
-      if (!isCacheValid(entry, ttl)) {
-        cacheRef.current.delete(key);
-      }
-    }
-  };
+  const cleanExpired = useCallback((): void => {
+    pruneGlobalCache(ttlRef.current);
+  }, []);
 
   return {
     getCached,
@@ -91,6 +93,6 @@ export function useCache<T>(options: UseCacheOptions<T>) {
     clearCache,
     removeCached,
     cleanExpired,
-    cache: cacheRef.current,
+    cache: globalCache as Map<string, CacheEntry<T>>,
   };
 }

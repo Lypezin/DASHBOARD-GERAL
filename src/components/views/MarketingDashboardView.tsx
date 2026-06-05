@@ -21,8 +21,9 @@ const DashboardSectionHeader = ({ title, subtitle }: { title: string; subtitle: 
 
 const MarketingDashboardView = React.memo(function MarketingDashboardView() {
   const { loading, error, totals, citiesData, filters, handleFilterChange } = useMarketingData();
+  const hasMarketingData = citiesData.length > 0 || Object.values(totals).some((value) => Number(value) > 0);
 
-  if (loading) {
+  if (loading && !hasMarketingData) {
     return (
       <ViewTransition stateKey="marketing-dashboard-loading">
         <DashboardSkeleton contentOnly />
@@ -42,6 +43,12 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
     <ViewTransition stateKey="marketing-dashboard-content">
       <div className="space-y-6 pb-8 animate-fade-in">
         <MarketingFiltersSection filters={filters} onFilterChange={handleFilterChange} />
+
+        {loading ? (
+          <div className="rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/25 dark:text-blue-200">
+            Atualizando dados de marketing...
+          </div>
+        ) : null}
 
         <div className="space-y-4">
           <DashboardSectionHeader
