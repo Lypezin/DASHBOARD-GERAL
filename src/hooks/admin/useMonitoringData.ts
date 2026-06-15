@@ -5,6 +5,8 @@ import { MonitoringStats } from './types';
 
 export type { MonitoringStats };
 
+const AUTO_REFRESH_INTERVAL_MS = 120000;
+
 const EMPTY_STATS: MonitoringStats = {
   activeUsers: [],
   topPages: [],
@@ -63,7 +65,7 @@ export function useMonitoringData() {
     const interval = setInterval(() => {
       if (typeof document !== 'undefined' && document.hidden) return;
       void fetchData(true);
-    }, 30000);
+    }, AUTO_REFRESH_INTERVAL_MS);
 
     return () => clearInterval(interval);
   }, [fetchData]);

@@ -152,6 +152,16 @@ async function fetchEntregadoresByRpc(
             ? listarEntregadoresPayload.p_search.trim()
             : '';
         const hasSearch = search.length >= 3;
+        const selectedWeeks = Array.isArray(filterPayload.p_semanas)
+            ? filterPayload.p_semanas.filter(Boolean)
+            : [];
+        const hasExplicitNarrowPeriod = Boolean(
+            filterPayload.p_semana ||
+            selectedWeeks.length > 0 ||
+            filterPayload.p_data_inicial ||
+            filterPayload.p_data_final
+        );
+        const canUseRawFallback = hasSearch || hasExplicitNarrowPeriod;
         const emptySearchData: EntregadoresData = {
             entregadores: [],
             total: 0,
@@ -167,7 +177,7 @@ async function fetchEntregadoresByRpc(
         const isRateLimit = isRateLimitError(result.error);
         const isTimeout = isTimeoutError(result.error);
 
-        if ((is500 || isTimeout) && options.fallbackOnError) {
+        if ((is500 || isTimeout) && options.fallbackOnError && canUseRawFallback) {
             try {
                 const fallbackData = await fetchEntregadoresFallback(listarEntregadoresPayload);
                 if (fallbackData) {
@@ -176,6 +186,11 @@ async function fetchEntregadoresByRpc(
             } catch (fallbackError) {
                 safeLog.error('Erro no fallback ao buscar entregadores:', fallbackError);
             }
+        } else if ((is500 || isTimeout) && options.fallbackOnError) {
+            safeLog.warn(
+                'Fallback bruto de entregadores ignorado para evitar scan amplo em dados_corridas.',
+                { hasSearch, hasExplicitNarrowPeriod }
+            );
         }
 
         if (hasSearch && (is500 || isTimeout)) {

@@ -10,6 +10,8 @@ import type { ActivityLog, MonitoringStats, UserProfile } from '@/hooks/admin/ty
 
 export const runtime = 'nodejs';
 
+const ACTIVITY_LOG_LIMIT = 2000;
+
 const DEFAULT_STATS: MonitoringStats = {
   activeUsers: [],
   topPages: [],
@@ -43,7 +45,7 @@ export async function GET() {
       .select('id, user_id, entered_at, last_seen, exited_at, path, duration_seconds')
       .gte('entered_at', since)
       .order('entered_at', { ascending: false })
-      .limit(5000);
+      .limit(ACTIVITY_LOG_LIMIT);
 
     if (logsError) {
       return NextResponse.json({ data: null, error: logsError.message, details: logsError }, { status: 500 });

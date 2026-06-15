@@ -226,11 +226,10 @@ export const performRefresh = async (
         if (payload?.incremental_mode === true) {
             const secondaryPending = payload?.incremental_worker_result?.pending_count;
             const queuePending = getIncrementalPendingCount(payload);
-            const fullPending = Number((payload?.queue_state as RefreshQueueState | undefined)?.full_pending_count || 0);
-            const pendingCount = Math.max(Number(secondaryPending || 0), queuePending) + fullPending;
+            const pendingCount = Math.max(Number(secondaryPending || 0), queuePending);
 
             if (pendingCount > 0) {
-                await monitorRefreshQueue(pendingCount, setRefreshState, false);
+                await monitorRefreshQueue(pendingCount, setRefreshState, true);
                 return;
             }
 

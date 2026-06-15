@@ -51,7 +51,7 @@ export function AdminMonitoringTab() {
             <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <Badge className="h-9 rounded-full border-emerald-200 bg-emerald-50 px-3 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-900/60 dark:bg-emerald-950/40 dark:text-emerald-300">
                 <Radio className={`mr-2 h-3.5 w-3.5 ${refreshing ? 'animate-pulse' : ''}`} />
-                {refreshing ? 'Atualizando' : 'Auto-refresh 30s'}
+                {refreshing ? 'Atualizando' : 'Auto-refresh 2min'}
               </Badge>
               <Button variant="outline" size="sm" onClick={refresh} disabled={refreshing} className="h-9 rounded-full">
                 <RefreshCcw className={`mr-2 h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />

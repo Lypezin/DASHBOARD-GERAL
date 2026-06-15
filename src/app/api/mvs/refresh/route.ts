@@ -76,15 +76,6 @@ async function healRefreshQueueSnapshot(admin = createServiceRoleClient()) {
         state = await fetchQueueState(admin);
     }
 
-    const fullPending = Number(state?.full_pending_count || 0);
-    const fullInProgress = Number(state?.full_in_progress_count || 0);
-    const fullWorkerScheduled = state?.full_worker_scheduled === true;
-    if (fullPending > 0 && fullInProgress === 0 && !fullWorkerScheduled) {
-        await admin.rpc('clear_stale_full_mv_refresh_flags');
-        await admin.rpc('ensure_mv_refresh_worker_scheduled');
-        state = await fetchQueueState(admin);
-    }
-
     return state;
 }
 
@@ -139,18 +130,12 @@ export async function POST(request: Request) {
             });
 
             const incrementalWorker = await tryRpc(admin, 'ensure_incremental_refresh_worker_scheduled');
-            const fullWorker = await tryRpc(admin, 'ensure_mv_refresh_worker_scheduled');
 
             const { data: stateAfterWorker } = await admin.rpc('get_mv_refresh_queue_state');
             const pendingIncrementals = Number((stateAfterWorker as QueueStatePayload | null)?.incremental_pending_count || 0);
-            const pendingFull = Number((stateAfterWorker as QueueStatePayload | null)?.full_pending_count || 0);
 
             if (incrementalWorker.error && pendingIncrementals > 0) {
                 throw new Error(incrementalWorker.error);
-            }
-
-            if (fullWorker.error && pendingFull > 0) {
-                throw new Error(fullWorker.error);
             }
 
             const { data: cleanupData } = await admin.rpc('clear_stale_full_mv_refresh_flags');
@@ -165,8 +150,6 @@ export async function POST(request: Request) {
                 incremental_succeeded: immediateResult.error === null,
                 incremental_worker_result: incrementalWorker.data,
                 incremental_worker_error: incrementalWorker.error,
-                full_worker_result: fullWorker.data,
-                full_worker_error: fullWorker.error,
                 stale_cleanup_result: cleanupData ?? null,
                 queue_state: stateData ?? null,
                 queue_reason: reason,
@@ -185,8 +168,14 @@ export async function POST(request: Request) {
             throw new Error(queueError.message || 'Falha ao enfileirar atualização.');
         }
 
+        const fullWorker = await tryRpc(admin, 'ensure_mv_refresh_worker_scheduled');
         const pending = await fetchPendingMVs(admin);
         const { data: stateData } = await admin.rpc('get_mv_refresh_queue_state');
+        const pendingFull = Number((stateData as QueueStatePayload | null)?.full_pending_count || pending.length || 0);
+
+        if (fullWorker.error && pendingFull > 0) {
+            throw new Error(fullWorker.error);
+        }
 
         return NextResponse.json({
             success: true,
@@ -196,7 +185,8 @@ export async function POST(request: Request) {
             incremental_succeeded: true,
             queue_reason: reason,
             queue_result: queueResult,
-            worker_result: queueResult?.worker_result ?? null,
+            worker_result: fullWorker.data ?? queueResult?.worker_result ?? null,
+            worker_error: fullWorker.error,
             queue_state: stateData ?? null,
             pending
         });
