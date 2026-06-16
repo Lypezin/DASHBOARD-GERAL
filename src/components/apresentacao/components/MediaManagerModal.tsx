@@ -41,7 +41,7 @@ export const MediaManagerModal: React.FC<MediaManagerModalProps> = ({
 
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-5xl h-[80vh] flex flex-col p-0 gap-0 overflow-hidden bg-white dark:bg-slate-950">
+            <DialogContent className="w-[calc(100vw-1rem)] max-w-5xl h-[min(86vh,820px)] flex flex-col p-0 gap-0 overflow-hidden bg-white dark:bg-slate-950">
                 <DialogHeader className="p-4 border-b border-slate-200 dark:border-slate-800 shrink-0">
                     <DialogTitle className="flex items-center gap-2">
                         <ImageIcon className="w-5 h-5" />
@@ -49,7 +49,7 @@ export const MediaManagerModal: React.FC<MediaManagerModalProps> = ({
                     </DialogTitle>
                 </DialogHeader>
 
-                <div className="flex flex-1 overflow-hidden">
+                <div className="flex flex-1 flex-col overflow-hidden md:flex-row">
                     <MediaManagerSidebar
                         mediaSlides={mediaSlides}
                         selectedId={selectedId}
@@ -58,7 +58,7 @@ export const MediaManagerModal: React.FC<MediaManagerModalProps> = ({
                         onDelete={handleDelete}
                     />
 
-                    <div className="flex-1 flex flex-col bg-slate-100 dark:bg-slate-950 p-6 overflow-hidden">
+                    <div className="flex-1 flex flex-col bg-slate-100 dark:bg-slate-950 p-3 md:p-6 overflow-hidden">
                         <MediaManagerEditor
                             selectedSlide={selectedSlide}
                             onUpdate={handleUpdateSelected}

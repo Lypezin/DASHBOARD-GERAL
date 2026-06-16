@@ -48,7 +48,7 @@ export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = ({
             onDragEnd={onDragEnd}
             onClick={onSelect}
             className={`
-                group flex items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer select-none relative pr-8
+                group flex min-w-56 md:min-w-0 items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer select-none relative pr-8
                 ${isActive
                     ? 'bg-blue-50 border-blue-200 shadow-sm'
                     : 'bg-white border-transparent hover:border-slate-200 hover:shadow-sm'}
@@ -79,7 +79,7 @@ export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = ({
 
             {/* Delete Button */}
             {isMediaSlide && onDelete && (
-                <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute right-1 top-1/2 -translate-y-1/2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                     <Button
                         variant="ghost"
                         size="sm"

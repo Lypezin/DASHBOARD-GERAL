@@ -62,8 +62,8 @@ export const SlideSidebar: React.FC<SlideSidebarProps> = ({
     };
 
     return (
-        <div className="w-64 bg-slate-50 dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col h-full">
-            <div className="p-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-10 flex items-center justify-between">
+        <div className="h-40 w-full shrink-0 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex flex-col md:h-full md:w-64 md:border-b-0 md:border-r">
+            <div className="p-3 md:p-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-10 flex items-center justify-between">
                 <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Slides</h3>
                 {onAddMediaSlide && (
                     <Button variant="outline" size="sm" onClick={onAddMediaSlide} className="h-7 w-7 p-0 rounded-full hover:bg-blue-50 hover:text-blue-600" title="Adicionar Novo Slide">

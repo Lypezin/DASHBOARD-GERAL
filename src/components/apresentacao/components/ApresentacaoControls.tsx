@@ -5,26 +5,45 @@ import { PresentationSectionToggle } from './PresentationSectionToggle';
 import { PresentationNavigation } from './PresentationNavigation';
 
 interface ApresentacaoControlsProps {
-    currentSlide: number; totalSlides: number; onPrev: () => void; onNext: () => void;
-    onClose: () => void; onGeneratePDF: () => void; onStartPresentation: () => void; isGenerating: boolean;
-    visibleSections: Record<string, boolean>; onToggleSection: (section: string) => void;
-    onManageMedia?: () => void; onSaveClick?: () => void; onManageClick?: () => void;
+    currentSlide: number;
+    totalSlides: number;
+    onPrev: () => void;
+    onNext: () => void;
+    onClose: () => void;
+    onGeneratePDF: () => void;
+    onStartPresentation: () => void;
+    isGenerating: boolean;
+    visibleSections: Record<string, boolean>;
+    onToggleSection: (section: string) => void;
+    onManageMedia?: () => void;
+    onSaveClick?: () => void;
+    onManageClick?: () => void;
 }
 
 export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
-    currentSlide, totalSlides, onPrev, onNext, onClose, onStartPresentation,
-    visibleSections, onToggleSection, onManageMedia, onSaveClick, onManageClick
+    currentSlide,
+    totalSlides,
+    onPrev,
+    onNext,
+    onClose,
+    onStartPresentation,
+    visibleSections,
+    onToggleSection,
+    onManageMedia,
+    onSaveClick,
+    onManageClick
 }) => {
     return (
-        <div className="sticky top-0 bg-white dark:bg-slate-900 p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center z-10">
-            <h3 className="text-xl font-bold text-slate-900 dark:text-white">Preview da Apresentação</h3>
-            <div className="flex items-center gap-4">
+        <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center md:justify-between md:p-4">
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white md:text-xl">Preview da Apresentacao</h3>
+
+            <div className="flex max-w-full items-center gap-2 overflow-x-auto pb-1 md:gap-4 md:pb-0">
                 <PresentationSectionToggle
                     visibleSections={visibleSections}
                     onToggleSection={onToggleSection}
                 />
 
-                <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+                <div className="h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700" />
 
                 <PresentationNavigation
                     currentSlide={currentSlide}
@@ -33,27 +52,27 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
                     onNext={onNext}
                 />
 
-                <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+                <div className="h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700" />
 
                 {onManageMedia && (
                     <Button
                         variant="outline"
-                        className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                        className="shrink-0 border-slate-200 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
                         onClick={onManageMedia}
                     >
                         <FilePlus className="mr-2 h-4 w-4" />
-                        Adicionar Fotos
+                        Fotos
                     </Button>
                 )}
 
-                <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+                <div className="h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700" />
 
                 {onManageClick && (
                     <Button
                         variant="outline"
-                        className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                        className="shrink-0 border-slate-200 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
                         onClick={onManageClick}
-                        title="Minhas Apresentações"
+                        title="Minhas Apresentacoes"
                     >
                         <FolderOpen className="mr-2 h-4 w-4" />
                         Minhas
@@ -63,29 +82,29 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
                 {onSaveClick && (
                     <Button
                         variant="outline"
-                        className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                        className="shrink-0 border-slate-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700"
                         onClick={onSaveClick}
-                        title="Salvar Apresentação"
+                        title="Salvar Apresentacao"
                     >
                         <Save className="mr-2 h-4 w-4" />
                         Salvar
                     </Button>
                 )}
 
-                <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+                <div className="h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700" />
 
                 <Button
                     onClick={onStartPresentation}
-                    className="bg-emerald-600 hover:bg-emerald-700 text-white min-w-[170px]"
+                    className="shrink-0 bg-emerald-600 text-white hover:bg-emerald-700 md:min-w-[170px]"
                 >
                     <Check className="mr-2 h-4 w-4" />
-                    Iniciar Apresentação
+                    Iniciar
                 </Button>
 
                 <Button
                     variant="outline"
                     onClick={onClose}
-                    className="border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    className="shrink-0 border-slate-200 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
                 >
                     <X className="mr-2 h-4 w-4" />
                     Fechar

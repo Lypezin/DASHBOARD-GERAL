@@ -17,10 +17,17 @@ export const ImageElement: React.FC<ImageElementProps> = ({
     onUpdate,
     commonProps
 }) => {
+    const imageWidth = element.width || 720;
+
     return (
         <motion.div
             {...commonProps}
             className={`flex items-center justify-center origin-center group ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+            style={{
+                ...commonProps.style,
+                width: imageWidth,
+                maxWidth: '88%',
+            }}
         >
             {isSelected && (
                 <>
@@ -55,9 +62,9 @@ export const ImageElement: React.FC<ImageElementProps> = ({
                     ))}
                 </>
             )}
-            <div className="relative pointer-events-none select-none">
+            <div className="relative pointer-events-none select-none w-full">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={element.content} alt="Preview" className="max-w-[70vw] max-h-[70vh] object-contain rounded pointer-events-none select-none" draggable={false} />
+                <img src={element.content} alt="Preview" className="block w-full max-h-[520px] object-contain rounded pointer-events-none select-none" draggable={false} />
             </div>
         </motion.div>
     );

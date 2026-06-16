@@ -24,6 +24,7 @@ export const MediaManagerEditor: React.FC<MediaManagerEditorProps> = ({
         handleUpdateElement,
         handleAddText,
         handleAddImage,
+        isUploading,
         handleDeleteElement
     } = useMediaEditor(selectedSlide, onUpdate);
 
@@ -52,6 +53,7 @@ export const MediaManagerEditor: React.FC<MediaManagerEditorProps> = ({
                     handleAddText={handleAddText}
                     activeElement={activeElement}
                     handleDeleteElement={handleDeleteElement}
+                    isUploading={isUploading}
                 />
 
                 <PropertiesPanel

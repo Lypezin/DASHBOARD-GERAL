@@ -27,7 +27,7 @@ export const SlideSidebarList: React.FC<SlideSidebarListProps> = ({
     onDeleteMediaSlide
 }) => {
     return (
-        <div className="p-3 space-y-2">
+        <div className="flex gap-2 p-3 md:block md:space-y-2">
             {displaySlides.map((slide, index) => {
                 const isMediaSlide = slide.key.startsWith('media-');
                 const mediaId = isMediaSlide ? slide.key.replace('media-', '') : null;

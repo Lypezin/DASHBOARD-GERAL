@@ -8,13 +8,14 @@ interface EditorToolbarProps {
     handleAddText: () => void;
     activeElement?: SlideElement;
     handleDeleteElement: () => void;
+    isUploading: boolean;
 }
 
 export function EditorToolbar({
-    fileInputRef, handleAddImage, handleAddText, activeElement, handleDeleteElement
+    fileInputRef, handleAddImage, handleAddText, activeElement, handleDeleteElement, isUploading
 }: EditorToolbarProps) {
     return (
-        <div className="flex items-center gap-2 pb-4 border-b border-slate-100 dark:border-slate-800">
+        <div className="flex flex-wrap items-center gap-2 pb-4 border-b border-slate-100 dark:border-slate-800">
             <input
                 type="file"
                 accept="image/*"
@@ -22,17 +23,17 @@ export function EditorToolbar({
                 ref={fileInputRef}
                 onChange={handleAddImage}
             />
-            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()}>
+            <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
                 <ImageIcon className="w-4 h-4 mr-2" />
-                Add Foto
+                {isUploading ? 'Enviando...' : 'Foto'}
             </Button>
             <Button variant="outline" size="sm" onClick={handleAddText}>
                 <Type className="w-4 h-4 mr-2" />
-                Add Texto
+                Texto
             </Button>
             <div className="flex-1" />
             {activeElement && (
-                <div className="flex items-center gap-2 animate-in fade-in slide-in-from-right-4">
+                <div className="flex flex-wrap items-center gap-2 animate-in fade-in slide-in-from-right-4">
                     <span className="text-xs text-slate-400 font-medium px-2">
                         {activeElement.type === 'image' ? 'Imagem selecionada' : 'Texto selecionado'}
                     </span>

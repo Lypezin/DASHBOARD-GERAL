@@ -22,7 +22,7 @@ export const MediaToolbar: React.FC<MediaToolbarProps> = ({
     onUpdateElement,
     onDeleteSelection
 }) => {
-    const { fileInputRef, handleFileUpload, triggerUpload } = useMediaUpload(onAddImage);
+    const { fileInputRef, handleFileUpload, triggerUpload, isUploading } = useMediaUpload(onAddImage);
     const isTextSelected = selectedElement?.type === 'text';
 
     return (
@@ -36,9 +36,9 @@ export const MediaToolbar: React.FC<MediaToolbarProps> = ({
                         ref={fileInputRef}
                         onChange={handleFileUpload}
                     />
-                    <Button variant="ghost" size="sm" className="h-8 px-3" onClick={triggerUpload} title="Adicionar foto">
+                    <Button variant="ghost" size="sm" className="h-8 px-3" onClick={triggerUpload} disabled={isUploading} title="Adicionar foto">
                         <ImageIcon className="w-4 h-4 mr-2 text-blue-600" />
-                        Foto
+                        {isUploading ? 'Enviando...' : 'Foto'}
                     </Button>
 
                     <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />

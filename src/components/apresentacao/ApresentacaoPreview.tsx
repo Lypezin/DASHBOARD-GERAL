@@ -57,6 +57,12 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
     }
   }, [orderedSlides, onSlideChange]);
 
+  useEffect(() => {
+    if (orderedSlides.length === 0 || currentSlide < orderedSlides.length) return;
+    onSlideChange(Math.max(0, orderedSlides.length - 1));
+    setSelectedElementId(null);
+  }, [currentSlide, orderedSlides.length, onSlideChange, setSelectedElementId]);
+
   return (
     <>
       <style>{`
@@ -65,7 +71,7 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
       `}</style>
       <PresentationCaptureLayer ref={captureContainerRef} slides={orderedSlides} capturingIndex={capturingIndex} />
       <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 animate-in fade-in duration-200">
-        <Card className="w-full max-w-[95vw] h-[95vh] flex overflow-hidden border-slate-200 dark:border-slate-800 shadow-2xl bg-slate-100 dark:bg-black">
+        <Card className="w-full max-w-[95vw] h-[95vh] flex flex-col md:flex-row overflow-hidden border-slate-200 dark:border-slate-800 shadow-2xl bg-slate-100 dark:bg-black">
           <SlideSidebar
             slides={slides} currentSlideIndex={currentSlide} onSlideSelect={onSlideChange}
             mediaSlides={mediaSlides || []} onUpdateMediaSlide={onUpdateMediaSlide} onAddMediaSlide={handleAddMediaSlideAndSelect} onDeleteMediaSlide={onDeleteMediaSlide}

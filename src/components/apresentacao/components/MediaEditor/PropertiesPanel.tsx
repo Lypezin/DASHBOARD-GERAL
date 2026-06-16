@@ -11,14 +11,14 @@ interface PropertiesPanelProps {
 
 export function PropertiesPanel({ activeElement, handleUpdateElement }: PropertiesPanelProps) {
     return (
-        <div className="h-16 flex items-center">
+        <div className="min-h-16 flex items-center">
             {!activeElement ? (
                 <div className="flex items-center gap-2 text-slate-400 w-full justify-center">
                     <MousePointer2 className="w-4 h-4" />
                     <span className="text-sm">Clique em um elemento na tela para editar suas propriedades</span>
                 </div>
             ) : (
-                <div className="w-full grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in">
+                <div className="w-full grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-6 animate-in fade-in">
                     {activeElement.type === 'image' && (
                         <div className="space-y-2">
                             <Label className="flex items-center gap-2 text-xs uppercase tracking-wider text-slate-500">
