@@ -35,12 +35,14 @@ export function useMediaSlides({ storageKey, isLoaded }: UseMediaSlidesProps) {
     }, []);
 
     const handleAddMediaSlide = useCallback(() => {
+        const id = Math.random().toString(36).substr(2, 9);
         const newSlide: MediaSlideData = {
-            id: Math.random().toString(36).substr(2, 9),
+            id,
             title: 'Novo Slide',
             elements: []
         };
         setMediaSlides(prev => [...prev, newSlide]);
+        return id;
     }, []);
 
     const handleDeleteMediaSlide = useCallback((id: string) => {

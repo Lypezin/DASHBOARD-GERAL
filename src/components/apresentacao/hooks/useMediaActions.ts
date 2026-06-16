@@ -26,32 +26,44 @@ export function useMediaActions({
     const handleAddText = () => {
         if (!activeMediaSlide || !onUpdateMediaSlide) return;
 
+        const id = Math.random().toString(36).substr(2, 9);
         const newElement: SlideElement = {
-            id: Math.random().toString(36).substr(2, 9),
+            id,
             type: 'text',
-            content: 'Novo Texto',
+            content: 'Clique para editar',
             position: { x: 0, y: 0 },
-            scale: 1
+            scale: 1,
+            width: 520,
+            style: {
+                color: '#0f172a',
+                fontSize: '2.25rem',
+                fontWeight: 'bold',
+                fontStyle: 'normal',
+                bg: '#ffffff'
+            }
         };
         onUpdateMediaSlide(activeMediaSlide.id, {
             elements: [...(activeMediaSlide.elements || []), newElement]
         });
+        setSelectedElementId(id);
     };
 
     const handleAddImage = (url: string) => {
         if (!activeMediaSlide || !onUpdateMediaSlide) return;
 
+        const id = Math.random().toString(36).substr(2, 9);
         const newElement: SlideElement = {
-            id: Math.random().toString(36).substr(2, 9),
+            id,
             type: 'image',
             content: url,
             position: { x: 0, y: 0 },
             scale: 1,
-            width: 300
+            width: 720
         };
         onUpdateMediaSlide(activeMediaSlide.id, {
             elements: [...(activeMediaSlide.elements || []), newElement]
         });
+        setSelectedElementId(id);
     };
 
     const handleDeleteSelection = () => {

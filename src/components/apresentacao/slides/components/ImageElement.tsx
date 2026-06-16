@@ -8,6 +8,8 @@ interface ImageElementProps {
 }
 
 export const ImageElement: React.FC<ImageElementProps> = ({ element: el, canDrag, isSelected, onSelect, onUpdate }) => {
+    const imageWidth = el.width || 720;
+
     return (
         <motion.div
             key={el.id}
@@ -18,7 +20,20 @@ export const ImageElement: React.FC<ImageElementProps> = ({ element: el, canDrag
                 e.stopPropagation();
                 if (canDrag) onSelect(el.id);
             }}
-            style={{ x: el.position?.x || 0, y: el.position?.y || 0, scale: el.scale || 1, position: 'absolute', top: '50%', left: '50%', cursor: canDrag ? 'grab' : 'default', touchAction: 'none', transformOrigin: 'center center', zIndex: isSelected ? 50 : 10 }}
+            style={{
+                x: el.position?.x || 0,
+                y: el.position?.y || 0,
+                scale: el.scale || 1,
+                width: imageWidth,
+                maxWidth: '88%',
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                cursor: canDrag ? 'grab' : 'default',
+                touchAction: 'none',
+                transformOrigin: 'center center',
+                zIndex: isSelected ? 50 : 10
+            }}
             whileDrag={{ cursor: 'grabbing', scale: (el.scale || 1) * 1.02 }}
             className="flex items-center justify-center group"
         >
@@ -50,9 +65,9 @@ export const ImageElement: React.FC<ImageElementProps> = ({ element: el, canDrag
                 </>
             )}
 
-            <div className="relative pointer-events-none select-none">
+            <div className="relative pointer-events-none select-none w-full">
                 {/* eslint-disable-next-line @next/next/no-img-element -- Slide media can be arbitrary data/blob URLs without stable dimensions for next/image. */}
-                <img src={el.content} className={`max-w-[85vw] max-h-[85vh] object-contain drop-shadow-2xl rounded-lg`} alt="Slide Element" decoding="async" draggable={false} />
+                <img src={el.content} className="block w-full max-h-[820px] object-contain drop-shadow-2xl rounded-lg" alt="Imagem adicionada ao slide" decoding="async" draggable={false} />
             </div>
         </motion.div>
     );

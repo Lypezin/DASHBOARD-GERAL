@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect, useMemo, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { Card } from '@/components/ui/card';
 import { ApresentacaoControls } from './components/ApresentacaoControls';
@@ -18,7 +18,7 @@ interface ApresentacaoPreviewProps {
   numeroSemana1: string; numeroSemana2: string; visibleSections: Record<string, boolean>; onToggleSection: (section: string) => void;
   onStartPresentation: (orderedSlides: Array<{ key: string; render: (visible: boolean) => React.ReactNode }>) => void;
   mediaSlides?: MediaSlideData[]; onUpdateMediaSlide?: (id: string, updates: Partial<MediaSlideData>) => void;
-  onAddMediaSlide?: () => void; onDeleteMediaSlide?: (id: string) => void; onManageMedia?: () => void;
+  onAddMediaSlide?: () => string | void; onDeleteMediaSlide?: (id: string) => void; onManageMedia?: () => void;
   onSaveClick?: () => void; onManageClick?: () => void;
 }
 
@@ -27,6 +27,7 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const captureContainerRef = useRef<HTMLDivElement>(null);
+  const pendingMediaSlideKeyRef = useRef<string | null>(null);
   const { selectedElementId, setSelectedElementId } = usePresentationEditor();
 
   const { orderedSlides, handleNext, handlePrev, isGenerating, generatingProgress, capturingIndex, generatePDF } = usePreviewController({ slides, currentSlide, onSlideChange, numeroSemana1, numeroSemana2, contentRef, captureContainerRef });
@@ -35,6 +36,26 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
   const activeMediaSlide = activeSlideKey && activeSlideKey.startsWith('media-') && mediaSlides ? mediaSlides.find(m => `media-${m.id}` === activeSlideKey) : null;
 
   const { handleUpdateElement, handleAddText, handleAddImage, handleDeleteSelection } = useMediaActions({ activeMediaSlide, onUpdateMediaSlide: onUpdateMediaSlide as any, selectedElementId, setSelectedElementId });
+
+  const handleAddMediaSlideAndSelect = useCallback(() => {
+    if (!onAddMediaSlide) return;
+    const createdId = onAddMediaSlide();
+    if (createdId) {
+      pendingMediaSlideKeyRef.current = `media-${createdId}`;
+      setSelectedElementId(null);
+    }
+  }, [onAddMediaSlide, setSelectedElementId]);
+
+  useEffect(() => {
+    const pendingKey = pendingMediaSlideKeyRef.current;
+    if (!pendingKey) return;
+
+    const nextIndex = orderedSlides.findIndex((slide) => slide.key === pendingKey);
+    if (nextIndex >= 0) {
+      pendingMediaSlideKeyRef.current = null;
+      onSlideChange(nextIndex);
+    }
+  }, [orderedSlides, onSlideChange]);
 
   return (
     <>
@@ -47,7 +68,7 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
         <Card className="w-full max-w-[95vw] h-[95vh] flex overflow-hidden border-slate-200 dark:border-slate-800 shadow-2xl bg-slate-100 dark:bg-black">
           <SlideSidebar
             slides={slides} currentSlideIndex={currentSlide} onSlideSelect={onSlideChange}
-            mediaSlides={mediaSlides || []} onUpdateMediaSlide={onUpdateMediaSlide} onAddMediaSlide={onAddMediaSlide} onDeleteMediaSlide={onDeleteMediaSlide}
+            mediaSlides={mediaSlides || []} onUpdateMediaSlide={onUpdateMediaSlide} onAddMediaSlide={handleAddMediaSlideAndSelect} onDeleteMediaSlide={onDeleteMediaSlide}
           />
           <div className="flex-1 flex flex-col h-full min-w-0 bg-white relative">
             <ApresentacaoControls

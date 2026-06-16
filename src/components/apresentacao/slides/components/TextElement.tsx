@@ -18,6 +18,9 @@ export const TextElement: React.FC<TextElementProps> = ({
     onSelect,
     onUpdate
 }) => {
+    const textWidth = el.width || 520;
+    const backgroundColor = el.style?.bg || 'transparent';
+
     return (
         <motion.div
             key={el.id}
@@ -47,7 +50,8 @@ export const TextElement: React.FC<TextElementProps> = ({
                 touchAction: 'none',
                 transformOrigin: 'center center',
                 zIndex: isSelected ? 50 : 30,
-                minWidth: '200px'
+                width: textWidth,
+                maxWidth: '86%'
             }}
             whileDrag={{ cursor: 'grabbing', scale: (el.scale || 1) * 1.02 }}
             className="flex items-center justify-center group"
@@ -57,18 +61,17 @@ export const TextElement: React.FC<TextElementProps> = ({
             }
 
             {/* Text Content */}
-            <div
-                className={`relative p-3 text-center rounded focus:outline-none select-none`}
-            >
+            <div className="relative w-full text-center rounded focus:outline-none select-none">
                 <p
-                    className="text-3xl leading-relaxed whitespace-pre-wrap outline-none"
+                    className="min-h-[64px] w-full rounded-lg px-6 py-4 leading-tight whitespace-pre-wrap break-words outline-none"
                     style={{
-                        textShadow: '0 2px 4px rgba(0,0,0,0.3), 0 0 20px rgba(255,255,255,0.8)',
+                        textShadow: backgroundColor === 'transparent' ? '0 2px 10px rgba(255,255,255,0.72)' : 'none',
                         color: el.style?.color || '#0f172a',
                         fontWeight: el.style?.fontWeight === 'bold' ? 'bold' : 'normal',
                         fontStyle: el.style?.fontStyle === 'italic' ? 'italic' : 'normal',
                         fontSize: el.style?.fontSize || '1.875rem',
-                        backgroundColor: el.style?.bg || 'transparent',
+                        backgroundColor,
+                        boxShadow: backgroundColor === 'transparent' ? 'none' : '0 18px 42px rgba(15,23,42,0.16)',
                     }}
                     contentEditable={canDrag && isSelected}
                     suppressContentEditableWarning
