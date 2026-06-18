@@ -21,7 +21,7 @@ export const METRICAS_ORIGEM: MetricaOrigem[] = [
     icon: '❌',
     invertColors: true,
   },
-  { key: 'corridas_completadas', label: 'Corridas Completadas', tipo: 'number', icon: '🏁' },
+  { key: 'pedidos_aceitos_concluidos', label: 'Numero de Pedidos', tipo: 'number', icon: '🏁' },
 ];
 
 export const DIAS_DA_SEMANA = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'] as const;

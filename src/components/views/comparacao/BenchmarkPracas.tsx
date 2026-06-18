@@ -9,7 +9,7 @@ type BenchmarkMetric = 'aderencia' | 'completadas' | 'ofertadas' | 'aceitacao';
 
 const metricLabels: Record<BenchmarkMetric, string> = {
     aderencia: 'Aderência %',
-    completadas: 'Pedidos concluidos',
+    completadas: 'Numero de Pedidos',
     ofertadas: 'Ofertadas',
     aceitacao: 'Taxa Aceitação'
 };

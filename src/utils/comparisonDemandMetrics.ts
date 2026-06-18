@@ -27,28 +27,48 @@ function pickFirstMetricValue(...values: unknown[]) {
   return 0;
 }
 
+function pickDemandMetric(primaryValues: unknown[], fallbackValues: unknown[]) {
+  const availablePrimaryValues = primaryValues.filter(
+    (value) => value !== null && value !== undefined && value !== ''
+  );
+  const positivePrimaryValue = availablePrimaryValues.find((value) => toMetricNumber(value) > 0);
+
+  if (positivePrimaryValue !== undefined) {
+    return toMetricNumber(positivePrimaryValue);
+  }
+
+  if (availablePrimaryValues.length > 0) {
+    return toMetricNumber(availablePrimaryValues[0]);
+  }
+
+  return pickFirstMetricValue(...fallbackValues);
+}
+
 export function getPedidosAceitosConcluidosTotal(data?: DemandTotals | null) {
   if (!data) return 0;
 
-  return pickFirstMetricValue(
-    data.numero_de_pedidos_aceitos_e_concluidos,
-    data.pedidos_aceitos_e_concluidos,
-    data.total_pedidos_aceitos_e_concluidos,
-    data.totais?.numero_de_pedidos_aceitos_e_concluidos,
-    data.totais?.pedidos_aceitos_e_concluidos,
-    data.totais?.total_pedidos_aceitos_e_concluidos,
-    data.total_completadas,
-    data.totais?.corridas_completadas
+  return pickDemandMetric(
+    [
+      data.numero_de_pedidos_aceitos_e_concluidos,
+      data.pedidos_aceitos_e_concluidos,
+      data.total_pedidos_aceitos_e_concluidos,
+      data.totais?.numero_de_pedidos_aceitos_e_concluidos,
+      data.totais?.pedidos_aceitos_e_concluidos,
+      data.totais?.total_pedidos_aceitos_e_concluidos,
+    ],
+    [data.total_completadas, data.totais?.corridas_completadas]
   );
 }
 
 export function getPedidosAceitosConcluidosBreakdown(data?: DemandBreakdown | null) {
   if (!data) return 0;
 
-  return pickFirstMetricValue(
-    data.numero_de_pedidos_aceitos_e_concluidos,
-    data.pedidos_aceitos_e_concluidos,
-    data.total_pedidos_aceitos_e_concluidos,
-    data.corridas_completadas
+  return pickDemandMetric(
+    [
+      data.numero_de_pedidos_aceitos_e_concluidos,
+      data.pedidos_aceitos_e_concluidos,
+      data.total_pedidos_aceitos_e_concluidos,
+    ],
+    [data.corridas_completadas]
   );
 }

@@ -49,7 +49,7 @@ export const processarDemandaOrigem = (dadosBasicos: DadosBasicos): DemandaOrige
         const campos = [
             { label: 'Ofertadas', icone: 'box', campo: 'corridas_ofertadas' as const },
             { label: 'Aceitas', icone: 'handshake', campo: 'corridas_aceitas' as const },
-            { label: 'Pedidos concluidos', icone: 'flag', campo: 'pedidos_aceitos_concluidos' as const },
+            { label: 'Numero de Pedidos', icone: 'flag', campo: 'pedidos_aceitos_concluidos' as const },
             { label: 'Rejeitadas', icone: 'block', campo: 'corridas_rejeitadas' as const },
         ];
 

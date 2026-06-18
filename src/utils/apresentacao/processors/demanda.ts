@@ -26,7 +26,7 @@ export const processarDemanda = (dadosBasicos: DadosBasicos) => {
             valor2: Number(semana2.total_aceitas || 0),
         },
         {
-            label: 'Pedidos concluidos',
+            label: 'Numero de Pedidos',
             icone: '🏁',
             valor1: getPedidosAceitosConcluidosTotal(semana1),
             valor2: getPedidosAceitosConcluidosTotal(semana2),

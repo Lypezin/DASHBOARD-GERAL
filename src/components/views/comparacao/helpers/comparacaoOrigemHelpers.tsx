@@ -47,7 +47,7 @@ export const METRICAS: MetricaRow[] = [
     { label: 'Corridas Ofertadas', campo: 'corridas_ofertadas', format: (v) => v.toLocaleString('pt-BR') },
     { label: 'Corridas Aceitas', campo: 'corridas_aceitas', format: (v) => v.toLocaleString('pt-BR') },
     { label: 'Corridas Rejeitadas', campo: 'corridas_rejeitadas', format: (v) => v.toLocaleString('pt-BR'), invertColors: true },
-    { label: 'Pedidos Aceitos e Concluidos', campo: 'pedidos_aceitos_concluidos', format: (v) => v.toLocaleString('pt-BR') },
+    { label: 'Numero de Pedidos', campo: 'pedidos_aceitos_concluidos', format: (v) => v.toLocaleString('pt-BR') },
     { label: 'Taxa de Aceitação', campo: 'taxa_aceitacao', format: (v) => `${v.toFixed(1)}%`, isPercent: true },
     { label: 'Aderência', campo: 'aderencia_percentual', format: (v) => `${v.toFixed(1)}%`, isPercent: true },
 ];

@@ -40,7 +40,7 @@ export const ComparacaoChartDetalhada: React.FC<ComparacaoChartDetalhadaProps> =
             },
             {
                 type: 'bar' as const,
-                label: 'Pedidos aceitos e concluidos',
+                label: 'Numero de Pedidos',
                 data: dadosComparacao.map(d => getPedidosAceitosConcluidosTotal(d)),
                 backgroundColor: 'rgba(139, 92, 246, 0.7)',
                 borderColor: 'rgb(139, 92, 246)',

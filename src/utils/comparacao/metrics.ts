@@ -7,6 +7,7 @@ import {
     AderenciaOrigem
 } from '@/types';
 import { converterHorasParaDecimal, formatarHorasParaHMS } from '@/utils/formatters';
+import { getPedidosAceitosConcluidosBreakdown } from '@/utils/comparisonDemandMetrics';
 
 // Union type for all possible metric sources
 export type MetricItem = AderenciaSemanal | AderenciaDia | AderenciaTurno | AderenciaSubPraca | AderenciaOrigem | Record<string, unknown>;
@@ -15,6 +16,10 @@ export function getMetricValue(obj: MetricItem | null | undefined, metricKey: st
     if (!obj) return 0;
 
     const safeObj = obj as Record<string, string | number | undefined | null>;
+
+    if (metricKey === 'pedidos_aceitos_concluidos') {
+        return getPedidosAceitosConcluidosBreakdown(obj as Parameters<typeof getPedidosAceitosConcluidosBreakdown>[0]);
+    }
 
     const keyMap: Record<string, string[]> = {
         'corridas_ofertadas': ['corridas_ofertadas', 'ofertadas', 'total_ofertadas', 'qtd_ofertadas'], 'corridas_aceitas': ['corridas_aceitas', 'aceitas', 'total_aceitas', 'qtd_aceitas'],

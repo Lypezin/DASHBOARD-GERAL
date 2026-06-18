@@ -54,7 +54,7 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
                         invertVariationColors
                     />
                     <ComparingTableRow
-                        label="Pedidos aceitos e concluidos"
+                        label="Numero de Pedidos"
                         data={dadosComparacao}
                         getValue={(d) => getPedidosAceitosConcluidosTotal(d)}
                         formatValue={(v) => v.toLocaleString('pt-BR')}

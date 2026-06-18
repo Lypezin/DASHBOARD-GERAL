@@ -17,7 +17,7 @@ export function useComparacaoChartOrigem(
         semanasSelecionadas.forEach((semana, idx) => {
             datasets.push({
                 type: 'bar' as const,
-                label: `Pedidos aceitos e concluidos S${semana}`,
+                label: `Numero de Pedidos S${semana}`,
                 data: origensDisponiveis.map((origem) => {
                     const dadosSemana = dadosComparacao[idx];
                     const origemData = dadosSemana?.aderencia_origem?.find((o) => (o.origem || '').trim() === origem);
@@ -72,7 +72,7 @@ export function useComparacaoChartOrigem(
             },
         },
         scales: {
-            y: { beginAtZero: true, grid: { color: 'rgba(0, 0, 0, 0.05)' }, title: { display: true, text: 'Pedidos aceitos e concluidos', color: '#64748b' } },
+            y: { beginAtZero: true, grid: { color: 'rgba(0, 0, 0, 0.05)' }, title: { display: true, text: 'Numero de Pedidos', color: '#64748b' } },
             y1: {
                 beginAtZero: true, position: 'right' as const, min: 0, max: 100,
                 grid: { drawOnChartArea: false }, ticks: { callback: (value: any) => `${value}%` },
