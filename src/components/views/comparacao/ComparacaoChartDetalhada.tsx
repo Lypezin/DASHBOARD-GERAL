@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { DashboardResumoData } from '@/types';
 import { createComparacaoChartOptions } from '@/config/charts/comparacao/detalhada';
+import { getPedidosAceitosConcluidosTotal } from '@/utils/comparisonDemandMetrics';
 
 interface ComparacaoChartDetalhadaProps {
     dadosComparacao: DashboardResumoData[];
@@ -39,8 +40,8 @@ export const ComparacaoChartDetalhada: React.FC<ComparacaoChartDetalhadaProps> =
             },
             {
                 type: 'bar' as const,
-                label: 'Completadas',
-                data: dadosComparacao.map(d => d.total_completadas ?? 0),
+                label: 'Pedidos aceitos e concluidos',
+                data: dadosComparacao.map(d => getPedidosAceitosConcluidosTotal(d)),
                 backgroundColor: 'rgba(139, 92, 246, 0.7)',
                 borderColor: 'rgb(139, 92, 246)',
                 borderWidth: 1,

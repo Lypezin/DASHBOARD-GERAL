@@ -3,12 +3,13 @@
 import React, { useMemo, useState } from 'react';
 import { AderenciaSubPraca } from '@/types';
 import { BarChart3, ChevronDown } from 'lucide-react';
+import { getPedidosAceitosConcluidosBreakdown } from '@/utils/comparisonDemandMetrics';
 
 type BenchmarkMetric = 'aderencia' | 'completadas' | 'ofertadas' | 'aceitacao';
 
 const metricLabels: Record<BenchmarkMetric, string> = {
     aderencia: 'Aderência %',
-    completadas: 'Completadas',
+    completadas: 'Pedidos concluidos',
     ofertadas: 'Ofertadas',
     aceitacao: 'Taxa Aceitação'
 };
@@ -22,7 +23,7 @@ function getMetric(sp: AderenciaSubPraca, metric: BenchmarkMetric): number {
         case 'aderencia':
             return sp.aderencia_percentual || 0;
         case 'completadas':
-            return sp.corridas_completadas || 0;
+            return getPedidosAceitosConcluidosBreakdown(sp);
         case 'ofertadas':
             return sp.corridas_ofertadas || 0;
         case 'aceitacao':

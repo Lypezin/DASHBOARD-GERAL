@@ -5,6 +5,7 @@ import { getWeeklyHours } from '@/utils/comparacaoHelpers';
 import { ComparingTableRow } from './components/ComparingTableRow';
 import { ComparacaoTabelaHeader } from './components/ComparacaoTabelaHeader';
 import { Table, TableBody } from '@/components/ui/table';
+import { getPedidosAceitosConcluidosTotal } from '@/utils/comparisonDemandMetrics';
 
 interface ComparacaoTabelaDetalhadaProps {
     dadosComparacao: DashboardResumoData[];
@@ -53,9 +54,9 @@ export const ComparacaoTabelaDetalhada: React.FC<ComparacaoTabelaDetalhadaProps>
                         invertVariationColors
                     />
                     <ComparingTableRow
-                        label="Corridas completadas"
+                        label="Pedidos aceitos e concluidos"
                         data={dadosComparacao}
-                        getValue={(d) => d?.total_completadas ?? 0}
+                        getValue={(d) => getPedidosAceitosConcluidosTotal(d)}
                         formatValue={(v) => v.toLocaleString('pt-BR')}
                     />
                     <ComparingTableRow

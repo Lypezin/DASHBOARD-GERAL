@@ -41,6 +41,7 @@ export interface AderenciaDia {
     corridas_aceitas?: number;
     corridas_rejeitadas?: number;
     corridas_completadas?: number;
+    numero_de_pedidos_aceitos_e_concluidos?: number;
     taxa_aceitacao?: number;
     taxa_completude?: number;
     dia?: string;
@@ -60,6 +61,7 @@ export interface AderenciaTurno {
     corridas_aceitas?: number;
     corridas_rejeitadas?: number;
     corridas_completadas?: number;
+    numero_de_pedidos_aceitos_e_concluidos?: number;
     taxa_aceitacao?: number;
     taxa_completude?: number;
 }
@@ -75,6 +77,7 @@ export interface AderenciaSubPraca {
     corridas_aceitas?: number;
     corridas_rejeitadas?: number;
     corridas_completadas?: number;
+    numero_de_pedidos_aceitos_e_concluidos?: number;
     taxa_aceitacao?: number;
     taxa_completude?: number;
 }
@@ -90,6 +93,7 @@ export interface AderenciaOrigem {
     corridas_aceitas?: number;
     corridas_rejeitadas?: number;
     corridas_completadas?: number;
+    numero_de_pedidos_aceitos_e_concluidos?: number;
     taxa_aceitacao?: number;
     taxa_completude?: number;
 }
@@ -107,4 +111,5 @@ export interface AderenciaDiaOrigem {
     corridas_aceitas?: number;
     corridas_rejeitadas?: number;
     corridas_completadas?: number;
+    numero_de_pedidos_aceitos_e_concluidos?: number;
 }

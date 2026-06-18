@@ -6,6 +6,7 @@ import {
     formatarNumeroInteiro,
 } from './common';
 import { DadosBasicos } from './basicData';
+import { getPedidosAceitosConcluidosTotal } from '@/utils/comparisonDemandMetrics';
 
 export const processarDemanda = (dadosBasicos: DadosBasicos) => {
     const { semana1, semana2 } = dadosBasicos;
@@ -25,10 +26,10 @@ export const processarDemanda = (dadosBasicos: DadosBasicos) => {
             valor2: Number(semana2.total_aceitas || 0),
         },
         {
-            label: 'Completadas',
+            label: 'Pedidos concluidos',
             icone: '🏁',
-            valor1: Number(semana1.total_completadas || 0),
-            valor2: Number(semana2.total_completadas || 0),
+            valor1: getPedidosAceitosConcluidosTotal(semana1),
+            valor2: getPedidosAceitosConcluidosTotal(semana2),
         },
         {
             label: 'Rejeitadas',

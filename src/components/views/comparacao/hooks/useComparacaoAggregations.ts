@@ -2,13 +2,14 @@ import { useMemo } from 'react';
 import { DashboardResumoData } from '@/types';
 import { formatarHorasParaHMS, converterHorasParaDecimal } from '@/utils/formatters';
 import { getWeeklyHours } from '@/utils/comparacaoHelpers';
+import { getPedidosAceitosConcluidosTotal } from '@/utils/comparisonDemandMetrics';
 
 export function useComparacaoAggregations(dadosComparacao: DashboardResumoData[]) {
     return useMemo(() => {
         const aderencias = dadosComparacao.map(d => d?.aderencia_semanal?.[0]?.aderencia_percentual ?? 0);
         const aderenciaMedia = Number((aderencias.reduce((a, b) => a + b, 0) / (aderencias.length || 1)).toFixed(1));
 
-        const corridasPorSemana = dadosComparacao.map(d => d?.total_completadas ?? 0);
+        const corridasPorSemana = dadosComparacao.map(d => getPedidosAceitosConcluidosTotal(d));
         const totalCorridas = corridasPorSemana.reduce((a, b) => a + b, 0);
 
         const horasDecimais = dadosComparacao.map(d => converterHorasParaDecimal(getWeeklyHours(d, 'horas_entregues')));

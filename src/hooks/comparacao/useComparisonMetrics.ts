@@ -55,6 +55,7 @@ export async function fetchComparisonMetrics(
             total_ofertadas: 0,
             total_aceitas: 0,
             total_completadas: 0,
+            numero_de_pedidos_aceitos_e_concluidos: 0,
             total_rejeitadas: 0,
             aderencia_semanal: [],
             aderencia_dia: [],

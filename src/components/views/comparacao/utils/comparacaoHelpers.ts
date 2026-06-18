@@ -1,4 +1,5 @@
 import { DashboardResumoData, AderenciaDia } from '@/types';
+import { getPedidosAceitosConcluidosBreakdown } from '@/utils/comparisonDemandMetrics';
 
 export interface MetricConfig {
     label: string;
@@ -12,7 +13,7 @@ export const COMPARACAO_METRICS: MetricConfig[] = [
     { label: 'Corridas ofertadas', key: 'corridas_ofertadas', color: 'text-slate-600 dark:text-slate-400' },
     { label: 'Corridas aceitas', key: 'corridas_aceitas', color: 'text-emerald-600 dark:text-emerald-400' },
     { label: 'Corridas rejeitadas', key: 'corridas_rejeitadas', color: 'text-rose-600 dark:text-rose-400' },
-    { label: 'Corridas completadas', key: 'corridas_completadas', color: 'text-sky-600 dark:text-sky-300' },
+    { label: 'Pedidos aceitos e concluidos', key: 'pedidos_aceitos_concluidos', color: 'text-sky-600 dark:text-sky-300' },
     { label: 'Taxa de aceitação', key: 'taxa_aceitacao', color: 'text-blue-600 dark:text-blue-400', isPercent: true },
     { label: 'Horas planejadas', key: 'horas_a_entregar', color: 'text-amber-600 dark:text-amber-400', isTime: true },
     { label: 'Horas entregues', key: 'horas_entregues', color: 'text-teal-600 dark:text-teal-400', isTime: true },
@@ -39,6 +40,10 @@ export function getRawValue(dayData: AderenciaDia | undefined, metricKey: string
             return dayData.segundos_realizados;
         }
         return dayData.horas_entregues || 0;
+    }
+
+    if (metricKey === 'pedidos_aceitos_concluidos') {
+        return getPedidosAceitosConcluidosBreakdown(dayData);
     }
 
     // @ts-ignore - dynamic key access

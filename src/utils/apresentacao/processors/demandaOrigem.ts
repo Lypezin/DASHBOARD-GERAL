@@ -6,6 +6,7 @@ import {
     formatarNumeroInteiro,
 } from './common';
 import { DadosBasicos } from './basicData';
+import { getPedidosAceitosConcluidosBreakdown } from '@/utils/comparisonDemandMetrics';
 
 export interface DemandaOrigemItem {
     nome: string;
@@ -46,17 +47,22 @@ export const processarDemandaOrigem = (dadosBasicos: DadosBasicos): DemandaOrige
         const o2 = origensSemana2Map.get(origemNome) || ({} as any);
 
         const campos = [
-            { label: 'Ofertadas', icone: '📦', campo: 'corridas_ofertadas' as const },
-            { label: 'Aceitas', icone: '🤝', campo: 'corridas_aceitas' as const },
-            { label: 'Completadas', icone: '🏁', campo: 'corridas_completadas' as const },
-            { label: 'Rejeitadas', icone: '⛔', campo: 'corridas_rejeitadas' as const },
+            { label: 'Ofertadas', icone: 'box', campo: 'corridas_ofertadas' as const },
+            { label: 'Aceitas', icone: 'handshake', campo: 'corridas_aceitas' as const },
+            { label: 'Pedidos concluidos', icone: 'flag', campo: 'pedidos_aceitos_concluidos' as const },
+            { label: 'Rejeitadas', icone: 'block', campo: 'corridas_rejeitadas' as const },
         ];
 
         const metricas = campos.map(({ label, icone, campo }) => {
-            const v1 = Number(o1[campo] ?? 0);
-            const v2 = Number(o2[campo] ?? 0);
+            const v1 = campo === 'pedidos_aceitos_concluidos'
+                ? getPedidosAceitosConcluidosBreakdown(o1)
+                : Number(o1[campo] ?? 0);
+            const v2 = campo === 'pedidos_aceitos_concluidos'
+                ? getPedidosAceitosConcluidosBreakdown(o2)
+                : Number(o2[campo] ?? 0);
             const diff = calcularDiferenca(v1, v2);
             const diffPct = calcularDiferencaPercentual(v1 || 0.0001, v2 || 0);
+
             return {
                 label,
                 icone,

@@ -1,16 +1,24 @@
 import React from 'react';
 import { DashboardResumoData } from '@/types';
+import { getPedidosAceitosConcluidosBreakdown } from '@/utils/comparisonDemandMetrics';
+
+type OrigemMetricField = 'corridas_ofertadas' | 'corridas_aceitas' | 'corridas_rejeitadas' | 'corridas_completadas' | 'pedidos_aceitos_concluidos' | 'taxa_aceitacao' | 'aderencia_percentual';
 
 export function getValorOrigem(
     dadosComparacao: DashboardResumoData[],
     idx: number,
     origem: string,
-    campo: 'corridas_ofertadas' | 'corridas_aceitas' | 'corridas_rejeitadas' | 'corridas_completadas' | 'taxa_aceitacao' | 'aderencia_percentual'
+    campo: OrigemMetricField
 ): number {
     const dado = dadosComparacao[idx];
     if (!dado) return 0;
     const origemData = dado.aderencia_origem?.find((o) => o.origem === origem);
     if (!origemData) return 0;
+
+    if (campo === 'pedidos_aceitos_concluidos') {
+        return getPedidosAceitosConcluidosBreakdown(origemData);
+    }
+
     return origemData[campo] ?? 0;
 }
 
@@ -29,7 +37,7 @@ export function formatVariation(a: number, b: number, isPercent = false): React.
 
 export interface MetricaRow {
     label: string;
-    campo: 'corridas_ofertadas' | 'corridas_aceitas' | 'corridas_rejeitadas' | 'corridas_completadas' | 'taxa_aceitacao' | 'aderencia_percentual';
+    campo: OrigemMetricField;
     format: (v: number) => string;
     isPercent?: boolean;
     invertColors?: boolean;
@@ -39,7 +47,7 @@ export const METRICAS: MetricaRow[] = [
     { label: 'Corridas Ofertadas', campo: 'corridas_ofertadas', format: (v) => v.toLocaleString('pt-BR') },
     { label: 'Corridas Aceitas', campo: 'corridas_aceitas', format: (v) => v.toLocaleString('pt-BR') },
     { label: 'Corridas Rejeitadas', campo: 'corridas_rejeitadas', format: (v) => v.toLocaleString('pt-BR'), invertColors: true },
-    { label: 'Corridas Completadas', campo: 'corridas_completadas', format: (v) => v.toLocaleString('pt-BR') },
+    { label: 'Pedidos Aceitos e Concluidos', campo: 'pedidos_aceitos_concluidos', format: (v) => v.toLocaleString('pt-BR') },
     { label: 'Taxa de Aceitação', campo: 'taxa_aceitacao', format: (v) => `${v.toFixed(1)}%`, isPercent: true },
     { label: 'Aderência', campo: 'aderencia_percentual', format: (v) => `${v.toFixed(1)}%`, isPercent: true },
 ];

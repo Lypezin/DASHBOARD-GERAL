@@ -106,6 +106,7 @@ const DASHBOARD_ROW_SUM_FIELDS = [
   'corridas_aceitas',
   'corridas_rejeitadas',
   'corridas_completadas',
+  'numero_de_pedidos_aceitos_e_concluidos',
   'total_drivers',
   'total_slots',
 ];
@@ -114,6 +115,7 @@ const DASHBOARD_TOTAL_SUM_FIELDS = [
   'total_ofertadas',
   'total_aceitas',
   'total_completadas',
+  'numero_de_pedidos_aceitos_e_concluidos',
   'total_rejeitadas',
   'total_valor_bruto_centavos',
 ];
@@ -123,6 +125,7 @@ const DASHBOARD_NESTED_TOTAL_SUM_FIELDS = [
   'corridas_aceitas',
   'corridas_rejeitadas',
   'corridas_completadas',
+  'numero_de_pedidos_aceitos_e_concluidos',
 ];
 
 type SecureRpcBody = {
@@ -310,7 +313,7 @@ function recomputeDashboardMetricRow(row: Record<string, unknown>) {
   const segundosRealizados = toFiniteNumber(row.segundos_realizados);
   const ofertadas = toFiniteNumber(row.corridas_ofertadas);
   const aceitas = toFiniteNumber(row.corridas_aceitas);
-  const completadas = toFiniteNumber(row.corridas_completadas);
+  const completadas = toFiniteNumber(row.numero_de_pedidos_aceitos_e_concluidos ?? row.corridas_completadas);
 
   row.aderencia_percentual = percentage(segundosRealizados, segundosPlanejados);
   row.taxa_aceitacao = percentage(aceitas, ofertadas);

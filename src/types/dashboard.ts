@@ -42,6 +42,7 @@ export interface DashboardResumoData {
   total_ofertadas: number;
   total_aceitas: number;
   total_completadas: number;
+  numero_de_pedidos_aceitos_e_concluidos?: number;
   total_rejeitadas: number;
 
   aderencia_semanal: AderenciaSemanal[];
@@ -58,6 +59,7 @@ export interface DashboardResumoData {
     corridas_aceitas: number;
     corridas_rejeitadas: number;
     corridas_completadas: number;
+    numero_de_pedidos_aceitos_e_concluidos?: number;
   };
   semanal?: AderenciaSemanal[];
   dia?: AderenciaDia[];
