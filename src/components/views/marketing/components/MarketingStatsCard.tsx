@@ -29,7 +29,7 @@ export const MarketingStatsCard: React.FC<MarketingStatsCardProps> = ({
 
     return (
         <div className={`group relative overflow-hidden rounded-2xl border-none p-6 shadow-sm transition-all duration-300 hover:shadow-lg ${styles.bg}`}>
-            <div className="pointer-events-none absolute top-0 right-0 p-3 opacity-10 transition-opacity duration-500 group-hover:scale-110 group-hover:opacity-20">
+            <div className="pointer-events-none absolute top-0 right-0 p-3 opacity-10 transition-opacity duration-300 group-hover:scale-110 group-hover:opacity-20">
                 <div className="h-24 w-24">{icon}</div>
             </div>
 

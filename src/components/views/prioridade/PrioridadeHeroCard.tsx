@@ -22,9 +22,9 @@ export const PrioridadeHeroCard = ({
     isPercentage?: boolean
 }) => (
     <Card className="relative overflow-hidden rounded-[1.65rem] border border-slate-200/50 bg-white/90 shadow-[0_12px_32px_-22px_rgba(15,23,42,0.18)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_-24px_rgba(15,23,42,0.25)] hover:border-slate-350 dark:border-slate-900/60 dark:bg-slate-900/40 dark:hover:border-slate-800 group">
-        <div className={`absolute inset-0 bg-gradient-to-br ${colorFrom} ${colorTo} opacity-[0.06] group-hover:opacity-[0.1] transition-opacity duration-500`} />
+        <div className={`absolute inset-0 bg-gradient-to-br ${colorFrom} ${colorTo} opacity-[0.06] group-hover:opacity-[0.1] transition-opacity duration-300`} />
 
-        <div className="absolute -right-6 -bottom-6 opacity-[0.04] transform rotate-12 group-hover:scale-110 group-hover:rotate-[15deg] transition-all duration-700">
+        <div className="absolute -right-6 -bottom-6 opacity-[0.04] transform rotate-12 group-hover:scale-110 group-hover:rotate-[15deg] transition-all duration-300">
             <Icon className={`w-32 h-32 ${iconColor}`} />
         </div>
 

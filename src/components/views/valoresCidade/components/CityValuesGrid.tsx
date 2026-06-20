@@ -38,7 +38,7 @@ export const CityValuesGrid: React.FC<CityValuesGridProps> = ({ cidadesData }) =
                             key={cidadeData.cidade}
                             className="border-none shadow-sm hover:shadow-xl transition-all duration-300 bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800 group overflow-hidden relative"
                         >
-                            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 opacity-40 rounded-bl-full -mr-6 -mt-6 transition-transform group-hover:scale-110 duration-500" />
+                            <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-900/20 dark:to-cyan-900/20 opacity-40 rounded-bl-full -mr-6 -mt-6 transition-transform group-hover:scale-110 duration-300" />
 
                             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative border-b border-slate-100 dark:border-slate-800/50 mb-3">
                                 <CardTitle className="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate flex items-center gap-2" title={cidadeData.cidade}>

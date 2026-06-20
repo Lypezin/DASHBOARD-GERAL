@@ -34,7 +34,7 @@ export const CityMetricItem = React.memo(function CityMetricItem({ cidadeData }:
             <div className="flex shrink-0 flex-col items-center">
                 <div className="h-9 w-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden flex flex-col justify-end">
                     <div
-                        className={`w-full rounded-full transition-all duration-500 ${barColor}`}
+                        className={`w-full rounded-full transition-all duration-300 ${barColor}`}
                         style={{ height: `${Math.min(conversaoCidade, 100)}%` }}
                     />
                 </div>

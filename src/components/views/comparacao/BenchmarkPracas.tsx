@@ -94,7 +94,7 @@ export const BenchmarkPracas = React.memo(function BenchmarkPracas({ subPracas }
                                 </div>
                                 <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                     <div
-                                        className={`h-full rounded-full transition-[width] duration-500 ${isTop3 ? 'bg-blue-500' : 'bg-slate-400 dark:bg-slate-600'}`}
+                                        className={`h-full rounded-full transition-[width] duration-300 ${isTop3 ? 'bg-blue-500' : 'bg-slate-400 dark:bg-slate-600'}`}
                                         style={{ width: `${widthPct}%` }}
                                     />
                                 </div>

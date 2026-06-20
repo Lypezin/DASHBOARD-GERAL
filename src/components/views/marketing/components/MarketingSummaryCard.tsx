@@ -27,7 +27,7 @@ export const MarketingSummaryCard = ({
     iconBgClass
 }: MarketingSummaryCardProps) => (
     <Card className="group relative overflow-hidden border-none bg-white shadow-sm ring-1 ring-slate-100 transition-all duration-300 hover:shadow-xl dark:bg-slate-900 dark:ring-slate-800">
-        <div className={`absolute -mr-10 -mt-10 h-32 w-32 rounded-bl-full ${bgClass} opacity-10 transition-transform duration-500 group-hover:scale-110`} />
+        <div className={`absolute -mr-10 -mt-10 h-32 w-32 rounded-bl-full ${bgClass} opacity-10 transition-transform duration-300 group-hover:scale-110`} />
 
         <CardHeader className="relative z-10 flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium uppercase tracking-wider text-slate-500 dark:text-slate-400">

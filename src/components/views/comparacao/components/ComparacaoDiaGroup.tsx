@@ -68,7 +68,7 @@ export const ComparacaoDiaGroup = React.memo<ComparacaoDiaGroupProps>(({ dia, di
                                         {isAderencia && dayData && (
                                             <div className="w-14 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                                 <div
-                                                    className={`h-full ${barColor} rounded-full transition-all duration-500`}
+                                                    className={`h-full ${barColor} rounded-full transition-all duration-300`}
                                                     style={{ width: `${Math.min(percentValue, 100)}%` }}
                                                 />
                                             </div>
