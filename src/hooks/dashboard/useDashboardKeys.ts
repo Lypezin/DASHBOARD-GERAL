@@ -89,7 +89,9 @@ export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentU
         subPracas: subPracasKey ? subPracasKey.split('|') : [],
         origens: origensKey ? origensKey.split('|') : [],
         turnos: turnosKey ? turnosKey.split('|') : [],
-        semanas: semanasKey ? semanasKey.split('|') : [],
+        semanas: semanasKey
+            ? semanasKey.split('|').map((value) => Number(value)).filter((value) => Number.isFinite(value))
+            : [],
         filtroModo,
         dataInicial,
         dataFinal
