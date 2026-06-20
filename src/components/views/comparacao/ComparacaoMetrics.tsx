@@ -116,7 +116,7 @@ function MetricCard({
             {typeof progress === 'number' && (
                 <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 p-0.5 ring-1 ring-slate-200/70 dark:bg-slate-900/80 dark:ring-slate-800">
                     <div
-                        className={cn('h-full rounded-full transition-all duration-1000', toneClass.bar)}
+                        className={cn('h-full rounded-full transition-all duration-300', toneClass.bar)}
                         style={{ width: `${Math.min(progress, 100)}%` }}
                     />
                 </div>

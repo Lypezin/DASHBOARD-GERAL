@@ -43,7 +43,7 @@ export const ConversionFunnel = React.memo(function ConversionFunnel({ ofertadas
                             </div>
                             <div className="h-6 overflow-hidden rounded-md bg-muted">
                                 <div
-                                    className={`h-full rounded-md ${stage.color} transition-[width] duration-700`}
+                                    className={`h-full rounded-md ${stage.color} transition-[width] duration-300`}
                                     style={{ width: `${widthPct}%` }}
                                 />
                             </div>

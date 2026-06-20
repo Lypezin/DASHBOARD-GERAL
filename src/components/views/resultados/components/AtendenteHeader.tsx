@@ -64,7 +64,7 @@ export const AtendenteHeader = ({
                 <div className="mt-1.5 flex items-center gap-3">
                     <div className="flex-1 h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
                         <div
-                            className={`h-full rounded-full transition-all duration-700 ${barColor}`}
+                            className={`h-full rounded-full transition-all duration-300 ${barColor}`}
                             style={{ width: `${Math.min(taxaConversao, 100)}%` }}
                         />
                     </div>

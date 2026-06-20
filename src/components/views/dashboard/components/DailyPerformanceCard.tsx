@@ -93,7 +93,7 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
               </div>
               <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-slate-100 ring-1 ring-inset ring-slate-200/70 dark:bg-slate-800 dark:ring-slate-700/70">
                 <div
-                  className={cn("h-full rounded-full transition-all duration-700 ease-out", barColor)}
+                  className={cn("h-full rounded-full transition-all duration-300 ease-out", barColor)}
                   style={{ width: `${Math.min(aderencia, 100)}%` }}
                 />
               </div>

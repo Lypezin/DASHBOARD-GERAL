@@ -60,7 +60,7 @@ export const AnaliseHeroCard: React.FC<AnaliseHeroCardProps> = ({
                 <div className="space-y-2">
                     <div className="h-1.5 w-full overflow-hidden rounded-full bg-slate-100 ring-1 ring-inset ring-slate-200/70 dark:bg-slate-800 dark:ring-slate-700/70">
                         <div
-                            className={cn('h-full rounded-full transition-all duration-1000 ease-out', progressFillClass)}
+                            className={cn('h-full rounded-full transition-all duration-300 ease-out', progressFillClass)}
                             style={{ width: `${Math.min(progress.value, 100)}%` }}
                         />
                     </div>

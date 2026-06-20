@@ -92,7 +92,7 @@ export const OperationalDetailCard: React.FC<OperationalDetailCardProps> = ({ da
                             </div>
                             <div className="h-2 w-full overflow-hidden rounded-full bg-white ring-1 ring-inset ring-slate-200/70 dark:bg-slate-950 dark:ring-slate-700/70">
                                 <div
-                                    className={cn("h-full rounded-full transition-all duration-700 ease-out", barColor)}
+                                    className={cn("h-full rounded-full transition-all duration-300 ease-out", barColor)}
                                     style={{ width: `${Math.min(data.aderencia, 100)}%` }}
                                 />
                             </div>

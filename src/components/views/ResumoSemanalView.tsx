@@ -69,7 +69,7 @@ export const ResumoSemanalView = React.memo(({
 
     return (
         <ViewTransition stateKey="resumo-semanal-content">
-            <div className="mx-auto w-full max-w-[1400px] space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 p-6">
+            <div className="mx-auto w-full max-w-[1400px] space-y-6 p-6">
             <Card className="border-none bg-white/50 shadow-sm backdrop-blur-sm dark:bg-slate-900/50">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="bg-gradient-to-r from-blue-600 to-sky-600 bg-clip-text text-xl font-bold text-transparent">
