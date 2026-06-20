@@ -3,17 +3,12 @@ import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { AdminUsersTab } from '@/components/admin/tabs/AdminUsersTab';
-import { Building, Activity, Users } from 'lucide-react';
+import { Building, Users } from 'lucide-react';
 import { UserProfile } from '@/hooks/auth/types';
 
 const AdminOrganizationsTab = dynamic(
     () => import('@/components/admin/tabs/AdminOrganizationsTab').then(mod => mod.AdminOrganizationsTab),
     { loading: () => <div className="p-8 text-center text-muted-foreground">Carregando organizacoes...</div> }
-);
-
-const AdminMonitoringTab = dynamic(
-    () => import('@/components/admin/tabs/AdminMonitoringTab').then(mod => mod.AdminMonitoringTab),
-    { loading: () => <div className="p-8 text-center text-muted-foreground">Carregando monitoramento...</div> }
 );
 
 interface AdminTabsProps {
@@ -32,16 +27,15 @@ interface AdminTabsProps {
 }
 
 const TABS_CONFIG = [
-    { value: 'users', label: 'Usuários', icon: Users },
-    { value: 'organizations', label: 'Organizações', icon: Building },
-    { value: 'monitoring', label: 'Monitoramento', icon: Activity }
+    { value: 'users', label: 'Usuarios', icon: Users },
+    { value: 'organizations', label: 'Organizacoes', icon: Building }
 ] as const;
 
 export const AdminTabs: React.FC<AdminTabsProps> = ({
     currentUser, users, pendingUsers, pracasDisponiveis, loading, error, fetchData,
     organizations, orgsLoading, orgsError, createOrganization, updateOrganization
 }) => {
-    const [activeTab, setActiveTab] = useState<'users' | 'organizations' | 'monitoring'>('users');
+    const [activeTab, setActiveTab] = useState<'users' | 'organizations'>('users');
 
     return (
         <div className="space-y-6">
@@ -52,7 +46,7 @@ export const AdminTabs: React.FC<AdminTabsProps> = ({
                         return (
                             <button
                                 key={value}
-                                onClick={() => setActiveTab(value as any)}
+                                onClick={() => setActiveTab(value)}
                                 className={cn(
                                     'relative inline-flex min-w-0 items-center justify-center gap-2 rounded-xl px-5 py-2 text-xs font-bold transition-all duration-200 focus:outline-none',
                                     active
@@ -67,7 +61,7 @@ export const AdminTabs: React.FC<AdminTabsProps> = ({
                                         transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                                     />
                                 )}
-                                <Icon className="w-4 h-4 shrink-0 relative z-10" />
+                                <Icon className="relative z-10 h-4 w-4 shrink-0" />
                                 <span className="relative z-10">{label}</span>
                             </button>
                         );
@@ -82,7 +76,7 @@ export const AdminTabs: React.FC<AdminTabsProps> = ({
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, y: -8 }}
                     transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                    className="focus-visible:outline-none focus-visible:ring-0 w-full"
+                    className="w-full focus-visible:outline-none focus-visible:ring-0"
                 >
                     {activeTab === 'users' && (
                         <AdminUsersTab
@@ -104,9 +98,6 @@ export const AdminTabs: React.FC<AdminTabsProps> = ({
                             createOrganization={createOrganization}
                             updateOrganization={updateOrganization}
                         />
-                    )}
-                    {activeTab === 'monitoring' && (
-                        <AdminMonitoringTab />
                     )}
                 </motion.div>
             </AnimatePresence>
