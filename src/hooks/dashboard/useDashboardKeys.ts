@@ -86,14 +86,14 @@ export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentU
         subPraca,
         origem,
         turno,
-        subPracas: [...subPracas],
-        origens: [...origens],
-        turnos: [...turnos],
-        semanas: [...semanas],
+        subPracas: subPracasKey ? subPracasKey.split('|') : [],
+        origens: origensKey ? origensKey.split('|') : [],
+        turnos: turnosKey ? turnosKey.split('|') : [],
+        semanas: semanasKey ? semanasKey.split('|') : [],
         filtroModo,
         dataInicial,
         dataFinal
-    }), [ano, dataFinal, dataInicial, filtroModo, origem, origens, praca, semana, semanas, subPraca, subPracas, turno, turnos]);
+    }), [ano, dataFinal, dataInicial, filtroModo, origem, origensKey, praca, semana, semanasKey, subPraca, subPracasKey, turno, turnosKey]);
     const stableCurrentUser = useMemo(() => currentUserKey !== 'null' ? ({
         id: currentUserId,
         is_admin: isCurrentUserAdmin,

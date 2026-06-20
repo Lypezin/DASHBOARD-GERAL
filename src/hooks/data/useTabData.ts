@@ -51,6 +51,7 @@ export function useTabData(
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const retryAttemptsRef = useRef<Map<number, number>>(new Map());
   const hasCurrentDataRef = useRef(false);
+  const stableFilterPayloadRef = useRef<{ key: string; payload: FilterPayload } | null>(null);
   const { isLoading: isOrgLoading } = useOrganization();
   const enabled = options.enabled ?? true;
 
@@ -60,6 +61,10 @@ export function useTabData(
   });
 
   const filterPayloadStr = useMemo(() => createRequestKey(filterPayload), [filterPayload]);
+  if (!stableFilterPayloadRef.current || stableFilterPayloadRef.current.key !== filterPayloadStr) {
+    stableFilterPayloadRef.current = { key: filterPayloadStr, payload: filterPayload as FilterPayload };
+  }
+  const stableFilterPayload = stableFilterPayloadRef.current.payload;
   hasCurrentDataRef.current = hasLoadedData(data);
 
   const fetchData = useCallback(async (tab: string, payload: FilterPayload, filterPayloadKey: string, fetchId: number) => {
@@ -155,7 +160,7 @@ export function useTabData(
 
     if (isOrgLoading) return;
 
-    const payload = filterPayload as FilterPayload;
+    const payload = stableFilterPayload;
     const hasOrganizationContext = typeof payload.p_organization_id === 'string' && payload.p_organization_id.trim().length > 0;
 
     if (SELF_MANAGED_TABS.includes(activeTab)) {
@@ -191,7 +196,7 @@ export function useTabData(
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [activeTab, enabled, fetchData, filterPayload, filterPayloadStr, getCached, isOrgLoading]);
+  }, [activeTab, enabled, fetchData, filterPayloadStr, getCached, isOrgLoading, stableFilterPayload]);
 
   return { data, loading };
 }

@@ -27,6 +27,13 @@ export function useSemanasComDados(ano: number | null) {
         }
 
         const fetchSemanasComDados = async () => {
+            const cachedWeeks = getCachedAvailableWeeks(ano, organization?.id);
+            if (cachedWeeks) {
+                setSemanas(cachedWeeks);
+                setLoading(false);
+                return;
+            }
+
             setLoading(true);
 
             try {
@@ -50,6 +57,16 @@ export function useSemanasComDados(ano: number | null) {
     return { semanasComDados: semanas, loadingSemanasComDados: loading };
 }
 
+function getCachedAvailableWeeks(ano: number, organizationId?: string | null) {
+    const cacheKey = `${organizationId || 'no-org'}:${ano}`;
+    const cached = weeksCache.get(cacheKey);
+
+    if (cached && cached.expiresAt > Date.now()) {
+        return cached.data;
+    }
+
+    return null;
+}
 async function fetchAvailableWeeks(ano: number, organizationId?: string | null) {
     const cacheKey = `${organizationId || 'no-org'}:${ano}`;
     const cached = weeksCache.get(cacheKey);

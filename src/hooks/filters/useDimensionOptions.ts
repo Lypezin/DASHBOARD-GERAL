@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { CurrentUser, hasFullCityAccess, DimensoesDashboard, Filters } from '@/types';
@@ -20,6 +20,7 @@ export function useDimensionOptions(
     organizationId?: string | null
 ) {
     const [remoteOptions, setRemoteOptions] = useState<DimensionCacheEntry | null>(null);
+    const stableTargetPracasRef = useRef<{ key: string; pracas: string[] } | null>(null);
     const assignedPracasKey = currentUser?.assigned_pracas.join('|') || '';
     const assignedPracas = useMemo(() => assignedPracasKey.split('|').filter(Boolean), [assignedPracasKey]);
     const userHasFullAccess = hasFullCityAccess(currentUser);
@@ -44,6 +45,10 @@ export function useDimensionOptions(
     }, [filters?.praca, userHasFullAccess, assignedPracas]);
 
     const targetPracasKey = useMemo(() => createPracasKey(targetPracas), [targetPracas]);
+    if (!stableTargetPracasRef.current || stableTargetPracasRef.current.key !== targetPracasKey) {
+        stableTargetPracasRef.current = { key: targetPracasKey, pracas: [...targetPracas] };
+    }
+    const stableTargetPracas = stableTargetPracasRef.current.pracas;
     const dimensionCacheKey = useMemo(
         () => createDimensionCacheKey(targetPracasKey, organizationId || currentUser?.organization_id),
         [currentUser?.organization_id, organizationId, targetPracasKey]
@@ -66,7 +71,7 @@ export function useDimensionOptions(
     }, [dimensoes, hasScopedDimensions, targetPracas.length, userHasFullAccess]);
 
     useEffect(() => {
-        if (!dimensoes || targetPracas.length === 0 || hasScopedDimensions || !userHasFullAccess) {
+        if (!dimensoes || stableTargetPracas.length === 0 || hasScopedDimensions || !userHasFullAccess) {
             setRemoteOptions(null);
             return;
         }
@@ -82,7 +87,7 @@ export function useDimensionOptions(
 
             try {
                 const rpcParams = {
-                    p_pracas: targetPracas,
+                    p_pracas: stableTargetPracas,
                     p_organization_id: organizationId || currentUser?.organization_id || null
                 };
                 const combinedResult = await safeRpc<DimensionOptionsRpcRow[]>(
@@ -107,9 +112,9 @@ export function useDimensionOptions(
                 }
 
                 const [subPracasResult, origensResult, turnosResult] = await Promise.all([
-                    safeRpc<string[]>('get_subpracas_by_praca', { p_pracas: targetPracas }, { timeout: 10000, validateParams: false }),
-                    safeRpc<string[]>('get_origens_by_praca', { p_pracas: targetPracas }, { timeout: 10000, validateParams: false }),
-                    safeRpc<string[]>('get_turnos_by_praca', { p_pracas: targetPracas }, { timeout: 10000, validateParams: false })
+                    safeRpc<string[]>('get_subpracas_by_praca', { p_pracas: stableTargetPracas }, { timeout: 10000, validateParams: false }),
+                    safeRpc<string[]>('get_origens_by_praca', { p_pracas: stableTargetPracas }, { timeout: 10000, validateParams: false }),
+                    safeRpc<string[]>('get_turnos_by_praca', { p_pracas: stableTargetPracas }, { timeout: 10000, validateParams: false })
                 ]);
 
                 if (cancelled) return;
@@ -131,7 +136,7 @@ export function useDimensionOptions(
                 if (!cancelled) {
                     const fallbackOptions = {
                         timestamp: Date.now(),
-                        subPracas: processFallbackSubPracas(dimensoes, targetPracas),
+                        subPracas: processFallbackSubPracas(dimensoes, stableTargetPracas),
                         origens: [],
                         turnos: []
                     };
@@ -146,7 +151,7 @@ export function useDimensionOptions(
         return () => {
             cancelled = true;
         };
-    }, [currentUser?.organization_id, dimensionCacheKey, dimensoes, hasScopedDimensions, organizationId, targetPracas, userHasFullAccess]);
+    }, [currentUser?.organization_id, dimensionCacheKey, dimensoes, hasScopedDimensions, organizationId, stableTargetPracas, userHasFullAccess]);
 
     if (baseOptions) {
         return baseOptions;

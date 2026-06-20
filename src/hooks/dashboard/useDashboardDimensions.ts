@@ -43,7 +43,21 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
 
   useEffect(() => {
     let cancelled = false;
+    let idleId: number | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
+    const scheduleYearsRefresh = (baseDimensions: DimensoesDashboard) => {
+      if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
+        idleId = window.requestIdleCallback(() => {
+          void refreshYearsOnly(baseDimensions);
+        }, { timeout: 2500 });
+        return;
+      }
+
+      timeoutId = setTimeout(() => {
+        void refreshYearsOnly(baseDimensions);
+      }, 1200);
+    };
     const refreshYearsOnly = async (baseDimensions: DimensoesDashboard) => {
       try {
         const anosResult = await safeRpc<number[]>('listar_anos_disponiveis', {}, {
@@ -81,7 +95,7 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
           setSemanasDisponiveis(cached.semanas);
           setOutrasDimensoes(cached);
           setLoading(false);
-          void refreshYearsOnly(cached);
+          scheduleYearsRefresh(cached);
           return;
         }
 
@@ -90,7 +104,7 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
           setSemanasDisponiveis([]);
           setOutrasDimensoes(EMPTY_DIMENSIONS);
           setLoading(false);
-          void refreshYearsOnly(EMPTY_DIMENSIONS);
+          scheduleYearsRefresh(EMPTY_DIMENSIONS);
           return;
         }
 
@@ -137,6 +151,12 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
 
     return () => {
       cancelled = true;
+      if (idleId !== null && typeof window !== 'undefined' && typeof window.cancelIdleCallback === 'function') {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId !== null) {
+        clearTimeout(timeoutId);
+      }
     };
   }, [fetchRemote]);
 
