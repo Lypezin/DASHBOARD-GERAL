@@ -50,6 +50,7 @@ export function useTabData(
   const fetchIdRef = useRef(0);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const retryAttemptsRef = useRef<Map<number, number>>(new Map());
+  const hasCurrentDataRef = useRef(false);
   const { isLoading: isOrgLoading } = useOrganization();
   const enabled = options.enabled ?? true;
 
@@ -59,6 +60,7 @@ export function useTabData(
   });
 
   const filterPayloadStr = useMemo(() => createRequestKey(filterPayload), [filterPayload]);
+  hasCurrentDataRef.current = hasLoadedData(data);
 
   const fetchData = useCallback(async (tab: string, payload: FilterPayload, filterPayloadKey: string, fetchId: number) => {
     const tabScope = getTabScope(tab);
@@ -171,12 +173,25 @@ export function useTabData(
     }
 
     const currentFetchId = ++fetchIdRef.current;
-    void fetchData(activeTab, payload, filterPayloadStr, currentFetchId);
+    const tabScope = getTabScope(activeTab);
+    const cached = getCached({ tab: tabScope, filterPayloadKey: filterPayloadStr });
+
+    if (cached !== null) {
+      setData(activeTab === 'valores' ? (Array.isArray(cached) ? cached : []) : cached);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    const networkDelay = hasCurrentDataRef.current ? DELAYS.DEBOUNCE : 0;
+    debounceRef.current = setTimeout(() => {
+      void fetchData(activeTab, payload, filterPayloadStr, currentFetchId);
+    }, networkDelay);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
     };
-  }, [activeTab, enabled, fetchData, filterPayload, filterPayloadStr, isOrgLoading]);
+  }, [activeTab, enabled, fetchData, filterPayload, filterPayloadStr, getCached, isOrgLoading]);
 
   return { data, loading };
 }

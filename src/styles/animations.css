@@ -70,11 +70,11 @@
 .animate-pulse-scale { animation: pulse-scale 3s infinite ease-in-out; }
 
 /* Presentation animations */
-.animate-slide-in-left { animation: slide-in-left 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; }
-.animate-slide-in-right { animation: slide-in-right 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; }
-.animate-float-up { animation: float-up 0.6s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; }
+.animate-slide-in-left { animation: slide-in-left 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; }
+.animate-slide-in-right { animation: slide-in-right 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; }
+.animate-float-up { animation: float-up 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; }
 .animate-glow-pulse { animation: glow-pulse 4s infinite ease-in-out; }
-.animate-count-in { animation: count-in 0.7s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; }
+.animate-count-in { animation: count-in 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; }
 
 /* Staggered animation delays */
 .delay-100 { animation-delay: 100ms; }
