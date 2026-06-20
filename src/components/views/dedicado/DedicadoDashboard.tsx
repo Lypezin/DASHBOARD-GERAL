@@ -40,7 +40,9 @@ export function DedicadoDashboard({
   stats,
   topOrigens,
 }: DedicadoDashboardProps) {
-  if (loading) return <DashboardSkeleton contentOnly />;
+  if (loading && topOrigens.length === 0 && stats.entregadores === 0 && stats.origens === 0 && stats.ofertadas === 0) {
+    return <DashboardSkeleton contentOnly />;
+  }
 
   const cards = [
     { title: 'Entregadores', value: stats.entregadores.toLocaleString('pt-BR'), sub: 'ativos no filtro dedicado', icon: Users, color: 'text-blue-500' },
@@ -53,6 +55,7 @@ export function DedicadoDashboard({
 
   return (
     <div className="space-y-6">
+      {loading ? <DedicadoInlineNotice message="Atualizando dashboard dedicado com os filtros atuais..." tone="info" /> : null}
       {error ? <DedicadoInlineNotice message={error} /> : null}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">

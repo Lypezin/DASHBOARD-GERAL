@@ -28,7 +28,6 @@ function readStoredAllWeeks() {
     if (weeks.length === 0) return null;
 
     allWeeksCache.set(ALL_WEEKS_CACHE_KEY, weeks);
-    writeStoredAllWeeks(weeks);
     return weeks;
   } catch {
     sessionStorage.removeItem(ALL_WEEKS_STORAGE_KEY);
@@ -48,6 +47,7 @@ function writeStoredAllWeeks(weeks: string[]) {
     // Cache local opcional; falhas nao devem afetar filtros.
   }
 }
+
 function normalizeAllWeeks(data: unknown): string[] {
   let semanasArray: unknown[] = [];
 

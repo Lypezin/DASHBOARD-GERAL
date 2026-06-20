@@ -20,9 +20,13 @@ export function getStorageKey(key: string) {
 }
 
 function cleanupDimensionCache() {
+    const canUseSessionStorage = typeof sessionStorage !== 'undefined';
+
     for (const [key, entry] of dimensionMemoryCache.entries()) {
         if (!isValidCacheEntry(entry)) {
             dimensionMemoryCache.delete(key);
+            if (!canUseSessionStorage) continue;
+
             try {
                 sessionStorage.removeItem(getStorageKey(key));
             } catch {
@@ -35,6 +39,8 @@ function cleanupDimensionCache() {
         const oldestKey = dimensionMemoryCache.keys().next().value;
         if (!oldestKey) break;
         dimensionMemoryCache.delete(oldestKey);
+        if (!canUseSessionStorage) continue;
+
         try {
             sessionStorage.removeItem(getStorageKey(oldestKey));
         } catch {
@@ -42,11 +48,14 @@ function cleanupDimensionCache() {
         }
     }
 }
+
 export function readCachedOptions(key: string): DimensionCacheEntry | null {
     cleanupDimensionCache();
 
     const memoryEntry = dimensionMemoryCache.get(key);
     if (isValidCacheEntry(memoryEntry)) return memoryEntry;
+
+    if (typeof sessionStorage === 'undefined') return null;
 
     try {
         const raw = sessionStorage.getItem(getStorageKey(key));
@@ -67,6 +76,8 @@ export function readCachedOptions(key: string): DimensionCacheEntry | null {
 export function writeCachedOptions(key: string, entry: DimensionCacheEntry) {
     cleanupDimensionCache();
     dimensionMemoryCache.set(key, entry);
+
+    if (typeof sessionStorage === 'undefined') return;
 
     try {
         sessionStorage.setItem(getStorageKey(key), JSON.stringify(entry));

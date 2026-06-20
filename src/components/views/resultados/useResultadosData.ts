@@ -1,9 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { MarketingDateFilter } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { AtendenteData } from './AtendenteCard';
 import { buildCacheKey, getCachedResultados, fetchResultados, normalizeResultados, TotaisData } from './resultadosFetchers';
+
+function createEmptyTotais(): TotaisData {
+  return {
+    totalEnviado: 0,
+    totalLiberado: 0,
+  };
+}
 
 export function useResultadosData() {
   const { organization, currentUser, hasResolved } = useAppBootstrap();
@@ -12,10 +19,7 @@ export function useResultadosData() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [atendentesData, setAtendentesData] = useState<AtendenteData[]>([]);
-  const [totais, setTotais] = useState<TotaisData>({
-    totalEnviado: 0,
-    totalLiberado: 0,
-  });
+  const [totais, setTotais] = useState<TotaisData>(createEmptyTotais);
   const [filters, setFilters] = useState<{
     filtroLiberacao: MarketingDateFilter;
     filtroEnviados: MarketingDateFilter;
@@ -25,16 +29,31 @@ export function useResultadosData() {
     filtroEnviados: { dataInicial: null, dataFinal: null },
     filtroEnviadosLiberados: { dataInicial: null, dataFinal: null },
   });
+  const hasVisibleDataRef = useRef(false);
+
+  hasVisibleDataRef.current = atendentesData.length > 0 || totais.totalEnviado > 0 || totais.totalLiberado > 0;
 
   const loadData = useCallback(async () => {
     if (!hasResolved) return;
 
+    const cacheKey = buildCacheKey(organizationId, filters);
+    const cached = getCachedResultados(cacheKey);
+
+    if (cached) {
+      const normalized = normalizeResultados(cached);
+      setAtendentesData(normalized.atendentes);
+      setTotais(normalized.totais);
+      setError(null);
+      setLoading(false);
+      return;
+    }
+
+    const hasVisibleData = hasVisibleDataRef.current;
     setLoading(true);
     setError(null);
 
     try {
-      const cacheKey = buildCacheKey(organizationId, filters);
-      const rows = getCachedResultados(cacheKey) || await fetchResultados(cacheKey, {
+      const rows = await fetchResultados(cacheKey, {
         data_envio_inicial: filters.filtroEnviados.dataInicial || null,
         data_envio_final: filters.filtroEnviados.dataFinal || null,
         data_liberacao_inicial: filters.filtroLiberacao.dataInicial || null,
@@ -50,6 +69,10 @@ export function useResultadosData() {
     } catch (err: unknown) {
       safeLog.error('Erro ao buscar dados de Resultados:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar dados de Resultados');
+      if (!hasVisibleData) {
+        setAtendentesData([]);
+        setTotais(createEmptyTotais());
+      }
     } finally {
       setLoading(false);
     }

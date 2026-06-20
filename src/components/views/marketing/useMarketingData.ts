@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { MarketingCityData, MarketingFilters, MarketingTotals } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
@@ -56,20 +56,24 @@ async function fetchMarketingDataWithDedupe(
   return request;
 }
 
+function createEmptyTotals(): MarketingTotals {
+  return {
+    criado: 0,
+    enviado: 0,
+    liberado: 0,
+    rodandoInicio: 0,
+    aberto: 0,
+    voltou: 0,
+  };
+}
+
 export function useMarketingData() {
   const { organization, currentUser, hasResolved } = useAppBootstrap();
   const organizationId = organization?.id || currentUser?.organization_id || null;
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [totals, setTotals] = useState<MarketingTotals>({
-    criado: 0,
-    enviado: 0,
-    liberado: 0,
-    rodandoInicio: 0,
-    aberto: 0,
-    voltou: 0
-  });
+  const [totals, setTotals] = useState<MarketingTotals>(createEmptyTotals);
   const [citiesData, setCitiesData] = useState<MarketingCityData[]>([]);
   const [filters, setFilters] = useState<MarketingFilters>({
     filtroLiberacao: { dataInicial: null, dataFinal: null },
@@ -78,6 +82,9 @@ export function useMarketingData() {
     filtroDataInicio: { dataInicial: null, dataFinal: null },
     praca: null,
   });
+  const hasVisibleDataRef = useRef(false);
+
+  hasVisibleDataRef.current = citiesData.length > 0 || Object.values(totals).some((value) => Number(value) > 0);
 
   const refreshData = useCallback(async () => {
     if (!hasResolved) return;
@@ -96,6 +103,7 @@ export function useMarketingData() {
       return;
     }
 
+    const hasVisibleData = hasVisibleDataRef.current;
     setLoading(true);
     setError(null);
 
@@ -106,6 +114,10 @@ export function useMarketingData() {
     } catch (err: unknown) {
       safeLog.error('Erro buscar dados Marketing:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
+      if (!hasVisibleData) {
+        setTotals(createEmptyTotals());
+        setCitiesData([]);
+      }
     } finally {
       setLoading(false);
     }

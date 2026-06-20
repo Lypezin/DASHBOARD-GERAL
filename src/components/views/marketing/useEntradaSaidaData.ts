@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { CITY_DB_MAPPING } from '@/constants/marketing';
 import { fetchFluxoSemanal } from './api/fetchFluxoSemanal';
@@ -24,6 +24,9 @@ export function useEntradaSaidaData({
     const [data, setData] = useState<FluxoEntregadores[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const hasVisibleDataRef = useRef(false);
+
+    hasVisibleDataRef.current = data.length > 0;
 
     useEffect(() => {
         let cancelled = false;
@@ -56,6 +59,7 @@ export function useEntradaSaidaData({
                 return;
             }
 
+            const hasVisibleData = hasVisibleDataRef.current;
             setLoading(true);
             setError(null);
 
@@ -83,6 +87,9 @@ export function useEntradaSaidaData({
                 }
 
                 setError(err instanceof Error ? err.message : 'Erro ao carregar dados.');
+                if (!hasVisibleData) {
+                    setData([]);
+                }
             } finally {
                 if (!cancelled) setLoading(false);
             }

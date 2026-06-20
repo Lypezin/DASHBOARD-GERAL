@@ -13,7 +13,7 @@ interface DedicadoRankingProps {
 }
 
 export function DedicadoRanking({ entregadores, loading }: DedicadoRankingProps) {
-  if (loading) return <DashboardSkeleton contentOnly />;
+  if (loading && entregadores.length === 0) return <DashboardSkeleton contentOnly />;
 
   if (entregadores.length === 0) {
     return (
@@ -31,6 +31,13 @@ export function DedicadoRanking({ entregadores, loading }: DedicadoRankingProps)
 
   return (
     <Card className="min-w-0 overflow-hidden border-slate-200/70 bg-white/90 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/85">
+      {loading ? (
+        <CardContent className="pb-0 pt-6">
+          <p className="rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/25 dark:text-blue-200">
+            Atualizando ranking dedicado com os filtros atuais...
+          </p>
+        </CardContent>
+      ) : null}
       <CardHeader className="border-b border-slate-100 dark:border-slate-800">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { DashboardResumoData, UtrData, CurrentUser } from '@/types';
 import { getSafeErrorMessage, safeLog } from '@/lib/errorHandler';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -14,6 +14,83 @@ interface UseComparacaoDataOptions {
   anoSelecionado?: number;
 }
 
+interface ComparacaoDataResult {
+  dadosComparacao: DashboardResumoData[];
+  utrComparacao: Array<{ semana: string | number; utr: UtrData | null }>;
+}
+
+const COMPARACAO_CACHE_TTL_MS = 5 * 60 * 1000;
+const comparacaoDataCache = new Map<string, { timestamp: number; data: ComparacaoDataResult }>();
+const comparacaoDataRequests = new Map<string, Promise<ComparacaoDataResult>>();
+
+function createComparacaoCacheKey(
+  semanasSelecionadas: string[],
+  pracaSelecionada: string | null,
+  currentUser: CurrentUser | null,
+  organizationId: string | null,
+  anoSelecionado?: number
+) {
+  return JSON.stringify({
+    organizationId: organizationId || 'no-org',
+    anoSelecionado: anoSelecionado || null,
+    pracaSelecionada: pracaSelecionada || 'todas',
+    semanasSelecionadas,
+    currentUser: currentUser
+      ? {
+          id: currentUser.id,
+          is_admin: currentUser.is_admin,
+          role: currentUser.role,
+          organization_id: currentUser.organization_id,
+          assigned_pracas: currentUser.assigned_pracas,
+        }
+      : null,
+  });
+}
+
+function getCachedComparacaoData(cacheKey: string) {
+  const cached = comparacaoDataCache.get(cacheKey);
+  if (!cached) return null;
+
+  if (Date.now() - cached.timestamp > COMPARACAO_CACHE_TTL_MS) {
+    comparacaoDataCache.delete(cacheKey);
+    return null;
+  }
+
+  return cached.data;
+}
+
+async function fetchComparacaoDataWithDedupe(
+  cacheKey: string,
+  semanasSelecionadas: string[],
+  pracaSelecionada: string | null,
+  currentUser: CurrentUser | null,
+  organizationId: string | null,
+  anoSelecionado?: number
+) {
+  const activeRequest = comparacaoDataRequests.get(cacheKey);
+  if (activeRequest) return activeRequest;
+
+  const request = (async () => {
+    const [dadosComparacao, utrComparacao] = await Promise.all([
+      fetchComparisonMetrics(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado),
+      fetchComparisonUtr(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado),
+    ]);
+
+    const result = { dadosComparacao, utrComparacao };
+    comparacaoDataCache.set(cacheKey, {
+      timestamp: Date.now(),
+      data: result,
+    });
+
+    return result;
+  })().finally(() => {
+    comparacaoDataRequests.delete(cacheKey);
+  });
+
+  comparacaoDataRequests.set(cacheKey, request);
+  return request;
+}
+
 export function useComparacaoData(options: UseComparacaoDataOptions) {
   const { semanasSelecionadas, pracaSelecionada, currentUser, semanas, anoSelecionado } = options;
   const { organizationId, isLoading: isOrgLoading } = useOrganization();
@@ -24,6 +101,13 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
   const [utrComparacao, setUtrComparacao] = useState<Array<{ semana: string | number; utr: UtrData | null }>>([]);
 
   const todasSemanas = useAllWeeks(semanas, anoSelecionado);
+  const cacheKey = useMemo(() => createComparacaoCacheKey(
+    semanasSelecionadas,
+    pracaSelecionada,
+    currentUser,
+    organizationId,
+    anoSelecionado
+  ), [anoSelecionado, currentUser, organizationId, pracaSelecionada, semanasSelecionadas]);
 
   useEffect(() => {
     if (isOrgLoading) {
@@ -36,32 +120,46 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
       if (!semanasSelecionadas || semanasSelecionadas.length < 2) {
         setDadosComparacao([]);
         setUtrComparacao([]);
+        setError(null);
         setLoading(false);
         return;
       }
 
+      const cached = getCachedComparacaoData(cacheKey);
+      if (cached) {
+        setDadosComparacao(cached.dadosComparacao);
+        setUtrComparacao(cached.utrComparacao);
+        setError(null);
+        setLoading(false);
+        return;
+      }
+
+      const hasVisibleData = dadosComparacao.length > 0 || utrComparacao.length > 0;
       setLoading(true);
       setError(null);
 
-      if (isMounted) {
-        setDadosComparacao([]);
-        setUtrComparacao([]);
-      }
-
       try {
-        const [dados, utrs] = await Promise.all([
-          fetchComparisonMetrics(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado),
-          fetchComparisonUtr(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado),
-        ]);
+        const nextData = await fetchComparacaoDataWithDedupe(
+          cacheKey,
+          semanasSelecionadas,
+          pracaSelecionada,
+          currentUser,
+          organizationId,
+          anoSelecionado
+        );
 
         if (!isMounted) return;
 
-        setDadosComparacao(dados);
-        setUtrComparacao(utrs);
+        setDadosComparacao(nextData.dadosComparacao);
+        setUtrComparacao(nextData.utrComparacao);
       } catch (error: unknown) {
         safeLog.error('[Comparacao] Erro ao buscar dados:', error);
         if (isMounted) {
           setError(getSafeErrorMessage(error) || 'Erro ao comparar semanas. Tente novamente.');
+          if (!hasVisibleData) {
+            setDadosComparacao([]);
+            setUtrComparacao([]);
+          }
         }
       } finally {
         if (isMounted) {
@@ -75,7 +173,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
     return () => {
       isMounted = false;
     };
-  }, [semanasSelecionadas, pracaSelecionada, currentUser, organizationId, isOrgLoading, anoSelecionado]);
+  }, [anoSelecionado, cacheKey, currentUser, dadosComparacao.length, isOrgLoading, organizationId, pracaSelecionada, semanasSelecionadas, semanas, utrComparacao.length]);
 
   return { loading: loading || isOrgLoading, error, dadosComparacao, utrComparacao, todasSemanas };
 }

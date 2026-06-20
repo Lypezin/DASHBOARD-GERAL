@@ -23,8 +23,9 @@ const ResultadosView = React.memo(function ResultadosView() {
   const handleExport = React.useCallback(() => {
     handleExportExcelResultados(atendentesData, new Date().toISOString().split('T')[0]);
   }, [atendentesData]);
+  const hasResultadosData = atendentesData.length > 0 || totais.totalEnviado > 0 || totais.totalLiberado > 0;
 
-  if (loading) {
+  if (loading && !hasResultadosData) {
     return (
       <ViewTransition stateKey="resultados-loading">
         <div className="space-y-6 animate-fade-in">
@@ -34,7 +35,7 @@ const ResultadosView = React.memo(function ResultadosView() {
     );
   }
 
-  if (error) {
+  if (error && !hasResultadosData) {
     return (
       <ViewTransition stateKey="resultados-error">
         <ResultadosErrorState error={error} />
@@ -45,6 +46,18 @@ const ResultadosView = React.memo(function ResultadosView() {
   return (
     <ViewTransition stateKey="resultados-content">
       <div className="space-y-8 pb-8 animate-fade-in">
+      {loading ? (
+        <div className="rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/25 dark:text-blue-200">
+          Atualizando resultados com os filtros atuais...
+        </div>
+      ) : null}
+
+      {error ? (
+        <div className="rounded-2xl border border-amber-200/70 bg-amber-50/85 px-4 py-3 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
+          Nao foi possivel atualizar todos os resultados. Exibindo a ultima resposta valida.
+        </div>
+      ) : null}
+
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="flex items-center gap-4">

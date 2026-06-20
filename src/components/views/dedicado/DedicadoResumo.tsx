@@ -23,7 +23,7 @@ export function DedicadoResumo({
   loading,
   error,
 }: DedicadoResumoProps) {
-  if (loading) return <DashboardSkeleton contentOnly />;
+  if (loading && rows.length === 0) return <DashboardSkeleton contentOnly />;
 
   return (
     <Card className="min-w-0 overflow-hidden border-slate-200/70 bg-white/90 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/85">
@@ -33,6 +33,11 @@ export function DedicadoResumo({
           Dados agrupados por origem, respeitando os filtros atuais de período, cidade e organização.
         </p>
       </CardHeader>
+      {loading ? (
+        <CardContent className="pb-0">
+          <DedicadoInlineNotice message="Atualizando resumo por origem com os filtros atuais..." tone="info" />
+        </CardContent>
+      ) : null}
       {error ? (
         <CardContent className="pb-0">
           <DedicadoInlineNotice message={error} />

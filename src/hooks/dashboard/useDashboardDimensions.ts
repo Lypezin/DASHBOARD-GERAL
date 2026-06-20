@@ -164,6 +164,8 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
 }
 
 function readCachedDimensions(): DimensoesDashboard | null {
+  if (typeof sessionStorage === 'undefined') return null;
+
   try {
     const cached = sessionStorage.getItem(CACHE_KEY);
     if (!cached) return null;
@@ -185,6 +187,8 @@ function readCachedDimensions(): DimensoesDashboard | null {
 }
 
 export function writeCachedDimensions(data: DimensoesDashboard) {
+  if (typeof sessionStorage === 'undefined') return;
+
   try {
     sessionStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: Date.now(), data }));
   } catch {

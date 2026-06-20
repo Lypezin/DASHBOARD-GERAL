@@ -17,6 +17,7 @@ interface EntradaSaidaViewProps {
 
 export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial, dataFinal, organizationId, praca }) => {
     const { data, loading, error } = useEntradaSaidaData({ dataInicial, dataFinal, organizationId, praca });
+    const hasData = data.length > 0;
 
     const handleExport = async () => {
         if (!data || data.length === 0) return;
@@ -47,7 +48,7 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
         XLSX.writeFile(wb, `fluxo_entregadores_marketing_${dateStr}.xlsx`);
     };
 
-    if (loading) return (
+    if (loading && !hasData) return (
         <div className="flex h-80 items-center justify-center">
             <div className="flex flex-col items-center gap-4">
                 <div className="relative">
@@ -59,7 +60,7 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
         </div>
     );
 
-    if (error) return (
+    if (error && !hasData) return (
         <div className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-white p-8 text-center shadow-sm dark:border-rose-900/50 dark:from-rose-950/20 dark:to-slate-900">
             <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-900/40">
                 <Activity className="h-7 w-7 text-rose-600 dark:text-rose-400" />
@@ -71,6 +72,18 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
 
     return (
         <div className="mx-auto max-w-7xl space-y-8 animate-fade-in">
+            {loading ? (
+                <div className="rounded-2xl border border-sky-200/70 bg-sky-50/80 px-4 py-3 text-sm font-semibold text-sky-800 shadow-sm dark:border-sky-900/50 dark:bg-sky-950/25 dark:text-sky-200">
+                    Atualizando fluxo semanal com os filtros atuais...
+                </div>
+            ) : null}
+
+            {error ? (
+                <div className="rounded-2xl border border-amber-200/70 bg-amber-50/85 px-4 py-3 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
+                    Nao foi possivel atualizar todos os dados do fluxo. Exibindo a ultima resposta valida.
+                </div>
+            ) : null}
+
             <div className="flex justify-end">
                 <Button
                     onClick={handleExport}

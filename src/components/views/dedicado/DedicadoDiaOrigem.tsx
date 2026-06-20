@@ -72,7 +72,7 @@ export function DedicadoDiaOrigem({
   loading,
   error,
 }: DedicadoDiaOrigemProps) {
-  if (loading) return <DashboardSkeleton contentOnly />;
+  if (loading && data.length === 0) return <DashboardSkeleton contentOnly />;
 
   return (
     <Card className="min-w-0 overflow-hidden border-slate-200/70 bg-white/90 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/85">
@@ -83,6 +83,7 @@ export function DedicadoDiaOrigem({
         </p>
       </CardHeader>
       <CardContent className="min-w-0 p-3 sm:p-6">
+        {loading ? <DedicadoInlineNotice message="Atualizando matriz Dia x Origem com os filtros atuais..." tone="info" /> : null}
         {error ? <DedicadoInlineNotice message={error} /> : null}
         <AnaliseDiaOrigemTable data={data} dayDateMap={dayDateMap} />
       </CardContent>

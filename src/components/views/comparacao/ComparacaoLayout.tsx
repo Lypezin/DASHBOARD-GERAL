@@ -21,6 +21,7 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
     actions
 }: ComparacaoLayoutProps) {
     const shouldReduceMotion = useReducedMotion();
+    const hasComparisonData = data.dadosComparacao.length > 0 || data.utrComparacao.length > 0;
     const motionProps = {
         initial: shouldReduceMotion ? false : { opacity: 0, y: 10, scale: 0.996 },
         animate: shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 },
@@ -47,11 +48,11 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
             />
 
             <AnimatePresence mode="wait" initial={false}>
-                {state.loading ? (
+                {state.loading && !hasComparisonData ? (
                     <motion.div key="comparacao-loading" {...motionProps} className="min-w-0 transform-gpu will-change-transform">
                         <DashboardSkeleton contentOnly />
                     </motion.div>
-                ) : state.error ? (
+                ) : state.error && !hasComparisonData ? (
                     <motion.div
                         key="comparacao-error"
                         {...motionProps}
@@ -101,6 +102,16 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                         {...motionProps}
                         className="min-w-0 transform-gpu will-change-transform"
                     >
+                        {state.loading ? (
+                            <div className="mb-4 rounded-2xl border border-sky-200/70 bg-sky-50/80 px-4 py-3 text-sm font-semibold text-sky-800 shadow-sm dark:border-sky-900/50 dark:bg-sky-950/25 dark:text-sky-200">
+                                Atualizando comparacao com os filtros atuais...
+                            </div>
+                        ) : null}
+                        {state.error ? (
+                            <div className="mb-4 rounded-2xl border border-amber-200/70 bg-amber-50/85 px-4 py-3 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
+                                Nao foi possivel atualizar todos os dados da comparacao. Exibindo a ultima resposta valida.
+                            </div>
+                        ) : null}
                         <ComparacaoContent
                             data={data}
                             state={state}

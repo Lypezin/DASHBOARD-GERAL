@@ -90,6 +90,8 @@ export function useMarketingComparacao(dataInicial: string, dataFinal: string, o
       return;
     }
 
+    const hasVisibleData = data.length > 0;
+
     try {
       setLoading(true);
       setError(null);
@@ -120,12 +122,15 @@ export function useMarketingComparacao(dataInicial: string, dataFinal: string, o
 
       safeLog.error('Erro ao buscar comparacao marketing:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
+      if (!hasVisibleData) {
+        setData([]);
+      }
     } finally {
       if (currentRequestId === requestIdRef.current) {
         setLoading(false);
       }
     }
-  }, [dataInicial, dataFinal, organizationId, praca]);
+  }, [data.length, dataFinal, dataInicial, organizationId, praca]);
 
   useEffect(() => {
     void fetchData();
