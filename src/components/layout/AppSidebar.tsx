@@ -27,6 +27,8 @@ import {
 import { TabType } from '@/types';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { preloadDashboardView } from '@/config/dynamicImports';
+import { prefetchTabDataInBackground } from '@/hooks/data/useTabData';
+import { getLatestDashboardFilterPayload } from '@/hooks/dashboard/dashboardPrefetchState';
 
 interface SidebarItem {
   label: string;
@@ -81,8 +83,22 @@ export function AppSidebar() {
   const { user } = useHeaderAuth();
   const avatarUrl = useHeaderAvatar(user);
 
-  const handleItemClick = (value: TabType) => {
+  const prefetchTabResources = React.useCallback((value: TabType) => {
     preloadDashboardView(value);
+
+    if (value !== 'entregadores' && value !== 'valores') return;
+
+    const latestPayload = getLatestDashboardFilterPayload();
+    if (!latestPayload) return;
+
+    void prefetchTabDataInBackground(
+      value,
+      value === 'valores' ? { ...latestPayload, detailed: false } : latestPayload
+    );
+  }, []);
+
+  const handleItemClick = (value: TabType) => {
+    prefetchTabResources(value);
     handleTabChange(value);
     setMobileOpen(false); // Fecha o menu no mobile ao clicar
   };
@@ -118,8 +134,8 @@ export function AppSidebar() {
             const buttonEl = (
               <button
                 onClick={() => handleItemClick(item.value)}
-                onMouseEnter={() => preloadDashboardView(item.value)}
-                onFocus={() => preloadDashboardView(item.value)}
+                onMouseEnter={() => prefetchTabResources(item.value)}
+                onFocus={() => prefetchTabResources(item.value)}
                 className={cn(
                   'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-all duration-150',
                   'relative overflow-hidden group focus:outline-none',
@@ -291,7 +307,8 @@ export function AppSidebar() {
                             <button
                               key={`mobile-${item.value}`}
                               onClick={() => handleItemClick(item.value)}
-                              onFocus={() => preloadDashboardView(item.value)}
+                              onMouseEnter={() => prefetchTabResources(item.value)}
+                              onFocus={() => prefetchTabResources(item.value)}
                               className={cn(
                                 'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-all duration-150',
                                 isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'

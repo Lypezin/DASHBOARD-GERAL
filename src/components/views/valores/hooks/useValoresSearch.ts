@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useDeferredValue, useMemo, useState, useTransition } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { ValoresEntregador } from '@/types';
 import { useUrlSearchSync } from '@/hooks/ui/useUrlSearchSync';
@@ -7,28 +7,43 @@ export function useValoresSearch(valoresData: ValoresEntregador[] | null) {
     const searchParams = useSearchParams();
     const getInitialSearchTerm = () => searchParams.get('val_search') || '';
 
-    const [searchTerm, setSearchTerm] = useState(getInitialSearchTerm);
+    const [searchTerm, setSearchTermState] = useState(getInitialSearchTerm);
+    const [isPending, startTransition] = useTransition();
+    const deferredSearchTerm = useDeferredValue(searchTerm);
+    const normalizedSearchTerm = searchTerm.trim();
+    const normalizedDeferredSearchTerm = deferredSearchTerm.trim().toLowerCase();
+    const shouldSyncSearch = normalizedSearchTerm.length >= 3 || normalizedSearchTerm.length === 0;
 
-    useUrlSearchSync('val_search', searchTerm);
+    useUrlSearchSync('val_search', searchTerm, 250, shouldSyncSearch);
+
+    const setSearchTerm = (value: string) => {
+        startTransition(() => {
+            setSearchTermState(value);
+        });
+    };
+
+    const indexedValores = useMemo(() => {
+        const valoresArray = Array.isArray(valoresData) ? valoresData : [];
+        return valoresArray.map((item) => ({
+            item,
+            searchText: `${item?.nome_entregador || ''} ${item?.id_entregador || ''}`.toLowerCase(),
+        }));
+    }, [valoresData]);
 
     const dataToDisplay = useMemo(() => {
-        const valoresArray = Array.isArray(valoresData) ? valoresData : [];
-        const term = searchTerm.trim().toLowerCase();
-
-        if (!term) {
-            return valoresArray;
+        if (!normalizedDeferredSearchTerm) {
+            return indexedValores.map(({ item }) => item);
         }
 
-        return valoresArray.filter(e =>
-            e?.nome_entregador?.toLowerCase().includes(term) ||
-            e?.id_entregador?.toLowerCase().includes(term)
-        );
-    }, [searchTerm, valoresData]);
+        return indexedValores
+            .filter(({ searchText }) => searchText.includes(normalizedDeferredSearchTerm))
+            .map(({ item }) => item);
+    }, [indexedValores, normalizedDeferredSearchTerm]);
 
     return {
         searchTerm,
         setSearchTerm,
-        isSearching: false,
+        isSearching: isPending || deferredSearchTerm !== searchTerm,
         error: null,
         dataToDisplay
     };

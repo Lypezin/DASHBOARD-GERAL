@@ -27,6 +27,7 @@ export const EntregadoresMainTableRow = React.memo(function EntregadoresMainTabl
     return (
         <div
             className={`grid ${ENTREGADORES_TABLE_GRID} min-h-[72px] cursor-pointer items-center gap-4 px-6 py-4 transition-colors hover:bg-slate-50/90 dark:hover:bg-slate-900/70`}
+            style={{ contentVisibility: 'auto', containIntrinsicSize: '72px' }}
             onClick={() => onClick?.(entregador)}
         >
             <div className="flex justify-center">

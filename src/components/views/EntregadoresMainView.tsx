@@ -18,6 +18,7 @@ import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
 import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
 import { applyAllYearsDateRangeToPayload } from '@/utils/filters/allYearsRange';
 import { ViewTransition } from '@/components/ui/view-transition';
+import { LoadingNotice } from '@/components/ui/loading-notice';
 import type { CurrentUser, EntregadoresData } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 
@@ -118,7 +119,8 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
     sortDirection,
     showInactiveOnly,
     setShowInactiveOnly,
-    handleSort
+    handleSort,
+    isFilteringDeferred
   } = useEntregadoresMainSort(entregadoresData, effectiveSearchTerm);
 
   const organizationId = typeof filterPayload?.p_organization_id === 'string' ? filterPayload.p_organization_id : null;
@@ -179,13 +181,15 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
           onSearchChange={handleSearchChange}
           showInactiveOnly={showInactiveOnly}
           onShowInactiveOnlyChange={setShowInactiveOnly}
-          isSearching={loading || isRefreshing}
+          isSearching={loading || isRefreshing || isFilteringDeferred}
         />
 
-        {loading || isRefreshing ? (
-          <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/80 px-4 py-3 text-sm font-semibold text-emerald-700 shadow-sm dark:border-emerald-900/60 dark:bg-emerald-950/25 dark:text-emerald-200">
-            Atualizando a busca com os filtros atuais...
-          </div>
+        {loading || isRefreshing || isFilteringDeferred ? (
+          <LoadingNotice
+            tone={loading || isRefreshing ? 'emerald' : 'sky'}
+            message={loading || isRefreshing ? 'Atualizando entregadores com os filtros atuais' : 'Aplicando busca e ordenacao sem travar a tela'}
+            detail={loading || isRefreshing ? 'Os dados anteriores continuam visiveis durante a atualizacao.' : 'A lista responde primeiro e finaliza o processamento em segundo plano.'}
+          />
         ) : null}
 
         <EntregadoresMainTable
@@ -234,37 +238,55 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
   const [serverSearch, setServerSearch] = React.useState(searchFromUrl);
   const normalizedSearchTerm = searchTerm.trim();
   const normalizedServerSearch = serverSearch.trim();
+  const shouldPromoteSearch = normalizedSearchTerm.length >= 3 || normalizedSearchTerm.length === 0;
   const isSearchSyncing = !isDedicado
-    && normalizedSearchTerm !== normalizedServerSearch
-    && (normalizedSearchTerm.length >= 3 || normalizedServerSearch.length >= 3);
+    && shouldPromoteSearch
+    && normalizedSearchTerm !== normalizedServerSearch;
 
   React.useEffect(() => {
     setSearchTerm(searchFromUrl);
   }, [searchFromUrl]);
 
   React.useEffect(() => {
+    if (!shouldPromoteSearch) return;
+
     const timeout = window.setTimeout(() => {
       setServerSearch(searchTerm);
     }, 350);
 
     return () => window.clearTimeout(timeout);
-  }, [searchTerm]);
+  }, [searchTerm, shouldPromoteSearch]);
+
+  React.useEffect(() => {
+    if (!shouldPromoteSearch) return;
+
+    const timeoutId = window.setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      const normalized = searchTerm.trim();
+
+      if (normalized) {
+        if (params.get('ent_search') !== searchTerm) {
+          params.set('ent_search', searchTerm);
+        }
+      } else if (params.has('ent_search')) {
+        params.delete('ent_search');
+      }
+
+      const nextQuery = params.toString();
+      const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
+      const currentUrl = searchParams.toString() ? `${pathname}?${searchParams.toString()}` : pathname;
+
+      if (nextUrl !== currentUrl) {
+        router.replace(nextUrl, { scroll: false });
+      }
+    }, 250);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [pathname, router, searchParams, searchTerm, shouldPromoteSearch]);
 
   const handleSearchChange = React.useCallback((term: string) => {
     setSearchTerm(term);
-
-    const params = new URLSearchParams(searchParams.toString());
-    const normalized = term.trim();
-
-    if (normalized) {
-      params.set('ent_search', term);
-    } else {
-      params.delete('ent_search');
-    }
-
-    const nextQuery = params.toString();
-    router.replace(nextQuery ? `${pathname}?${nextQuery}` : pathname, { scroll: false });
-  }, [pathname, router, searchParams]);
+  }, []);
 
   const dedicatedPayload = React.useMemo<FilterPayload>(() => {
     if (!isDedicado) {

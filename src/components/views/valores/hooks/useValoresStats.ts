@@ -1,10 +1,11 @@
-import { useMemo } from 'react';
+import { useDeferredValue, useMemo } from 'react';
 import { ValoresEntregador } from '@/types';
 
 export function useValoresStats(dataToDisplay: ValoresEntregador[]) {
+    const deferredData = useDeferredValue(dataToDisplay);
     const dataArray = useMemo(() => {
-        return Array.isArray(dataToDisplay) ? dataToDisplay : [];
-    }, [dataToDisplay]);
+        return Array.isArray(deferredData) ? deferredData : [];
+    }, [deferredData]);
 
     const totalGeral = useMemo(() => {
         return dataArray.reduce((sum, e) => {

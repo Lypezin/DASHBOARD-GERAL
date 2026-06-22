@@ -38,37 +38,62 @@ function chooseEarliestDate(current?: string | null, next?: string | null) {
     return next < current ? next : current;
 }
 
+function normalizeEntregador(entregador: Entregador): Entregador | null {
+    const id = String(entregador.id_entregador || '').trim();
+    if (!id) return null;
+
+    return {
+        ...entregador,
+        id_entregador: id,
+        nome_entregador: String(entregador.nome_entregador || id).trim() || id,
+        corridas_ofertadas: normalizeNumber(entregador.corridas_ofertadas),
+        corridas_aceitas: normalizeNumber(entregador.corridas_aceitas),
+        corridas_rejeitadas: normalizeNumber(entregador.corridas_rejeitadas),
+        corridas_completadas: normalizeNumber(entregador.corridas_completadas),
+        total_segundos: normalizeNumber(entregador.total_segundos),
+        aderencia_percentual: normalizeNumber(entregador.aderencia_percentual),
+        rejeicao_percentual: normalizeNumber(entregador.rejeicao_percentual),
+        primeira_data_aparicao: entregador.primeira_data_aparicao || null,
+    };
+}
+
 function mergeEntregadoresById(entregadores: Entregador[]) {
-    const merged = new Map<string, Entregador>();
+    const normalizedRows: Entregador[] = [];
+    const seenIds = new Set<string>();
+    let hasDuplicates = false;
 
     for (const entregador of entregadores) {
-        const id = String(entregador.id_entregador || '').trim();
-        if (!id) continue;
+        const normalized = normalizeEntregador(entregador);
+        if (!normalized) continue;
 
-        const current = merged.get(id);
+        if (seenIds.has(normalized.id_entregador)) {
+            hasDuplicates = true;
+        } else {
+            seenIds.add(normalized.id_entregador);
+        }
+
+        normalizedRows.push(normalized);
+    }
+
+    if (!hasDuplicates) {
+        return normalizedRows;
+    }
+
+    const merged = new Map<string, Entregador>();
+
+    for (const entregador of normalizedRows) {
+        const current = merged.get(entregador.id_entregador);
         if (!current) {
-            merged.set(id, {
-                ...entregador,
-                id_entregador: id,
-                nome_entregador: String(entregador.nome_entregador || id).trim() || id,
-                corridas_ofertadas: normalizeNumber(entregador.corridas_ofertadas),
-                corridas_aceitas: normalizeNumber(entregador.corridas_aceitas),
-                corridas_rejeitadas: normalizeNumber(entregador.corridas_rejeitadas),
-                corridas_completadas: normalizeNumber(entregador.corridas_completadas),
-                total_segundos: normalizeNumber(entregador.total_segundos),
-                aderencia_percentual: normalizeNumber(entregador.aderencia_percentual),
-                rejeicao_percentual: normalizeNumber(entregador.rejeicao_percentual),
-                primeira_data_aparicao: entregador.primeira_data_aparicao || null,
-            });
+            merged.set(entregador.id_entregador, { ...entregador });
             continue;
         }
 
-        current.nome_entregador = chooseDisplayName(current.nome_entregador, String(entregador.nome_entregador || id));
-        current.corridas_ofertadas += normalizeNumber(entregador.corridas_ofertadas);
-        current.corridas_aceitas += normalizeNumber(entregador.corridas_aceitas);
-        current.corridas_rejeitadas += normalizeNumber(entregador.corridas_rejeitadas);
-        current.corridas_completadas += normalizeNumber(entregador.corridas_completadas);
-        current.total_segundos += normalizeNumber(entregador.total_segundos);
+        current.nome_entregador = chooseDisplayName(current.nome_entregador, entregador.nome_entregador);
+        current.corridas_ofertadas += entregador.corridas_ofertadas;
+        current.corridas_aceitas += entregador.corridas_aceitas;
+        current.corridas_rejeitadas += entregador.corridas_rejeitadas;
+        current.corridas_completadas += entregador.corridas_completadas;
+        current.total_segundos += entregador.total_segundos;
         current.primeira_data_aparicao = chooseEarliestDate(
             current.primeira_data_aparicao,
             entregador.primeira_data_aparicao

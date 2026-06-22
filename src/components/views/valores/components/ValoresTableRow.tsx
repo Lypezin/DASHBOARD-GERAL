@@ -16,7 +16,10 @@ export const ValoresTableRow = React.memo(({ entregador, ranking, formatarReal, 
     const nomeEntregador = String(entregador.nome_entregador || entregador.id_entregador || 'N/A');
 
     return (
-        <TableRow className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800">
+        <TableRow
+            className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800"
+            style={{ contentVisibility: 'auto', containIntrinsicSize: '60px' }}
+        >
             <TableCell className="py-4 pl-6">
                 <div className="flex items-center gap-3 text-sm">
                     <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-400">

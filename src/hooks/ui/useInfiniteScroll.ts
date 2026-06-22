@@ -14,6 +14,9 @@ export function useInfiniteScroll(callback: () => void, hasMore: boolean, loadin
             if (entries[0].isIntersecting && hasMore) {
                 callback();
             }
+        }, {
+            rootMargin: '240px 0px',
+            threshold: 0.01,
         });
 
         if (lastElementRef.current) {

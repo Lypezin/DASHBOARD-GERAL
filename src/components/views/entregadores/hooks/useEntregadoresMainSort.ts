@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useDeferredValue, useTransition } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Entregador, EntregadoresData } from '@/types';
 import { calcularPercentualAceitas, calcularPercentualCompletadas } from '../EntregadoresUtils';
@@ -19,10 +19,13 @@ const VALID_SORT_FIELDS: EntregadoresSortField[] = [
     'percentual_completadas',
 ];
 
+const stringCollator = new Intl.Collator('pt-BR', { sensitivity: 'base', numeric: true });
+
 export function useEntregadoresMainSort(entregadoresData: EntregadoresData | null, searchTerm: string) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
+    const deferredSearchTerm = useDeferredValue(searchTerm);
 
     const getInitialSortField = (): EntregadoresSortField => {
         const sort = searchParams.get('ent_sort');
@@ -32,9 +35,10 @@ export function useEntregadoresMainSort(entregadoresData: EntregadoresData | nul
     };
     const getInitialSortDirection = () => (searchParams.get('ent_dir') as 'asc' | 'desc') || 'desc';
 
-    const [sortField, setSortField] = useState<EntregadoresSortField>(getInitialSortField);
-    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(getInitialSortDirection);
-    const [showInactiveOnly, setShowInactiveOnly] = useState(false);
+    const [sortField, setSortFieldState] = useState<EntregadoresSortField>(getInitialSortField);
+    const [sortDirection, setSortDirectionState] = useState<'asc' | 'desc'>(getInitialSortDirection);
+    const [showInactiveOnly, setShowInactiveOnlyState] = useState(false);
+    const [isPending, startTransition] = useTransition();
 
     useEffect(() => {
         const params = new URLSearchParams(searchParams.toString());
@@ -49,38 +53,67 @@ export function useEntregadoresMainSort(entregadoresData: EntregadoresData | nul
         } else if (params.has('ent_dir')) { params.delete('ent_dir'); changed = true; }
 
         if (changed) {
-            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+            const nextQuery = params.toString();
+            const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
+            const currentQuery = searchParams.toString();
+            const currentUrl = currentQuery ? `${pathname}?${currentQuery}` : pathname;
+
+            if (nextUrl !== currentUrl) {
+                router.replace(nextUrl, { scroll: false });
+            }
         }
     }, [sortField, sortDirection, pathname, router, searchParams]);
 
-    const sortedEntregadores: Entregador[] = useMemo(() => {
+    const indexedEntregadores = useMemo(() => {
         if (!entregadoresData?.entregadores) return [];
 
-        let filtered = entregadoresData.entregadores;
+        return entregadoresData.entregadores.map((entregador) => ({
+            entregador,
+            searchText: `${entregador.nome_entregador || ''} ${entregador.id_entregador || ''}`.toLowerCase(),
+        }));
+    }, [entregadoresData]);
 
-        if (searchTerm.trim()) {
-            const term = searchTerm.toLowerCase();
-            filtered = filtered.filter((e) => e.nome_entregador.toLowerCase().includes(term) || e.id_entregador.toLowerCase().includes(term));
+    const sortedEntregadores: Entregador[] = useMemo(() => {
+        if (indexedEntregadores.length === 0) return [];
+
+        let filtered = indexedEntregadores;
+        const normalizedTerm = deferredSearchTerm.trim().toLowerCase();
+
+        if (normalizedTerm) {
+            filtered = filtered.filter(({ searchText }) => searchText.includes(normalizedTerm));
         }
-        if (showInactiveOnly) filtered = filtered.filter(e => (e.corridas_completadas || 0) === 0);
 
-        // Ordenar
-        return [...filtered].sort((a, b) => {
+        let filteredEntregadores = filtered.map(({ entregador }) => entregador);
+
+        if (showInactiveOnly) filteredEntregadores = filteredEntregadores.filter(e => (e.corridas_completadas || 0) === 0);
+
+        return [...filteredEntregadores].sort((a, b) => {
             let aVal: number | string = 0, bVal: number | string = 0;
             if (sortField === 'percentual_aceitas') { aVal = calcularPercentualAceitas(a); bVal = calcularPercentualAceitas(b); }
             else if (sortField === 'percentual_completadas') { aVal = calcularPercentualCompletadas(a); bVal = calcularPercentualCompletadas(b); }
             else { aVal = a[sortField] ?? 0; bVal = b[sortField] ?? 0; }
 
-            if (typeof aVal === 'string' && typeof bVal === 'string') return sortDirection === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+            if (typeof aVal === 'string' && typeof bVal === 'string') return sortDirection === 'asc' ? stringCollator.compare(aVal, bVal) : stringCollator.compare(bVal, aVal);
             return sortDirection === 'asc' ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
         });
 
-    }, [entregadoresData, searchTerm, sortField, sortDirection, showInactiveOnly]);
+    }, [deferredSearchTerm, indexedEntregadores, showInactiveOnly, sortDirection, sortField]);
 
-    const handleSort = (field: EntregadoresSortField) => {
-        if (sortField === field) setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-        else { setSortField(field); setSortDirection('desc'); }
+    const setShowInactiveOnly = (value: boolean) => {
+        startTransition(() => {
+            setShowInactiveOnlyState(value);
+        });
     };
 
-    return { sortedEntregadores, sortField, sortDirection, showInactiveOnly, setShowInactiveOnly, handleSort };
+    const handleSort = (field: EntregadoresSortField) => {
+        startTransition(() => {
+            if (sortField === field) setSortDirectionState(sortDirection === 'asc' ? 'desc' : 'asc');
+            else {
+                setSortFieldState(field);
+                setSortDirectionState('desc');
+            }
+        });
+    };
+
+    return { sortedEntregadores, sortField, sortDirection, showInactiveOnly, setShowInactiveOnly, handleSort, isFilteringDeferred: isPending || deferredSearchTerm !== searchTerm };
 }

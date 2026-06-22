@@ -36,6 +36,30 @@ function pruneGlobalCache(ttl: number): void {
   }
 }
 
+export function readSharedCacheEntry<T>(key: string, ttl = CACHE.TAB_DATA_TTL): T | null {
+  pruneGlobalCache(ttl);
+
+  const cached = globalCache.get(key);
+  if (cached && isCacheValid(cached, ttl)) {
+    touchGlobalCacheEntry(key, cached);
+    return cached.data as T;
+  }
+
+  const sessionData = getFromSessionStorage<T>(key, ttl);
+  if (sessionData !== null) {
+    touchGlobalCacheEntry(key, createCacheEntry(sessionData, ttl) as CacheEntry<unknown>);
+    return sessionData;
+  }
+
+  return null;
+}
+
+export function writeSharedCacheEntry<T>(key: string, data: T, ttl = CACHE.TAB_DATA_TTL): void {
+  touchGlobalCacheEntry(key, createCacheEntry(data, ttl) as CacheEntry<unknown>);
+  pruneGlobalCache(ttl);
+  setToSessionStorage(key, data, ttl);
+}
+
 export function useCache<T>(options: UseCacheOptions<T>) {
   const { ttl = CACHE.TAB_DATA_TTL, getCacheKey } = options;
   const ttlRef = useRef(ttl);
@@ -48,30 +72,14 @@ export function useCache<T>(options: UseCacheOptions<T>) {
     const key = getCacheKeyRef.current(params);
     const ttlMs = ttlRef.current;
 
-    pruneGlobalCache(ttlMs);
-
-    const cached = globalCache.get(key);
-    if (cached && isCacheValid(cached, ttlMs)) {
-      touchGlobalCacheEntry(key, cached);
-      return cached.data as T;
-    }
-
-    const sessionData = getFromSessionStorage<T>(key, ttlMs);
-    if (sessionData !== null) {
-      touchGlobalCacheEntry(key, createCacheEntry(sessionData, ttlMs) as CacheEntry<unknown>);
-      return sessionData;
-    }
-
-    return null;
+    return readSharedCacheEntry<T>(key, ttlMs);
   }, []);
 
   const setCached = useCallback((params: any, data: T): void => {
     const key = getCacheKeyRef.current(params);
     const ttlMs = ttlRef.current;
 
-    touchGlobalCacheEntry(key, createCacheEntry(data, ttlMs) as CacheEntry<unknown>);
-    pruneGlobalCache(ttlMs);
-    setToSessionStorage(key, data, ttlMs);
+    writeSharedCacheEntry<T>(key, data, ttlMs);
   }, []);
 
   const clearCache = useCallback((): void => {

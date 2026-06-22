@@ -14,6 +14,7 @@ import { ValoresError, ValoresEmpty } from './valores/ValoresStates';
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
 import { ViewTransition } from '@/components/ui/view-transition';
+import { LoadingNotice } from '@/components/ui/loading-notice';
 import type { CurrentUser } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 
@@ -39,13 +40,15 @@ const ValoresView = React.memo(function ValoresView({
     setSearchTerm, handleSort, formatarReal
   } = useValoresData(valoresData, loading, filtrosSemDetalhamento);
 
+  const hasValoresData = Array.isArray(valoresData) && valoresData.length > 0;
+
   const handleExport = useCallback(async () => {
     try { setIsExporting(true); await exportarValoresParaExcel(sortedValores); }
     catch (err) { safeLog.error('Erro export valores', err); }
     finally { setIsExporting(false); }
   }, [sortedValores]);
 
-  if (loading && !valoresData) {
+  if (loading && !hasValoresData) {
     return (
       <ViewTransition stateKey="valores-loading">
         <DashboardSkeleton contentOnly />
@@ -53,7 +56,7 @@ const ValoresView = React.memo(function ValoresView({
     );
   }
 
-  if (error && !valoresData) {
+  if (error && !hasValoresData) {
     return (
       <ViewTransition stateKey="valores-error">
         <ValoresError error={error} />
@@ -80,6 +83,21 @@ const ValoresView = React.memo(function ValoresView({
   return (
     <ViewTransition stateKey="valores-content">
       <div className="space-y-6 animate-fade-in w-full max-w-[1800px] mx-auto pb-10">
+        {loading ? (
+          <LoadingNotice
+            tone="blue"
+            message="Atualizando valores com os filtros atuais"
+            detail="Mantendo os cards e a tabela anteriores enquanto o novo lote e preparado."
+          />
+        ) : null}
+
+        {isSearching ? (
+          <LoadingNotice
+            tone="sky"
+            message="Aplicando busca e ordenacao sem travar a tela"
+            detail="A lista e refinada de forma gradual para evitar travamentos em bases grandes."
+          />
+        ) : null}
         <div>
           <ValoresStatsCards totalGeral={totalGeral} totalEntregadores={totalEntregadores} totalCorridas={totalCorridas} taxaMediaGeral={taxaMediaGeral} formatarReal={formatarReal} />
         </div>

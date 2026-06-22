@@ -1,12 +1,16 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useDeferredValue, useEffect, useMemo, useState, useTransition } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { ValoresEntregador } from '@/types';
+
+const stringCollator = new Intl.Collator('pt-BR', { sensitivity: 'base', numeric: true });
 
 export function useValoresSort(dataToDisplay: ValoresEntregador[]) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
     const searchParamsKey = searchParams.toString();
+    const deferredDataToDisplay = useDeferredValue(dataToDisplay);
+    const [isPending, startTransition] = useTransition();
 
     const getInitialSortField = useCallback(() => {
         return (searchParams.get('val_sort') as keyof ValoresEntregador) || 'total_taxas';
@@ -15,10 +19,9 @@ export function useValoresSort(dataToDisplay: ValoresEntregador[]) {
         return (searchParams.get('val_dir') as 'asc' | 'desc') || 'desc';
     }, [searchParams]);
 
-    const [sortField, setSortField] = useState<keyof ValoresEntregador>(getInitialSortField);
-    const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>(getInitialSortDirection);
+    const [sortField, setSortFieldState] = useState<keyof ValoresEntregador>(getInitialSortField);
+    const [sortDirection, setSortDirectionState] = useState<'asc' | 'desc'>(getInitialSortDirection);
 
-    // Sync to URL
     useEffect(() => {
         const params = new URLSearchParams(searchParams.toString());
         let changed = false;
@@ -32,22 +35,28 @@ export function useValoresSort(dataToDisplay: ValoresEntregador[]) {
         } else if (params.has('val_dir')) { params.delete('val_dir'); changed = true; }
 
         if (changed) {
-            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+            const nextQuery = params.toString();
+            const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
+            const currentQuery = searchParams.toString();
+            const currentUrl = currentQuery ? `${pathname}?${currentQuery}` : pathname;
+
+            if (nextUrl !== currentUrl) {
+                router.replace(nextUrl, { scroll: false });
+            }
         }
     }, [sortField, sortDirection, pathname, router, searchParams]);
 
-    // Update state if URL changes externally (optional but good practice)
     useEffect(() => {
         const urlSort = getInitialSortField();
         const urlDir = getInitialSortDirection();
-        if (urlSort !== sortField) setSortField(urlSort);
-        if (urlDir !== sortDirection) setSortDirection(urlDir);
+        if (urlSort !== sortField) setSortFieldState(urlSort);
+        if (urlDir !== sortDirection) setSortDirectionState(urlDir);
     }, [getInitialSortDirection, getInitialSortField, searchParamsKey, sortDirection, sortField]);
 
     const sortedValores = useMemo(() => {
-        if (!Array.isArray(dataToDisplay) || dataToDisplay.length === 0) return [];
+        if (!Array.isArray(deferredDataToDisplay) || deferredDataToDisplay.length === 0) return [];
 
-        const dataCopy = [...dataToDisplay];
+        const dataCopy = [...deferredDataToDisplay];
 
         return dataCopy.sort((a, b) => {
             const aValue = a[sortField];
@@ -60,7 +69,7 @@ export function useValoresSort(dataToDisplay: ValoresEntregador[]) {
             if (sortField === 'nome_entregador' || sortField === 'id_entregador') {
                 const aStr = String(aValue).toLowerCase().trim();
                 const bStr = String(bValue).toLowerCase().trim();
-                const comparison = aStr.localeCompare(bStr, 'pt-BR', { sensitivity: 'base', numeric: true });
+                const comparison = stringCollator.compare(aStr, bStr);
                 return sortDirection === 'asc' ? comparison : -comparison;
             }
 
@@ -70,26 +79,29 @@ export function useValoresSort(dataToDisplay: ValoresEntregador[]) {
             const comparison = aNum - bNum;
 
             if (comparison === 0) {
-                return a.nome_entregador.localeCompare(b.nome_entregador, 'pt-BR');
+                return stringCollator.compare(a.nome_entregador, b.nome_entregador);
             }
 
             return sortDirection === 'asc' ? comparison : -comparison;
         });
-    }, [dataToDisplay, sortField, sortDirection]);
+    }, [deferredDataToDisplay, sortField, sortDirection]);
 
     const handleSort = (field: keyof ValoresEntregador) => {
-        if (sortField === field) {
-            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
-        } else {
-            setSortField(field);
-            setSortDirection('desc');
-        }
+        startTransition(() => {
+            if (sortField === field) {
+                setSortDirectionState(sortDirection === 'asc' ? 'desc' : 'asc');
+            } else {
+                setSortFieldState(field);
+                setSortDirectionState('desc');
+            }
+        });
     };
 
     return {
         sortedValores,
         sortField,
         sortDirection,
-        handleSort
+        handleSort,
+        isSortingDeferred: isPending || deferredDataToDisplay !== dataToDisplay
     };
 }

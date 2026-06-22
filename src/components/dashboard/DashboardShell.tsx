@@ -8,7 +8,10 @@ import { DashboardFiltersContainer } from '@/components/dashboard/DashboardFilte
 import { DashboardLoadingState } from '@/components/dashboard/DashboardLoadingState';
 import { DashboardViewsRenderer } from '@/components/dashboard/DashboardViewsRenderer';
 import { OnlineUsersSidebarLauncher } from '@/components/OnlineUsersSidebar/OnlineUsersSidebarLauncher';
+import { LoadingNotice } from '@/components/ui/loading-notice';
 import { useDashboardPage } from '@/hooks/dashboard/useDashboardPage';
+import { prefetchTabDataInBackground } from '@/hooks/data/useTabData';
+import { setLatestDashboardFilterPayload } from '@/hooks/dashboard/dashboardPrefetchState';
 import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
 import { FaviconManager } from '@/components/layout/FaviconManager';
@@ -60,6 +63,14 @@ function DashboardShellContent() {
   const showInitialLoading = ui.loading && !hasMainData;
 
   React.useEffect(() => {
+    setLatestDashboardFilterPayload(filters.payload);
+
+    return () => {
+      setLatestDashboardFilterPayload(null);
+    };
+  }, [filters.payload]);
+
+  React.useEffect(() => {
     if (!auth.isAuthenticated) return;
 
     const tabsToWarm: TabType[] = [
@@ -106,6 +117,55 @@ function DashboardShellContent() {
       }
     };
   }, [auth.isAuthenticated]);
+
+
+  React.useEffect(() => {
+    if (!auth.isAuthenticated || ui.loading) return;
+    if (typeof filters.payload.p_organization_id !== 'string' || !filters.payload.p_organization_id.trim()) return;
+
+    let cancelled = false;
+    let idleId: number | null = null;
+    let timeoutId: number | null = null;
+
+    const warmData = () => {
+      const tabsToPrefetch: TabType[] = ['entregadores', 'valores'];
+      let index = 0;
+
+      const prefetchNext = () => {
+        if (cancelled || index >= tabsToPrefetch.length) return;
+
+        const tab = tabsToPrefetch[index];
+        index += 1;
+
+        void prefetchTabDataInBackground(tab, tab === 'valores'
+          ? { ...filters.payload, detailed: false }
+          : filters.payload
+        ).finally(() => {
+          if (!cancelled) {
+            timeoutId = window.setTimeout(prefetchNext, 180);
+          }
+        });
+      };
+
+      prefetchNext();
+    };
+
+    if (typeof window.requestIdleCallback === 'function') {
+      idleId = window.requestIdleCallback(warmData, { timeout: 2200 });
+    } else {
+      timeoutId = window.setTimeout(warmData, 1200);
+    }
+
+    return () => {
+      cancelled = true;
+      if (idleId !== null && typeof window.cancelIdleCallback === 'function') {
+        window.cancelIdleCallback(idleId);
+      }
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
+    };
+  }, [auth.isAuthenticated, filters.payload, ui.loading]);
 
   if (auth.isCheckingAuth) return <DashboardAuthLoading />;
   if (auth.hasSessionWithoutProfile) {
@@ -161,9 +221,11 @@ function DashboardShellContent() {
             </div>
 
             {ui.loading ? (
-              <div className="rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/25 dark:text-blue-200">
-                Atualizando indicadores com os filtros atuais...
-              </div>
+              <LoadingNotice
+                tone="blue"
+                message="Atualizando indicadores com os filtros atuais"
+                detail="Mantendo o painel visivel enquanto os dados novos chegam."
+              />
             ) : null}
 
             <main className="min-w-0">

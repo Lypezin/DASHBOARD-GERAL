@@ -79,7 +79,7 @@ export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentU
         }) : 'null';
     }, [assignedPracasKey, currentUser, currentUserId, currentUserOrganizationId, currentUserRole, effectiveOrganizationId, isCurrentUserAdmin]);
 
-    const stableFilters = useMemo(() => ({
+    const stableFilters = useMemo<Filters>(() => ({
         ano,
         semana,
         praca,
@@ -89,9 +89,9 @@ export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentU
         subPracas: subPracasKey ? subPracasKey.split('|') : [],
         origens: origensKey ? origensKey.split('|') : [],
         turnos: turnosKey ? turnosKey.split('|') : [],
-        semanas: semanasKey
-            ? semanasKey.split('|').map((value) => Number(value)).filter((value) => Number.isFinite(value))
-            : [],
+        semanas: (semanasKey ? semanasKey.split('|') : [])
+            .map((value): number => Number(value))
+            .filter((value): value is number => Number.isFinite(value)),
         filtroModo,
         dataInicial,
         dataFinal

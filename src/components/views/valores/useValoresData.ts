@@ -1,5 +1,4 @@
-
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { ValoresEntregador } from '@/types';
 import { useValoresServerData } from './hooks/useValoresServerData';
 import { useValoresSearch } from './hooks/useValoresSearch';
@@ -11,7 +10,6 @@ import { useValoresBreakdown } from './useValoresBreakdown';
 export function useValoresData(initialData: ValoresEntregador[] | null, initialLoading: boolean, filters: any) {
     const { allData, totalServerItems } = useValoresServerData(initialData, filters);
 
-    // Busca (Local)
     const {
         searchTerm,
         setSearchTerm,
@@ -20,30 +18,33 @@ export function useValoresData(initialData: ValoresEntregador[] | null, initialL
         dataToDisplay
     } = useValoresSearch(allData);
 
-    // Ordenação (Local)
     const {
         sortedValores,
         sortField,
         sortDirection,
-        handleSort
+        handleSort,
+        isSortingDeferred
     } = useValoresSort(dataToDisplay);
 
-    // Paginação Client-Side
-    const [visibleCount, setVisibleCount] = useState(30);
+    const initialVisibleCount = useMemo(() => {
+        if (sortedValores.length > 1000) return 15;
+        if (sortedValores.length > 400) return 20;
+        return 30;
+    }, [sortedValores.length]);
+    const loadMoreStep = initialVisibleCount;
+    const [visibleCount, setVisibleCount] = useState(initialVisibleCount);
 
-    // Resetar paginação quando filtros/busca/ordenação mudam
     useEffect(() => {
-        setVisibleCount(30);
-    }, [filters, searchTerm, sortField, sortDirection, allData]); // allData changed means reload
+        setVisibleCount(initialVisibleCount);
+    }, [filters, searchTerm, sortField, sortDirection, allData, initialVisibleCount]);
 
     const loadMoreClient = useCallback(() => {
-        setVisibleCount(prev => prev + 30);
-    }, []);
+        setVisibleCount(prev => prev + loadMoreStep);
+    }, [loadMoreStep]);
 
     const paginatedValores = sortedValores.slice(0, visibleCount);
     const hasMoreClient = visibleCount < sortedValores.length;
 
-    // Estatísticas (Global Breakdown)
     const shouldLoadBreakdown = Boolean(filters?.detailed);
     const { data: breakdownData, loading: loadingBreakdown, error: breakdownError } = useValoresBreakdown(filters, shouldLoadBreakdown);
 
@@ -55,12 +56,12 @@ export function useValoresData(initialData: ValoresEntregador[] | null, initialL
     } = useValoresStats(dataToDisplay);
 
     return {
-        sortedValores, // Mantém completo para Exportação
-        paginatedValores, // Fatiado para Exibição na Tabela
+        sortedValores,
+        paginatedValores,
         sortField,
         sortDirection,
         searchTerm,
-        isSearching,
+        isSearching: isSearching || isSortingDeferred,
         error: searchError || breakdownError || null,
         totalGeral,
         totalCorridas,
@@ -69,9 +70,9 @@ export function useValoresData(initialData: ValoresEntregador[] | null, initialL
         setSearchTerm,
         handleSort,
         formatarReal,
-        loadMore: loadMoreClient, // Override para usar paginação local
+        loadMore: loadMoreClient,
         hasMore: hasMoreClient,
-        isLoadingMore: false, // Client side é instantâneo
+        isLoadingMore: false,
         breakdownData,
         loadingBreakdown
     };

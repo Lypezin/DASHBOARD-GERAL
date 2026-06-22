@@ -93,7 +93,10 @@ export const ValoresTable = React.memo(function ValoresTable({
                                 {sortedValores.map((entregador, index) => (
                                     entregador ? (
                                         <ValoresTableRow
-                                            key={`${entregador.id_entregador}-${index}`}
+                                            key={isDetailed
+                                                ? `${entregador.id_entregador}-${entregador.turno || 'sem-turno'}-${entregador.sub_praca || 'sem-subpraca'}`
+                                                : `${entregador.id_entregador}`
+                                            }
                                             entregador={entregador}
                                             ranking={index + 1}
                                             formatarReal={formatarReal}
