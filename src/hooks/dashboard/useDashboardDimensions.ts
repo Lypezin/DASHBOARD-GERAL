@@ -3,8 +3,8 @@ import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import type { DimensoesDashboard } from '@/types';
 import { fetchAllWeeks, primeAllWeeksCache } from '@/hooks/data/allWeeksCache';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 const CACHE_KEY = 'dashboard_dimensions_cache_v7';
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hora
 export const DEFAULT_YEARS = buildFallbackYears();
@@ -192,6 +192,6 @@ export function writeCachedDimensions(data: DimensoesDashboard) {
   try {
     sessionStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: Date.now(), data }));
   } catch {
-    // Cache em sessionStorage e uma otimização opcional; falhas nao devem afetar o dashboard.
+    // Cache em sessionStorage e uma otimizaÃ§Ã£o opcional; falhas nao devem afetar o dashboard.
   }
 }

@@ -6,8 +6,8 @@ import { RPC_TIMEOUTS } from '@/constants/config';
 import { transformDashboardData, createEmptyDashboardData } from '@/utils/dashboard/transformers';
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 function getSafeErrorMessage(error: unknown): string {
     if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
@@ -30,18 +30,6 @@ export function useDashboardDataFetcher({
         setError(null);
 
         try {
-            // Verificar se o Supabase está disponível
-            try {
-                const { supabase } = await import('@/lib/supabaseClient');
-                if (!supabase || !supabase.rpc) throw new Error('Cliente Supabase não está disponível');
-            } catch (supabaseError) {
-                safeLog.error('❌ [useDashboardMainData] Erro ao verificar cliente Supabase:', supabaseError);
-                const errorMsg = 'Cliente Supabase não está disponível. Aguarde o carregamento completo da página.';
-                setError(errorMsg);
-                if (onError) onError(new Error(errorMsg));
-                setLoading(false);
-                return null;
-            }
 
             if (IS_DEV) safeLog.info('[useDashboardMainData] Chamando dashboard_resumo com payload:', currentPayload);
 
@@ -53,7 +41,7 @@ export function useDashboardDataFetcher({
             if (rpcError) {
                 const errorMessage = String(rpcError?.message || '');
                 if (errorMessage.includes('placeholder.supabase.co') || errorMessage.includes('ERR_NAME_NOT_RESOLVED')) {
-                    const errorMsg = 'Variáveis de ambiente do Supabase não estão configuradas.';
+                    const errorMsg = 'VariÃ¡veis de ambiente do Supabase nÃ£o estÃ£o configuradas.';
                     setError(errorMsg);
                     if (onError) onError(new Error(errorMsg));
                     setLoading(false);

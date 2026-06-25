@@ -95,11 +95,11 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
         <AnimatePresence mode="sync" initial={false}>
           <motion.div
             key={activeTab}
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 10, scale: 0.992 }}
-            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
-            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.996 }}
-            transition={{ duration: shouldReduceMotion ? 0.01 : 0.2, ease: [0.22, 1, 0.36, 1] }}
-            className="min-w-0 w-full transform-gpu will-change-transform"
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}
+            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
+            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
+            transition={{ duration: shouldReduceMotion ? 0.01 : 0.16, ease: [0.22, 1, 0.36, 1] }}
+            className="min-w-0 w-full"
           >
             {renderActiveView(activeTab, props)}
           </motion.div>

@@ -1,6 +1,6 @@
 import { ERROR_MESSAGES } from './constants';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 const IS_PROD = process.env.NODE_ENV === 'production';
 
 interface ErrorWithCode {

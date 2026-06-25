@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { DELAYS } from '@/constants/config';
+import { IS_DEV } from '@/constants/environment';
 import { createEmptyDashboardData } from '@/utils/dashboard/transformers';
 import { updateDashboardState, clearDashboardState } from './utils/updateDashboardState';
 import type { FilterPayload } from '@/types/filters';
@@ -9,7 +10,6 @@ import type {
     AderenciaSubPraca, AderenciaOrigem, AderenciaDiaOrigem, DimensoesDashboard
 } from '@/types';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 interface UseDashboardDataEffectProps {
     filterPayload: FilterPayload;

@@ -2,8 +2,8 @@ import { Filters, CurrentUser, hasFullCityAccess } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { LIMITS, VALIDATION } from '@/constants/config';
 import { getAllYearsDateRange } from './allYearsRange';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser | null, passedOrganizationId?: string | null) => {
     if (IS_DEV) {
@@ -25,7 +25,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
         return null;
     };
 
-    // Processar Inputs Básicos
+    // Processar Inputs BÃ¡sicos
     const p_sub_pracas = processArrayOrString(filters.subPracas, filters.subPraca);
     const p_origens = processArrayOrString(filters.origens, filters.origem);
     const p_turnos = processArrayOrString(filters.turnos, filters.turno);
@@ -65,7 +65,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
         // Modo Ano/Semana
     }
 
-    // Processar Praça e Permissões
+    // Processar PraÃ§a e PermissÃµes
     let praca = filters.praca?.trim() || null;
     if (praca && praca.length > LIMITS.MAX_PRACA_LENGTH) praca = praca.substring(0, LIMITS.MAX_PRACA_LENGTH);
 
@@ -73,7 +73,7 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
         if (currentUser.assigned_pracas.length === 1) {
             praca = currentUser.assigned_pracas[0];
         } else {
-            // Se não selecionou ou selecionou inválida, usar todas permitidas
+            // Se nÃ£o selecionou ou selecionou invÃ¡lida, usar todas permitidas
             if (!praca || !currentUser.assigned_pracas.includes(praca)) {
                 const limited = currentUser.assigned_pracas.slice(0, MAX_ARRAY_SIZE);
                 praca = limited.length === 1 ? limited[0] : limited.join(',');

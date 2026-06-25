@@ -1,6 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { createBrowserClient } from '@supabase/ssr';
 import { validateEnvVars, handleMissingEnvVars } from './envValidator';
+import { IS_DEV } from '@/constants/environment';
 
 let supabaseInstance: SupabaseClient | null = null;
 
@@ -12,7 +13,7 @@ export function getSupabaseClient(): SupabaseClient {
 
     if (hasValidVars && runtimeUrl && runtimeKey) {
         if (!supabaseInstance) {
-            if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+            if (typeof window !== 'undefined' && IS_DEV) {
                 const { safeLog } = require('@/lib/errorHandler');
                 safeLog.info('[Supabase Client] Criando nova instância com variáveis válidas');
             }

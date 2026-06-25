@@ -1,8 +1,8 @@
 'use client';
 
 import { safeLog } from './errorHandler';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 // Cache para evitar múltiplos imports
 let xlsxCache: typeof import('xlsx') | null = null;
@@ -38,4 +38,3 @@ export async function loadXLSX(): Promise<typeof import('xlsx')> {
     throw error;
   }
 }
-

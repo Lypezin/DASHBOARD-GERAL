@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import { safeLog } from '@/lib/errorHandler';
 import { supabase } from '@/lib/supabaseClient';
+import { IS_DEV } from '@/constants/environment';
 
 interface ForgotPasswordState {
     loading: boolean;
@@ -9,7 +10,6 @@ interface ForgotPasswordState {
     success: boolean;
 }
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 function createPasswordResetClient() {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;

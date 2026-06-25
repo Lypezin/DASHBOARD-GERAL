@@ -1,8 +1,8 @@
 'use client';
 
 import { safeLog } from './errorHandler';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 // Helper para carregar pdfmake apenas no cliente
 export const loadPdfMake = async () => {
@@ -57,4 +57,3 @@ export const loadPdfMake = async () => {
     throw error;
   }
 };
-

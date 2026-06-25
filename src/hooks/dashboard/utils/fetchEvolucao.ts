@@ -1,5 +1,6 @@
 import { safeRpc } from '@/lib/rpcWrapper';
 import { safeLog } from '@/lib/errorHandler';
+import { IS_DEV } from '@/constants/environment';
 import type { FilterPayload } from '@/types/filters';
 import type { EvolucaoMensal, EvolucaoSemanal, UtrSemanal } from '@/types';
 
@@ -36,7 +37,7 @@ export async function fetchDashboardEvolucaoData(
         p_turnos: filterPayload.p_turnos,
     };
 
-    if (process.env.NODE_ENV === 'development') {
+    if (IS_DEV) {
         safeLog.info('[useDashboardEvolucao] Buscando dados de evolucao:', params);
     }
 
@@ -51,7 +52,7 @@ export async function fetchDashboardEvolucaoData(
         const semanalData = normalizeArray(bundleData.semanal);
         const utrData = normalizeArray(bundleData.utr);
 
-        if (process.env.NODE_ENV === 'development') {
+        if (IS_DEV) {
             safeLog.info('[useDashboardEvolucao] Dados recebidos via bundle:', {
                 mensalLength: mensalData.length,
                 semanalLength: semanalData.length,

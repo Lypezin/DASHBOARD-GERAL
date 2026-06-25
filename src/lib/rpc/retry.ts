@@ -1,8 +1,9 @@
 import { safeLog } from '../errorHandler';
 import type { RpcError } from '@/types/rpc';
 import { is500Error, isRateLimitError } from './validation';
+import { IS_DEV } from '@/constants/environment';
+import { sleep } from '@/utils/async/sleep';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export interface RpcRetryOptions {
     maxRetries?: number; initialDelay?: number; maxDelay?: number;
@@ -77,7 +78,7 @@ export async function executeWithRpcRetry<T>(
 
             if (onRetry) onRetry(attempt + 1, result.error);
 
-            await new Promise(resolve => setTimeout(resolve, delay));
+            await sleep(delay);
         } catch (error) {
             // Logic similar to above for catched errors (simplified for brevity)
             // ... existing catch block logic ...

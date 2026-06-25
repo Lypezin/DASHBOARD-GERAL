@@ -2,8 +2,8 @@ import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { adminRpc } from '@/services/adminRpcClient';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 const CACHE_KEY = 'admin_pracas_cache_v2';
 const CACHE_TIME_KEY = 'admin_pracas_cache_v2_time';
 const CACHE_TTL_MS = 5 * 60 * 1000;

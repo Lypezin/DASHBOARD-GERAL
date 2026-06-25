@@ -1,5 +1,4 @@
-export const IS_DEV = process.env.NODE_ENV === 'development';
-
+export { IS_DEV } from '@/constants/environment';
 export const EXCLUDED_ENVIADOS = ['Confirmar', 'Cancelado', 'Abrindo MEI'];
 
 export const ABERTO_STATUSES = [

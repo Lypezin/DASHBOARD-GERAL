@@ -1,8 +1,9 @@
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { clearSupabaseStorage, hasOldSupabaseTokens, signOutAndRedirect } from '@/utils/authHelpers';
+import { IS_DEV } from '@/constants/environment';
+import { sleep } from '@/utils/async/sleep';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export async function checkSession(router: any) {
     if (hasOldSupabaseTokens()) {
@@ -35,12 +36,12 @@ export async function checkSession(router: any) {
             } else if (error) {
                 verifyError = error;
                 if (IS_DEV) safeLog.warn(`[useAuthGuard] Tentativa ${i + 1}/${maxRetries} falhou:`, error.message);
-                await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, i)));
+                await sleep(500 * Math.pow(2, i));
             }
         } catch (err) {
             verifyError = err;
             if (IS_DEV) safeLog.warn(`[useAuthGuard] Erro na tentativa ${i + 1}/${maxRetries}:`, err);
-            await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, i)));
+            await sleep(500 * Math.pow(2, i));
         }
     }
 

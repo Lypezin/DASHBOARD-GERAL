@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { fetchAllOrganizations, createNewOrganization, updateExistingOrganization } from '@/services/organizationService';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export interface Organization {
   id: string;
@@ -91,4 +91,3 @@ export function useOrganizations(options: { enabled?: boolean } = {}) {
     updateOrganization,
   };
 }
-

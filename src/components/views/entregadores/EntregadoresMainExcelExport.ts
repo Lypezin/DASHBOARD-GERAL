@@ -4,8 +4,8 @@ import { loadXLSX } from '@/lib/xlsxClient';
 import { calcularPercentualAceitas, calcularPercentualCompletadas } from './EntregadoresUtils';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { fetchEntregadoresFirstSeen, formatFirstSeenDate } from './fetchEntregadoresFirstSeen';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 const formatarPorcentagem = (valor: number) => {
     return (valor / 100).toLocaleString('pt-BR', { style: 'percent', minimumFractionDigits: 1 });

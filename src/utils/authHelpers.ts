@@ -5,8 +5,8 @@
 
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 /**
  * Limpa todas as chaves do localStorage relacionadas ao Supabase
@@ -69,4 +69,3 @@ export async function signOutAndRedirect(router: { push: (path: string) => void 
     router.push(targetPath);
   }
 }
-

@@ -1,7 +1,7 @@
 import { CacheEntry, isCacheValid, createCacheEntry } from '@/types/cache';
 import { CACHE } from '@/constants/config';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 const SESSION_STORAGE_PREFIX = 'dashboard_cache_v2_';
 const MAX_SESSION_STORAGE_SIZE = 5 * 1024 * 1024; // 5MB
 

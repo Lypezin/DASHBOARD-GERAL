@@ -5,8 +5,8 @@ import { getAppApiData } from '@/utils/app/fetchAppApi';
 import { fetchOrganizationData } from '../hooks/organizationDataHelper';
 import type { Organization } from '../organizationTypes';
 import type { BootstrapProfile, AppBootstrapState } from './types';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function createCurrentUser(profile: BootstrapProfile | null): CurrentUser | null {
   if (!profile || profile.is_approved === false) {

@@ -1,4 +1,5 @@
 import { safeLog } from '@/lib/errorHandler';
+import { sleep } from '@/utils/async/sleep';
 
 export interface RefreshState {
     isRefreshing: boolean;
@@ -12,8 +13,6 @@ export type SetRefreshState = (
 
 const POLL_INTERVAL_MS = 5000;
 const MAX_MONITORING_MS = 60 * 60 * 1000;
-
-const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export interface RefreshQueueState {
     success?: boolean;
@@ -165,7 +164,7 @@ async function monitorRefreshQueue(
             status: `Atualizando dados em segundo plano: ${completed}/${total} concluidos (${remaining} pendente(s)).`
         });
 
-        await wait(POLL_INTERVAL_MS);
+        await sleep(POLL_INTERVAL_MS);
         remaining = await fetchPendingCount(incrementalOnly);
         total = Math.max(total, remaining);
     }

@@ -4,8 +4,8 @@ import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 
 import { fetchUserProfile, fetchUserAvatar } from './profileService';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export interface UserProfile {
   id: string;
@@ -85,4 +85,3 @@ export const usePerfilData = () => {
     refreshUser: checkUser,
   };
 };
-

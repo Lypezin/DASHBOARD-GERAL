@@ -2,8 +2,8 @@ import { safeLog, getSafeErrorMessage } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { createComparisonFilter, parseWeekString } from '@/utils/comparacaoHelpers';
 import { DashboardResumoData, CurrentUser } from '@/types';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export async function fetchComparisonMetrics(
     semanasSelecionadas: string[],

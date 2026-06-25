@@ -6,8 +6,8 @@
 import { MarketingDateFilter } from '@/types';
 import { SANTO_ANDRE_SUB_PRACAS, SAO_BERNARDO_SUB_PRACAS, CITY_DB_MAPPING } from '@/constants/marketing';
 import { safeLog } from '@/lib/errorHandler';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 /**
  * Garante que um filtro de data de marketing tenha pelo menos um filtro aplicado
@@ -76,4 +76,3 @@ export function buildCityQuery(query: any, cidade: string): typeof query {
     return query.in('regiao_atuacao', uniqueVariants);
   }
 }
-

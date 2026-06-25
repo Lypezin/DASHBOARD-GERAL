@@ -1,8 +1,8 @@
 import React, { useCallback, useMemo } from 'react';
 import { Filters, FilterOption, CurrentUser, hasFullCityAccess } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export type FiltroBarChangeHandler = (
     key: keyof Filters,

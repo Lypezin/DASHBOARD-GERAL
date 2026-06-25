@@ -9,8 +9,8 @@ import { AuthGuardOptions, AuthGuardResult } from './useAuthGuard';
 import { CurrentUser } from '@/types';
 
 import { isPasswordRecoveryFlow } from './utils/recoveryDetection';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function useAuthFlow(options: AuthGuardOptions): AuthGuardResult {
     const {

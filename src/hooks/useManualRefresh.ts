@@ -2,12 +2,11 @@ import { useState, useCallback } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import type { RefreshMVState } from '@/types/upload';
 import { mvService } from '@/services/mvService';
+import { sleep } from '@/utils/async/sleep';
 
 const RESET_DELAY_MS = 5000;
 const POLL_INTERVAL_MS = 5000;
 const MAX_MONITORING_MS = 60 * 60 * 1000;
-
-const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 export function useManualRefresh() {
     const [state, setState] = useState<RefreshMVState>({
@@ -56,7 +55,7 @@ export function useManualRefresh() {
                     message: `Atualizando MVs em segundo plano: ${remaining} pendente(s).`
                 }));
 
-                await wait(POLL_INTERVAL_MS);
+                await sleep(POLL_INTERVAL_MS);
 
                 const { data: pendingData, error: pendingError } = await mvService.getPendingMVs();
                 if (pendingError) throw new Error(pendingError.message || 'Falha ao acompanhar fila de MVs.');

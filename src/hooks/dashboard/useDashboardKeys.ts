@@ -4,8 +4,8 @@ import { buildFilterPayload } from '@/utils/filters/payloadBuilder';
 import { safeLog } from '@/lib/errorHandler';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { createRequestKey } from '@/utils/request/createRequestKey';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentUser | null) {
     const { organizationId } = useOrganization();

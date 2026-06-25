@@ -4,8 +4,8 @@ import { safeRpc } from '@/lib/rpcWrapper';
 import { CurrentUser, hasFullCityAccess, DimensoesDashboard, Filters } from '@/types';
 import { toUniqueOptions, createPracasKey, createDimensionCacheKey, processFallbackSubPracas } from './dimensionHelpers';
 import { DimensionCacheEntry, readCachedOptions, writeCachedOptions } from './dimensionCache';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 interface DimensionOptionsRpcRow {
     sub_pracas?: unknown[];

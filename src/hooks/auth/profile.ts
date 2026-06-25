@@ -2,8 +2,8 @@ import { safeLog } from '@/lib/errorHandler';
 import { signOutAndRedirect } from '@/utils/authHelpers';
 import { CurrentUser } from '@/types';
 import { getAppApiData } from '@/utils/app/fetchAppApi';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export async function fetchAndValidateProfile(
     router: any,

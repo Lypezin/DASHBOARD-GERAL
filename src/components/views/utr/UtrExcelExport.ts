@@ -2,8 +2,8 @@ import { UtrData, UtrGeral } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { formatarHorasParaHMS } from '@/utils/formatters';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 // Helper local para formatação
 const formatarPorcentagem = (valor: number | undefined) => {

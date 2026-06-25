@@ -8,8 +8,8 @@ import { safeLog } from '@/lib/errorHandler';
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { UserProfile } from './types';
 import { shouldSkipRedirect } from './utils/headerAuthSteps';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export type { UserProfile };
 

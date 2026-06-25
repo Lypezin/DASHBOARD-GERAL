@@ -1,6 +1,7 @@
 'use client';
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
+import { IS_DEV } from '@/constants/environment';
 
 interface Props { children: ReactNode; fallback?: ReactNode; }
 interface State { hasError: boolean; error: Error | null; errorInfo: ErrorInfo | null; }
@@ -53,7 +54,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 Recarregar página
               </button>
             </div>
-            {process.env.NODE_ENV === 'development' && this.state.error && (
+            {IS_DEV && this.state.error && (
               <details className="mt-4 text-left">
                 <summary className="cursor-pointer text-xs text-slate-600 dark:text-slate-400">
                   Detalhes do erro (dev)

@@ -2,8 +2,8 @@ import { RpcParams } from '@/types/rpc';
 import { validateFilterPayload } from '@/lib/validate';
 import { safeLog } from '@/lib/errorHandler';
 import { sanitizeParams } from '@/lib/rpcUtils';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function normalizeParams(params: RpcParams = {}): RpcParams | undefined {
     if (params && typeof params === 'object' && !Array.isArray(params)) {

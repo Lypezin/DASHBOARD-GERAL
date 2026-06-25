@@ -1,6 +1,6 @@
 import { sanitizeError, sanitizeLogData } from './sanitization';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export const safeLog = {
     info: (message: string, data?: unknown) => {

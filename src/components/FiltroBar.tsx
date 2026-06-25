@@ -7,8 +7,8 @@ import { FilterModeSwitch } from './dashboard/filters/FilterModeSwitch';
 import { FilterPrimarySection } from './dashboard/filters/FilterPrimarySection';
 import { FilterSecondarySection } from './dashboard/filters/FilterSecondarySection';
 import { FilterClearButton } from './dashboard/filters/FilterClearButton';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 const FiltroBar = React.memo(function FiltroBar({
   filters, setFilters, anos, semanas, pracas, subPracas, origens, turnos, currentUser,

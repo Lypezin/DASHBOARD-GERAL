@@ -1,8 +1,8 @@
 import { safeLog } from '@/lib/errorHandler';
 import { DELAYS } from '@/constants/config';
 import { postUploadApi } from '@/utils/upload/fetchUploadApi';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function triggerConcurrentRefresh(table: string) {
     setTimeout(async () => {

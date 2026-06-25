@@ -1,8 +1,8 @@
 import { safeLog } from '@/lib/errorHandler';
 import { DashboardFilters } from '@/types/filters';
 import { postAppApiData } from '@/utils/app/fetchAppApi';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 const functionAvailability = {
     status: null as boolean | null,

@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import type { DashboardFilters } from '@/types/filters';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 interface UseEvolutionAutoSelectProps {
     filters: { ano: number | null };

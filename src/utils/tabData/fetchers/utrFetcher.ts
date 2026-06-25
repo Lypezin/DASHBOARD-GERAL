@@ -5,12 +5,12 @@ import { fetchUtrFallback } from '../fallbacks';
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
 import { fetchDashboardDataApi } from '@/utils/dashboard/fetchDashboardDataApi';
+import { IS_DEV } from '@/constants/environment';
 
 interface FetchOptions {
     filterPayload: FilterPayload;
 }
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 /**
  * Busca dados de UTR

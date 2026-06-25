@@ -1,4 +1,5 @@
 import { SupabaseClient } from '@supabase/supabase-js';
+import { IS_DEV } from '@/constants/environment';
 
 export function validateEnvVars() {
     const runtimeUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -9,7 +10,7 @@ export function validateEnvVars() {
         runtimeUrl.includes('.supabase.co') &&
         runtimeKey.length > 20;
 
-    if (typeof window !== 'undefined' && (process.env.NODE_ENV === 'development' || !runtimeUrl || runtimeUrl.includes('placeholder'))) {
+    if (typeof window !== 'undefined' && (IS_DEV || !runtimeUrl || runtimeUrl.includes('placeholder'))) {
         const { safeLog } = require('@/lib/errorHandler');
         safeLog.info('[Supabase Client] Verificando variáveis:', {
             hasUrl: !!runtimeUrl,

@@ -1,6 +1,7 @@
 /** Utilitários para otimização de queries e redução de Disk IO. ⚠️ IMPORTANTE: Estas funções garantem que queries grandes sempre tenham filtros de data para evitar scans completos na tabela dados_corridas (1.6M linhas) */
 
 import { safeLog } from '@/lib/errorHandler';
+import { IS_DEV } from '@/constants/environment';
 import type { FilterPayload } from '@/types/filters';
 
 /** Verifica se há filtro de data no payload */
@@ -33,7 +34,7 @@ export function ensureDateFilter(payload: FilterPayload): FilterPayload & { _dat
   };
 
   // Log apenas em desenvolvimento para não poluir logs em produção
-  if (process.env.NODE_ENV === 'development') {
+  if (IS_DEV) {
     safeLog.warn(
       '⚠️ Query sem filtro de data explícito - aplicando filtro padrão (últimos 30 dias)',
       { payload: Object.keys(payload) }
@@ -76,7 +77,7 @@ export function applySafeDateFilter(
   }
 
   // Se foi adicionado filtro automático, logar em dev
-  if (payloadComFiltro._dateFilterAutoAdded && process.env.NODE_ENV === 'development') {
+  if (payloadComFiltro._dateFilterAutoAdded && IS_DEV) {
     safeLog.info(
       `✅ Filtro de data padrão aplicado: ${payloadComFiltro.p_data_inicial} até ${payloadComFiltro.p_data_final}`
     );

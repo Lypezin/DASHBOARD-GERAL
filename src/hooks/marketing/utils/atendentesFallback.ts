@@ -1,6 +1,7 @@
 
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
+import { IS_DEV } from '@/constants/environment';
 import { MarketingDateFilter, AtendenteCidadeData } from '@/types';
 import { AtendenteData } from '@/components/views/resultados/AtendenteCard';
 import { CIDADES } from '@/constants/marketing';
@@ -13,7 +14,7 @@ export const fetchFallbackData = async (
         filtroEnviados: MarketingDateFilter;
     }
 ): Promise<{ atendentes: AtendenteData[]; totais: { totalEnviado: number; totalLiberado: number } }> => {
-    if (process.env.NODE_ENV === 'development') {
+    if (IS_DEV) {
         safeLog.warn('RPC get_marketing_atendentes_data não disponível, usando fallback');
     }
 

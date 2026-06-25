@@ -9,8 +9,8 @@ import { AtendenteData } from '@/components/views/resultados/AtendenteCard';
 import { findCidadeValue } from '@/utils/atendenteMappers';
 import { fetchAndProcessValores } from '@/hooks/resultados/utils/valoresHelper';
 import { fetchLiberadosCount } from '@/hooks/resultados/utils/liberadosHelper';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function useCustoPorLiberado() {
   const fetchCustoPorLiberado = useCallback(async (

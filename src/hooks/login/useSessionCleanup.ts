@@ -6,8 +6,8 @@
 import { useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 /**
  * Hook para verificar e limpar sessões inválidas ao carregar a página

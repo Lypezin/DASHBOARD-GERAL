@@ -13,13 +13,13 @@ import {
 } from './bootstrap/types';
 
 import { 
+import { IS_DEV } from '@/constants/environment';
   fetchProfileWithRetry, 
   hydrateAvatarUrl, 
   resolveOrganization, 
   buildSnapshot 
 } from './bootstrap/helpers';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 const AppBootstrapContext = createContext<AppBootstrapContextValue | undefined>(undefined);
 
 let cachedState: AppBootstrapState | null = null;

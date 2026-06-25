@@ -1,8 +1,8 @@
 import { ValoresEntregador } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 const formatarMoeda = (valor: number | undefined) => {
     return (valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });

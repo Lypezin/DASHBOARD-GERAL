@@ -2,8 +2,8 @@ import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { MarketingDateFilter } from '@/types';
 import { ensureMarketingDateFilter } from '@/utils/marketingQueries';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export async function fetchValores(filter: MarketingDateFilter) {
     const safeFilter = ensureMarketingDateFilter(filter);

@@ -3,8 +3,8 @@ import { safeLog } from '@/lib/errorHandler';
 import { MarketingDateFilter } from '@/types';
 import { ATENDENTE_TO_ID } from '@/utils/atendenteMappers';
 import { ensureMarketingDateFilter } from '@/utils/marketingQueries';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export async function fetchAndProcessValores(filtroEnviadosLiberados: MarketingDateFilter) {
     const safeFilter = ensureMarketingDateFilter(filtroEnviadosLiberados);

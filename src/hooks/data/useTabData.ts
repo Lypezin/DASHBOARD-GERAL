@@ -86,6 +86,7 @@ export function useTabData(
   const [loading, setLoading] = useState(false);
   const fetchIdRef = useRef(0);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const retryAttemptsRef = useRef<Map<number, number>>(new Map());
   const hasCurrentDataRef = useRef(false);
   const stableFilterPayloadRef = useRef<{ key: string; payload: FilterPayload } | null>(null);
@@ -165,7 +166,9 @@ export function useTabData(
 
         retryAttemptsRef.current.set(fetchId, currentAttempts + 1);
 
-        window.setTimeout(() => {
+        if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = setTimeout(() => {
+          retryTimeoutRef.current = null;
           if (fetchIdRef.current === fetchId) {
             void fetchData(tab, payload, filterPayloadKey, fetchId);
           }
@@ -186,6 +189,11 @@ export function useTabData(
     if (debounceRef.current) {
       clearTimeout(debounceRef.current);
       debounceRef.current = null;
+    }
+
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
     }
 
     if (!enabled) {
@@ -232,6 +240,7 @@ export function useTabData(
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
     };
   }, [activeTab, enabled, fetchData, filterPayloadStr, getCached, isOrgLoading, stableFilterPayload]);
 

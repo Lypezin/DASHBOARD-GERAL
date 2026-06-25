@@ -1,6 +1,5 @@
 import { safeLog } from '@/lib/errorHandler';
-
-const IS_DEV = process.env.NODE_ENV === 'development';
+import { IS_DEV } from '@/constants/environment';
 
 /**
  * Converte um número serial do Excel para data ISO (YYYY-MM-DD)

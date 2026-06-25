@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { registerChartJS } from '@/lib/chartConfig';
 import { safeLog } from '@/lib/errorHandler';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 let chartRegistered = false;
 let chartRegistrationPromise: Promise<void> | null = null;

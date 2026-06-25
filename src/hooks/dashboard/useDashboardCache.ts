@@ -2,8 +2,8 @@ import { useCallback, useRef } from 'react';
 import { CACHE } from '@/constants/config';
 import { DashboardResumoData } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 const MAX_CACHE_ENTRIES = 8;
 
 interface DashboardCacheEntry {

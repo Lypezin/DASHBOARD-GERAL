@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { executeAdminRpc } from '@/utils/adminHelpers';
 import { User } from '@/hooks/auth/useAdminData';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function useAdminEdit(fetchData: () => void) {
     const [editingUser, setEditingUser] = useState<User | null>(null);

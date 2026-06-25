@@ -4,8 +4,8 @@
 
 import { safeLog } from '@/lib/errorHandler';
 import { MAX_FILE_SIZE, MAX_FILES, ALLOWED_EXTENSIONS, ALLOWED_MIME_TYPES, EXCEL_SIGNATURES } from '@/constants/upload';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export interface FileValidationResult {
   valid: boolean;
@@ -87,4 +87,3 @@ export async function validateFile(
 
   return { valid: true };
 }
-

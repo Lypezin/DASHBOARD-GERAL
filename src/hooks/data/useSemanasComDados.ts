@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { safeRpc } from '@/lib/rpcWrapper';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 const WEEKS_CACHE_TTL_MS = 5 * 60 * 1000;
 
 const weeksCache = new Map<string, { data: number[]; expiresAt: number }>();

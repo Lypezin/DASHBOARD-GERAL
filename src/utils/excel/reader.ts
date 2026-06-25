@@ -1,6 +1,5 @@
 import { safeLog } from '@/lib/errorHandler';
-
-const IS_DEV = process.env.NODE_ENV === 'development';
+import { IS_DEV } from '@/constants/environment';
 
 export async function readExcelFile(file: File): Promise<Record<string, unknown>[]> {
     safeLog.info('Lendo arquivo...');

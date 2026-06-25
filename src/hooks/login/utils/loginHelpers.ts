@@ -1,7 +1,8 @@
 import { safeLog } from '@/lib/errorHandler';
 import { getAppApiData, postAppApiData } from '@/utils/app/fetchAppApi';
+import { IS_DEV } from '@/constants/environment';
+import { sleep } from '@/utils/async/sleep';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export async function fetchUserProfile() {
     let profile: any = null;
@@ -17,7 +18,7 @@ export async function fetchUserProfile() {
 
     // Se houver erro, tentar novamente uma vez
     if (profileError && !profile) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await sleep(1000);
         try {
             const retryResult = await getAppApiData<any>('/api/app/current-user-profile');
             profile = retryResult.data;

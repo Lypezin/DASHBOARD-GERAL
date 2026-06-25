@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { DELAYS } from '@/constants/config';
+import { IS_DEV } from '@/constants/environment';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { mergeDriversAndPedidosData, DriversData, PedidosData } from '@/utils/data/driverTransformers';
 import { fetchDashboardDataApi } from '@/utils/dashboard/fetchDashboardDataApi';
@@ -49,7 +50,7 @@ export function useResumoLocalData({ ano, pracas, activeTab, enabled = true }: U
                     p_pracas: selectedPracas.length > 0 ? selectedPracas : null,
                 };
 
-                if (process.env.NODE_ENV === 'development') {
+                if (IS_DEV) {
                     safeLog.info('[useResumoLocalData] Fetching data:', params);
                 }
 
@@ -68,7 +69,7 @@ export function useResumoLocalData({ ano, pracas, activeTab, enabled = true }: U
                     return;
                 }
 
-                if (process.env.NODE_ENV === 'development') {
+                if (IS_DEV) {
                     safeLog.info('[useResumoLocalData] Drivers data:', data?.drivers);
                     safeLog.info('[useResumoLocalData] Pedidos data:', data?.pedidos);
                 }

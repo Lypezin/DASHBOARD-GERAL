@@ -2,8 +2,8 @@
 import { safeLog } from '@/lib/errorHandler';
 import { Organization, OrganizationFormData, OrganizationOperationResult } from '@/hooks/auth/useOrganizations';
 import { adminRpc } from '@/services/adminRpcClient';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export async function fetchAllOrganizations(): Promise<{ data: Organization[] | null, error: string | null }> {
     try {

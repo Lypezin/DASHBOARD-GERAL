@@ -7,8 +7,8 @@ import { shouldSkipRedirect } from '@/hooks/auth/utils/headerAuthSteps';
 import { useRouter } from 'next/navigation';
 
 import { isPasswordRecoveryFlow, ensureRecoveryRedirect } from './utils/recoveryDetection';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 interface UseAuthSubscriptionProps {
     checkUser: () => void;

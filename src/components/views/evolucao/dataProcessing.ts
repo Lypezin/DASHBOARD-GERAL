@@ -1,8 +1,8 @@
 import { EvolucaoMensal, EvolucaoSemanal } from '@/types';
 import { generateMonthlyLabels, generateWeeklyLabels } from '@/utils/charts';
 import { safeLog } from '@/lib/errorHandler';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 /** Processa dados de evolução e cria estrutura para gráficos */
 export const processEvolucaoData = (

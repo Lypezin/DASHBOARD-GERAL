@@ -4,8 +4,8 @@ import { loadXLSX } from '@/lib/xlsxClient';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { calcularTaxas } from '@/hooks/analise/useAnaliseTaxas';
 import { formatarPorcentagem, formatarNumero, gerarDadosFormatados } from './excel/AnaliseExcelHelpers';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export async function exportarAnaliseParaExcel(
   totals: Totals,

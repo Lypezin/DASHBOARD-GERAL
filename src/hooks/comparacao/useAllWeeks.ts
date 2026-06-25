@@ -2,8 +2,8 @@ import { useEffect, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { useSemanasComDados } from '@/hooks/data/useSemanasComDados';
 import { fetchAllWeeks, getAllWeeksCache, primeAllWeeksCache } from '@/hooks/data/allWeeksCache';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function useAllWeeks(fallbackWeeks?: string[], anoSelecionado?: number) {
   const [todasSemanas, setTodasSemanas] = useState<(number | string)[]>([]);

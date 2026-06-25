@@ -3,8 +3,8 @@ import { safeLog } from '@/lib/errorHandler';
 import { executeAdminRpc } from '@/utils/adminHelpers';
 import { User } from '@/hooks/auth/useAdminData';
 import { UserProfile } from '@/hooks/auth/types';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export function useAdminApproval(_currentUser: UserProfile | null, fetchData: () => void) {
     const [selectedUser, setSelectedUser] = useState<User | null>(null);

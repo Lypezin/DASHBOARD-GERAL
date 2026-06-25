@@ -3,8 +3,8 @@ import { safeLog } from '@/lib/errorHandler';
 import { adminRpc } from '@/services/adminRpcClient';
 import { fetchPracasWithFallback } from '@/hooks/admin/utils/pracasFetcher';
 import { postAppApiData } from '@/utils/app/fetchAppApi';
+import { IS_DEV } from '@/constants/environment';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
 
 export interface User {
   id: string; full_name: string; email: string; is_admin: boolean; is_approved: boolean;
