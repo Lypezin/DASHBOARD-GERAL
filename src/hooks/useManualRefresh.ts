@@ -3,10 +3,7 @@ import { safeLog } from '@/lib/errorHandler';
 import type { RefreshMVState } from '@/types/upload';
 import { mvService } from '@/services/mvService';
 import { sleep } from '@/utils/async/sleep';
-
-const RESET_DELAY_MS = 5000;
-const POLL_INTERVAL_MS = 5000;
-const MAX_MONITORING_MS = 60 * 60 * 1000;
+import { REFRESH_MAX_MONITORING_MS, REFRESH_POLL_INTERVAL_MS, REFRESH_RESET_DELAY_MS } from '@/hooks/upload/refreshTiming';
 
 export function useManualRefresh() {
     const [state, setState] = useState<RefreshMVState>({
@@ -42,7 +39,7 @@ export function useManualRefresh() {
             const total = Math.max(remaining, 1);
             const startedAt = Date.now();
 
-            while (remaining > 0 && Date.now() - startedAt < MAX_MONITORING_MS) {
+            while (remaining > 0 && Date.now() - startedAt < REFRESH_MAX_MONITORING_MS) {
                 const completed = Math.max(0, total - remaining);
                 setState(prev => ({
                     ...prev,
@@ -55,7 +52,7 @@ export function useManualRefresh() {
                     message: `Atualizando MVs em segundo plano: ${remaining} pendente(s).`
                 }));
 
-                await sleep(POLL_INTERVAL_MS);
+                await sleep(REFRESH_POLL_INTERVAL_MS);
 
                 const { data: pendingData, error: pendingError } = await mvService.getPendingMVs();
                 if (pendingError) throw new Error(pendingError.message || 'Falha ao acompanhar fila de MVs.');
@@ -78,7 +75,7 @@ export function useManualRefresh() {
 
             setTimeout(() => {
                 setState(prev => ({ ...prev, progress: 0, progressLabel: '', total: 0, completed: 0 }));
-            }, RESET_DELAY_MS);
+            }, REFRESH_RESET_DELAY_MS);
         } catch (err: unknown) {
             const msg = err instanceof Error ? err.message : 'Erro desconhecido';
             setState(prev => ({

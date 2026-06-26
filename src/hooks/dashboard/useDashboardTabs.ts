@@ -1,8 +1,6 @@
 import { useState, useCallback, useEffect, startTransition } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
-import { preloadDashboardView } from '@/config/dynamicImports';
-import { prefetchTabDataInBackground } from '@/hooks/data/useTabData';
-import { getLatestDashboardFilterPayload } from './dashboardPrefetchState';
+import { prefetchDashboardTabResources } from './prefetchDashboardTabResources';
 import { TabType } from '@/types';
 
 const VALID_TABS = ['dashboard', 'analise', 'utr', 'entregadores', 'valores', 'evolucao', 'prioridade', 'comparacao', 'marketing', 'marketing_comparacao', 'dedicado'];
@@ -22,22 +20,8 @@ export function useDashboardTabs() {
 
     const [activeTab, setActiveTabState] = useState<TabType>(getInitialTab());
 
-    const prefetchTabResources = useCallback((newTab: TabType) => {
-        preloadDashboardView(newTab);
-
-        if (newTab !== 'entregadores' && newTab !== 'valores') return;
-
-        const latestPayload = getLatestDashboardFilterPayload();
-        if (!latestPayload) return;
-
-        void prefetchTabDataInBackground(
-            newTab,
-            newTab === 'valores' ? { ...latestPayload, detailed: false } : latestPayload
-        );
-    }, []);
-
     const setActiveTab = useCallback((newTab: TabType) => {
-        prefetchTabResources(newTab);
+        prefetchDashboardTabResources(newTab);
         // Envolvemos a atualização de estado (que reflete na interface) 
         // e o roteador do Next.js (URL) numa Transition para não travar 
         // o navegador em caso de tabelas massivas, eliminando os "cliques perdidos"
@@ -55,7 +39,7 @@ export function useDashboardTabs() {
             const url = queryString ? `${targetPathname}?${queryString}` : targetPathname;
             router.replace(url, { scroll: false });
         });
-    }, [pathname, prefetchTabResources, router, searchParams]);
+    }, [pathname, router, searchParams]);
 
     useEffect(() => {
         const urlTab = getInitialTab();
@@ -66,5 +50,5 @@ export function useDashboardTabs() {
         }
     }, [searchParams, activeTab, getInitialTab]);
 
-    return { activeTab, setActiveTab, handleTabChange: setActiveTab, prefetchTabResources };
+    return { activeTab, setActiveTab, handleTabChange: setActiveTab, prefetchTabResources: prefetchDashboardTabResources };
 }

@@ -6,9 +6,7 @@ import {
     fetchRefreshQueueSnapshot,
     getIncrementalRefreshPendingCount
 } from '@/hooks/upload/refreshUtils';
-
-const POLL_INTERVAL_MS = 5000;
-const MAX_RESUME_MONITORING_MS = 60 * 60 * 1000;
+import { REFRESH_MAX_MONITORING_MS, REFRESH_POLL_INTERVAL_MS, REFRESH_RETRY_POLL_INTERVAL_MS } from '@/hooks/upload/refreshTiming';
 
 export function useAutoRefresh() {
     const { refreshState, setRefreshState, triggerRefresh } = useMVRefreshLogic();
@@ -48,12 +46,12 @@ export function useAutoRefresh() {
 
                 setRefreshState(buildIncrementalRefreshStatusFromQueue(queueState));
 
-                if (Date.now() - startedAt < MAX_RESUME_MONITORING_MS) {
-                    timeoutId = setTimeout(pollQueue, POLL_INTERVAL_MS);
+                if (Date.now() - startedAt < REFRESH_MAX_MONITORING_MS) {
+                    timeoutId = setTimeout(pollQueue, REFRESH_POLL_INTERVAL_MS);
                 }
             } catch {
                 if (!cancelled && mountedRef.current) {
-                    timeoutId = setTimeout(pollQueue, POLL_INTERVAL_MS * 2);
+                    timeoutId = setTimeout(pollQueue, REFRESH_RETRY_POLL_INTERVAL_MS);
                 }
             }
         };

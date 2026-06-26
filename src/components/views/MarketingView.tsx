@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { startTransition } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
@@ -65,11 +65,14 @@ const MarketingView = React.memo(function MarketingView() {
     preloadMarketingSubTab(tab);
     const params = new URLSearchParams(searchParams.toString());
     params.set('mkt_tab', tab);
-    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    startTransition(() => {
+      router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+    });
   };
 
   React.useEffect(() => {
     let cancelled = false;
+    let timeoutId: number | null = null;
     const tabs = ['dashboard', 'resultados', 'valores-cidade', 'entrada-saida', 'apresentacao'];
     const warmSequentially = () => {
       let index = 0;
@@ -77,16 +80,18 @@ const MarketingView = React.memo(function MarketingView() {
         if (cancelled || index >= tabs.length) return;
         preloadMarketingSubTab(tabs[index]);
         index += 1;
-        window.setTimeout(warmNext, 160);
+        timeoutId = window.setTimeout(warmNext, 180);
       };
 
       warmNext();
     };
 
-    const timeoutId = window.setTimeout(warmSequentially, 700);
+    timeoutId = window.setTimeout(warmSequentially, 900);
     return () => {
       cancelled = true;
-      window.clearTimeout(timeoutId);
+      if (timeoutId !== null) {
+        window.clearTimeout(timeoutId);
+      }
     };
   }, []);
 
@@ -166,7 +171,7 @@ const MarketingView = React.memo(function MarketingView() {
           animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
           exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
           transition={{ duration: shouldReduceMotion ? 0.01 : 0.13, ease: [0.22, 1, 0.36, 1] }}
-          className="min-w-0 transform-gpu will-change-transform"
+          className="min-w-0"
         >
           {content}
         </motion.div>

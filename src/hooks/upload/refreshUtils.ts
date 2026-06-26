@@ -1,5 +1,6 @@
 import { safeLog } from '@/lib/errorHandler';
 import { sleep } from '@/utils/async/sleep';
+import { REFRESH_MAX_MONITORING_MS, REFRESH_POLL_INTERVAL_MS } from './refreshTiming';
 
 export interface RefreshState {
     isRefreshing: boolean;
@@ -10,9 +11,6 @@ export interface RefreshState {
 export type SetRefreshState = (
     state: RefreshState | ((prev: RefreshState) => RefreshState)
 ) => void;
-
-const POLL_INTERVAL_MS = 5000;
-const MAX_MONITORING_MS = 60 * 60 * 1000;
 
 export interface RefreshQueueState {
     success?: boolean;
@@ -156,7 +154,7 @@ async function monitorRefreshQueue(
     let total = Math.max(initialPendingCount, 1);
     let remaining = initialPendingCount;
 
-    while (remaining > 0 && Date.now() - startedAt < MAX_MONITORING_MS) {
+    while (remaining > 0 && Date.now() - startedAt < REFRESH_MAX_MONITORING_MS) {
         const completed = Math.max(0, total - remaining);
         setRefreshState({
             isRefreshing: true,
@@ -164,7 +162,7 @@ async function monitorRefreshQueue(
             status: `Atualizando dados em segundo plano: ${completed}/${total} concluidos (${remaining} pendente(s)).`
         });
 
-        await sleep(POLL_INTERVAL_MS);
+        await sleep(REFRESH_POLL_INTERVAL_MS);
         remaining = await fetchPendingCount(incrementalOnly);
         total = Math.max(total, remaining);
     }

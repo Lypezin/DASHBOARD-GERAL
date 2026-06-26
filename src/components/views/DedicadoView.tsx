@@ -413,7 +413,7 @@ const DedicadoView = React.memo(function DedicadoView({
         <motion.div
           key={activeSubTab}
           {...subTabMotionProps}
-          className="w-full transform-gpu will-change-transform"
+          className="w-full"
         >
           {activeSubTab === 'dashboard' ? (
             <DedicadoDashboard loading={dedicadoLoading} error={dedicadoError} stats={stats} topOrigens={dedicatedOrigem.slice(0, 8)} />

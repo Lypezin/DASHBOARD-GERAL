@@ -2,6 +2,7 @@ import React from 'react';
 import { createPortal } from 'react-dom';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useFloatingDropdownPosition } from '@/hooks/ui/useFloatingDropdownPosition';
 import { FilterOption } from './FiltroSelect';
 
 interface FiltroMultiSelectDropdownProps {
@@ -17,7 +18,14 @@ interface FiltroMultiSelectDropdownProps {
 export const FiltroMultiSelectDropdown: React.FC<FiltroMultiSelectDropdownProps> = ({
   isOpen, disabled, options, selected, onSelect, dropdownRef, anchorRef
 }) => {
-  const position = useDropdownPosition({ isOpen, anchorRef, itemCount: options.length });
+  const position = useFloatingDropdownPosition({
+    isOpen,
+    anchorRef,
+    itemCount: options.length,
+    minWidth: 340,
+    maxEstimatedHeight: 400,
+    extraHeight: 24,
+  });
 
   if (!isOpen || disabled || options.length === 0 || !position || typeof document === 'undefined') {
     return null;
@@ -68,63 +76,3 @@ export const FiltroMultiSelectDropdown: React.FC<FiltroMultiSelectDropdownProps>
     document.body
   );
 };
-
-function useDropdownPosition({
-  isOpen,
-  anchorRef,
-  itemCount,
-}: {
-  isOpen: boolean;
-  anchorRef: React.RefObject<HTMLElement | null>;
-  itemCount: number;
-}) {
-  const [position, setPosition] = React.useState<{
-    left: number;
-    top?: number;
-    bottom?: number;
-    width: number;
-    maxHeight: number;
-  } | null>(null);
-
-  React.useLayoutEffect(() => {
-    if (!isOpen || typeof window === 'undefined') return;
-
-    const updatePosition = () => {
-      const anchor = anchorRef.current;
-      if (!anchor) return;
-
-      const rect = anchor.getBoundingClientRect();
-      const viewportWidth = window.innerWidth;
-      const viewportHeight = window.innerHeight;
-      const margin = 12;
-      const preferredWidth = Math.max(rect.width, 340);
-      const width = Math.min(preferredWidth, viewportWidth - margin * 2);
-      const left = Math.min(Math.max(margin, rect.left), viewportWidth - width - margin);
-      const spaceBelow = viewportHeight - rect.bottom - margin;
-      const spaceAbove = rect.top - margin;
-      const openAbove = spaceBelow < 260 && spaceAbove > spaceBelow;
-      const availableSpace = openAbove ? spaceAbove : spaceBelow;
-      const estimatedHeight = Math.min(400, Math.max(180, itemCount * 46 + 24));
-      const maxHeight = Math.max(180, Math.min(estimatedHeight, availableSpace));
-
-      setPosition({
-        left,
-        top: openAbove ? undefined : rect.bottom + 8,
-        bottom: openAbove ? viewportHeight - rect.top + 8 : undefined,
-        width,
-        maxHeight,
-      });
-    };
-
-    updatePosition();
-    window.addEventListener('resize', updatePosition);
-    window.addEventListener('scroll', updatePosition, true);
-
-    return () => {
-      window.removeEventListener('resize', updatePosition);
-      window.removeEventListener('scroll', updatePosition, true);
-    };
-  }, [anchorRef, isOpen, itemCount]);
-
-  return position;
-}

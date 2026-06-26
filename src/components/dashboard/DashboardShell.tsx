@@ -10,8 +10,8 @@ import { DashboardViewsRenderer } from '@/components/dashboard/DashboardViewsRen
 import { OnlineUsersSidebarLauncher } from '@/components/OnlineUsersSidebar/OnlineUsersSidebarLauncher';
 import { LoadingNotice } from '@/components/ui/loading-notice';
 import { useDashboardPage } from '@/hooks/dashboard/useDashboardPage';
-import { prefetchTabDataInBackground } from '@/hooks/data/useTabData';
 import { setLatestDashboardFilterPayload } from '@/hooks/dashboard/dashboardPrefetchState';
+import { prefetchDashboardTabData } from '@/hooks/dashboard/prefetchDashboardTabResources';
 import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
 import { FaviconManager } from '@/components/layout/FaviconManager';
@@ -137,10 +137,7 @@ function DashboardShellContent() {
         const tab = tabsToPrefetch[index];
         index += 1;
 
-        void prefetchTabDataInBackground(tab, tab === 'valores'
-          ? { ...filters.payload, detailed: false }
-          : filters.payload
-        ).finally(() => {
+        void prefetchDashboardTabData(tab, filters.payload).finally(() => {
           if (!cancelled) {
             timeoutId = window.setTimeout(prefetchNext, 180);
           }

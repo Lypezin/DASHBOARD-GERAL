@@ -24,10 +24,10 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
     const shouldReduceMotion = useReducedMotion();
     const hasComparisonData = data.dadosComparacao.length > 0 || data.utrComparacao.length > 0;
     const motionProps = {
-        initial: shouldReduceMotion ? false : { opacity: 0, y: 10, scale: 0.996 },
-        animate: shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 },
-        exit: shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.998 },
-        transition: { duration: shouldReduceMotion ? 0.01 : 0.18, ease: [0.22, 1, 0.36, 1] },
+        initial: shouldReduceMotion ? false : { opacity: 0, y: 8 },
+        animate: shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 },
+        exit: shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 },
+        transition: { duration: shouldReduceMotion ? 0.01 : 0.15, ease: [0.22, 1, 0.36, 1] },
     } as const;
 
     return (
@@ -50,7 +50,7 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
 
             <AnimatePresence mode="wait" initial={false}>
                 {state.loading && !hasComparisonData ? (
-                    <motion.div key="comparacao-loading" {...motionProps} className="min-w-0 transform-gpu will-change-transform">
+                    <motion.div key="comparacao-loading" {...motionProps} className="min-w-0">
                         <DashboardSkeleton contentOnly />
                     </motion.div>
                 ) : state.error && !hasComparisonData ? (
@@ -101,7 +101,7 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                     <motion.div
                         key={`comparacao-content-${state.semanasSelecionadas.join('-')}-${state.pracaSelecionada || 'todas'}`}
                         {...motionProps}
-                        className="min-w-0 transform-gpu will-change-transform"
+                        className="min-w-0"
                     >
                         {state.loading ? (
                             <div className="mb-4 rounded-2xl border border-sky-200/70 bg-sky-50/80 px-4 py-3 text-sm font-semibold text-sky-800 shadow-sm dark:border-sky-900/50 dark:bg-sky-950/25 dark:text-sky-200">
