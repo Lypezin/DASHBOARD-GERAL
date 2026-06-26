@@ -9,6 +9,7 @@ import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { useEvolucaoViewController } from './evolucao/hooks/useEvolucaoViewController';
 import { useDashboardEvolucao } from '@/hooks/dashboard/useDashboardEvolucao';
 import type { FilterPayload } from '@/types/filters';
+import { ViewContainer } from '@/components/layout/ViewContainer';
 
 const EvolucaoView = React.memo(function EvolucaoView({
   filterPayload,
@@ -41,7 +42,7 @@ const EvolucaoView = React.memo(function EvolucaoView({
   } as const;
 
   return (
-    <div className="space-y-8 max-w-[1800px] mx-auto animate-fade-in">
+    <ViewContainer className="space-y-8">
       <AnimatePresence mode="wait" initial={false}>
         {state.loading && state.totalPeriodos === 0 ? (
           <motion.div key="evolucao-loading" {...motionProps} className="min-w-0 transform-gpu will-change-transform">
@@ -84,7 +85,7 @@ const EvolucaoView = React.memo(function EvolucaoView({
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </ViewContainer>
   );
 });
 

@@ -12,8 +12,8 @@ import {
   EMPTY_STATE 
 } from './bootstrap/types';
 
-import { 
 import { IS_DEV } from '@/constants/environment';
+import { 
   fetchProfileWithRetry, 
   hydrateAvatarUrl, 
   resolveOrganization, 

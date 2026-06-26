@@ -10,6 +10,7 @@ import type {
 } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 import { safeLog } from '@/lib/errorHandler';
+import { ViewContainer } from '@/components/layout/ViewContainer';
 
 const AnaliseView = React.memo(function AnaliseView({
   filterPayload,
@@ -97,7 +98,7 @@ const AnaliseView = React.memo(function AnaliseView({
   }, [aderenciaDia, filterPayload?.p_ano, filterPayload?.p_semana]);
 
   return (
-    <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-8 px-4 pb-16 pt-4 animate-fade-in sm:px-6 lg:px-8">
+    <ViewContainer className="flex flex-col gap-8 pb-16 pt-4">
       <AnaliseMetricCards
         totals={totals || { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }}
         taxaAceitacao={taxaAceitacao}
@@ -116,7 +117,7 @@ const AnaliseView = React.memo(function AnaliseView({
         aderenciaDiaOrigem={aderenciaDiaOrigem || []}
         dayDateMap={dayDateMap}
       />
-    </div>
+    </ViewContainer>
   );
 });
 

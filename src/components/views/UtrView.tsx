@@ -11,6 +11,7 @@ import type { FilterPayload } from '@/types/filters';
 import { UtrHeader } from './utr/UtrHeader';
 import { UtrContent } from './utr/UtrContent';
 import { useUtrView } from './utr/useUtrView';
+import { ViewContainer } from '@/components/layout/ViewContainer';
 
 const UtrView = React.memo(function UtrView({
   filterPayload,
@@ -60,7 +61,7 @@ const UtrView = React.memo(function UtrView({
     const totalSlices = porPraca.length + porSubPraca.length + porOrigem.length + porTurno.length;
 
     content = (
-      <div className="mx-auto flex w-full max-w-[1600px] flex-col gap-8 px-4 pb-16 pt-4 animate-fade-in sm:px-6 lg:px-8">
+      <ViewContainer className="flex flex-col gap-8 pb-16 pt-4">
         <UtrHeader
           isExporting={isExporting}
           onExport={handleExport}
@@ -81,7 +82,7 @@ const UtrView = React.memo(function UtrView({
           porOrigem={porOrigem}
           porTurno={porTurno}
         />
-      </div>
+      </ViewContainer>
     );
   }
 

@@ -30,6 +30,7 @@ import { DedicadoResumo } from './dedicado/DedicadoResumo';
 import { DedicadoDiaOrigem, buildDayDateMap } from './dedicado/DedicadoDiaOrigem';
 import { DedicadoRanking } from './dedicado/DedicadoRanking';
 import { DedicadoInlineNotice } from './dedicado/DedicadoInlineNotice';
+import { ViewContainer } from '@/components/layout/ViewContainer';
 
 type DedicadoSubTab = 'dashboard' | 'entregadores' | 'ranking' | 'resumo' | 'dia_origem';
 
@@ -348,7 +349,7 @@ const DedicadoView = React.memo(function DedicadoView({
   } as const;
 
   return (
-    <div className="mx-auto flex w-full max-w-[1500px] min-w-0 flex-col gap-6 px-3 pb-10 sm:px-6 lg:px-8 animate-fade-in">
+    <ViewContainer className="flex min-w-0 flex-col gap-6 pb-10">
       <div className="min-w-0 overflow-hidden rounded-3xl border border-blue-200/60 bg-gradient-to-br from-blue-50 via-white to-slate-50 p-5 shadow-sm dark:border-blue-900/40 dark:from-blue-950/30 dark:via-slate-950 dark:to-slate-950 sm:p-6">
         <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
           <div className="min-w-0">
@@ -448,7 +449,7 @@ const DedicadoView = React.memo(function DedicadoView({
           ) : null}
         </motion.div>
       </AnimatePresence>
-    </div>
+    </ViewContainer>
   );
 });
 

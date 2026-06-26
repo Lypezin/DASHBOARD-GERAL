@@ -14,6 +14,7 @@ import { SelectedPracasTags } from './resumo-semanal/SelectedPracasTags';
 import { useDashboardEvolucao } from '@/hooks/dashboard/useDashboardEvolucao';
 import { ViewTransition } from '@/components/ui/view-transition';
 import type { FilterPayload } from '@/types/filters';
+import { ViewContainer } from '@/components/layout/ViewContainer';
 
 interface ResumoSemanalViewProps {
     filterPayload: FilterPayload;
@@ -69,7 +70,7 @@ export const ResumoSemanalView = React.memo(({
 
     return (
         <ViewTransition stateKey="resumo-semanal-content">
-            <div className="mx-auto w-full max-w-[1400px] space-y-6 p-6">
+            <ViewContainer className="space-y-6 py-6">
             <Card className="border-none bg-white/50 shadow-sm backdrop-blur-sm dark:bg-slate-900/50">
                 <CardHeader className="flex flex-row items-center justify-between">
                     <CardTitle className="bg-gradient-to-r from-blue-600 to-sky-600 bg-clip-text text-xl font-bold text-transparent">
@@ -93,7 +94,7 @@ export const ResumoSemanalView = React.memo(({
                     <ResumoTable data={displayRows} isLoading={!!isLoading} />
                 </CardContent>
             </Card>
-            </div>
+            </ViewContainer>
         </ViewTransition>
     );
 });

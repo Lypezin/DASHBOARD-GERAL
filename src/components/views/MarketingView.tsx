@@ -6,6 +6,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import TabButton from '@/components/TabButton';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+import { ViewContainer } from '@/components/layout/ViewContainer';
 
 const MarketingDashboardView = dynamic(() => import('./MarketingDashboardView'), {
   ssr: false,
@@ -105,7 +106,7 @@ const MarketingView = React.memo(function MarketingView() {
   })();
 
   return (
-    <div className="mx-auto max-w-7xl space-y-5 px-3 py-6 animate-fade-in sm:px-6 sm:py-7 lg:px-8">
+    <ViewContainer className="space-y-5 py-6 sm:py-7">
       <div className="rounded-3xl border border-slate-200/70 bg-white/90 p-4 shadow-[0_18px_48px_-42px_rgba(15,23,42,0.7)] dark:border-slate-800/70 dark:bg-slate-950/80 sm:p-5">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div className="min-w-0">
@@ -170,7 +171,7 @@ const MarketingView = React.memo(function MarketingView() {
           {content}
         </motion.div>
       </AnimatePresence>
-    </div>
+    </ViewContainer>
   );
 });
 

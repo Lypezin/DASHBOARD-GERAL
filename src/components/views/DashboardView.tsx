@@ -3,6 +3,7 @@ import { DashboardGeneralStats } from './dashboard/DashboardGeneralStats';
 import { DashboardDailyPerformance } from './dashboard/DashboardDailyPerformance';
 import { DashboardOperationalDetail } from './dashboard/DashboardOperationalDetail';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
+import { ViewContainer } from '@/components/layout/ViewContainer';
 import type {
   DashboardFilters,
   CurrentUser,
@@ -35,7 +36,7 @@ const DashboardView = React.memo(function DashboardView({
   const aderenciaGeral = useMemo(() => calculateAderenciaGeral(aderenciaSemanal), [aderenciaSemanal]);
 
   return (
-    <div className="mx-auto w-full max-w-[1600px] space-y-9 px-4 pb-16 pt-5 animate-fade-in sm:px-6 lg:px-8">
+    <ViewContainer className="space-y-9 pb-16 pt-5">
       <section className="space-y-4">
         <DashboardSectionHeader
           title="Resumo Operacional"
@@ -64,7 +65,7 @@ const DashboardView = React.memo(function DashboardView({
           aderenciaDia={aderenciaDia}
         />
       </section>
-    </div>
+    </ViewContainer>
   );
 });
 

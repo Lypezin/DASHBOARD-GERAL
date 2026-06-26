@@ -17,6 +17,7 @@ import { ViewTransition } from '@/components/ui/view-transition';
 import { LoadingNotice } from '@/components/ui/loading-notice';
 import type { CurrentUser } from '@/types';
 import type { FilterPayload } from '@/types/filters';
+import { ViewContainer } from '@/components/layout/ViewContainer';
 
 const ValoresView = React.memo(function ValoresView({ 
   filters, 
@@ -82,7 +83,7 @@ const ValoresView = React.memo(function ValoresView({
 
   return (
     <ViewTransition stateKey="valores-content">
-      <div className="space-y-6 animate-fade-in w-full max-w-[1800px] mx-auto pb-10">
+      <ViewContainer className="space-y-6 pb-10">
         {loading ? (
           <LoadingNotice
             tone="blue"
@@ -113,7 +114,7 @@ const ValoresView = React.memo(function ValoresView({
             <ValoresTable sortedValores={paginatedValores} sortField={sortField} sortDirection={sortDirection} onSort={handleSort} formatarReal={formatarReal} isDetailed={false} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} />
           </div>
         </div>
-      </div>
+      </ViewContainer>
     </ViewTransition>
   );
 });

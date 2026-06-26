@@ -6,6 +6,7 @@ import { PrioridadeSearch } from './PrioridadeSearch';
 import { PrioridadeStatsCards } from './PrioridadeStatsCards';
 import { PrioridadeTable } from './PrioridadeTable';
 import type { SortDirection, SortField } from './hooks/usePrioridadeSort';
+import { ViewContainer } from '@/components/layout/ViewContainer';
 
 interface PrioridadeStats {
     totalEntregadores: number;
@@ -66,7 +67,7 @@ export const PrioridadeLayout = React.memo(function PrioridadeLayout({
     onLoadMore
 }: PrioridadeLayoutProps) {
     return (
-        <div className="space-y-8 pb-8 w-full max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 animate-fade-in">
+        <ViewContainer className="space-y-8 pb-8">
             <PrioridadeHeader sortedEntregadores={sortedEntregadores} />
 
             <PrioridadeFilters
@@ -106,6 +107,6 @@ export const PrioridadeLayout = React.memo(function PrioridadeLayout({
                 hasMore={hasMore}
                 onLoadMore={onLoadMore}
             />
-        </div>
+        </ViewContainer>
     );
 });

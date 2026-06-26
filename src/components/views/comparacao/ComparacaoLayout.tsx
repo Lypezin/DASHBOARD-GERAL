@@ -6,6 +6,7 @@ import ApresentacaoView from '@/components/ApresentacaoView';
 import { ComparacaoFilters } from './ComparacaoFilters';
 import { ComparacaoContent } from './ComparacaoContent';
 import { FilterOption } from '@/types';
+import { ViewContainer } from '@/components/layout/ViewContainer';
 
 interface ComparacaoLayoutProps {
     pracas: FilterOption[];
@@ -30,7 +31,7 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
     } as const;
 
     return (
-        <div className="mx-auto w-full max-w-[1600px] space-y-8 px-4 pb-8 animate-fade-in sm:px-6 lg:px-8">
+        <ViewContainer className="space-y-8 pb-8">
             <ComparacaoFilters
                 pracas={pracas}
                 todasSemanas={data.todasSemanas}
@@ -133,6 +134,6 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                     onSemanasChange={actions.setSemanasSelecionadas}
                 />
             )}
-        </div>
+        </ViewContainer>
     );
 });

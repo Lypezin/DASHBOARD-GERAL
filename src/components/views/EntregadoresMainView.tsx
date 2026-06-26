@@ -7,6 +7,7 @@ import { EntregadoresMainStatsCards } from './entregadores/EntregadoresMainStats
 import { EntregadoresMainSearch } from './entregadores/EntregadoresMainSearch';
 import { EntregadoresMainTable } from './entregadores/EntregadoresMainTable';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+import { ViewContainer } from '@/components/layout/ViewContainer';
 import { useEntregadoresMainSort } from './entregadores/hooks/useEntregadoresMainSort';
 import { useEntregadoresMainStats } from './entregadores/hooks/useEntregadoresMainStats';
 import { EntregadoresHeader } from './entregadores/EntregadoresHeader';
@@ -153,7 +154,7 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
 
   return (
     <ViewTransition stateKey={`${variant}-content`}>
-      <div className="space-y-6 animate-fade-in">
+      <ViewContainer className="space-y-6">
         <EntregadoresHeader
           onExport={handleExport}
           isExporting={isExporting}
@@ -213,7 +214,7 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
             filterPayload={filterPayload}
           />
         ) : null}
-      </div>
+      </ViewContainer>
     </ViewTransition>
   );
 });
