@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CurrentUser } from '@/types';
-import { readSharedCacheEntry, useCache, writeSharedCacheEntry } from './useCache';
+import { useCache } from './useCache';
 import { CACHE, DELAYS } from '@/constants/config';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import type { FilterPayload } from '@/types/filters';
@@ -27,39 +27,6 @@ function getRequestTab(tab: string) {
 
 function getTabCacheKey(tab: string, filterPayloadKey: string) {
   return `${tab}-${filterPayloadKey}`;
-}
-
-export async function prefetchTabDataInBackground(tab: string, filterPayload: FilterPayload): Promise<void> {
-  if (SELF_MANAGED_TABS.includes(tab)) return;
-
-  const tabScope = getTabScope(tab);
-  const requestTab = getRequestTab(tab);
-  const filterPayloadKey = createRequestKey(filterPayload);
-  const cacheKey = getTabCacheKey(tabScope, filterPayloadKey);
-  const hasOrganizationContext = typeof filterPayload.p_organization_id === 'string' && filterPayload.p_organization_id.trim().length > 0;
-
-  if (!hasOrganizationContext) return;
-  if (readSharedCacheEntry<TabData>(cacheKey, CACHE.TAB_DATA_TTL) !== null) return;
-
-  let request = SHARED_TAB_REQUESTS.get(cacheKey);
-
-  if (!request) {
-    request = (async () => {
-      const result = await fetchTabData({ tab: requestTab, filterPayload });
-      if (result.error) {
-        throw result.error;
-      }
-
-      return processTabSuccessData(requestTab, result);
-    })().finally(() => {
-      SHARED_TAB_REQUESTS.delete(cacheKey);
-    });
-
-    SHARED_TAB_REQUESTS.set(cacheKey, request);
-  }
-
-  const processedData = await request;
-  writeSharedCacheEntry(cacheKey, processedData, CACHE.TAB_DATA_TTL);
 }
 
 interface UseTabDataOptions {

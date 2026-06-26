@@ -1,6 +1,7 @@
 import { CacheEntry, isCacheValid, createCacheEntry } from '@/types/cache';
 import { CACHE } from '@/constants/config';
 import { IS_DEV } from '@/constants/environment';
+import { safeLog } from '@/lib/errorHandler';
 
 const SESSION_STORAGE_PREFIX = 'dashboard_cache_v2_';
 const MAX_SESSION_STORAGE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -21,7 +22,7 @@ export function getFromSessionStorage<T>(key: string, ttl: number): T | null {
         return null;
     } catch (error) {
         if (IS_DEV) {
-            console.warn('[useCache] Erro ao ler sessionStorage:', error);
+            safeLog.warn('[useCache] Erro ao ler sessionStorage:', error);
         }
         return null;
     }
@@ -53,7 +54,7 @@ export function cleanupSessionStorage(): void {
         keysToRemove.forEach(key => sessionStorage.removeItem(key));
     } catch (error) {
         if (IS_DEV) {
-            console.warn('[useCache] Erro ao limpar sessionStorage:', error);
+            safeLog.warn('[useCache] Erro ao limpar sessionStorage:', error);
         }
     }
 }
@@ -70,7 +71,7 @@ export function setToSessionStorage<T>(key: string, data: T, ttl: number): void 
         const currentSize = new Blob([serialized]).size;
         if (currentSize > MAX_SESSION_STORAGE_SIZE) {
             if (IS_DEV) {
-                console.warn('[useCache] Dados muito grandes para sessionStorage, usando apenas memória');
+                safeLog.warn('[useCache] Dados muito grandes para sessionStorage, usando apenas memória');
             }
             return;
         }
@@ -81,7 +82,7 @@ export function setToSessionStorage<T>(key: string, data: T, ttl: number): void 
         sessionStorage.setItem(`${SESSION_STORAGE_PREFIX}${key}`, serialized);
     } catch (error) {
         if (IS_DEV) {
-            console.warn('[useCache] Erro ao salvar no sessionStorage:', error);
+            safeLog.warn('[useCache] Erro ao salvar no sessionStorage:', error);
         }
         // Se sessionStorage estiver cheio, tentar limpar e tentar novamente
         if (error instanceof DOMException && error.code === 22) {

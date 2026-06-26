@@ -1,3 +1,5 @@
+import { readJsonStorage, writeJsonStorage } from '@/utils/storage/jsonStorage';
+
 export const STORAGE_KEY = 'mkt_entrada_saida_filters';
 
 export interface FilterState {
@@ -16,24 +18,19 @@ export function getDefaultFilters(): FilterState {
 }
 
 export function loadPersistedFilters(): FilterState | null {
-    try {
-        const stored = sessionStorage.getItem(STORAGE_KEY);
-        if (stored) {
-            const parsed = JSON.parse(stored) as FilterState;
-            if (parsed.dataInicial && parsed.dataFinal) {
-                return parsed;
-            }
-        }
-    } catch {
-        // ignore
+    const parsed = readJsonStorage<FilterState | null>(
+        typeof window !== 'undefined' ? sessionStorage : undefined,
+        STORAGE_KEY,
+        null
+    );
+
+    if (parsed?.dataInicial && parsed.dataFinal) {
+        return parsed;
     }
+
     return null;
 }
 
 export function persistFilters(filters: FilterState) {
-    try {
-        sessionStorage.setItem(STORAGE_KEY, JSON.stringify(filters));
-    } catch {
-        // ignore
-    }
+    writeJsonStorage(typeof window !== 'undefined' ? sessionStorage : undefined, STORAGE_KEY, filters);
 }

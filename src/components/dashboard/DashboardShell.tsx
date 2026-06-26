@@ -10,8 +10,6 @@ import { DashboardViewsRenderer } from '@/components/dashboard/DashboardViewsRen
 import { OnlineUsersSidebarLauncher } from '@/components/OnlineUsersSidebar/OnlineUsersSidebarLauncher';
 import { LoadingNotice } from '@/components/ui/loading-notice';
 import { useDashboardPage } from '@/hooks/dashboard/useDashboardPage';
-import { setLatestDashboardFilterPayload } from '@/hooks/dashboard/dashboardPrefetchState';
-import { prefetchDashboardTabData } from '@/hooks/dashboard/prefetchDashboardTabResources';
 import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
 import { FaviconManager } from '@/components/layout/FaviconManager';
@@ -63,14 +61,6 @@ function DashboardShellContent() {
   const showInitialLoading = ui.loading && !hasMainData;
 
   React.useEffect(() => {
-    setLatestDashboardFilterPayload(filters.payload);
-
-    return () => {
-      setLatestDashboardFilterPayload(null);
-    };
-  }, [filters.payload]);
-
-  React.useEffect(() => {
     if (!auth.isAuthenticated) return;
 
     const tabsToWarm: TabType[] = [
@@ -118,51 +108,6 @@ function DashboardShellContent() {
     };
   }, [auth.isAuthenticated]);
 
-
-  React.useEffect(() => {
-    if (!auth.isAuthenticated || ui.loading) return;
-    if (typeof filters.payload.p_organization_id !== 'string' || !filters.payload.p_organization_id.trim()) return;
-
-    let cancelled = false;
-    let idleId: number | null = null;
-    let timeoutId: number | null = null;
-
-    const warmData = () => {
-      const tabsToPrefetch: TabType[] = ['entregadores', 'valores'];
-      let index = 0;
-
-      const prefetchNext = () => {
-        if (cancelled || index >= tabsToPrefetch.length) return;
-
-        const tab = tabsToPrefetch[index];
-        index += 1;
-
-        void prefetchDashboardTabData(tab, filters.payload).finally(() => {
-          if (!cancelled) {
-            timeoutId = window.setTimeout(prefetchNext, 180);
-          }
-        });
-      };
-
-      prefetchNext();
-    };
-
-    if (typeof window.requestIdleCallback === 'function') {
-      idleId = window.requestIdleCallback(warmData, { timeout: 2200 });
-    } else {
-      timeoutId = window.setTimeout(warmData, 1200);
-    }
-
-    return () => {
-      cancelled = true;
-      if (idleId !== null && typeof window.cancelIdleCallback === 'function') {
-        window.cancelIdleCallback(idleId);
-      }
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, [auth.isAuthenticated, filters.payload, ui.loading]);
 
   if (auth.isCheckingAuth) return <DashboardAuthLoading />;
   if (auth.hasSessionWithoutProfile) {

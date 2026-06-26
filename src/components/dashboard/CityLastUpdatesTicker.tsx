@@ -14,7 +14,13 @@ export function CityLastUpdatesTicker() {
 
     return [...data]
       .sort((a, b) => (b.last_update_date || '').localeCompare(a.last_update_date || ''))
-      .slice(0, 10);
+      .slice(0, 10)
+      .map((item) => ({
+        ...item,
+        formattedDate: item.last_update_date
+          ? format(parseISO(item.last_update_date), "dd/MM", { locale: ptBR })
+          : 'N/A',
+      }));
   }, [data]);
 
   if (loading || visibleItems.length === 0) return null;
@@ -22,7 +28,7 @@ export function CityLastUpdatesTicker() {
   const marqueeItems = [...visibleItems, ...visibleItems];
 
   return (
-    <div className="w-full flex items-center gap-3 overflow-hidden select-none select-none pl-1">
+    <div className="w-full flex items-center gap-3 overflow-hidden select-none pl-1">
       {/* Indicador de Status / Refresh sutil */}
       <div className="flex items-center gap-1.5 shrink-0">
         <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/10 dark:bg-emerald-500/15">
@@ -52,9 +58,7 @@ export function CityLastUpdatesTicker() {
                   {item.city}
                 </span>
                 <span className="text-[10px] font-mono font-extrabold text-emerald-600 dark:text-emerald-400 opacity-100 whitespace-nowrap bg-emerald-500/10 dark:bg-emerald-500/15 px-1.5 py-0.5 rounded shadow-sm">
-                  {item.last_update_date
-                    ? format(parseISO(item.last_update_date), "dd/MM", { locale: ptBR })
-                    : 'N/A'}
+                  {item.formattedDate}
                 </span>
               </div>
             </div>
@@ -84,7 +88,6 @@ export function CityLastUpdatesTicker() {
         .city-updates-marquee {
           animation: city-updates-marquee 20s linear infinite !important;
           transform: translate3d(0, 0, 0);
-          will-change: transform;
         }
 
         .city-updates-marquee:hover {
@@ -93,6 +96,13 @@ export function CityLastUpdatesTicker() {
 
         .animate-city-updates-spin {
           animation: city-updates-spin 6s linear infinite !important;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+          .city-updates-marquee,
+          .animate-city-updates-spin {
+            animation: none !important;
+          }
         }
       `}</style>
     </div>

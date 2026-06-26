@@ -1,4 +1,5 @@
 import { safeRpc } from '@/lib/rpcWrapper';
+import { readJsonStorage, removeJsonStorage, writeJsonStorage } from '@/utils/storage/jsonStorage';
 
 const ALL_WEEKS_CACHE_KEY = 'all-weeks';
 const ALL_WEEKS_STORAGE_KEY = 'dashboard_all_weeks_cache_v1';
@@ -13,39 +14,33 @@ function hasYearQualifiedWeeks(weeks: string[]) {
 function readStoredAllWeeks() {
   if (typeof sessionStorage === 'undefined') return null;
 
-  try {
-    const raw = sessionStorage.getItem(ALL_WEEKS_STORAGE_KEY);
-    if (!raw) return null;
+  const parsed = readJsonStorage<{ timestamp?: number; weeks?: unknown } | null>(
+    sessionStorage,
+    ALL_WEEKS_STORAGE_KEY,
+    null
+  );
+  if (!parsed) return null;
 
-    const parsed = JSON.parse(raw) as { timestamp?: number; weeks?: unknown };
-    if (!parsed.timestamp || Date.now() - parsed.timestamp > ALL_WEEKS_CACHE_TTL_MS) {
-      sessionStorage.removeItem(ALL_WEEKS_STORAGE_KEY);
-      return null;
-    }
-
-    if (!Array.isArray(parsed.weeks)) return null;
-    const weeks = parsed.weeks.map(String).filter(Boolean);
-    if (weeks.length === 0) return null;
-
-    allWeeksCache.set(ALL_WEEKS_CACHE_KEY, weeks);
-    return weeks;
-  } catch {
-    sessionStorage.removeItem(ALL_WEEKS_STORAGE_KEY);
+  if (!parsed.timestamp || Date.now() - parsed.timestamp > ALL_WEEKS_CACHE_TTL_MS) {
+    removeJsonStorage(sessionStorage, ALL_WEEKS_STORAGE_KEY);
     return null;
   }
+
+  if (!Array.isArray(parsed.weeks)) return null;
+  const weeks = parsed.weeks.map(String).filter(Boolean);
+  if (weeks.length === 0) return null;
+
+  allWeeksCache.set(ALL_WEEKS_CACHE_KEY, weeks);
+  return weeks;
 }
 
 function writeStoredAllWeeks(weeks: string[]) {
   if (typeof sessionStorage === 'undefined') return;
 
-  try {
-    sessionStorage.setItem(ALL_WEEKS_STORAGE_KEY, JSON.stringify({
-      timestamp: Date.now(),
-      weeks,
-    }));
-  } catch {
-    // Cache local opcional; falhas nao devem afetar filtros.
-  }
+  writeJsonStorage(sessionStorage, ALL_WEEKS_STORAGE_KEY, {
+    timestamp: Date.now(),
+    weeks,
+  });
 }
 
 function normalizeAllWeeks(data: unknown): string[] {

@@ -4,6 +4,7 @@ import { safeRpc } from '@/lib/rpcWrapper';
 import type { DimensoesDashboard } from '@/types';
 import { fetchAllWeeks, primeAllWeeksCache } from '@/hooks/data/allWeeksCache';
 import { IS_DEV } from '@/constants/environment';
+import { readJsonStorage, removeJsonStorage, writeJsonStorage } from '@/utils/storage/jsonStorage';
 
 const CACHE_KEY = 'dashboard_dimensions_cache_v7';
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hora
@@ -166,23 +167,24 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
 function readCachedDimensions(): DimensoesDashboard | null {
   if (typeof sessionStorage === 'undefined') return null;
 
-  try {
-    const cached = sessionStorage.getItem(CACHE_KEY);
-    if (!cached) return null;
+  const cached = readJsonStorage<{ timestamp?: number; data?: Partial<DimensoesDashboard> } | null>(
+    sessionStorage,
+    CACHE_KEY,
+    null
+  );
+  if (!cached) return null;
 
-    const { timestamp, data } = JSON.parse(cached);
-    const isValid = Date.now() - timestamp < CACHE_DURATION;
+  const isValid = typeof cached.timestamp === 'number' && Date.now() - cached.timestamp < CACHE_DURATION;
+  const data = cached.data;
 
-    if (isValid && data?.anos?.length > 0 && Array.isArray(data.pracas)) {
-      return {
-        ...(data as DimensoesDashboard),
-        anos: resolveAvailableYears(Array.isArray(data.anos) ? data.anos : [])
-      };
-    }
-  } catch {
-    sessionStorage.removeItem(CACHE_KEY);
+  if (isValid && data?.anos?.length && Array.isArray(data.pracas)) {
+    return {
+      ...(data as DimensoesDashboard),
+      anos: resolveAvailableYears(Array.isArray(data.anos) ? data.anos : [])
+    };
   }
 
+  removeJsonStorage(sessionStorage, CACHE_KEY);
   return null;
 }
 

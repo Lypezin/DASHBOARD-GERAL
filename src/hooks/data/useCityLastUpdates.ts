@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { getAppApiData } from '@/utils/app/fetchAppApi';
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
+import { readJsonStorage, removeJsonStorage, writeJsonStorage } from '@/utils/storage/jsonStorage';
 
 interface CityUpdateInfo {
   city: string;
@@ -21,34 +22,25 @@ function getSessionCacheKey(scopeKey: string) {
 function readSessionCache(scopeKey: string) {
   if (typeof window === 'undefined') return null;
 
-  try {
-    const raw = sessionStorage.getItem(getSessionCacheKey(scopeKey));
-    if (!raw) return null;
+  const cacheKey = getSessionCacheKey(scopeKey);
+  const parsed = readJsonStorage<{ timestamp: number; data: CityUpdateInfo[] } | null>(sessionStorage, cacheKey, null);
+  if (!parsed) return null;
 
-    const parsed = JSON.parse(raw) as { timestamp: number; data: CityUpdateInfo[] };
-    if (Date.now() - parsed.timestamp > CACHE_TTL || !Array.isArray(parsed.data)) {
-      sessionStorage.removeItem(getSessionCacheKey(scopeKey));
-      return null;
-    }
-
-    return parsed;
-  } catch {
-    sessionStorage.removeItem(getSessionCacheKey(scopeKey));
+  if (Date.now() - parsed.timestamp > CACHE_TTL || !Array.isArray(parsed.data)) {
+    removeJsonStorage(sessionStorage, cacheKey);
     return null;
   }
+
+  return parsed;
 }
 
 function writeSessionCache(scopeKey: string, data: CityUpdateInfo[]) {
   if (typeof window === 'undefined') return;
 
-  try {
-    sessionStorage.setItem(getSessionCacheKey(scopeKey), JSON.stringify({
-      timestamp: Date.now(),
-      data,
-    }));
-  } catch {
-    // Cache opcional.
-  }
+  writeJsonStorage(sessionStorage, getSessionCacheKey(scopeKey), {
+    timestamp: Date.now(),
+    data,
+  });
 }
 
 export function useCityLastUpdates() {

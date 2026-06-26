@@ -3,11 +3,16 @@ import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { adminRpc } from '@/services/adminRpcClient';
 import { IS_DEV } from '@/constants/environment';
+import { readJsonStorage, removeJsonStorage, writeJsonStorage } from '@/utils/storage/jsonStorage';
 
-const CACHE_KEY = 'admin_pracas_cache_v2';
-const CACHE_TIME_KEY = 'admin_pracas_cache_v2_time';
+const CACHE_KEY = 'admin_pracas_cache_v3';
 const CACHE_TTL_MS = 5 * 60 * 1000;
 const MIN_COMPLETE_PRACAS = 4;
+
+interface PracasCacheEntry {
+    timestamp: number;
+    pracas: unknown;
+}
 
 function normalizePracas(raw: unknown): string[] {
     const rows = Array.isArray(raw) ? raw : [];
@@ -24,37 +29,32 @@ function normalizePracas(raw: unknown): string[] {
 }
 
 function savePracasCache(pracas: string[]) {
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify(pracas));
-    sessionStorage.setItem(CACHE_TIME_KEY, Date.now().toString());
+    writeJsonStorage(typeof window !== 'undefined' ? sessionStorage : undefined, CACHE_KEY, {
+        timestamp: Date.now(),
+        pracas,
+    });
 }
 
 function clearLegacyPracasCache() {
-    sessionStorage.removeItem('admin_pracas_cache');
-    sessionStorage.removeItem('admin_pracas_cache_time');
+    const storage = typeof window !== 'undefined' ? sessionStorage : undefined;
+    removeJsonStorage(storage, 'admin_pracas_cache');
+    removeJsonStorage(storage, 'admin_pracas_cache_time');
+    removeJsonStorage(storage, 'admin_pracas_cache_v2');
+    removeJsonStorage(storage, 'admin_pracas_cache_v2_time');
 }
 
 export async function fetchPracasWithFallback(): Promise<string[]> {
     clearLegacyPracasCache();
 
-    const cachedPracas = sessionStorage.getItem(CACHE_KEY);
-    const cacheTime = sessionStorage.getItem(CACHE_TIME_KEY);
+    const cached = readJsonStorage<PracasCacheEntry | null>(
+        typeof window !== 'undefined' ? sessionStorage : undefined,
+        CACHE_KEY,
+        null
+    );
 
-    if (cachedPracas && cacheTime) {
-        const now = Date.now();
-        const cached = parseInt(cacheTime);
-        const parsedCache = (() => {
-            try {
-                return normalizePracas(JSON.parse(cachedPracas));
-            } catch {
-                sessionStorage.removeItem(CACHE_KEY);
-                sessionStorage.removeItem(CACHE_TIME_KEY);
-                return [];
-            }
-        })();
-
-        if (now - cached < CACHE_TTL_MS && parsedCache.length >= MIN_COMPLETE_PRACAS) {
-            return parsedCache;
-        }
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+        const parsedCache = normalizePracas(cached.pracas);
+        if (parsedCache.length >= MIN_COMPLETE_PRACAS) return parsedCache;
     }
 
     try {

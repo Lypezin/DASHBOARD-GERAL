@@ -23,6 +23,7 @@ export const EntregadoresMainTableRow = React.memo(function EntregadoresMainTabl
         entregador.total_segundos
     );
     const aderencia = entregador.aderencia_percentual || 0;
+    const horasLabel = formatarHorasParaHMS(horas);
 
     return (
         <div
@@ -43,8 +44,8 @@ export const EntregadoresMainTableRow = React.memo(function EntregadoresMainTabl
                 </div>
             </div>
 
-            <div className="whitespace-nowrap text-center font-mono text-sm font-semibold text-slate-700 tabular-nums dark:text-slate-300" title={formatarHorasParaHMS(horas)}>
-                {formatarHorasParaHMS(horas)}
+            <div className="whitespace-nowrap text-center font-mono text-sm font-semibold text-slate-700 tabular-nums dark:text-slate-300" title={horasLabel}>
+                {horasLabel}
             </div>
             <NumericCell value={entregador.corridas_ofertadas || 0} />
             <NumericCell value={entregador.corridas_aceitas || 0} />

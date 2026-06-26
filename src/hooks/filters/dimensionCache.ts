@@ -1,4 +1,5 @@
 import { FilterOption } from '@/types';
+import { readJsonStorage, removeJsonStorage, writeJsonStorage } from '@/utils/storage/jsonStorage';
 
 const CACHE_DURATION = 1000 * 60 * 30;
 const MAX_DIMENSION_CACHE_ENTRIES = 24;
@@ -27,11 +28,7 @@ function cleanupDimensionCache() {
             dimensionMemoryCache.delete(key);
             if (!canUseSessionStorage) continue;
 
-            try {
-                sessionStorage.removeItem(getStorageKey(key));
-            } catch {
-                // Cache local e opcional.
-            }
+            removeJsonStorage(sessionStorage, getStorageKey(key));
         }
     }
 
@@ -41,11 +38,7 @@ function cleanupDimensionCache() {
         dimensionMemoryCache.delete(oldestKey);
         if (!canUseSessionStorage) continue;
 
-        try {
-            sessionStorage.removeItem(getStorageKey(oldestKey));
-        } catch {
-            // Cache local e opcional.
-        }
+        removeJsonStorage(sessionStorage, getStorageKey(oldestKey));
     }
 }
 
@@ -57,17 +50,10 @@ export function readCachedOptions(key: string): DimensionCacheEntry | null {
 
     if (typeof sessionStorage === 'undefined') return null;
 
-    try {
-        const raw = sessionStorage.getItem(getStorageKey(key));
-        if (!raw) return null;
-
-        const entry = JSON.parse(raw) as DimensionCacheEntry;
-        if (isValidCacheEntry(entry)) {
-            dimensionMemoryCache.set(key, entry);
-            return entry;
-        }
-    } catch {
-        sessionStorage.removeItem(getStorageKey(key));
+    const entry = readJsonStorage<DimensionCacheEntry | null>(sessionStorage, getStorageKey(key), null);
+    if (isValidCacheEntry(entry)) {
+        dimensionMemoryCache.set(key, entry);
+        return entry;
     }
 
     return null;
@@ -79,9 +65,5 @@ export function writeCachedOptions(key: string, entry: DimensionCacheEntry) {
 
     if (typeof sessionStorage === 'undefined') return;
 
-    try {
-        sessionStorage.setItem(getStorageKey(key), JSON.stringify(entry));
-    } catch {
-        // Cache local e opcional.
-    }
+    writeJsonStorage(sessionStorage, getStorageKey(key), entry);
 }

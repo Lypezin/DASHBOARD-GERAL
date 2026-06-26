@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import type { DashboardFilters } from '@/types/filters';
 import type { CurrentUser } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
@@ -33,12 +33,12 @@ export function useUserActivity(
   filters: DashboardFilters | Record<string, unknown>,
   currentUser: CurrentUser | null
 ) {
-  const [isPageVisible, setIsPageVisible] = useState(true);
   const sessionId = currentUser?.id ?? '';
 
   const activeTabRef = useRef(activeTab);
   const filtersRef = useRef(filters);
   const currentUserRef = useRef(currentUser);
+  const isPageVisibleRef = useRef(true);
   const lastTrackedTabRef = useRef<string | null>(null);
   const lastTrackedFiltersRef = useRef('');
   const loginTrackedForUserRef = useRef('');
@@ -109,7 +109,7 @@ export function useUserActivity(
     if (!sessionId) return;
     const handleVisibility = () => {
       const visible = !document.hidden;
-      setIsPageVisible(visible);
+      isPageVisibleRef.current = visible;
       if (currentUserRef.current && sessionId) {
         registrarAtividade(visible ? 'page_visible' : 'page_hidden', {}, activeTabRef.current, filtersRef.current);
       }
@@ -131,14 +131,14 @@ export function useUserActivity(
     }
 
     const heartbeat = setInterval(() => {
-      if (currentUserRef.current && isPageVisible && sessionId) registrarAtividade('heartbeat', {}, activeTabRef.current, filtersRef.current);
+      if (currentUserRef.current && isPageVisibleRef.current && sessionId) registrarAtividade('heartbeat', {}, activeTabRef.current, filtersRef.current);
     }, 60000);
 
     return () => {
       if (loginTimeout) clearTimeout(loginTimeout);
       clearInterval(heartbeat);
     };
-  }, [currentUser, isPageVisible, sessionId, registrarAtividade]);
+  }, [currentUser, sessionId, registrarAtividade]);
 
-  return { sessionId, isPageVisible, registrarAtividade };
+  return { sessionId, isPageVisible: isPageVisibleRef.current, registrarAtividade };
 }

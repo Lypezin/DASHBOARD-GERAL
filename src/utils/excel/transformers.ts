@@ -1,5 +1,5 @@
 import { validateString } from '@/lib/validate';
-import { convertDDMMYYYYToDate } from '../uploadHelpers';
+import { convertDDMMYYYYToDate } from '../dateParsing';
 
 /**
  * Transformadores comuns para reutilização em processamento de Excel
