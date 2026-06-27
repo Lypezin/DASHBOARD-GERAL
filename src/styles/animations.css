@@ -85,3 +85,63 @@
 .delay-600 { animation-delay: 600ms; }
 .delay-700 { animation-delay: 700ms; }
 .delay-800 { animation-delay: 800ms; }
+
+/* City updates ticker animations */
+@keyframes city-updates-marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes city-updates-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.city-updates-marquee {
+  animation: city-updates-marquee 20s linear infinite !important;
+  transform: translate3d(0, 0, 0);
+}
+
+.city-updates-marquee:hover {
+  animation-play-state: paused !important;
+}
+
+.animate-city-updates-spin {
+  animation: city-updates-spin 6s linear infinite !important;
+}
+
+/* Background blob animations for Login/Register */
+@keyframes blob {
+  0% { transform: translate(0px, 0px) scale(1); }
+  33% { transform: translate(30px, -50px) scale(1.1); }
+  66% { transform: translate(-20px, 20px) scale(0.9); }
+  100% { transform: translate(0px, 0px) scale(1); }
+}
+
+.animate-blob {
+  animation: blob 7s infinite;
+}
+
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .city-updates-marquee,
+  .animate-city-updates-spin,
+  .animate-blob {
+    animation: none !important;
+  }
+}

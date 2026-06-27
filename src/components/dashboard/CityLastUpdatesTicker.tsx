@@ -66,45 +66,7 @@ export function CityLastUpdatesTicker() {
         </div>
       </div>
 
-      <style jsx global>{`
-        @keyframes city-updates-marquee {
-          0% {
-            transform: translate3d(0, 0, 0);
-          }
-          100% {
-            transform: translate3d(-50%, 0, 0);
-          }
-        }
-
-        @keyframes city-updates-spin {
-          from {
-            transform: rotate(0deg);
-          }
-          to {
-            transform: rotate(360deg);
-          }
-        }
-
-        .city-updates-marquee {
-          animation: city-updates-marquee 20s linear infinite !important;
-          transform: translate3d(0, 0, 0);
-        }
-
-        .city-updates-marquee:hover {
-          animation-play-state: paused !important;
-        }
-
-        .animate-city-updates-spin {
-          animation: city-updates-spin 6s linear infinite !important;
-        }
-
-        @media (prefers-reduced-motion: reduce) {
-          .city-updates-marquee,
-          .animate-city-updates-spin {
-            animation: none !important;
-          }
-        }
-      `}</style>
+      
     </div>
   );
 }
