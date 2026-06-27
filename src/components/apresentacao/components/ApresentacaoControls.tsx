@@ -37,7 +37,8 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
         <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center md:justify-between md:p-4">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white md:text-xl">Preview da Apresentacao</h3>
 
-            <div className="flex flex-wrap items-center gap-2 md:gap-4">
+            <div className="flex flex-nowrap w-full items-center gap-2 md:gap-4 overflow-x-auto pb-1 md:pb-0 hide-scrollbar-custom" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+                <style dangerouslySetInnerHTML={{ __html: `.hide-scrollbar-custom::-webkit-scrollbar { display: none; }` }} />
                 <PresentationSectionToggle
                     visibleSections={visibleSections}
                     onToggleSection={onToggleSection}
