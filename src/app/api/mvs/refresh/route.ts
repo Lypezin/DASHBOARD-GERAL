@@ -25,6 +25,12 @@ type RpcCallResult = {
     error: string | null;
 };
 
+type RefreshRequestBody = {
+    reason?: unknown;
+    includeSecondary?: unknown;
+    requireAdmin?: unknown;
+};
+
 async function requireApprovedUser() {
     const auth = await loadCurrentUserProfile({
         requireApproved: true,
@@ -53,6 +59,26 @@ async function fetchQueueState(admin = createServiceRoleClient()) {
     return (data ?? null) as QueueStatePayload | null;
 }
 
+function getQueueCount(state: QueueStatePayload | null | undefined, key: keyof QueueStatePayload, fallback = 0) {
+    return Number(state?.[key] || fallback || 0);
+}
+
+function normalizeRefreshReason(value: unknown) {
+    return typeof value === 'string' && value.trim()
+        ? value.trim().slice(0, 80)
+        : 'manual';
+}
+
+function isIncrementalRefreshReason(reason: string) {
+    const normalizedReason = reason.toLowerCase();
+    return (
+        normalizedReason === 'upload' ||
+        normalizedReason === 'bulk_insert' ||
+        normalizedReason.startsWith('upload:') ||
+        normalizedReason.startsWith('bulk_insert:')
+    );
+}
+
 async function tryRpc(
     admin: ReturnType<typeof createServiceRoleClient>,
     functionName: string,
@@ -69,7 +95,7 @@ async function tryRpc(
 async function healRefreshQueueSnapshot(admin = createServiceRoleClient()) {
     let state = await fetchQueueState(admin);
 
-    const incrementalPending = Number(state?.incremental_pending_count || 0);
+    const incrementalPending = getQueueCount(state, 'incremental_pending_count');
     const incrementalWorkerScheduled = state?.incremental_worker_scheduled === true;
     if (incrementalPending > 0 && !incrementalWorkerScheduled) {
         await admin.rpc('ensure_incremental_refresh_worker_scheduled');
@@ -104,18 +130,11 @@ export async function POST(request: Request) {
         const auth = await requireApprovedUser();
         if ('error' in auth) return auth.error;
 
-        const body = await request.json().catch(() => ({}));
-        const reason = typeof body?.reason === 'string' && body.reason.trim()
-            ? body.reason.trim().slice(0, 80)
-            : 'manual';
+        const body = await request.json().catch(() => ({})) as RefreshRequestBody;
+        const reason = normalizeRefreshReason(body?.reason);
         const includeSecondary = body?.includeSecondary !== false;
         const requireAdmin = body?.requireAdmin === true;
-        const normalizedReason = reason.toLowerCase();
-        const isUploadRefresh =
-            normalizedReason === 'upload' ||
-            normalizedReason === 'bulk_insert' ||
-            normalizedReason.startsWith('upload:') ||
-            normalizedReason.startsWith('bulk_insert:');
+        const isUploadRefresh = isIncrementalRefreshReason(reason);
 
         if (requireAdmin && !hasElevatedRole(auth.profile)) {
             return NextResponse.json({ success: false, error: 'Apenas administradores podem executar esta atualização.' }, { status: 403 });
@@ -131,15 +150,15 @@ export async function POST(request: Request) {
 
             const incrementalWorker = await tryRpc(admin, 'ensure_incremental_refresh_worker_scheduled');
 
-            const { data: stateAfterWorker } = await admin.rpc('get_mv_refresh_queue_state');
-            const pendingIncrementals = Number((stateAfterWorker as QueueStatePayload | null)?.incremental_pending_count || 0);
+            const stateAfterWorker = await fetchQueueState(admin);
+            const pendingIncrementals = getQueueCount(stateAfterWorker, 'incremental_pending_count');
 
             if (incrementalWorker.error && pendingIncrementals > 0) {
                 throw new Error(incrementalWorker.error);
             }
 
             const { data: cleanupData } = await admin.rpc('clear_stale_full_mv_refresh_flags');
-            const { data: stateData } = await admin.rpc('get_mv_refresh_queue_state');
+            const stateData = await fetchQueueState(admin);
 
             return NextResponse.json({
                 success: true,
@@ -169,9 +188,11 @@ export async function POST(request: Request) {
         }
 
         const fullWorker = await tryRpc(admin, 'ensure_mv_refresh_worker_scheduled');
-        const pending = await fetchPendingMVs(admin);
-        const { data: stateData } = await admin.rpc('get_mv_refresh_queue_state');
-        const pendingFull = Number((stateData as QueueStatePayload | null)?.full_pending_count || pending.length || 0);
+        const [pending, stateData] = await Promise.all([
+            fetchPendingMVs(admin),
+            fetchQueueState(admin),
+        ]);
+        const pendingFull = getQueueCount(stateData, 'full_pending_count', pending.length);
 
         if (fullWorker.error && pendingFull > 0) {
             throw new Error(fullWorker.error);

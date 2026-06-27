@@ -25,7 +25,6 @@ export function AppSidebar() {
   const avatarUrl = useHeaderAvatar(user);
 
   const handleItemClick = (value: TabType) => {
-    prefetchDashboardTabResources(value);
     handleTabChange(value);
     setMobileOpen(false); // Fecha o menu no mobile ao clicar
   };

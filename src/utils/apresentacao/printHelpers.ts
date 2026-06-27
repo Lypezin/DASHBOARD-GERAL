@@ -3,21 +3,12 @@
  * Extraído de src/app/apresentacao/print/page.tsx
  */
 
-export const diasOrdem = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado', 'Domingo'];
-
-export const siglaDia = (dia: string) => dia.slice(0, 3).toUpperCase();
-
-export const chunkArray = <T,>(array: T[], size: number): T[][] => {
-  if (size <= 0) return [array];
-  const result: T[][] = [];
-  for (let i = 0; i < array.length; i += size) result.push(array.slice(i, i + size));
-  return result;
-};
-
-export const extrairNumeroSemana = (semana: string) => {
-  if (semana?.includes('-W')) return semana.split('-W')[1];
-  return semana;
-};
+export {
+  chunkArray,
+  diasOrdem,
+  extrairNumeroSemana,
+  siglaDia,
+} from './processors/common';
 
 export function formatSigned(percentOrInt: number, suffix = '%') {
   if (!Number.isFinite(percentOrInt) || percentOrInt === 0) return suffix === '%' ? '±0,0%' : '0';

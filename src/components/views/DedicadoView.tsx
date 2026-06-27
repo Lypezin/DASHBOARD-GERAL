@@ -4,7 +4,6 @@ import React from 'react';
 import { BarChart3, Download, LayoutDashboard, ListChecks, Table2, Trophy, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { safeLog } from '@/lib/errorHandler';
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
 import { formatarHorasParaHMS } from '@/utils/formatters';
@@ -21,7 +20,6 @@ import {
 } from './dedicado/rpcFallback';
 import type { AderenciaDiaOrigem, AderenciaOrigem, CurrentUser } from '@/types';
 import type { FilterPayload } from '@/types/filters';
-import { fetchDedicadoApi } from '@/utils/dedicado/fetchDedicadoApi';
 import { createRequestKey } from '@/utils/request/createRequestKey';
 import { useDedicadoOrigensData } from '@/hooks/data/useDedicadoOrigensData';
 
@@ -43,7 +41,26 @@ const SUB_TABS: { id: DedicadoSubTab; label: string; icon: React.ComponentType<{
   { id: 'dia_origem', label: 'Dia x Origem', icon: Table2 },
 ];
 
+function normalizeDedicadoMetricRow<T extends AderenciaOrigem | AderenciaDiaOrigem>(item: T): T {
+  const corridasOfertadas = normalizeMetricNumber(item.corridas_ofertadas);
+  const corridasAceitas = normalizeMetricNumber(item.corridas_aceitas);
+  const corridasCompletadas = normalizeMetricNumber(item.corridas_completadas);
+  const segundosRealizados = normalizeMetricNumber(item.segundos_realizados);
+  const segundosPlanejados = normalizeMetricNumber(item.segundos_planejados);
 
+  return {
+    ...item,
+    corridas_ofertadas: corridasOfertadas,
+    corridas_aceitas: corridasAceitas,
+    corridas_rejeitadas: normalizeMetricNumber(item.corridas_rejeitadas),
+    corridas_completadas: corridasCompletadas,
+    segundos_realizados: segundosRealizados,
+    segundos_planejados: segundosPlanejados,
+    aderencia_percentual: calculateHourlyAderencia(segundosRealizados, segundosPlanejados),
+    taxa_aceitacao: calculateAcceptanceRate(corridasAceitas, corridasOfertadas),
+    taxa_completude: calculateCompletionRate(corridasCompletadas, corridasAceitas),
+  };
+}
 
 const DedicadoView = React.memo(function DedicadoView({
   filterPayload,
@@ -83,7 +100,6 @@ const DedicadoView = React.memo(function DedicadoView({
   const origemPayload = React.useMemo(() => {
     return buildDedicadoFilterPayload(dedicatedPayload);
   }, [dedicatedPayload]);
-  const origemPayloadKey = React.useMemo(() => createRequestKey(origemPayload), [origemPayload]);
   const origemOrganizationId = React.useMemo(() => {
     return typeof origemPayload.p_organization_id === 'string'
       ? origemPayload.p_organization_id.trim()
@@ -109,51 +125,11 @@ const DedicadoView = React.memo(function DedicadoView({
     [entregadores]
   );
   const dedicatedOrigem = React.useMemo(
-    () => (dedicadoData.origem || [])
-      .map((item) => {
-        const corridasOfertadas = normalizeMetricNumber(item.corridas_ofertadas);
-        const corridasAceitas = normalizeMetricNumber(item.corridas_aceitas);
-        const corridasCompletadas = normalizeMetricNumber(item.corridas_completadas);
-        const segundosRealizados = normalizeMetricNumber(item.segundos_realizados);
-        const segundosPlanejados = normalizeMetricNumber(item.segundos_planejados);
-
-        return {
-          ...item,
-          corridas_ofertadas: corridasOfertadas,
-          corridas_aceitas: corridasAceitas,
-          corridas_rejeitadas: normalizeMetricNumber(item.corridas_rejeitadas),
-          corridas_completadas: corridasCompletadas,
-          segundos_realizados: segundosRealizados,
-          segundos_planejados: segundosPlanejados,
-          aderencia_percentual: calculateHourlyAderencia(segundosRealizados, segundosPlanejados),
-          taxa_aceitacao: calculateAcceptanceRate(corridasAceitas, corridasOfertadas),
-          taxa_completude: calculateCompletionRate(corridasCompletadas, corridasAceitas),
-        };
-      }),
+    () => (dedicadoData.origem || []).map(normalizeDedicadoMetricRow),
     [dedicadoData.origem]
   );
   const dedicatedDiaOrigem = React.useMemo(
-    () => (dedicadoData.dia_origem || [])
-      .map((item) => {
-        const corridasOfertadas = normalizeMetricNumber(item.corridas_ofertadas);
-        const corridasAceitas = normalizeMetricNumber(item.corridas_aceitas);
-        const corridasCompletadas = normalizeMetricNumber(item.corridas_completadas);
-        const segundosRealizados = normalizeMetricNumber(item.segundos_realizados);
-        const segundosPlanejados = normalizeMetricNumber(item.segundos_planejados);
-
-        return {
-          ...item,
-          corridas_ofertadas: corridasOfertadas,
-          corridas_aceitas: corridasAceitas,
-          corridas_rejeitadas: normalizeMetricNumber(item.corridas_rejeitadas),
-          corridas_completadas: corridasCompletadas,
-          segundos_realizados: segundosRealizados,
-          segundos_planejados: segundosPlanejados,
-          aderencia_percentual: calculateHourlyAderencia(segundosRealizados, segundosPlanejados),
-          taxa_aceitacao: calculateAcceptanceRate(corridasAceitas, corridasOfertadas),
-          taxa_completude: calculateCompletionRate(corridasCompletadas, corridasAceitas),
-        };
-      }),
+    () => (dedicadoData.dia_origem || []).map(normalizeDedicadoMetricRow),
     [dedicadoData.dia_origem]
   );
   const dedicatedTotals = React.useMemo(() => ({

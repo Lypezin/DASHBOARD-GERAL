@@ -5,13 +5,12 @@ import {
     isServiceRoleConfigError
 } from '@/utils/supabase/admin';
 import {
-    hasElevatedRole,
     loadCurrentUserProfile,
+    resolveAuthorizedOrganizationId,
 } from '@/app/api/_shared/currentUserProfile';
+import { readJsonBody } from '@/app/api/_shared/requestBody';
 
 export const runtime = 'nodejs';
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 export async function POST(request: Request) {
     try {
@@ -23,33 +22,27 @@ export async function POST(request: Request) {
         if ('failure' in auth) {
             return NextResponse.json({ success: false, error: auth.failure.message }, { status: auth.failure.status });
         }
-        const { profile } = auth;
-
-        const body = await request.json().catch(() => null);
+        const body = await readJsonBody<{ dados?: unknown; organizationId?: unknown }>(request);
         const rawRows = body?.dados;
-        const requestedOrganizationId = body?.organizationId;
 
         if (!Array.isArray(rawRows) || rawRows.length === 0) {
             return NextResponse.json({ success: false, error: 'Nenhum dado recebido para importacao.' }, { status: 400 });
         }
 
-        const profileOrganizationId = profile.organization_id || null;
-        const organizationId =
-            typeof requestedOrganizationId === 'string' && UUID_RE.test(requestedOrganizationId)
-                ? requestedOrganizationId
-                : profileOrganizationId;
-
-        if (!organizationId || !UUID_RE.test(organizationId)) {
-            return NextResponse.json({ success: false, error: 'Organizacao invalida para importacao.' }, { status: 400 });
-        }
-
-        if (!hasElevatedRole(profile) && profileOrganizationId && organizationId !== profileOrganizationId) {
-            return NextResponse.json({ success: false, error: 'Organizacao nao permitida para este usuario.' }, { status: 403 });
+        const organizationAccess = resolveAuthorizedOrganizationId(auth.profile, body?.organizationId, {
+            invalid: 'Organizacao invalida para importacao.',
+            forbidden: 'Organizacao nao permitida para este usuario.',
+        });
+        if ('failure' in organizationAccess) {
+            return NextResponse.json(
+                { success: false, error: organizationAccess.failure.message },
+                { status: organizationAccess.failure.status }
+            );
         }
 
         const rows = rawRows.map((row) => ({
             ...(row && typeof row === 'object' ? row : {}),
-            organization_id: organizationId
+            organization_id: organizationAccess.organizationId
         }));
 
         const admin = createServiceRoleClient();

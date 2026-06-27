@@ -16,6 +16,7 @@ interface UseCacheOptions<T> {
 
 const globalCache = new Map<string, CacheEntry<unknown>>();
 const MAX_GLOBAL_CACHE_ENTRIES = 24;
+const DEFAULT_TAB_DATA_TTL_MS: number = CACHE.TAB_DATA_TTL;
 
 function touchGlobalCacheEntry(key: string, entry: CacheEntry<unknown>) {
   globalCache.delete(key);
@@ -36,7 +37,7 @@ function pruneGlobalCache(ttl: number): void {
   }
 }
 
-export function readSharedCacheEntry<T>(key: string, ttl: number = CACHE.TAB_DATA_TTL): T | null {
+export function readSharedCacheEntry<T>(key: string, ttl: number = DEFAULT_TAB_DATA_TTL_MS): T | null {
   pruneGlobalCache(ttl);
 
   const cached = globalCache.get(key);
@@ -54,14 +55,14 @@ export function readSharedCacheEntry<T>(key: string, ttl: number = CACHE.TAB_DAT
   return null;
 }
 
-export function writeSharedCacheEntry<T>(key: string, data: T, ttl: number = CACHE.TAB_DATA_TTL): void {
+export function writeSharedCacheEntry<T>(key: string, data: T, ttl: number = DEFAULT_TAB_DATA_TTL_MS): void {
   touchGlobalCacheEntry(key, createCacheEntry(data, ttl) as CacheEntry<unknown>);
   pruneGlobalCache(ttl);
   setToSessionStorage(key, data, ttl);
 }
 
 export function useCache<T>(options: UseCacheOptions<T>) {
-  const { ttl = CACHE.TAB_DATA_TTL, getCacheKey } = options;
+  const { ttl = DEFAULT_TAB_DATA_TTL_MS, getCacheKey } = options;
   const ttlRef = useRef<number>(ttl);
   const getCacheKeyRef = useRef(getCacheKey);
 

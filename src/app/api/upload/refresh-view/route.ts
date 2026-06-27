@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { loadCurrentUserProfile } from '@/app/api/_shared/currentUserProfile';
+import { readJsonBody } from '@/app/api/_shared/requestBody';
 import {
     createServiceRoleClient,
     getServiceRoleConfigErrorPayload,
@@ -27,7 +28,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: auth.failure.message }, { status: auth.failure.status });
         }
 
-        const body = await request.json().catch(() => null) as RefreshRequestBody | null;
+        const body = await readJsonBody<RefreshRequestBody>(request);
         const table = typeof body?.table === 'string' ? body.table : null;
         const refreshRpcFunction = table && table in TABLE_TO_REFRESH_RPC
             ? TABLE_TO_REFRESH_RPC[table as keyof typeof TABLE_TO_REFRESH_RPC]

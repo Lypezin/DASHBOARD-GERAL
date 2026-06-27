@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import {
-    hasElevatedRole,
     loadCurrentUserProfile,
+    resolveAuthorizedOrganizationId,
 } from '@/app/api/_shared/currentUserProfile';
 import {
     createServiceRoleClient,
@@ -18,7 +18,6 @@ import { createRequestKey } from '@/utils/request/createRequestKey';
 
 export const runtime = 'nodejs';
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DEDICADO_CACHE_TTL_MS = 60_000;
 const DEDICADO_DETAIL_CACHE_TTL_MS = 20_000;
 const MAX_DEDICADO_CACHE_ENTRIES = 100;
@@ -176,7 +175,7 @@ export async function POST(request: Request) {
     try {
         const auth = await loadCurrentUserProfile({
             requireApproved: true,
-            notApprovedMessage: 'Usuário ainda não aprovado.',
+            notApprovedMessage: 'Usuario ainda nao aprovado.',
         });
 
         if ('failure' in auth) {
@@ -187,33 +186,29 @@ export async function POST(request: Request) {
         const mode = normalizeMode(body?.mode);
 
         if (!mode) {
-            return NextResponse.json({ data: null, error: 'Modo de consulta do DEDICADO inválido.' }, { status: 400 });
+            return NextResponse.json({ data: null, error: 'Modo de consulta do DEDICADO invalido.' }, { status: 400 });
         }
 
         const payload = normalizePayload(mode, body?.payload);
-        const profileOrganizationId = auth.profile.organization_id || null;
-        const requestedOrganizationId =
-            typeof payload.p_organization_id === 'string' && UUID_RE.test(payload.p_organization_id)
-                ? payload.p_organization_id
-                : null;
-        const organizationId = requestedOrganizationId || profileOrganizationId;
-
-        if (!organizationId || !UUID_RE.test(organizationId)) {
-            return NextResponse.json({ data: null, error: 'Organização inválida para consulta do DEDICADO.' }, { status: 400 });
-        }
-
-        if (!hasElevatedRole(auth.profile)) {
-            if (!profileOrganizationId || organizationId !== profileOrganizationId) {
-                return NextResponse.json({ data: null, error: 'Organização não permitida para este usuário.' }, { status: 403 });
+        const organizationAccess = resolveAuthorizedOrganizationId(
+            auth.profile,
+            payload.p_organization_id,
+            {
+                invalid: 'Organizacao invalida para consulta do DEDICADO.',
+                forbidden: 'Organizacao nao permitida para este usuario.',
             }
+        );
+
+        if ('failure' in organizationAccess) {
+            return NextResponse.json({ data: null, error: organizationAccess.failure.message }, { status: organizationAccess.failure.status });
         }
 
-        payload.p_organization_id = organizationId;
+        payload.p_organization_id = organizationAccess.organizationId;
 
         if (mode === 'entregador') {
             const entregadorId = typeof payload.p_entregador_id === 'string' ? payload.p_entregador_id.trim() : '';
             if (!entregadorId) {
-                return NextResponse.json({ data: null, error: 'Entregador inválido para detalhamento.' }, { status: 400 });
+                return NextResponse.json({ data: null, error: 'Entregador invalido para detalhamento.' }, { status: 400 });
             }
         }
 

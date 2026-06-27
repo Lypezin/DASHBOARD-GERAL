@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import {
-    hasElevatedRole,
     loadCurrentUserProfile,
+    resolveAuthorizedOrganizationId,
 } from '@/app/api/_shared/currentUserProfile';
 import {
     getServiceRoleConfigErrorPayload,
@@ -16,8 +16,6 @@ import {
 
 export const runtime = 'nodejs';
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
 type DashboardDataRequest = {
     mode?: unknown;
     payload?: unknown;
@@ -27,7 +25,7 @@ export async function POST(request: Request) {
     try {
         const auth = await loadCurrentUserProfile({
             requireApproved: true,
-            notApprovedMessage: 'Usuário ainda não aprovado.',
+            notApprovedMessage: 'Usuario ainda nao aprovado.',
         });
 
         if ('failure' in auth) {
@@ -38,25 +36,24 @@ export async function POST(request: Request) {
         const mode = normalizeMode(body?.mode);
 
         if (!mode) {
-            return NextResponse.json({ data: null, error: 'Modo de dados do dashboard inválido.' }, { status: 400 });
+            return NextResponse.json({ data: null, error: 'Modo de dados do dashboard invalido.' }, { status: 400 });
         }
 
         const source = asObject(body?.payload);
-        const profileOrganizationId = auth.profile.organization_id || null;
-        
-        const organizationId = resolveOrganizationId(source, profileOrganizationId);
-        
-        if (!organizationId || !UUID_RE.test(organizationId)) {
-            return NextResponse.json({ data: null, error: 'Organização inválida para consulta.' }, { status: 400 });
-        }
-
-        if (!hasElevatedRole(auth.profile)) {
-            if (!profileOrganizationId || organizationId !== profileOrganizationId) {
-                return NextResponse.json({ data: null, error: 'Organização não permitida para este usuário.' }, { status: 403 });
+        const organizationAccess = resolveAuthorizedOrganizationId(
+            auth.profile,
+            resolveOrganizationId(source, auth.profile.organization_id || null),
+            {
+                invalid: 'Organizacao invalida para consulta.',
+                forbidden: 'Organizacao nao permitida para este usuario.',
             }
+        );
+
+        if ('failure' in organizationAccess) {
+            return NextResponse.json({ data: null, error: organizationAccess.failure.message }, { status: organizationAccess.failure.status });
         }
 
-        const { data, cached } = await fetchDashboardData(mode, source, organizationId);
+        const { data, cached } = await fetchDashboardData(mode, source, organizationAccess.organizationId);
 
         return NextResponse.json({ data, error: null, cached });
     } catch (error) {

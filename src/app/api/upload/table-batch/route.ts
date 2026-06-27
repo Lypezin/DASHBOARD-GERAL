@@ -5,13 +5,13 @@ import {
     isServiceRoleConfigError,
 } from '@/utils/supabase/admin';
 import {
-    hasElevatedRole,
     loadCurrentUserProfile,
+    resolveAuthorizedOrganizationId,
 } from '@/app/api/_shared/currentUserProfile';
+import { isMissingRpcSignatureError } from '@/app/api/_shared/postgrestErrors';
+import { readJsonBody } from '@/app/api/_shared/requestBody';
 
 export const runtime = 'nodejs';
-
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const TABLE_CONFIG = {
     dados_marketing: {
@@ -34,17 +34,6 @@ function isAllowedTable(value: unknown): value is AllowedTable {
     return typeof value === 'string' && value in TABLE_CONFIG;
 }
 
-function isMissingRpcSignatureError(error: unknown) {
-    if (!error || typeof error !== 'object') return false;
-
-    const maybeError = error as { code?: string; message?: string };
-    return (
-        maybeError.code === 'PGRST116' ||
-        maybeError.code === 'PGRST202' ||
-        maybeError.message?.toLowerCase().includes('could not find the function') === true
-    );
-}
-
 export async function POST(request: Request) {
     try {
         const auth = await loadCurrentUserProfile({
@@ -56,7 +45,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: auth.failure.message }, { status: auth.failure.status });
         }
 
-        const body = await request.json().catch(() => null) as BatchRequestBody | null;
+        const body = await readJsonBody<BatchRequestBody>(request);
 
         if (!isAllowedTable(body?.table)) {
             return NextResponse.json({ success: false, error: 'Tabela nao permitida para upload interno.' }, { status: 400 });
@@ -66,24 +55,20 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: 'Nenhum dado recebido para importacao.' }, { status: 400 });
         }
 
-        const profileOrganizationId = auth.profile.organization_id || null;
-        const requestedOrganizationId =
-            typeof body.organizationId === 'string' && UUID_RE.test(body.organizationId)
-                ? body.organizationId
-                : null;
-        const organizationId = requestedOrganizationId || profileOrganizationId;
-
-        if (!organizationId || !UUID_RE.test(organizationId)) {
-            return NextResponse.json({ success: false, error: 'Organizacao invalida para importacao.' }, { status: 400 });
-        }
-
-        if (!hasElevatedRole(auth.profile) && (!profileOrganizationId || organizationId !== profileOrganizationId)) {
-            return NextResponse.json({ success: false, error: 'Organizacao nao permitida para este usuario.' }, { status: 403 });
+        const organizationAccess = resolveAuthorizedOrganizationId(auth.profile, body.organizationId, {
+            invalid: 'Organizacao invalida para importacao.',
+            forbidden: 'Organizacao nao permitida para este usuario.',
+        });
+        if ('failure' in organizationAccess) {
+            return NextResponse.json(
+                { success: false, error: organizationAccess.failure.message },
+                { status: organizationAccess.failure.status }
+            );
         }
 
         const rows = body.rows.map((row) => ({
             ...(row && typeof row === 'object' ? row : {}),
-            organization_id: organizationId,
+            organization_id: organizationAccess.organizationId,
         }));
 
         const admin = createServiceRoleClient();

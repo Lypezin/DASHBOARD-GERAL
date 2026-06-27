@@ -16,7 +16,7 @@ export type CurrentUserProfile = {
 };
 
 type ProfileFailure = {
-  status: 401 | 403;
+  status: 400 | 401 | 403;
   message: string;
 };
 
@@ -44,6 +44,41 @@ export function normalizeCurrentUserProfile(profile: unknown): CurrentUserProfil
 export function hasElevatedRole(profile: CurrentUserProfile) {
   const role = String(profile.role || '').toLowerCase();
   return profile.is_admin === true || role === 'admin' || role === 'master';
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export function resolveAuthorizedOrganizationId(
+  profile: CurrentUserProfile,
+  requestedOrganizationId: unknown,
+  messages: { invalid?: string; forbidden?: string } = {}
+): { organizationId: string } | { failure: ProfileFailure } {
+  const profileOrganizationId = profile.organization_id || null;
+  const requestedId =
+    typeof requestedOrganizationId === 'string' && UUID_RE.test(requestedOrganizationId)
+      ? requestedOrganizationId
+      : null;
+  const organizationId = requestedId || profileOrganizationId;
+
+  if (!organizationId || !UUID_RE.test(organizationId)) {
+    return {
+      failure: {
+        status: 400,
+        message: messages.invalid || 'Organizacao invalida para consulta.',
+      },
+    };
+  }
+
+  if (!hasElevatedRole(profile) && (!profileOrganizationId || organizationId !== profileOrganizationId)) {
+    return {
+      failure: {
+        status: 403,
+        message: messages.forbidden || 'Organizacao nao permitida para este usuario.',
+      },
+    };
+  }
+
+  return { organizationId };
 }
 
 function normalizeProfileRow(profile: CurrentUserProfile | null): CurrentUserProfile | null {

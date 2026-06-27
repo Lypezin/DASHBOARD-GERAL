@@ -5,13 +5,14 @@ import {
     isServiceRoleConfigError,
 } from '@/utils/supabase/admin';
 import {
-    hasElevatedRole,
     loadCurrentUserProfile,
+    resolveAuthorizedOrganizationId,
 } from '@/app/api/_shared/currentUserProfile';
+import { isMissingRpcSignatureError } from '@/app/api/_shared/postgrestErrors';
+import { readJsonBody } from '@/app/api/_shared/requestBody';
 
 export const runtime = 'nodejs';
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DELETE_BATCH_SIZE = 500;
 
 const TABLE_CONFIG = {
@@ -32,17 +33,6 @@ type DeleteRequestBody = {
 
 function isAllowedTable(value: unknown): value is AllowedTable {
     return typeof value === 'string' && value in TABLE_CONFIG;
-}
-
-function isMissingRpcSignatureError(error: unknown) {
-    if (!error || typeof error !== 'object') return false;
-
-    const maybeError = error as { code?: string; message?: string };
-    return (
-        maybeError.code === 'PGRST116' ||
-        maybeError.code === 'PGRST202' ||
-        maybeError.message?.toLowerCase().includes('could not find the function') === true
-    );
 }
 
 async function deleteInBatches(table: AllowedTable, organizationId: string) {
@@ -97,32 +87,28 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: auth.failure.message }, { status: auth.failure.status });
         }
 
-        const body = await request.json().catch(() => null) as DeleteRequestBody | null;
+        const body = await readJsonBody<DeleteRequestBody>(request);
 
         if (!isAllowedTable(body?.table)) {
             return NextResponse.json({ success: false, error: 'Tabela nao permitida para limpeza interna.' }, { status: 400 });
         }
 
-        const profileOrganizationId = auth.profile.organization_id || null;
-        const requestedOrganizationId =
-            typeof body?.organizationId === 'string' && UUID_RE.test(body.organizationId)
-                ? body.organizationId
-                : null;
-        const organizationId = requestedOrganizationId || profileOrganizationId;
-
-        if (!organizationId || !UUID_RE.test(organizationId)) {
-            return NextResponse.json({ success: false, error: 'Organizacao invalida para limpeza.' }, { status: 400 });
-        }
-
-        if (!hasElevatedRole(auth.profile) && (!profileOrganizationId || organizationId !== profileOrganizationId)) {
-            return NextResponse.json({ success: false, error: 'Organizacao nao permitida para este usuario.' }, { status: 403 });
+        const organizationAccess = resolveAuthorizedOrganizationId(auth.profile, body.organizationId, {
+            invalid: 'Organizacao invalida para limpeza.',
+            forbidden: 'Organizacao nao permitida para este usuario.',
+        });
+        if ('failure' in organizationAccess) {
+            return NextResponse.json(
+                { success: false, error: organizationAccess.failure.message },
+                { status: organizationAccess.failure.status }
+            );
         }
 
         const admin = createServiceRoleClient();
         const { rpcName } = TABLE_CONFIG[body.table];
 
         if (rpcName) {
-            const { data, error } = await admin.rpc(rpcName, { p_organization_id: organizationId });
+            const { data, error } = await admin.rpc(rpcName, { p_organization_id: organizationAccess.organizationId });
 
             if (error && !isMissingRpcSignatureError(error)) {
                 return NextResponse.json({ success: false, error: error.message, details: error }, { status: 500 });
@@ -133,7 +119,7 @@ export async function POST(request: Request) {
             }
         }
 
-        const deleted = await deleteInBatches(body.table, organizationId);
+        const deleted = await deleteInBatches(body.table, organizationAccess.organizationId);
         return NextResponse.json({ success: true, deleted });
     } catch (error) {
         if (isServiceRoleConfigError(error)) {

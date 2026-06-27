@@ -2,7 +2,7 @@
 
 import React from 'react';
 import dynamic from 'next/dynamic';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { EntregadoresMainStatsCards } from './entregadores/EntregadoresMainStatsCards';
 import { EntregadoresMainSearch } from './entregadores/EntregadoresMainSearch';
 import { EntregadoresMainTable } from './entregadores/EntregadoresMainTable';
@@ -16,7 +16,9 @@ import { useEntregadorProfile } from './entregadores/hooks/useEntregadorProfile'
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
+import { useDebouncedValue } from '@/hooks/ui/useDebouncedValue';
 import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
+import { useUrlSearchSync } from '@/hooks/ui/useUrlSearchSync';
 import { applyAllYearsDateRangeToPayload } from '@/utils/filters/allYearsRange';
 import { ViewTransition } from '@/components/ui/view-transition';
 import { LoadingNotice } from '@/components/ui/loading-notice';
@@ -231,15 +233,13 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
   variant?: 'entregadores' | 'dedicado';
 }) {
   const isDedicado = variant === 'dedicado';
-  const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const searchFromUrl = searchParams.get('ent_search') || '';
   const [searchTerm, setSearchTerm] = React.useState(searchFromUrl);
-  const [serverSearch, setServerSearch] = React.useState(searchFromUrl);
   const normalizedSearchTerm = searchTerm.trim();
-  const normalizedServerSearch = serverSearch.trim();
   const shouldPromoteSearch = normalizedSearchTerm.length >= 3 || normalizedSearchTerm.length === 0;
+  const serverSearch = useDebouncedValue(searchTerm, 350, shouldPromoteSearch);
+  const normalizedServerSearch = serverSearch.trim();
   const isSearchSyncing = !isDedicado
     && shouldPromoteSearch
     && normalizedSearchTerm !== normalizedServerSearch;
@@ -248,42 +248,7 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
     setSearchTerm(searchFromUrl);
   }, [searchFromUrl]);
 
-  React.useEffect(() => {
-    if (!shouldPromoteSearch) return;
-
-    const timeout = window.setTimeout(() => {
-      setServerSearch(searchTerm);
-    }, 350);
-
-    return () => window.clearTimeout(timeout);
-  }, [searchTerm, shouldPromoteSearch]);
-
-  React.useEffect(() => {
-    if (!shouldPromoteSearch) return;
-
-    const timeoutId = window.setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString());
-      const normalized = searchTerm.trim();
-
-      if (normalized) {
-        if (params.get('ent_search') !== searchTerm) {
-          params.set('ent_search', searchTerm);
-        }
-      } else if (params.has('ent_search')) {
-        params.delete('ent_search');
-      }
-
-      const nextQuery = params.toString();
-      const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-      const currentUrl = searchParams.toString() ? `${pathname}?${searchParams.toString()}` : pathname;
-
-      if (nextUrl !== currentUrl) {
-        router.replace(nextUrl, { scroll: false });
-      }
-    }, 250);
-
-    return () => window.clearTimeout(timeoutId);
-  }, [pathname, router, searchParams, searchTerm, shouldPromoteSearch]);
+  useUrlSearchSync('ent_search', searchTerm, 250, !isDedicado && shouldPromoteSearch);
 
   const handleSearchChange = React.useCallback((term: string) => {
     setSearchTerm(term);

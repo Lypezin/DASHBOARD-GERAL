@@ -2,8 +2,7 @@ import { useState, useCallback, useEffect, startTransition } from 'react';
 import { useRouter, useSearchParams, usePathname } from 'next/navigation';
 import { prefetchDashboardTabResources } from './prefetchDashboardTabResources';
 import { TabType } from '@/types';
-
-const VALID_TABS = ['dashboard', 'analise', 'utr', 'entregadores', 'valores', 'evolucao', 'prioridade', 'comparacao', 'marketing', 'marketing_comparacao', 'dedicado'];
+import { parseDashboardTab } from './dashboardTabsConfig';
 
 export function useDashboardTabs() {
     const router = useRouter();
@@ -11,11 +10,7 @@ export function useDashboardTabs() {
     const searchParams = useSearchParams();
 
     const getInitialTab = useCallback((): TabType => {
-        const tabParam = searchParams.get('tab');
-        if (tabParam && VALID_TABS.includes(tabParam)) {
-            return tabParam as TabType;
-        }
-        return 'dashboard';
+        return parseDashboardTab(searchParams.get('tab'));
     }, [searchParams]);
 
     const [activeTab, setActiveTabState] = useState<TabType>(getInitialTab());

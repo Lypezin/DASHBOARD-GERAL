@@ -14,6 +14,7 @@ export function useDashboardFilters() {
     const filtersProtectedRef = useRef(false);
     const filtersInitializedRef = useRef(false);
     const lastQueryRef = useRef('');
+    const urlSyncTimeoutRef = useRef<number | null>(null);
 
     useEffect(() => {
         if (!filtersInitializedRef.current) {
@@ -27,12 +28,29 @@ export function useDashboardFilters() {
             return;
         }
 
-        lastQueryRef.current = queryString;
-        const url = queryString ? `${pathname}?${queryString}` : pathname;
-        window.history.replaceState(null, '', url);
-        void registerInteraction('filter_change');
+        if (urlSyncTimeoutRef.current !== null) {
+            window.clearTimeout(urlSyncTimeoutRef.current);
+        }
+
+        urlSyncTimeoutRef.current = window.setTimeout(() => {
+            urlSyncTimeoutRef.current = null;
+            if (queryString === lastQueryRef.current) return;
+
+            lastQueryRef.current = queryString;
+            const url = queryString ? `${pathname}?${queryString}` : pathname;
+            window.history.replaceState(null, '', url);
+            void registerInteraction('filter_change');
+        }, 80);
 
     }, [filters, pathname, searchParams, registerInteraction]);
+
+    useEffect(() => {
+        return () => {
+            if (urlSyncTimeoutRef.current !== null) {
+                window.clearTimeout(urlSyncTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const setFiltersProtected = useCallback((newFilters: Filters | ((prev: Filters) => Filters)) => {
         setFilters((prev) => {

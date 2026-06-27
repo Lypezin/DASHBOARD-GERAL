@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useSidebar } from '@/contexts/SidebarContext';
-import { useDashboardTabs } from '@/hooks/dashboard/useDashboardTabs';
+import { useDashboardActiveTab } from '@/hooks/dashboard/useDashboardActiveTab';
 import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
 import { useHeaderAvatar } from '@/hooks/auth/useHeaderAvatar';
 import { useTheme } from '@/contexts/ThemeContext';
@@ -34,7 +34,7 @@ const BREADCRUMB_MAP: Record<TabType, { group: string; label: string }> = {
 
 export function DashboardHeader() {
   const { toggleSidebar, toggleMobileSidebar } = useSidebar();
-  const { activeTab } = useDashboardTabs();
+  const activeTab = useDashboardActiveTab();
   const { user, handleLogout } = useHeaderAuth();
   const avatarUrl = useHeaderAvatar(user);
   const { toggleTheme } = useTheme();
