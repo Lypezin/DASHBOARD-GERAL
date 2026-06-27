@@ -2,7 +2,7 @@ import { PostgrestError } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { UserProfile } from '@/hooks/auth/types';
-import { getAppApiData } from '@/utils/app/fetchAppApi';
+import { getCurrentUserProfileData } from '@/utils/app/fetchAppApi';
 import { IS_DEV } from '@/constants/environment';
 import { sleep } from '@/utils/async/sleep';
 
@@ -42,7 +42,7 @@ export async function fetchUserProfileWithRetry(): Promise<{ profile: UserProfil
     let profileError: PostgrestError | Error | null = null;
 
     try {
-        const result = await getAppApiData<UserProfile>('/api/app/current-user-profile');
+        const result = await getCurrentUserProfileData<UserProfile>();
         profile = result.data;
         profileError = result.error ? new Error(result.error) : null;
     } catch (err) {
@@ -54,7 +54,7 @@ export async function fetchUserProfileWithRetry(): Promise<{ profile: UserProfil
     if (profileError && !profile) {
         await sleep(1000);
         try {
-            const retryResult = await getAppApiData<UserProfile>('/api/app/current-user-profile');
+            const retryResult = await getCurrentUserProfileData<UserProfile>();
             profile = retryResult.data;
             profileError = retryResult.error ? new Error(retryResult.error) : null;
         } catch (retryErr) {

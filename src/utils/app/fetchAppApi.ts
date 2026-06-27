@@ -5,6 +5,7 @@ type ApiErrorShape = {
 };
 
 const inFlightGetRequests = new Map<string, Promise<{ data: unknown | null; error: string | null }>>();
+const CURRENT_USER_PROFILE_PATH = '/api/app/current-user-profile';
 
 async function sendAppApiData<T>(
     method: 'POST' | 'PATCH',
@@ -64,6 +65,10 @@ export async function getAppApiData<T>(path: string): Promise<{ data: T | null; 
 
 export async function postAppApiData<T>(path: string, body?: Record<string, unknown>): Promise<{ data: T | null; error: string | null }> {
     return sendAppApiData<T>('POST', path, body);
+}
+
+export async function getCurrentUserProfileData<T>(): Promise<{ data: T | null; error: string | null }> {
+    return getAppApiData<T>(CURRENT_USER_PROFILE_PATH);
 }
 
 export async function patchAppApiData<T>(

@@ -1,7 +1,7 @@
 import { safeLog } from '@/lib/errorHandler';
 import { signOutAndRedirect } from '@/utils/authHelpers';
 import { CurrentUser } from '@/types';
-import { getAppApiData } from '@/utils/app/fetchAppApi';
+import { getCurrentUserProfileData } from '@/utils/app/fetchAppApi';
 import { IS_DEV } from '@/constants/environment';
 
 
@@ -15,10 +15,10 @@ export async function fetchAndValidateProfile(
     try {
         // ... (lines 17-74 are unchanged)
 
-        const { data: profile, error: profileError } = await getAppApiData<{
+        const { data: profile, error: profileError } = await getCurrentUserProfileData<{
             is_approved: boolean; is_admin: boolean; assigned_pracas: string[];
             role?: 'admin' | 'marketing' | 'user' | 'master'; organization_id?: string | null;
-        }>('/api/app/current-user-profile');
+        }>();
 
         if (profileError) {
             if (IS_DEV) {

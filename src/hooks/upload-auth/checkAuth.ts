@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
-import { getAppApiData } from '@/utils/app/fetchAppApi';
+import { getCurrentUserProfileData } from '@/utils/app/fetchAppApi';
 
 interface UserProfile {
     is_admin: boolean;
@@ -16,7 +16,7 @@ export async function checkAdminStatus() {
             return { authorized: false, user: null, redirect: '/login' };
         }
 
-        const profileResult = await getAppApiData<UserProfile>('/api/app/current-user-profile');
+        const profileResult = await getCurrentUserProfileData<UserProfile>();
 
         const { data: profile, error } = profileResult;
 

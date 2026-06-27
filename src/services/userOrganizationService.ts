@@ -4,7 +4,7 @@
  */
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
-import { getAppApiData } from '@/utils/app/fetchAppApi';
+import { getCurrentUserProfileData } from '@/utils/app/fetchAppApi';
 import { IS_DEV } from '@/constants/environment';
 
 
@@ -38,11 +38,11 @@ export async function getCurrentUserOrganizationId(): Promise<string | null> {
         }
 
         // Se não tiver no metadata, buscar do perfil
-        const { data: profile, error: profileError } = await getAppApiData<{
+        const { data: profile, error: profileError } = await getCurrentUserProfileData<{
             organization_id?: string | null;
             is_admin?: boolean;
             role?: string;
-        }>('/api/app/current-user-profile');
+        }>();
 
         if (profileError || !profile) {
             if (IS_DEV) {

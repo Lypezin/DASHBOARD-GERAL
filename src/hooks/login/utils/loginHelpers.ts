@@ -1,5 +1,5 @@
 import { safeLog } from '@/lib/errorHandler';
-import { getAppApiData, postAppApiData } from '@/utils/app/fetchAppApi';
+import { getCurrentUserProfileData, postAppApiData } from '@/utils/app/fetchAppApi';
 import { IS_DEV } from '@/constants/environment';
 import { sleep } from '@/utils/async/sleep';
 
@@ -9,7 +9,7 @@ export async function fetchUserProfile() {
     let profileError: any = null;
 
     try {
-        const result = await getAppApiData<any>('/api/app/current-user-profile');
+        const result = await getCurrentUserProfileData<any>();
         profile = result.data;
         profileError = result.error;
     } catch (err) {
@@ -20,7 +20,7 @@ export async function fetchUserProfile() {
     if (profileError && !profile) {
         await sleep(1000);
         try {
-            const retryResult = await getAppApiData<any>('/api/app/current-user-profile');
+            const retryResult = await getCurrentUserProfileData<any>();
             profile = retryResult.data;
             profileError = retryResult.error;
         } catch (retryErr) {

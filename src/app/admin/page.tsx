@@ -9,7 +9,7 @@ import { useAdminData } from '@/hooks/auth/useAdminData';
 import { UserProfile } from '@/hooks/auth/types';
 import { useOrganizations } from '@/hooks/auth/useOrganizations';
 import { AdminContent } from '@/components/admin/AdminContent';
-import { getAppApiData } from '@/utils/app/fetchAppApi';
+import { getCurrentUserProfileData } from '@/utils/app/fetchAppApi';
 
 export default function AdminPage() {
   const router = useRouter();
@@ -55,7 +55,7 @@ export default function AdminPage() {
       return;
     }
 
-    const { data: profile, error } = await getAppApiData<UserProfile>('/api/app/current-user-profile');
+    const { data: profile, error } = await getCurrentUserProfileData<UserProfile>();
 
     if (error || !profile?.is_admin) {
       router.push('/');
