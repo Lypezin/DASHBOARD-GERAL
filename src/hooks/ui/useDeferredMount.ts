@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { scheduleIdleTask } from '@/utils/scheduling/idleTask';
 
 interface UseDeferredMountOptions {
   enabled?: boolean;
@@ -19,26 +20,8 @@ export function useDeferredMount(options: UseDeferredMountOptions = {}) {
 
     setIsMounted(false);
 
-    let timeoutId: number | null = null;
-    let idleId: number | null = null;
-
     const mount = () => setIsMounted(true);
-
-    if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
-      idleId = window.requestIdleCallback(mount, { timeout: timeoutMs });
-    } else {
-      timeoutId = window.setTimeout(mount, timeoutMs);
-    }
-
-    return () => {
-      if (idleId !== null && typeof window !== 'undefined' && typeof window.cancelIdleCallback === 'function') {
-        window.cancelIdleCallback(idleId);
-      }
-
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
-    };
+    return scheduleIdleTask(mount, { timeoutMs });
   }, [enabled, timeoutMs]);
 
   return isMounted;

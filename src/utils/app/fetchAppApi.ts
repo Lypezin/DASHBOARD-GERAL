@@ -1,4 +1,5 @@
 import { buildAppAuthHeaders } from './appAuthHeaders';
+import { INTERNAL_FETCH_OPTIONS, JSON_HEADERS } from './internalFetchOptions';
 
 type ApiErrorShape = {
     error?: string | null;
@@ -15,11 +16,8 @@ async function sendAppApiData<T>(
 ): Promise<{ data: T | null; error: string | null }> {
     const response = await fetch(path, {
         method,
-        headers: await buildAppAuthHeaders({
-            'Content-Type': 'application/json',
-        }),
-        credentials: 'same-origin',
-        cache: 'no-store',
+        ...INTERNAL_FETCH_OPTIONS,
+        headers: await buildAppAuthHeaders(JSON_HEADERS),
         keepalive: options.keepalive,
         body: JSON.stringify(body || {}),
     });
@@ -43,9 +41,8 @@ export async function getAppApiData<T>(path: string): Promise<{ data: T | null; 
     const request = (async (): Promise<{ data: T | null; error: string | null }> => {
         const response = await fetch(path, {
             method: 'GET',
+            ...INTERNAL_FETCH_OPTIONS,
             headers: await buildAppAuthHeaders(),
-            credentials: 'same-origin',
-            cache: 'no-store',
         });
 
         const payload = await response.json().catch(() => null) as ({ data?: T | null } & ApiErrorShape) | null;

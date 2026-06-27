@@ -1,4 +1,5 @@
 import { createRequestKey } from '@/utils/request/createRequestKey';
+import { INTERNAL_FETCH_OPTIONS, JSON_HEADERS } from '@/utils/app/internalFetchOptions';
 
 export interface FetchFluxoSemanalParams {
     dataFinal: string;
@@ -28,11 +29,8 @@ export async function fetchFluxoSemanal<T = Record<string, unknown>>(
     const request = (async (): Promise<T[]> => {
         const response = await fetch('/api/marketing/fluxo', {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'same-origin',
-            cache: 'no-store',
+            ...INTERNAL_FETCH_OPTIONS,
+            headers: JSON_HEADERS,
             body: requestKey,
         });
 

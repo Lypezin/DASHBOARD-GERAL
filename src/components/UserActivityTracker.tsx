@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { safeLog } from '@/lib/errorHandler';
 import { patchAppApiData, postAppApiData } from '@/utils/app/fetchAppApi';
+import { scheduleIdleTask } from '@/utils/scheduling/idleTask';
 
 const HEARTBEAT_INTERVAL_MS = 180000;
 
@@ -81,30 +82,16 @@ export function UserActivityTracker() {
             }
         };
 
-        let idleId: number | null = null;
-        let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
-        if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
-            idleId = window.requestIdleCallback(() => {
+        const cancelRouteChange = scheduleIdleTask(
+            () => {
                 void handleRouteChange();
-            }, { timeout: 500 });
-        } else {
-            timeoutId = setTimeout(() => {
-                void handleRouteChange();
-            }, 150);
-        }
+            },
+            { timeoutMs: 500, fallbackDelayMs: 150 }
+        );
 
         return () => {
             isMounted = false;
-
-            if (idleId !== null && typeof window !== 'undefined' && typeof window.cancelIdleCallback === 'function') {
-                window.cancelIdleCallback(idleId);
-            }
-
-            if (timeoutId !== null) {
-                clearTimeout(timeoutId);
-            }
-
+            cancelRouteChange();
             closeCurrentVisit();
         };
     }, [authUserId, hasResolved, pathname]);

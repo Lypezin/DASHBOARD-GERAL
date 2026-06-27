@@ -16,6 +16,7 @@ import type { FilterPayload } from '@/types/filters';
 import { needsChartReady, renderActiveView } from './utils/viewRenderer';
 import { useGamification } from '@/contexts/GamificationContext';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { scheduleIdleTask } from '@/utils/scheduling/idleTask';
 
 interface DashboardViewsRendererProps {
   activeTab: TabType;
@@ -59,28 +60,8 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
     const interaction = interactionMap[activeTab as keyof typeof interactionMap];
     if (!interaction) return;
 
-    let idleId: number | null = null;
-    let timeoutId: number | null = null;
-
     const run = () => registerInteraction(interaction);
-
-    if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
-      idleId = window.requestIdleCallback(run, { timeout: 1200 });
-    } else if (typeof window !== 'undefined') {
-      timeoutId = window.setTimeout(run, 250);
-    } else {
-      run();
-    }
-
-    return () => {
-      if (idleId !== null && typeof window !== 'undefined' && typeof window.cancelIdleCallback === 'function') {
-        window.cancelIdleCallback(idleId);
-      }
-
-      if (timeoutId !== null && typeof window !== 'undefined') {
-        window.clearTimeout(timeoutId);
-      }
-    };
+    return scheduleIdleTask(run, { timeoutMs: 1200, fallbackDelayMs: 250 });
   }, [activeTab, registerInteraction]);
 
   const needsChart = needsChartReady(activeTab);

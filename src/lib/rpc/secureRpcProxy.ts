@@ -1,5 +1,6 @@
 import type { RpcParams, RpcResult } from '@/types/rpc';
 import { buildAppAuthHeaders } from '@/utils/app/appAuthHeaders';
+import { INTERNAL_FETCH_OPTIONS, JSON_HEADERS } from '@/utils/app/internalFetchOptions';
 
 const SECURE_RPC_FUNCTIONS = new Set([
   'dashboard_evolucao_bundle',
@@ -45,9 +46,8 @@ export async function executeSecureRpcProxy<T>(
   try {
     const response = await fetch('/api/app/secure-rpc', {
       method: 'POST',
-      headers: await buildAppAuthHeaders({ 'Content-Type': 'application/json' }),
-      credentials: 'same-origin',
-      cache: 'no-store',
+      ...INTERNAL_FETCH_OPTIONS,
+      headers: await buildAppAuthHeaders(JSON_HEADERS),
       signal: controller.signal,
       body: JSON.stringify({ functionName, params: params || {} }),
     });

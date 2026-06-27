@@ -14,6 +14,7 @@ import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
 import { FaviconManager } from '@/components/layout/FaviconManager';
 import { preloadDashboardView } from '@/config/dynamicImports';
+import { scheduleIdleTask } from '@/utils/scheduling/idleTask';
 import type { TabType } from '@/types';
 
 const DeferredActivityTracker = dynamic(
@@ -76,7 +77,6 @@ function DashboardShellContent() {
       'marketing',
     ];
     let cancelled = false;
-    let idleId: number | null = null;
     let timeoutId: number | null = null;
 
     const warmSequentially = () => {
@@ -91,17 +91,11 @@ function DashboardShellContent() {
       warmNext();
     };
 
-    if (typeof window.requestIdleCallback === 'function') {
-      idleId = window.requestIdleCallback(warmSequentially, { timeout: 1800 });
-    } else {
-      timeoutId = window.setTimeout(warmSequentially, 900);
-    }
+    const cancelWarmStart = scheduleIdleTask(warmSequentially, { timeoutMs: 1800, fallbackDelayMs: 900 });
 
     return () => {
       cancelled = true;
-      if (idleId !== null && typeof window.cancelIdleCallback === 'function') {
-        window.cancelIdleCallback(idleId);
-      }
+      cancelWarmStart();
       if (timeoutId !== null) {
         window.clearTimeout(timeoutId);
       }

@@ -1,4 +1,5 @@
 import { safeLog } from '@/lib/errorHandler';
+import { INTERNAL_FETCH_OPTIONS, JSON_HEADERS } from '@/utils/app/internalFetchOptions';
 import type {
     PendingMV,
     RefreshMVResult,
@@ -27,8 +28,8 @@ export const mvService = {
     async enqueueRefresh(reason = 'manual', includeSecondary = true, requireAdmin = false) {
         const response = await fetch('/api/mvs/refresh', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'same-origin',
+            ...INTERNAL_FETCH_OPTIONS,
+            headers: JSON_HEADERS,
             body: JSON.stringify({ reason, includeSecondary, requireAdmin })
         });
 
@@ -64,7 +65,7 @@ export const mvService = {
     async getRefreshQueueSnapshot<T = Record<string, unknown>>(): Promise<ServiceResponse<T>> {
         const response = await fetch('/api/mvs/refresh', {
             method: 'GET',
-            credentials: 'same-origin'
+            ...INTERNAL_FETCH_OPTIONS,
         });
 
         return parseRefreshResponse<T>(response);

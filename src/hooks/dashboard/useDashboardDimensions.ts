@@ -5,6 +5,7 @@ import type { DimensoesDashboard } from '@/types';
 import { fetchAllWeeks, primeAllWeeksCache } from '@/hooks/data/allWeeksCache';
 import { IS_DEV } from '@/constants/environment';
 import { readJsonStorage, removeJsonStorage, writeJsonStorage } from '@/utils/storage/jsonStorage';
+import { scheduleIdleTask } from '@/utils/scheduling/idleTask';
 
 const CACHE_KEY = 'dashboard_dimensions_cache_v7';
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hora
@@ -44,20 +45,15 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
 
   useEffect(() => {
     let cancelled = false;
-    let idleId: number | null = null;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let cancelYearsRefresh: (() => void) | null = null;
 
     const scheduleYearsRefresh = (baseDimensions: DimensoesDashboard) => {
-      if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
-        idleId = window.requestIdleCallback(() => {
+      cancelYearsRefresh = scheduleIdleTask(
+        () => {
           void refreshYearsOnly(baseDimensions);
-        }, { timeout: 2500 });
-        return;
-      }
-
-      timeoutId = setTimeout(() => {
-        void refreshYearsOnly(baseDimensions);
-      }, 1200);
+        },
+        { timeoutMs: 2500, fallbackDelayMs: 1200 }
+      );
     };
     const refreshYearsOnly = async (baseDimensions: DimensoesDashboard) => {
       try {
@@ -152,12 +148,7 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
 
     return () => {
       cancelled = true;
-      if (idleId !== null && typeof window !== 'undefined' && typeof window.cancelIdleCallback === 'function') {
-        window.cancelIdleCallback(idleId);
-      }
-      if (timeoutId !== null) {
-        clearTimeout(timeoutId);
-      }
+      cancelYearsRefresh?.();
     };
   }, [fetchRemote]);
 

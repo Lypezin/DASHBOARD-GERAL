@@ -62,7 +62,7 @@ export function writeSharedCacheEntry<T>(key: string, data: T, ttl: number = CAC
 
 export function useCache<T>(options: UseCacheOptions<T>) {
   const { ttl = CACHE.TAB_DATA_TTL, getCacheKey } = options;
-  const ttlRef = useRef(ttl);
+  const ttlRef = useRef<number>(ttl);
   const getCacheKeyRef = useRef(getCacheKey);
 
   ttlRef.current = ttl;

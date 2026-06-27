@@ -1,3 +1,5 @@
+import { INTERNAL_FETCH_OPTIONS, JSON_HEADERS } from '@/utils/app/internalFetchOptions';
+
 type UploadApiErrorShape = {
     code?: string;
     error?: string | null;
@@ -10,11 +12,8 @@ export async function postUploadApi<T>(
 ): Promise<{ ok: boolean; status: number; payload: (T & UploadApiErrorShape) | null }> {
     const response = await fetch(path, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        credentials: 'same-origin',
-        cache: 'no-store',
+        ...INTERNAL_FETCH_OPTIONS,
+        headers: JSON_HEADERS,
         body: JSON.stringify(body),
     });
 

@@ -1,5 +1,6 @@
 import type { RpcResult } from '@/types/rpc';
 import { createRequestKey } from '@/utils/request/createRequestKey';
+import { INTERNAL_FETCH_OPTIONS, JSON_HEADERS } from './internalFetchOptions';
 
 type InternalRpcApiResponse<T> = {
     data?: T | null;
@@ -32,10 +33,8 @@ export async function fetchInternalRpcApi<T>({
         const body = createRequestKey({ mode, payload });
         const response = await fetch(path, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            cache: 'no-store',
+            ...INTERNAL_FETCH_OPTIONS,
+            headers: JSON_HEADERS,
             body,
         });
 

@@ -1,3 +1,5 @@
+import { INTERNAL_FETCH_OPTIONS, JSON_HEADERS } from '@/utils/app/internalFetchOptions';
+
 export interface AdminRpcResult<T = unknown> {
     data: T | null;
     error: any;
@@ -9,8 +11,8 @@ export async function adminRpc<T = unknown>(
 ): Promise<AdminRpcResult<T>> {
     const response = await fetch('/api/admin/rpc', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
+        ...INTERNAL_FETCH_OPTIONS,
+        headers: JSON_HEADERS,
         body: JSON.stringify({ rpcName, params })
     });
 

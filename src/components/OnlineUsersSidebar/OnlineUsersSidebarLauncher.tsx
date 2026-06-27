@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import type { CurrentUser } from '@/types';
 import { SidebarTrigger } from './SidebarTrigger';
+import { scheduleIdleTask } from '@/utils/scheduling/idleTask';
 
 const DeferredOnlineUsersSidebar = dynamic(
   () => import('./index').then((mod) => ({ default: mod.OnlineUsersSidebar })),
@@ -25,15 +26,6 @@ export function OnlineUsersSidebarLauncher({ currentUser, currentTab }: OnlineUs
       return;
     }
 
-    let idleId: number | null = null;
-    let timeoutId: number | null = null;
-    const browserWindow = typeof window !== 'undefined'
-      ? window as Window & {
-          requestIdleCallback?: (callback: IdleRequestCallback, options?: IdleRequestOptions) => number;
-          cancelIdleCallback?: (handle: number) => void;
-        }
-      : null;
-
     let cancelled = false;
 
     const warmRealtime = () => {
@@ -46,27 +38,11 @@ export function OnlineUsersSidebarLauncher({ currentUser, currentTab }: OnlineUs
         });
     };
 
-    // Warm the sidebar chunk after idle and activate lightweight presence in background.
-    if (browserWindow?.requestIdleCallback) {
-      idleId = browserWindow.requestIdleCallback(() => {
-        warmRealtime();
-      }, { timeout: 6000 });
-    } else {
-      timeoutId = window.setTimeout(() => {
-        warmRealtime();
-      }, 2500);
-    }
+    const cancelWarmRealtime = scheduleIdleTask(warmRealtime, { timeoutMs: 6000, fallbackDelayMs: 2500 });
 
     return () => {
       cancelled = true;
-
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
-
-      if (browserWindow?.cancelIdleCallback && idleId !== null) {
-        browserWindow.cancelIdleCallback(idleId);
-      }
+      cancelWarmRealtime();
     };
   }, [activated, currentUser]);
 

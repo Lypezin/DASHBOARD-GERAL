@@ -1,5 +1,28 @@
 # Supabase Performance and Security Audit
 
+## Atualizacao de 2026-06-27
+
+- MCP Supabase revalidado no projeto: `dados_corridas` segue como maior tabela operacional
+  (~2,77M linhas), com tabelas incrementais ativas para dashboard, comparacao e entregadores.
+- `get_dashboard_dimension_options(praca, org)` mediu ~9,6ms com `EXPLAIN (ANALYZE, BUFFERS)`,
+  entao nao recebeu novo indice nem reescrita nesta rodada.
+- `vw_dashboard_resumo_current` com `organization_id + ano_iso=2026` mediu ~262ms quente. O plano
+  usa indices existentes e nao justificou novo indice especulativo.
+- `vw_entregadores_agregado_current` com `organization_id + ano_iso=2026 + praca='SANTO ANDRE'`
+  mediu ~14,8s no teste direto da view. O gargalo vem do overlay/anti-join da view; a guia Valores
+  agregada ja usa fast path direto e mediu ~87ms no mesmo escopo de data/praca.
+- `listar_valores_entregadores_detalhado` era o gargalo real da paginacao de Valores: mediu
+  ~8,7s para `SANTO ANDRE`, 2026, `limit=25`. A funcao core foi preservada como fallback legado
+  (`_listar_valores_entregadores_detalhado_core_legacy_v1`) e recebeu fast path com SQL dinamico
+  para `organization_id + data range + uma praca`, sem sub_praca/origem.
+- Revalidacao apos fast path dinamico: mesma chamada detalhada caiu para ~156ms, retornando
+  `25` linhas e `total=1872`. Reducao aproximada: 98% nesse caminho medido.
+- Advisory atual do MCP apontou RLS desabilitado em 5 tabelas incrementais:
+  `mv_refresh_impacts`, `tb_dashboard_resumo_incremental`, `tb_corridas_agregadas_incremental`,
+  `tb_entregadores_agregado_incremental` e `tb_comparison_weekly_incremental`. Nao foi aplicado
+  `ENABLE ROW LEVEL SECURITY` automaticamente porque isso bloquearia acessos sem politicas
+  adequadas; precisa de migracao de seguranca planejada.
+
 Data da coleta: 2026-05-29
 
 Projeto auditado: `ulmobmmlkevxswxpcyza`
