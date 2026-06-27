@@ -37,22 +37,22 @@ const SlideDemandaRejeicoes: React.FC<SlideDemandaRejeicoesProps> = ({
         subTitle={`Comparativo Semanas ${numeroSemana1} vs ${numeroSemana2}`}
       />
 
-      <div className="flex flex-col gap-4 flex-1">
+      <div className="flex-1 flex flex-col justify-center w-full max-w-5xl mx-auto gap-6">
         {/* Headers Row */}
         <div className="grid grid-cols-3 gap-6">
-          <h3 className="text-xl font-bold text-center px-5 py-2.5 bg-sky-50 rounded-xl text-sky-800 border border-sky-100 uppercase tracking-wide">
+          <h3 className="text-xl font-bold text-center px-5 py-2.5 bg-sky-50 dark:bg-sky-950/40 rounded-xl text-sky-800 dark:text-sky-300 border border-sky-100 dark:border-sky-900/60 uppercase tracking-wide">
             SEMANA {numeroSemana1}
           </h3>
-          <h3 className="text-xl font-bold text-center px-5 py-2.5 bg-slate-50 rounded-xl text-slate-500 border border-slate-100 uppercase tracking-wide">
+          <h3 className="text-xl font-bold text-center px-5 py-2.5 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-700 uppercase tracking-wide">
             VARIAÇÕES
           </h3>
-          <h3 className="text-xl font-bold text-center px-5 py-2.5 bg-blue-600 rounded-xl text-white shadow-md uppercase tracking-wide border border-blue-700">
+          <h3 className="text-xl font-bold text-center px-5 py-2.5 bg-blue-600 dark:bg-blue-700 rounded-xl text-white shadow-md uppercase tracking-wide border border-blue-700 dark:border-blue-800">
             SEMANA {numeroSemana2}
           </h3>
         </div>
 
         {/* Content Rows */}
-        <div className="flex flex-col gap-3 flex-1 justify-center">
+        <div className="flex flex-col gap-4">
           {itens.map((item) => (
             <div key={item.label} className="grid grid-cols-3 gap-6">
               <MetricCard

@@ -35,6 +35,11 @@ export async function registerChartJS() {
     Chart.defaults.plugins.tooltip.backgroundColor = '#2c3e50';
     Chart.defaults.plugins.tooltip.titleFont = { weight: 'bold', size: 14 };
     Chart.defaults.plugins.tooltip.bodyFont = { size: 12 };
+    Chart.defaults.animation = {
+      duration: 600,
+      easing: 'easeOutExpo',
+      delay: 0
+    };
   })().catch((error) => {
     chartRegistrationPromise = null;
     safeLog.error('Falha ao registrar Chart.js ou plugins:', error);

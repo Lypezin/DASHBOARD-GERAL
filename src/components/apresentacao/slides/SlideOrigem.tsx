@@ -59,17 +59,19 @@ const SlideOrigem: React.FC<SlideOrigemProps> = ({
       )}
 
       {/* Cards Grid - responsive based on count */}
-      <div className={`${isSingleItem ? 'flex justify-center items-center' : 'grid grid-cols-3 gap-6'} flex-1 content-start`}>
-        {itens.map((item, index) => (
-          <OrigemCard
-            key={item.nome}
-            item={item}
-            index={index}
-            isSingleItem={isSingleItem}
-            numeroSemana1={numeroSemana1}
-            numeroSemana2={numeroSemana2}
-          />
-        ))}
+      <div className="flex-1 w-full max-w-[1300px] mx-auto flex items-center justify-center">
+        <div className={`${isSingleItem ? 'flex justify-center items-center' : 'grid grid-cols-3 gap-6'} w-full`}>
+          {itens.map((item, index) => (
+            <OrigemCard
+              key={item.nome}
+              item={item}
+              index={index}
+              isSingleItem={isSingleItem}
+              numeroSemana1={numeroSemana1}
+              numeroSemana2={numeroSemana2}
+            />
+          ))}
+        </div>
       </div>
     </SlideWrapper>
   );

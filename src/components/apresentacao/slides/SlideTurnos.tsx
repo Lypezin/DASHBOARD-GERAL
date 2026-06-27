@@ -29,8 +29,9 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({ isVisible, numeroSemana1, num
         </p>
       )}
 
-      <div className="grid grid-cols-2 gap-x-12 gap-y-8 flex-1 content-start mt-4">
-        {itens.map((item) => (
+      <div className="flex-1 w-full max-w-[1300px] mx-auto flex items-center justify-center">
+        <div className="grid grid-cols-2 gap-x-12 gap-y-8 w-full">
+          {itens.map((item) => (
           <div
             key={item.nome}
             onClick={() => setSelectedItem(item)}
@@ -69,6 +70,7 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({ isVisible, numeroSemana1, num
             </div>
           </div>
         ))}
+        </div>
       </div>
 
       {selectedItem && (
