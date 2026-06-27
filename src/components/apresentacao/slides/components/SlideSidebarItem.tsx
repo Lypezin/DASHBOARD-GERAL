@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { GripVertical, X } from 'lucide-react';
+import { 
+    GripVertical, X, Home, Activity, MapPin, Calendar, Award, Sparkles, Building2, HelpCircle, Image, SunMoon, Navigation, ShoppingBag, Brain
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SlideSidebarItemEdit } from './item/SlideSidebarItemEdit';
 import { SlideSidebarItemDisplay } from './item/SlideSidebarItemDisplay';
@@ -10,6 +12,22 @@ interface SlideSidebarItemProps {
     onDragEnter: (e: React.DragEvent<HTMLDivElement>, index: number) => void; onDragEnd: () => void;
     onUpdateTitle?: (id: string, newTitle: string) => void; onDelete?: (id: string) => void;
 }
+
+const getSlideIcon = (key: string) => {
+    const iconClass = "w-4 h-4";
+    if (key === 'capa') return <Home className={iconClass} />;
+    if (key === 'aderencia-geral') return <Activity className={iconClass} />;
+    if (key.startsWith('sub-pracas') || key === 'sub-pracas') return <MapPin className={iconClass} />;
+    if (key === 'aderencia-diaria') return <Calendar className={iconClass} />;
+    if (key.startsWith('turnos')) return <SunMoon className={iconClass} />;
+    if (key.startsWith('origens') || key === 'origens' || key === 'media-origens') return <Navigation className={iconClass} />;
+    if (key === 'demanda' || key.startsWith('demanda')) return <ShoppingBag className={iconClass} />;
+    if (key === 'ranking') return <Award className={iconClass} />;
+    if (key === 'resumo-ia' || key === 'smart-summary') return <Brain className={iconClass} />;
+    if (key === 'utr') return <Building2 className={iconClass} />;
+    if (key.startsWith('media-')) return <Image className={iconClass} />;
+    return <HelpCircle className={iconClass} />;
+};
 
 export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = ({
     slideKey, index, displayName, isActive, isMediaSlide, mediaId,
@@ -48,15 +66,21 @@ export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = ({
             onDragEnd={onDragEnd}
             onClick={onSelect}
             className={`
-                group flex min-w-56 md:min-w-0 items-center gap-3 p-3 rounded-lg border transition-all cursor-pointer select-none relative pr-8
+                group flex min-w-56 md:min-w-0 items-center gap-3 p-3 rounded-xl border transition-all duration-200 cursor-pointer select-none relative pr-8
                 ${isActive
-                    ? 'bg-blue-50 border-blue-200 shadow-sm'
-                    : 'bg-white border-transparent hover:border-slate-200 hover:shadow-sm'}
+                    ? 'bg-blue-50/80 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900/60 shadow-sm ring-1 ring-blue-500/20'
+                    : 'bg-white border-slate-100 dark:bg-slate-900/50 dark:border-slate-800/60 hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 hover:shadow-sm'}
             `}
         >
-            <div className="text-slate-400 cursor-grab active:cursor-grabbing p-1 hover:text-slate-600 rounded">
-                <GripVertical className="w-4 h-4" />
+            <div className="text-slate-400 dark:text-slate-500 cursor-grab active:cursor-grabbing p-0.5 hover:text-slate-600 dark:hover:text-slate-300 rounded transition-colors">
+                <GripVertical className="w-3.5 h-3.5" />
             </div>
+
+            {/* Visual Icon Badge */}
+            <div className={`p-1.5 rounded-lg shrink-0 transition-colors duration-200 ${isActive ? 'bg-blue-500/10 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-800/60 text-slate-400 dark:text-slate-500 group-hover:text-slate-500 dark:group-hover:text-slate-400'}`}>
+                {getSlideIcon(slideKey)}
+            </div>
+
             <div className="flex-1 min-w-0">
                 {isEditing ? (
                     <SlideSidebarItemEdit
@@ -74,7 +98,9 @@ export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = ({
                         startEditing={startEditing}
                     />
                 )}
-                <p className="text-[10px] text-slate-400">Slide {index + 1}</p>
+                <p className="text-[9px] font-mono font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mt-0.5">
+                    Slide {index + 1}
+                </p>
             </div>
 
             {/* Delete Button */}
@@ -83,7 +109,7 @@ export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = ({
                     <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50"
+                        className="h-6 w-6 p-0 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30"
                         onClick={handleDelete}
                     >
                         <X className="w-4 h-4" />

@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { SLIDE_HEIGHT, SLIDE_WIDTH, slideDimensionsStyle } from '../constants';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface PresentationViewportProps {
     slides: Array<{ key: string; render: (visible: boolean) => React.ReactNode }>;
@@ -75,20 +76,40 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
                     WebkitFontSmoothing: 'antialiased',
                     MozOsxFontSmoothing: 'grayscale',
                     textRendering: 'optimizeLegibility',
+                    overflow: 'hidden',
                 }}
             >
-                {totalSlides === 0 ? (
-                    <div
-                        className="slide bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 absolute inset-0 flex items-center justify-center text-xl font-medium border border-slate-200 dark:border-slate-800 rounded-lg"
-                        style={slideDimensionsStyle}
-                    >
-                        Nenhum dado disponível para visualização.
-                    </div>
-                ) : activeSlide ? (
-                    <React.Fragment key={activeSlide.key}>
-                        {activeSlide.render(true)}
-                    </React.Fragment>
-                ) : null}
+                <AnimatePresence mode="wait" initial={false}>
+                    {totalSlides === 0 ? (
+                        <motion.div
+                            key="empty"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            transition={{ duration: 0.15 }}
+                            className="slide bg-white dark:bg-slate-900 text-slate-500 dark:text-slate-400 absolute inset-0 flex items-center justify-center text-xl font-medium border border-slate-200 dark:border-slate-800 rounded-lg"
+                            style={slideDimensionsStyle}
+                        >
+                            Nenhum dado disponível para visualização.
+                        </motion.div>
+                    ) : activeSlide ? (
+                        <motion.div
+                            key={activeSlide.key}
+                            initial={{ opacity: 0, x: 24, scale: 0.98 }}
+                            animate={{ opacity: 1, x: 0, scale: 1 }}
+                            exit={{ opacity: 0, x: -24, scale: 0.98 }}
+                            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                            style={{
+                                ...slideDimensionsStyle,
+                                position: 'absolute',
+                                top: 0,
+                                left: 0,
+                            }}
+                        >
+                            {activeSlide.render(true)}
+                        </motion.div>
+                    ) : null}
+                </AnimatePresence>
             </div>
         </div>
     );
