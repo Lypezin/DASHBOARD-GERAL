@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { motion, useSpring, useMotionValue } from 'framer-motion';
 
 export const PresentationSpotlight: React.FC = () => {
@@ -13,13 +13,36 @@ export const PresentationSpotlight: React.FC = () => {
     const springY = useSpring(mouseY, springConfig);
 
     useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
-            mouseX.set(e.clientX);
-            mouseY.set(e.clientY);
+        if (!window.matchMedia('(min-width: 1024px) and (pointer: fine)').matches) {
+            return;
+        }
+
+        let frameId: number | null = null;
+        let nextX = 0;
+        let nextY = 0;
+
+        const updateSpotlight = () => {
+            frameId = null;
+            mouseX.set(nextX);
+            mouseY.set(nextY);
         };
 
-        window.addEventListener('mousemove', handleMouseMove);
-        return () => window.removeEventListener('mousemove', handleMouseMove);
+        const handleMouseMove = (e: MouseEvent) => {
+            nextX = e.clientX;
+            nextY = e.clientY;
+
+            if (frameId === null) {
+                frameId = window.requestAnimationFrame(updateSpotlight);
+            }
+        };
+
+        window.addEventListener('mousemove', handleMouseMove, { passive: true });
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            if (frameId !== null) {
+                window.cancelAnimationFrame(frameId);
+            }
+        };
     }, [mouseX, mouseY]);
 
     return (

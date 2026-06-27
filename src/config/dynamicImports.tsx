@@ -6,17 +6,15 @@ import React from 'react';
 import dynamic from 'next/dynamic';
 import type { TabType } from '@/types';
 
-const defaultLoading = (
-  <div className="flex h-64 items-center justify-center">
-    <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
-  </div>
-);
+function ViewLoadingIndicator() {
+  return (
+    <div className="flex h-28 items-center justify-center">
+      <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600 dark:border-slate-800 dark:border-t-blue-300" />
+    </div>
+  );
+}
 
-const marketingLoading = (
-  <div className="flex h-64 items-center justify-center">
-    <div className="h-8 w-8 animate-spin rounded-full border-4 border-purple-200 border-t-purple-600"></div>
-  </div>
-);
+const viewLoading = () => <ViewLoadingIndicator />;
 
 const dashboardViewLoaders = {
   dashboard: () => import('@/components/views/DashboardView').then((mod) => ({ default: mod.default })),
@@ -48,14 +46,14 @@ export function preloadDashboardViews(tabs: readonly (TabType | string)[]) {
   tabs.forEach(preloadDashboardView);
 }
 
-export const DashboardView = dynamic(dashboardViewLoaders.dashboard, { ssr: false, loading: () => defaultLoading });
-export const MarketingView = dynamic(dashboardViewLoaders.marketing, { ssr: false, loading: () => marketingLoading });
-export const AnaliseView = dynamic(dashboardViewLoaders.analise, { ssr: false, loading: () => defaultLoading });
-export const UtrView = dynamic(dashboardViewLoaders.utr, { ssr: false, loading: () => defaultLoading });
-export const EvolucaoView = dynamic(dashboardViewLoaders.evolucao, { ssr: false, loading: () => defaultLoading });
-export const ValoresView = dynamic(dashboardViewLoaders.valores, { ssr: false, loading: () => defaultLoading });
-export const EntregadoresMainView = dynamic(dashboardViewLoaders.entregadores, { ssr: false, loading: () => defaultLoading });
-export const PrioridadePromoView = dynamic(dashboardViewLoaders.prioridade, { ssr: false, loading: () => defaultLoading });
-export const ComparacaoView = dynamic(dashboardViewLoaders.comparacao, { ssr: false, loading: () => defaultLoading });
-export const MarketingComparacaoView = dynamic(dashboardViewLoaders.marketing_comparacao, { ssr: false, loading: () => defaultLoading });
-export const DedicadoView = dynamic(dashboardViewLoaders.dedicado, { ssr: false, loading: () => defaultLoading });
+export const DashboardView = dynamic(dashboardViewLoaders.dashboard, { ssr: false, loading: viewLoading });
+export const MarketingView = dynamic(dashboardViewLoaders.marketing, { ssr: false, loading: viewLoading });
+export const AnaliseView = dynamic(dashboardViewLoaders.analise, { ssr: false, loading: viewLoading });
+export const UtrView = dynamic(dashboardViewLoaders.utr, { ssr: false, loading: viewLoading });
+export const EvolucaoView = dynamic(dashboardViewLoaders.evolucao, { ssr: false, loading: viewLoading });
+export const ValoresView = dynamic(dashboardViewLoaders.valores, { ssr: false, loading: viewLoading });
+export const EntregadoresMainView = dynamic(dashboardViewLoaders.entregadores, { ssr: false, loading: viewLoading });
+export const PrioridadePromoView = dynamic(dashboardViewLoaders.prioridade, { ssr: false, loading: viewLoading });
+export const ComparacaoView = dynamic(dashboardViewLoaders.comparacao, { ssr: false, loading: viewLoading });
+export const MarketingComparacaoView = dynamic(dashboardViewLoaders.marketing_comparacao, { ssr: false, loading: viewLoading });
+export const DedicadoView = dynamic(dashboardViewLoaders.dedicado, { ssr: false, loading: viewLoading });

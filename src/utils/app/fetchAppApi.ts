@@ -6,6 +6,32 @@ type ApiErrorShape = {
 
 const inFlightGetRequests = new Map<string, Promise<{ data: unknown | null; error: string | null }>>();
 
+async function sendAppApiData<T>(
+    method: 'POST' | 'PATCH',
+    path: string,
+    body?: Record<string, unknown>,
+    options: { keepalive?: boolean } = {}
+): Promise<{ data: T | null; error: string | null }> {
+    const response = await fetch(path, {
+        method,
+        headers: await buildAppAuthHeaders({
+            'Content-Type': 'application/json',
+        }),
+        credentials: 'same-origin',
+        cache: 'no-store',
+        keepalive: options.keepalive,
+        body: JSON.stringify(body || {}),
+    });
+
+    const payload = await response.json().catch(() => null) as ({ data?: T | null } & ApiErrorShape) | null;
+
+    if (!response.ok) {
+        return { data: null, error: payload?.error || 'Erro ao enviar dados para API interna.' };
+    }
+
+    return { data: (payload?.data ?? null) as T | null, error: null };
+}
+
 export async function getAppApiData<T>(path: string): Promise<{ data: T | null; error: string | null }> {
     const existingRequest = inFlightGetRequests.get(path);
 
@@ -37,21 +63,13 @@ export async function getAppApiData<T>(path: string): Promise<{ data: T | null; 
 }
 
 export async function postAppApiData<T>(path: string, body?: Record<string, unknown>): Promise<{ data: T | null; error: string | null }> {
-    const response = await fetch(path, {
-        method: 'POST',
-        headers: await buildAppAuthHeaders({
-            'Content-Type': 'application/json',
-        }),
-        credentials: 'same-origin',
-        cache: 'no-store',
-        body: JSON.stringify(body || {}),
-    });
+    return sendAppApiData<T>('POST', path, body);
+}
 
-    const payload = await response.json().catch(() => null) as ({ data?: T | null } & ApiErrorShape) | null;
-
-    if (!response.ok) {
-        return { data: null, error: payload?.error || 'Erro ao enviar dados para API interna.' };
-    }
-
-    return { data: (payload?.data ?? null) as T | null, error: null };
+export async function patchAppApiData<T>(
+    path: string,
+    body?: Record<string, unknown>,
+    options?: { keepalive?: boolean }
+): Promise<{ data: T | null; error: string | null }> {
+    return sendAppApiData<T>('PATCH', path, body, options);
 }

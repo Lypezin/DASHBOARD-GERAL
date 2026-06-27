@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { safeLog } from '@/lib/errorHandler';
 import { MediaSlideData } from '@/types/presentation';
+import { readJsonStorage, writeJsonStorage } from '@/utils/storage/jsonStorage';
 
 interface UseMediaSlidesProps {
     storageKey: string;
@@ -11,22 +11,12 @@ export function useMediaSlides({ storageKey, isLoaded }: UseMediaSlidesProps) {
     const [mediaSlides, setMediaSlides] = useState<MediaSlideData[]>([]);
 
     useEffect(() => {
-        const savedSlides = localStorage.getItem(storageKey);
-        if (savedSlides) {
-            try {
-                setMediaSlides(JSON.parse(savedSlides));
-            } catch (e) {
-                safeLog.error('Error parsing saved slides:', e);
-                setMediaSlides([]);
-            }
-        } else {
-            setMediaSlides([]);
-        }
+        setMediaSlides(readJsonStorage<MediaSlideData[]>(window.localStorage, storageKey, []));
     }, [storageKey]);
 
     useEffect(() => {
         if (isLoaded) {
-            localStorage.setItem(storageKey, JSON.stringify(mediaSlides));
+            writeJsonStorage(window.localStorage, storageKey, mediaSlides);
         }
     }, [mediaSlides, isLoaded, storageKey]);
 

@@ -31,7 +31,7 @@ export function SidebarTrigger({
     return (
         <div
             className={cn(
-                'group fixed bottom-6 z-[99999] transform-gpu text-slate-700 transition-[transform,opacity,box-shadow,background-color,border-color] duration-500 ease-out dark:text-slate-100',
+                'group fixed bottom-6 z-[99999] text-slate-700 transition-[transform,opacity,box-shadow,background-color,border-color] duration-500 ease-out dark:text-slate-100',
                 isOpen && 'pointer-events-none translate-y-4 opacity-0',
                 isMinimized
                     ? 'right-0 w-[4.85rem] translate-x-3 opacity-90 hover:translate-x-0 hover:opacity-100'

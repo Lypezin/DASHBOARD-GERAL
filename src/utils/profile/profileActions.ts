@@ -1,21 +1,12 @@
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { IS_DEV } from '@/constants/environment';
+import { postAppApiData } from '@/utils/app/fetchAppApi';
 
 
 async function postProfileUpdate(path: string, payload: Record<string, unknown>) {
-    const response = await fetch(path, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-    });
-
-    if (!response.ok) {
-        const data = await response.json().catch(() => null);
-        throw new Error(data?.error || 'Falha ao atualizar perfil.');
-    }
+    const { error } = await postAppApiData<null>(path, payload);
+    if (error) throw new Error(error || 'Falha ao atualizar perfil.');
 }
 
 export async function updateUserName(userId: string, newName: string) {

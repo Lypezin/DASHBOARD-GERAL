@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
-import { safeLog } from '@/lib/errorHandler';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
+import { readJsonStorage, writeJsonStorage } from '@/utils/storage/jsonStorage';
 import { useMediaSlides } from './useMediaSlides';
 
 interface UseApresentacaoControllerProps {
@@ -8,6 +8,24 @@ interface UseApresentacaoControllerProps {
     ano: number | undefined;
     semanas: string[];
 }
+
+const DEFAULT_VISIBLE_SECTIONS = {
+    capa: true,
+    'resumo-ia': false,
+    'aderencia-geral': true,
+    ranking: false,
+    'sub-pracas': true,
+    'aderencia-diaria': true,
+    utr: true,
+    turnos: true,
+    'media-origens': true,
+    origens: true,
+    'demanda-origem': true,
+    demanda: true,
+    'capa-final': true,
+};
+
+type VisibleSections = typeof DEFAULT_VISIBLE_SECTIONS;
 
 export function useApresentacaoController({ praca, ano, semanas }: UseApresentacaoControllerProps) {
     const searchParams = useSearchParams();
@@ -30,10 +48,7 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
     const [orderedPresentationSlides, setOrderedPresentationSlides] = useState<Array<{ key: string; render: (visible: boolean) => React.ReactNode }>>([]);
     const [isLoaded, setIsLoaded] = useState(false);
 
-    const [visibleSections, setVisibleSections] = useState({
-        capa: true, 'resumo-ia': false, 'aderencia-geral': true, ranking: false, 'sub-pracas': true,
-        'aderencia-diaria': true, utr: true, turnos: true, 'media-origens': true, origens: true, 'demanda-origem': true, demanda: true, 'capa-final': true,
-    });
+    const [visibleSections, setVisibleSections] = useState<VisibleSections>(DEFAULT_VISIBLE_SECTIONS);
 
     useEffect(() => {
         const params = new URLSearchParams(searchParams.toString());
@@ -50,16 +65,13 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
     const slidesKey = getStorageKey('slides');
 
     useEffect(() => {
-        const savedSections = localStorage.getItem(sectionsKey);
-        if (savedSections) {
-            try { setVisibleSections(prev => ({ ...prev, ...JSON.parse(savedSections) })); }
-            catch (e) { safeLog.error('Error parsing saved sections:', e); }
-        }
+        const savedSections = readJsonStorage<Partial<VisibleSections>>(window.localStorage, sectionsKey, {});
+        setVisibleSections(prev => ({ ...prev, ...savedSections }));
         setIsLoaded(true);
     }, [sectionsKey]);
 
     useEffect(() => {
-        if (isLoaded) localStorage.setItem(sectionsKey, JSON.stringify(visibleSections));
+        if (isLoaded) writeJsonStorage(window.localStorage, sectionsKey, visibleSections);
     }, [visibleSections, isLoaded, sectionsKey]);
 
     const mediaSlidesHook = useMediaSlides({ storageKey: slidesKey, isLoaded });

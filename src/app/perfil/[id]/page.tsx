@@ -10,6 +10,7 @@ import { PublicProfileData } from './types';
 import { ProfileHeader } from './components/ProfileHeader';
 import { ProfileDetails } from './components/ProfileDetails';
 import { SaasPanel, SaasPanelHeader } from '@/components/views/shared/SaasPrimitives';
+import { getAppApiData } from '@/utils/app/fetchAppApi';
 
 export default function PublicPerfilPage() {
   const params = useParams<{ id: string }>();
@@ -45,17 +46,11 @@ export default function PublicPerfilPage() {
 
     const fetchProfile = async () => {
       try {
-        const response = await fetch(`/api/profile/public/${profileId}`, {
-          method: 'GET',
-          credentials: 'same-origin',
-          cache: 'no-store',
-        });
-        const payload = await response.json().catch(() => null) as {
-          data?: Pick<PublicProfileData, 'id' | 'full_name' | 'avatar_url' | 'created_at'> | null;
-        } | null;
-        const data = payload?.data;
+        const { data } = await getAppApiData<Pick<PublicProfileData, 'id' | 'full_name' | 'avatar_url' | 'created_at'>>(
+          `/api/profile/public/${profileId}`
+        );
 
-        if (cancelled || !response.ok || !data) return;
+        if (cancelled || !data) return;
 
         setProfile((prev) => ({
           id: data.id,

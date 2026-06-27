@@ -1,5 +1,5 @@
 import { safeLog } from '@/lib/errorHandler';
-import { executeAdminRpc } from '@/utils/adminHelpers';
+import { adminRpc } from '@/services/adminRpcClient';
 import { IS_DEV } from '@/constants/environment';
 
 
@@ -9,7 +9,7 @@ export function useAdminStatus(fetchData: () => void) {
         if (!confirm('Tem certeza que deseja revogar o acesso deste usuário?')) return;
 
         try {
-            const { error } = await executeAdminRpc(
+            const { error } = await adminRpc(
                 'revoke_user_access',
                 { user_id: userId }
             );
@@ -27,7 +27,7 @@ export function useAdminStatus(fetchData: () => void) {
         if (!confirm(`Tem certeza que deseja ${action} este usuário?`)) return;
 
         try {
-            const { data, error } = await executeAdminRpc(
+            const { data, error } = await adminRpc(
                 'set_user_admin',
                 { user_id: userId, make_admin: !currentIsAdmin }
             );

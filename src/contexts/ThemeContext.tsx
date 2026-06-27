@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { readStorage, writeStorage } from '@/utils/storage/jsonStorage';
 
 type Theme = 'light' | 'dark';
 
@@ -20,7 +21,7 @@ function getInitialTheme(): Theme {
     return 'light';
   }
 
-  const savedTheme = window.localStorage.getItem(STORAGE_KEY);
+  const savedTheme = readStorage(window.localStorage, STORAGE_KEY);
   if (savedTheme === 'light' || savedTheme === 'dark') {
     return savedTheme;
   }
@@ -61,7 +62,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     applyThemeToDocument(newTheme);
 
     if (typeof window !== 'undefined') {
-      window.localStorage.setItem(STORAGE_KEY, newTheme);
+      writeStorage(window.localStorage, STORAGE_KEY, newTheme);
     }
 
     setThemeState(newTheme);
@@ -82,7 +83,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleSystemThemeChange = (event: MediaQueryListEvent) => {
-      const savedTheme = window.localStorage.getItem(STORAGE_KEY);
+      const savedTheme = readStorage(window.localStorage, STORAGE_KEY);
       if (savedTheme === 'light' || savedTheme === 'dark') {
         return;
       }

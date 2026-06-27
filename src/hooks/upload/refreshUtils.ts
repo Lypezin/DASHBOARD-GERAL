@@ -1,4 +1,5 @@
 import { safeLog } from '@/lib/errorHandler';
+import { mvService } from '@/services/mvService';
 import { sleep } from '@/utils/async/sleep';
 import { REFRESH_MAX_MONITORING_MS, REFRESH_POLL_INTERVAL_MS } from './refreshTiming';
 
@@ -108,16 +109,8 @@ export function buildIncrementalRefreshStatusFromQueue(queueState: RefreshQueueS
 }
 
 export async function fetchRefreshQueueSnapshot() {
-    const response = await fetch('/api/mvs/refresh', {
-        method: 'GET',
-        credentials: 'same-origin'
-    });
-
-    const payload = await response.json().catch(() => null);
-
-    if (!response.ok || payload?.success === false) {
-        throw new Error(payload?.error || `Erro HTTP ${response.status} ao acompanhar refresh.`);
-    }
+    const { data: payload, error } = await mvService.getRefreshQueueSnapshot<any>();
+    if (error || !payload) throw new Error(error?.message || 'Erro ao acompanhar refresh.');
 
     return {
         payload,
@@ -203,22 +196,9 @@ export const performRefresh = async (
             return;
         }
 
-        const response = await fetch('/api/mvs/refresh', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            credentials: 'same-origin',
-            body: JSON.stringify({
-                reason: force ? 'upload' : 'scheduled',
-                includeSecondary: true,
-                requireAdmin: false
-            })
-        });
-
-        const payload = await response.json().catch(() => null);
-
-        if (!response.ok || payload?.success === false) {
-            throw new Error(payload?.error || `Erro HTTP ${response.status} ao enfileirar refresh.`);
-        }
+        const { data, error } = await mvService.enqueueRefresh(force ? 'upload' : 'scheduled', true, false);
+        if (error || !data) throw new Error(error?.message || 'Erro ao enfileirar refresh.');
+        const payload = data as any;
 
         if (payload?.incremental_mode === true) {
             const secondaryPending = payload?.incremental_worker_result?.pending_count;

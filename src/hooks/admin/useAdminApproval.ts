@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
-import { executeAdminRpc } from '@/utils/adminHelpers';
+import { adminRpc } from '@/services/adminRpcClient';
 import { User } from '@/hooks/auth/useAdminData';
 import { UserProfile } from '@/hooks/auth/types';
 import { IS_DEV } from '@/constants/environment';
@@ -33,7 +33,7 @@ export function useAdminApproval(_currentUser: UserProfile | null, fetchData: ()
         if (!selectedUser) return;
 
         try {
-            const { error } = await executeAdminRpc(
+            const { error } = await adminRpc(
                 'approve_user',
                 { user_id: selectedUser.id, pracas: selectedPracas, p_role: selectedRole, p_organization_id: selectedOrganizationId }
             );

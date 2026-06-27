@@ -2,6 +2,7 @@ import { MarketingDateFilter } from '@/types';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { CIDADES } from '@/constants/marketing';
 import { AtendenteData } from './AtendenteCard';
+import { createRequestKey } from '@/utils/request/createRequestKey';
 
 export interface TotaisData {
   totalEnviado: number;
@@ -41,7 +42,7 @@ export function buildCacheKey(
     filtroEnviadosLiberados: MarketingDateFilter;
   }
 ) {
-  return JSON.stringify({
+  return createRequestKey({
     organizationId: organizationId || 'global',
     filtroLiberacao: filters.filtroLiberacao,
     filtroEnviados: filters.filtroEnviados,

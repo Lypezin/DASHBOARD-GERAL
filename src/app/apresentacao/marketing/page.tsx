@@ -1,14 +1,18 @@
-
 import React from 'react';
-import { fetchMarketingTotalsData, fetchMarketingCitiesData, fetchMarketingDailyEvolution, fetchMarketingWeeklyComparison, fetchMarketingCostsComparison, fetchMarketingWeeklyComparisonByCity } from '@/utils/marketingDataFetcher';
+import { Metadata } from 'next';
+import {
+    fetchMarketingTotalsData,
+    fetchMarketingCitiesData,
+    fetchMarketingDailyEvolution,
+    fetchMarketingWeeklyComparison,
+    fetchMarketingCostsComparison,
+    fetchMarketingWeeklyComparisonByCity,
+} from '@/utils/marketingDataFetcher';
 import { generatePrintStyles } from '@/utils/apresentacao/printPageHelpers';
 import { MarketingReportSlides } from './components/MarketingReportSlides';
 import { createClient } from '@/utils/supabase/server';
-import { redirect } from 'next/navigation';
 import { MARKETING_PRESENTATION_WEEKLY_CITIES } from '@/constants/marketing';
 import { loadCurrentUserProfile } from '@/app/api/_shared/currentUserProfile';
-
-import { Metadata } from 'next';
 
 interface PageProps {
     searchParams: {
@@ -22,49 +26,52 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export const metadata: Metadata = {
-    title: "Apresentação Marketing",
+    title: 'Apresentacao Marketing',
 };
 
-export default async function MarketingPrintablePage({ searchParams }: PageProps) {
-    const supabase = createClient();
-    
-    // 1. Verificar Autenticação e Role no Servidor
-    const profileResult = await loadCurrentUserProfile({ requireApproved: true });
+function renderAccessRestricted(message: string) {
+    return (
+        <div style={{ background: '#0f172a', color: 'white', padding: 48, textAlign: 'center', fontFamily: 'sans-serif', minHeight: '100vh' }}>
+            <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Acesso Restrito</h1>
+            <p>{message}</p>
+        </div>
+    );
+}
 
-    if ('failure' in profileResult && profileResult.failure.status === 401) {
-        redirect('/login');
+export default async function MarketingPrintablePage({ searchParams }: PageProps) {
+    if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        return renderAccessRestricted('Configuracao do Supabase indisponivel neste ambiente.');
     }
 
-    const profile = 'profile' in profileResult ? profileResult.profile as {
+    const profileResult = await loadCurrentUserProfile({ requireApproved: true });
+
+    if ('failure' in profileResult) {
+        return renderAccessRestricted(profileResult.failure.message);
+    }
+
+    const profile = profileResult.profile as {
         role?: string;
         is_admin?: boolean;
         organization_id?: string | null;
-    } : null;
+    } | null;
 
     if (!profile) {
-        return (
-            <div style={{ background: '#0f172a', color: 'white', padding: 48, textAlign: 'center', fontFamily: 'sans-serif', minHeight: '100vh' }}>
-                <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Acesso Restrito</h1>
-                <p>Nao foi possivel validar seu perfil agora.</p>
-            </div>
-        );
+        return renderAccessRestricted('Nao foi possivel validar seu perfil agora.');
     }
 
-    const isMarketing = profile?.role === 'marketing' || profile?.role === 'admin' || profile?.role === 'master' || profile?.is_admin;
+    const isMarketing =
+        profile.role === 'marketing' ||
+        profile.role === 'admin' ||
+        profile.role === 'master' ||
+        profile.is_admin;
 
     if (!isMarketing) {
-        return (
-            <div style={{ background: '#0f172a', color: 'white', padding: 48, textAlign: 'center', fontFamily: 'sans-serif', minHeight: '100vh' }}>
-                <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Acesso Restrito</h1>
-                <p>Você não tem permissão para acessar esta apresentação.</p>
-            </div>
-        );
+        return renderAccessRestricted('Voce nao tem permissao para acessar esta apresentacao.');
     }
 
-    // 2. Preparar Filtros
-    const unifiedDateFilter = { 
-        dataInicial: searchParams.dataInicial || null, 
-        dataFinal: searchParams.dataFinal || null 
+    const unifiedDateFilter = {
+        dataInicial: searchParams.dataInicial || null,
+        dataFinal: searchParams.dataFinal || null,
     };
 
     const filters = {
@@ -77,20 +84,17 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
 
     const dateInicial = unifiedDateFilter.dataInicial || null;
     const dateFinal = unifiedDateFilter.dataFinal || null;
+    const orgId = profile.organization_id || null;
+    const supabase = createClient();
 
-    // 3. Buscar Dados
-    const orgId = profile?.organization_id || null;
-    
-    // Buscar dados base
     const [totals, citiesData, evolutionData, generalWeeklyData, costsComparison] = await Promise.all([
         fetchMarketingTotalsData(filters as any, orgId, supabase),
         fetchMarketingCitiesData(filters as any, orgId, supabase, true),
         fetchMarketingDailyEvolution(filters as any, orgId, supabase),
         fetchMarketingWeeklyComparison(orgId, null, dateInicial, dateFinal, supabase),
-        fetchMarketingCostsComparison(filters as any, orgId, supabase)
+        fetchMarketingCostsComparison(filters as any, orgId, supabase),
     ]);
 
-    // Buscar comparativo semanal para todas as cidades em lote (Otimizado!)
     const weeklyDataByCity = await fetchMarketingWeeklyComparisonByCity(
         orgId,
         MARKETING_PRESENTATION_WEEKLY_CITIES as unknown as string[],
@@ -100,12 +104,12 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
     );
 
     const pageStyle = generatePrintStyles();
-    
-    // Formatar período para a capa
-    const formatarData = (d?: string) => d ? new Date(d).toLocaleDateString('pt-BR', { month: 'long', day: 'numeric' }) : '';
-    const periodoFormatado = filters.filtroEnviados.dataInicial 
+    const formatarData = (date?: string) => date
+        ? new Date(date).toLocaleDateString('pt-BR', { month: 'long', day: 'numeric' })
+        : '';
+    const periodoFormatado = filters.filtroEnviados.dataInicial
         ? `${formatarData(filters.filtroEnviados.dataInicial)} a ${formatarData(filters.filtroEnviados.dataFinal || undefined)}`
-        : "Período Geral";
+        : 'Periodo Geral';
 
     return (
         <div data-print-ready="true">
@@ -117,7 +121,7 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
                 weeklyData={generalWeeklyData as any}
                 weeklyDataByCity={weeklyDataByCity as any}
                 costsComparison={costsComparison}
-                titulo="APRESENTAÇÃO MARKETING"
+                titulo="APRESENTACAO MARKETING"
                 periodoFormatado={periodoFormatado}
             />
         </div>

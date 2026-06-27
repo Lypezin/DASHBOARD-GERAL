@@ -192,7 +192,7 @@ export function writeCachedDimensions(data: DimensoesDashboard) {
   if (typeof sessionStorage === 'undefined') return;
 
   try {
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: Date.now(), data }));
+    writeJsonStorage(sessionStorage, CACHE_KEY, { timestamp: Date.now(), data });
   } catch {
     // Cache em sessionStorage e uma otimizaÃ§Ã£o opcional; falhas nao devem afetar o dashboard.
   }

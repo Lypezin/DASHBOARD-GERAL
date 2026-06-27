@@ -1,8 +1,16 @@
 
 import { useState, useEffect } from 'react';
 import { ChatMessage, OnlineUser } from '@/hooks/data/useOnlineUsers';
-import { safeLog } from '@/lib/errorHandler';
 import { CurrentUser } from '@/types';
+import { readJsonStorage, writeJsonStorage } from '@/utils/storage/jsonStorage';
+
+function getLastReadStorageKey(userId: string) {
+    return `chat_last_read_${userId}`;
+}
+
+function persistLastReadMap(userId: string, value: Record<string, string>) {
+    writeJsonStorage(typeof window !== 'undefined' ? localStorage : undefined, getLastReadStorageKey(userId), value);
+}
 
 export function useChatPersistence(
     currentUser: CurrentUser | null,
@@ -15,14 +23,11 @@ export function useChatPersistence(
     // Carregar lastReadMap quando o usuário for identificado
     useEffect(() => {
         if (currentUser?.id) {
-            const saved = localStorage.getItem(`chat_last_read_${currentUser.id}`);
-            if (saved) {
-                try {
-                    setLastReadMap(JSON.parse(saved));
-                } catch (e) {
-                    safeLog.error('Erro ao ler chat_last_read:', e);
-                }
-            }
+            setLastReadMap(readJsonStorage<Record<string, string>>(
+                typeof window !== 'undefined' ? localStorage : undefined,
+                getLastReadStorageKey(currentUser.id),
+                {}
+            ));
         }
     }, [currentUser?.id]);
 
@@ -61,14 +66,14 @@ export function useChatPersistence(
 
                 setLastReadMap(prev => {
                     const newMap = { ...prev, [activeChatUser.id]: now };
-                    localStorage.setItem(`chat_last_read_${currentUser.id}`, JSON.stringify(newMap));
+                    persistLastReadMap(currentUser.id, newMap);
                     return newMap;
                 });
             } else {
                 // Se não tem mensagens, marca como lido agora (abriu chat vazio)
                 setLastReadMap(prev => {
                     const newMap = { ...prev, [activeChatUser.id]: new Date().toISOString() };
-                    localStorage.setItem(`chat_last_read_${currentUser.id}`, JSON.stringify(newMap));
+                    persistLastReadMap(currentUser.id, newMap);
                     return newMap;
                 });
             }
@@ -83,7 +88,7 @@ export function useChatPersistence(
             if (lastMsg.from === activeChatUser.id || lastMsg.to === activeChatUser.id) {
                 setLastReadMap(prev => {
                     const newMap = { ...prev, [activeChatUser.id]: new Date().toISOString() };
-                    localStorage.setItem(`chat_last_read_${currentUser.id}`, JSON.stringify(newMap));
+                    persistLastReadMap(currentUser.id, newMap);
                     return newMap;
                 });
             }

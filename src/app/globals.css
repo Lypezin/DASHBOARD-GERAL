@@ -95,16 +95,6 @@
     background-image: radial-gradient(hsl(var(--foreground) / 0.05) 1.2px, transparent 1.2px);
   }
 
-  /* Glow Animation */
-  @keyframes glow-pulse {
-    0%, 100% { box-shadow: 0 0 4px rgba(59, 130, 246, 0.4); }
-    50% { box-shadow: 0 0 10px rgba(59, 130, 246, 0.6); }
-  }
-
-  .animate-glow-pulse {
-    animation: glow-pulse 2s infinite ease-in-out;
-  }
-
   /* Blur-in animation */
   .animate-blur-in {
     animation: blur-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;

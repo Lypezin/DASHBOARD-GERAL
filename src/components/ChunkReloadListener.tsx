@@ -2,6 +2,9 @@
 
 import { useEffect } from 'react';
 import { safeLog } from '@/lib/errorHandler';
+import { readStorage, writeStorage } from '@/utils/storage/jsonStorage';
+
+const CHUNK_RELOAD_STORAGE_KEY = 'chunk_reload_timestamp';
 
 export function ChunkReloadListener() {
     useEffect(() => {
@@ -28,12 +31,12 @@ export function ChunkReloadListener() {
 
             if (isChunkError) {
                 // Prevenir loop infinito de reloads (se o erro persistir por > 10s, deixa crashar)
-                const lastReload = typeof window !== 'undefined' ? sessionStorage.getItem('chunk_reload_timestamp') : null;
+                const lastReload = readStorage(typeof window !== 'undefined' ? sessionStorage : undefined, CHUNK_RELOAD_STORAGE_KEY);
                 const now = Date.now();
 
                 if (!lastReload || (now - Number(lastReload) > 10000)) {
                     safeLog.warn('[ChunkReloadListener] Erro de chunk detectado. Recarregando página...', message);
-                    sessionStorage.setItem('chunk_reload_timestamp', now.toString());
+                    writeStorage(typeof window !== 'undefined' ? sessionStorage : undefined, CHUNK_RELOAD_STORAGE_KEY, now.toString());
                     window.location.reload();
                 } else {
                     safeLog.error('[ChunkReloadListener] Loop de reload detectado. Abortando reload.', message);

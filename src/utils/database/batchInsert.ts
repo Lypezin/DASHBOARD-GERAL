@@ -94,26 +94,19 @@ async function insertCorridasViaApi(
     errors: string[]
 ) {
     const dados = batch.map((item) => Object.fromEntries(Object.entries(item).map(([key, value]) => [key, value ?? null])));
-    const response = await fetch('/api/upload/corridas-batch', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'same-origin',
-        body: JSON.stringify({ dados, organizationId }),
-    });
-
-    const payload = await response.json().catch(() => null) as {
-        code?: string;
-        error?: string;
-        message?: string;
+    const { ok, status, payload } = await postUploadApi<{
         errors?: number;
         error_messages?: string[];
-    } | null;
+    }>('/api/upload/corridas-batch', {
+        dados,
+        organizationId,
+    });
 
-    if (!response.ok) {
-        const message = payload?.error || payload?.message || `Erro HTTP ${response.status} no lote ${batchNum}`;
+    if (!ok) {
+        const message = payload?.error || payload?.message || `Erro HTTP ${status} no lote ${batchNum}`;
         const code = typeof payload?.code === 'string' ? payload.code : undefined;
 
-        if (response.status === 503 || code === 'SERVER_SUPABASE_SERVICE_ROLE_MISSING') {
+        if (status === 503 || code === 'SERVER_SUPABASE_SERVICE_ROLE_MISSING') {
             throw new NonRetryableBatchInsertError(message, code || 'UPLOAD_SERVER_UNAVAILABLE');
         }
 

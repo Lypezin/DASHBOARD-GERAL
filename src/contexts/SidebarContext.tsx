@@ -1,6 +1,9 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { readStorage, writeStorage } from '@/utils/storage/jsonStorage';
+
+const SIDEBAR_COLLAPSED_KEY = 'sidebar_collapsed';
 
 interface SidebarContextType {
   collapsed: boolean;
@@ -20,7 +23,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   // Carregar estado salvo do localStorage após a montagem do componente (para compatibilidade SSR)
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      const savedState = localStorage.getItem('sidebar_collapsed');
+      const savedState = readStorage(localStorage, SIDEBAR_COLLAPSED_KEY);
       if (savedState !== null) {
         setCollapsedState(savedState === 'true');
       }
@@ -30,7 +33,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const setCollapsed = (val: boolean) => {
     setCollapsedState(val);
     if (typeof window !== 'undefined') {
-      localStorage.setItem('sidebar_collapsed', String(val));
+      writeStorage(localStorage, SIDEBAR_COLLAPSED_KEY, String(val));
     }
   };
 
@@ -38,7 +41,7 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     setCollapsedState((prev) => {
       const val = !prev;
       if (typeof window !== 'undefined') {
-        localStorage.setItem('sidebar_collapsed', String(val));
+        writeStorage(localStorage, SIDEBAR_COLLAPSED_KEY, String(val));
       }
       return val;
     });

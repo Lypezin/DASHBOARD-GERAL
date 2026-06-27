@@ -10,18 +10,35 @@ export const PresentationCursor: React.FC<PresentationCursorProps> = ({ tool }) 
     const cursorRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        const handleMouseMove = (e: MouseEvent) => {
+        let frameId: number | null = null;
+        let nextX = 0;
+        let nextY = 0;
+
+        const updateCursor = () => {
+            frameId = null;
             if (cursorRef.current) {
-                cursorRef.current.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%, -50%)`;
+                cursorRef.current.style.transform = `translate(${nextX}px, ${nextY}px) translate(-50%, -50%)`;
+            }
+        };
+
+        const handleMouseMove = (e: MouseEvent) => {
+            nextX = e.clientX;
+            nextY = e.clientY;
+
+            if (frameId === null) {
+                frameId = window.requestAnimationFrame(updateCursor);
             }
         };
 
         if (tool !== 'pen') {
-            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mousemove', handleMouseMove, { passive: true });
         }
 
         return () => {
             window.removeEventListener('mousemove', handleMouseMove);
+            if (frameId !== null) {
+                window.cancelAnimationFrame(frameId);
+            }
         };
     }, [tool]);
 

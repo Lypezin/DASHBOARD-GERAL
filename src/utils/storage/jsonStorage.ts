@@ -4,6 +4,29 @@ function getStorage(storage: WebStorage | undefined): WebStorage | null {
   return typeof window === 'undefined' ? null : storage ?? null;
 }
 
+export function readStorage(storage: WebStorage | undefined, key: string): string | null {
+  const target = getStorage(storage);
+  if (!target) return null;
+
+  try {
+    return target.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+export function writeStorage(storage: WebStorage | undefined, key: string, value: string): boolean {
+  const target = getStorage(storage);
+  if (!target) return false;
+
+  try {
+    target.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function readJsonStorage<T>(storage: WebStorage | undefined, key: string, fallback: T): T {
   const target = getStorage(storage);
   if (!target) return fallback;

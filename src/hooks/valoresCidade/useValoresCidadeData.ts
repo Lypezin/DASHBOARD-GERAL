@@ -3,6 +3,7 @@ import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { MarketingDateFilter, ValoresCidadeDateFilter, ValoresCidadePorCidade } from '@/types';
+import { createRequestKey } from '@/utils/request/createRequestKey';
 
 interface ValoresCidadeResumoRow {
   cidade: string;
@@ -21,7 +22,7 @@ function buildCacheKey(
   filter: ValoresCidadeDateFilter,
   filterEnviados: MarketingDateFilter
 ) {
-  return JSON.stringify({
+  return createRequestKey({
     organizationId: organizationId || 'global',
     valorInicial: filter.dataInicial,
     valorFinal: filter.dataFinal,

@@ -12,6 +12,7 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(0.5);
+    const activeSlide = slides[currentSlide] || null;
 
     const calculateScale = useCallback(() => {
         if (containerRef.current) {
@@ -31,17 +32,20 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
     }, []);
 
     useEffect(() => {
-        // Initial calculation with delays to ensure DOM is ready
         calculateScale();
-        const t1 = setTimeout(calculateScale, 50);
-        const t2 = setTimeout(calculateScale, 150);
-        const t3 = setTimeout(calculateScale, 300);
+
+        const observer = typeof ResizeObserver !== 'undefined' && containerRef.current
+            ? new ResizeObserver(() => calculateScale())
+            : null;
+
+        if (observer && containerRef.current) {
+            observer.observe(containerRef.current);
+        }
+
         window.addEventListener('resize', calculateScale);
 
         return () => {
-            clearTimeout(t1);
-            clearTimeout(t2);
-            clearTimeout(t3);
+            observer?.disconnect();
             window.removeEventListener('resize', calculateScale);
         };
     }, [calculateScale]);
@@ -80,13 +84,11 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
                     >
                         Nenhum dado disponível para visualização.
                     </div>
-                ) : (
-                    slides.map((slide, index) => (
-                        <React.Fragment key={slide.key}>
-                            {slide.render(currentSlide === index)}
-                        </React.Fragment>
-                    ))
-                )}
+                ) : activeSlide ? (
+                    <React.Fragment key={activeSlide.key}>
+                        {activeSlide.render(true)}
+                    </React.Fragment>
+                ) : null}
             </div>
         </div>
     );

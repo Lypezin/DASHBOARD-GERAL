@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
-import { executeAdminRpc } from '@/utils/adminHelpers';
+import { adminRpc } from '@/services/adminRpcClient';
 import { User } from '@/hooks/auth/useAdminData';
 import { IS_DEV } from '@/constants/environment';
 
@@ -32,7 +32,7 @@ export function useAdminEdit(fetchData: () => void) {
         if (!editingUser) return;
 
         try {
-            const { error } = await executeAdminRpc(
+            const { error } = await adminRpc(
                 'update_user_pracas',
                 {
                     user_id: editingUser.id,

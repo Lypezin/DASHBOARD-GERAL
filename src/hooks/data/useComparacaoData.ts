@@ -5,6 +5,7 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 import { useAllWeeks } from '@/hooks/comparacao/useAllWeeks';
 import { fetchComparisonMetrics } from '@/hooks/comparacao/useComparisonMetrics';
 import { fetchComparisonUtr } from '@/hooks/comparacao/useComparisonUtr';
+import { createRequestKey } from '@/utils/request/createRequestKey';
 
 interface UseComparacaoDataOptions {
   semanas: string[];
@@ -30,7 +31,7 @@ function createComparacaoCacheKey(
   organizationId: string | null,
   anoSelecionado?: number
 ) {
-  return JSON.stringify({
+  return createRequestKey({
     organizationId: organizationId || 'no-org',
     anoSelecionado: anoSelecionado || null,
     pracaSelecionada: pracaSelecionada || 'todas',

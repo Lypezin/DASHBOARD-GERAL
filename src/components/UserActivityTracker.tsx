@@ -4,24 +4,13 @@ import { useEffect, useRef } from 'react';
 import { usePathname } from 'next/navigation';
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { safeLog } from '@/lib/errorHandler';
-import { buildAppAuthHeaders } from '@/utils/app/appAuthHeaders';
+import { patchAppApiData, postAppApiData } from '@/utils/app/fetchAppApi';
 
 const HEARTBEAT_INTERVAL_MS = 180000;
 
 async function sendActivityUpdate(body: Record<string, unknown>) {
-    const response = await fetch('/api/app/activity-log', {
-        method: 'PATCH',
-        headers: await buildAppAuthHeaders({ 'Content-Type': 'application/json' }),
-        credentials: 'same-origin',
-        cache: 'no-store',
-        keepalive: true,
-        body: JSON.stringify(body),
-    });
-
-    if (!response.ok) {
-        const payload = await response.json().catch(() => null);
-        throw new Error(payload?.error || `Erro HTTP ${response.status}`);
-    }
+    const { error } = await patchAppApiData<null>('/api/app/activity-log', body, { keepalive: true });
+    if (error) throw new Error(error);
 }
 
 export function UserActivityTracker() {
@@ -68,21 +57,10 @@ export function UserActivityTracker() {
             startTimeRef.current = now;
 
             try {
-                const response = await fetch('/api/app/activity-log', {
-                    method: 'POST',
-                    headers: await buildAppAuthHeaders({ 'Content-Type': 'application/json' }),
-                    credentials: 'same-origin',
-                    cache: 'no-store',
-                    body: JSON.stringify({ path: pathname }),
-                });
+                const { data, error } = await postAppApiData<{ id?: string }>('/api/app/activity-log', { path: pathname });
+                const id = data?.id;
 
-                const payload = await response.json().catch(() => null) as {
-                    data?: { id?: string } | null;
-                    error?: string | null;
-                } | null;
-                const id = payload?.data?.id;
-
-                if (response.ok && id) {
+                if (id) {
                     visitIdRef.current = id;
                     heartbeatRef.current = setInterval(() => {
                         if (!visitIdRef.current || document.hidden) return;
@@ -95,7 +73,7 @@ export function UserActivityTracker() {
                         });
                     }, HEARTBEAT_INTERVAL_MS);
                 } else {
-                    safeLog.error('Failed to start activity session:', payload?.error || response.statusText);
+                    safeLog.error('Failed to start activity session:', error || 'Resposta sem id de visita.');
                     visitIdRef.current = null;
                 }
             } catch (error) {

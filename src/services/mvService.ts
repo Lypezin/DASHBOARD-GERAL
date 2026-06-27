@@ -53,16 +53,21 @@ export const mvService = {
     },
 
     async getPendingMVs(): Promise<ServiceResponse<PendingMV[]>> {
-        const response = await fetch('/api/mvs/refresh', {
-            method: 'GET',
-            credentials: 'same-origin'
-        });
-        const parsed = await parseRefreshResponse<{ pending: PendingMV[] }>(response);
+        const parsed = await this.getRefreshQueueSnapshot<{ pending: PendingMV[] }>();
 
         return {
             data: parsed.data?.pending || null,
             error: parsed.error
         };
+    },
+
+    async getRefreshQueueSnapshot<T = Record<string, unknown>>(): Promise<ServiceResponse<T>> {
+        const response = await fetch('/api/mvs/refresh', {
+            method: 'GET',
+            credentials: 'same-origin'
+        });
+
+        return parseRefreshResponse<T>(response);
     },
 
     async retryFailedMVs(mvNames: string[]): Promise<ServiceResponse<RetryFailedMVsResult>> {

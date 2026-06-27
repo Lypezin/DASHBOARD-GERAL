@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabaseClient';
 import { ChatMessage } from '../types';
+import { postAppApiData } from '@/utils/app/fetchAppApi';
 
 export const chatService = {
     async fetchHistory(userId: string) {
@@ -40,21 +41,13 @@ export const chatService = {
     },
 
     async reactToMessage(msgId: string, _userId: string, emoji: string) {
-        const response = await fetch('/api/chat/reaction', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            credentials: 'same-origin',
-            body: JSON.stringify({
-                messageId: msgId,
-                emoji,
-            }),
+        const { error } = await postAppApiData<null>('/api/chat/reaction', {
+            messageId: msgId,
+            emoji,
         });
 
-        if (!response.ok) {
-            const payload = await response.json().catch(() => null);
-            throw new Error(payload?.error || 'Falha ao salvar reacao.');
+        if (error) {
+            throw new Error(error || 'Falha ao salvar reacao.');
         }
     },
 

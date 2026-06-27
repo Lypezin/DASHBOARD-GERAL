@@ -2,7 +2,7 @@ import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
-import { syncOrganizationIdToMetadata } from '@/utils/organizationHelpers';
+import { syncOrganizationIdToMetadata } from '@/services/userOrganizationService';
 import { fetchUserProfile, logLoginActivity } from './utils/loginHelpers';
 import { IS_DEV } from '@/constants/environment';
 
