@@ -94,6 +94,10 @@ export const EvolucaoSlideChart: React.FC<EvolucaoSlideChartProps> = ({ evolutio
     const chartOptions = {
         responsive: true,
         maintainAspectRatio: false,
+        animation: {
+            duration: 800,
+            easing: 'easeOutQuart' as const
+        },
         plugins: {
             legend: {
                 position: 'top' as const,

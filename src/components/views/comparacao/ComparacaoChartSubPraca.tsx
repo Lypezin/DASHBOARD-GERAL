@@ -45,6 +45,10 @@ export const ComparacaoChartSubPraca: React.FC<ComparacaoChartSubPracaProps> = (
             }} options={{
                 responsive: true,
                 maintainAspectRatio: true,
+                animation: {
+                    duration: 800,
+                    easing: 'easeOutQuart' as const
+                },
                 interaction: {
                     mode: 'index',
                     intersect: false,

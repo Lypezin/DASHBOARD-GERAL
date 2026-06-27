@@ -37,7 +37,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
         <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center md:justify-between md:p-4">
             <h3 className="text-lg font-bold text-slate-900 dark:text-white md:text-xl">Preview da Apresentacao</h3>
 
-            <div className="flex max-w-full items-center gap-2 overflow-x-auto pb-1 md:gap-4 md:pb-0">
+            <div className="flex flex-wrap items-center gap-2 md:gap-4">
                 <PresentationSectionToggle
                     visibleSections={visibleSections}
                     onToggleSection={onToggleSection}
@@ -60,12 +60,12 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
                         className="shrink-0 border-slate-200 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
                         onClick={onManageMedia}
                     >
-                        <FilePlus className="mr-2 h-4 w-4" />
-                        Fotos
+                        <FilePlus className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Fotos</span>
                     </Button>
                 )}
 
-                <div className="h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700" />
+                {onManageMedia && <div className="h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700" />}
 
                 {onManageClick && (
                     <Button
@@ -74,8 +74,8 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
                         onClick={onManageClick}
                         title="Minhas Apresentacoes"
                     >
-                        <FolderOpen className="mr-2 h-4 w-4" />
-                        Minhas
+                        <FolderOpen className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Minhas</span>
                     </Button>
                 )}
 
@@ -86,8 +86,8 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
                         onClick={onSaveClick}
                         title="Salvar Apresentacao"
                     >
-                        <Save className="mr-2 h-4 w-4" />
-                        Salvar
+                        <Save className="h-4 w-4 sm:mr-2" />
+                        <span className="hidden sm:inline">Salvar</span>
                     </Button>
                 )}
 
@@ -95,7 +95,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
 
                 <Button
                     onClick={onStartPresentation}
-                    className="shrink-0 bg-emerald-600 text-white hover:bg-emerald-700 md:min-w-[170px]"
+                    className="shrink-0 bg-emerald-600 text-white hover:bg-emerald-700"
                 >
                     <Check className="mr-2 h-4 w-4" />
                     Iniciar
@@ -105,9 +105,10 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
                     variant="outline"
                     onClick={onClose}
                     className="shrink-0 border-slate-200 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                    title="Fechar"
                 >
-                    <X className="mr-2 h-4 w-4" />
-                    Fechar
+                    <X className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Fechar</span>
                 </Button>
             </div>
         </div>

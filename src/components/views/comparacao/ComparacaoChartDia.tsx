@@ -45,6 +45,10 @@ export const ComparacaoChartDia: React.FC<ComparacaoChartDiaProps> = ({
             }} options={{
                 responsive: true,
                 maintainAspectRatio: true,
+                animation: {
+                    duration: 800,
+                    easing: 'easeOutQuart' as const
+                },
                 interaction: {
                     mode: 'index',
                     intersect: false,

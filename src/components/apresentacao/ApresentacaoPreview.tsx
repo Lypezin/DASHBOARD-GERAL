@@ -85,7 +85,12 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
               onSaveClick={onSaveClick} onManageClick={onManageClick}
             />
             <div className="flex-1 overflow-hidden relative bg-slate-100/50 flex flex-col">
-              <PresentationViewport slides={orderedSlides} currentSlide={currentSlide} />
+              <PresentationViewport
+                slides={orderedSlides}
+                currentSlide={currentSlide}
+                onNext={handleNext}
+                onPrev={handlePrev}
+              />
               {activeMediaSlide && onUpdateMediaSlide && (
                 <MediaToolbar
                   hasSelection={!!selectedElementId}

@@ -77,7 +77,12 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
 
             {/* Main scaled viewport for showing one slide at a time */}
             <div className="flex-1 w-full h-full presentation-mode-container">
-                <PresentationViewport slides={slides} currentSlide={currentSlide} />
+                <PresentationViewport
+                    slides={slides}
+                    currentSlide={currentSlide}
+                    onNext={onNext}
+                    onPrev={onPrev}
+                />
             </div>
 
             {/* Premium floating presentation controller at the bottom center */}

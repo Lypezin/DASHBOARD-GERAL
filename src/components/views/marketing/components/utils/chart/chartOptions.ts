@@ -4,6 +4,10 @@ import { CHART_COLORS } from './chartColors';
 export const getChartOptions = () => ({
     responsive: true,
     maintainAspectRatio: false,
+    animation: {
+        duration: 800,
+        easing: 'easeOutQuart' as const
+    },
     interaction: {
         mode: 'index' as const,
         intersect: false,

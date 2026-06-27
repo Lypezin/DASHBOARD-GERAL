@@ -1,6 +1,10 @@
 export const createComparacaoChartOptions = () => ({
     responsive: true,
     maintainAspectRatio: true,
+    animation: {
+        duration: 800,
+        easing: 'easeOutQuart' as const
+    },
     interaction: {
         mode: 'index' as const,
         intersect: false,

@@ -56,6 +56,10 @@ export function useComparacaoChartOrigem(
     const origemChartOptions = useMemo(() => ({
         responsive: true,
         maintainAspectRatio: false,
+        animation: {
+            duration: 800,
+            easing: 'easeOutQuart' as const
+        },
         interaction: { mode: 'index' as const, intersect: false },
         plugins: {
             legend: { position: 'top' as const },

@@ -5,15 +5,49 @@ import { motion, AnimatePresence } from 'framer-motion';
 interface PresentationViewportProps {
     slides: Array<{ key: string; render: (visible: boolean) => React.ReactNode }>;
     currentSlide: number;
+    onNext?: () => void;
+    onPrev?: () => void;
 }
 
 export const PresentationViewport: React.FC<PresentationViewportProps> = ({
     slides,
-    currentSlide
+    currentSlide,
+    onNext,
+    onPrev,
 }) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(0.5);
     const activeSlide = slides[currentSlide] || null;
+    const lastScrollTimeRef = useRef(0);
+
+    useEffect(() => {
+        const container = containerRef.current;
+        if (!container) return;
+
+        const handleWheel = (e: WheelEvent) => {
+            const currentTime = Date.now();
+            if (currentTime - lastScrollTimeRef.current < 700) return;
+
+            if (Math.abs(e.deltaY) > 20) {
+                if (e.deltaY > 0) {
+                    if (onNext) {
+                        onNext();
+                        lastScrollTimeRef.current = currentTime;
+                    }
+                } else {
+                    if (onPrev) {
+                        onPrev();
+                        lastScrollTimeRef.current = currentTime;
+                    }
+                }
+            }
+        };
+
+        container.addEventListener('wheel', handleWheel, { passive: true });
+        return () => {
+            container.removeEventListener('wheel', handleWheel);
+        };
+    }, [onNext, onPrev]);
     
     // Synchronous direction tracking derived from currentSlide updates
     const [slideState, setSlideState] = useState({
