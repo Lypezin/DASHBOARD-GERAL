@@ -1,5 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Outfit } from "next/font/google";
+import "../styles/animations.css";
+import "../styles/components.css";
+import "../styles/overrides.css";
 import "./globals.css";
 import { AppLayoutShell } from "@/components/AppLayoutShell";
 import { ThemeProviderWrapper } from "@/components/ThemeProviderWrapper";
