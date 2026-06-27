@@ -8,11 +8,12 @@ export type ToolType = 'cursor' | 'laser' | 'pen' | 'eraser';
 interface PresentationInteractionLayerProps {
     tool: ToolType;
     isActive: boolean;
+    currentSlide?: number;
 }
 
-export const PresentationInteractionLayer: React.FC<PresentationInteractionLayerProps> = ({ tool, isActive }) => {
+export const PresentationInteractionLayer: React.FC<PresentationInteractionLayerProps> = ({ tool, isActive, currentSlide }) => {
     const containerRef = useRef<HTMLDivElement>(null);
-    const { canvasRef, startDrawing, draw, stopDrawing } = usePresentationCanvas(tool);
+    const { canvasRef, startDrawing, draw, stopDrawing } = usePresentationCanvas(tool, currentSlide);
 
     if (!isActive) return null;
 

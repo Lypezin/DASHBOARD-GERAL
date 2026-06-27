@@ -104,9 +104,17 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
     );
 
     const pageStyle = generatePrintStyles();
-    const formatarData = (date?: string) => date
-        ? new Date(date).toLocaleDateString('pt-BR', { month: 'long', day: 'numeric' })
-        : '';
+    const formatarData = (date?: string) => {
+        if (!date) return '';
+        const parts = date.split('-');
+        if (parts.length === 3) {
+            const year = parseInt(parts[0], 10);
+            const month = parseInt(parts[1], 10) - 1;
+            const day = parseInt(parts[2], 10);
+            return new Date(year, month, day).toLocaleDateString('pt-BR', { month: 'long', day: 'numeric' });
+        }
+        return new Date(date).toLocaleDateString('pt-BR', { month: 'long', day: 'numeric' });
+    };
     const periodoFormatado = filters.filtroEnviados.dataInicial
         ? `${formatarData(filters.filtroEnviados.dataInicial)} a ${formatarData(filters.filtroEnviados.dataFinal || undefined)}`
         : 'Periodo Geral';

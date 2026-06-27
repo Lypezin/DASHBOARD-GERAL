@@ -38,6 +38,10 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = (props) => {
         {isWebMode ? (
           <ApresentacaoWebMode
             slides={state.orderedPresentationSlides.length > 0 ? state.orderedPresentationSlides : slides}
+            currentSlide={state.currentSlide}
+            onSlideChange={actions.setCurrentSlide}
+            onNext={goToNextSlide}
+            onPrev={goToPrevSlide}
             onClose={() => actions.setViewMode('preview')}
           />
         ) : (

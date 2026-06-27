@@ -2,9 +2,17 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
 import { ToolType } from '@/components/apresentacao/components/PresentationInteractionLayer';
 
-export function usePresentationCanvas(tool: ToolType) {
+export function usePresentationCanvas(tool: ToolType, currentSlide?: number) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [isDrawing, setIsDrawing] = useState(false);
+
+    useEffect(() => {
+        const canvas = canvasRef.current;
+        const ctx = canvas?.getContext('2d');
+        if (canvas && ctx) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+    }, [currentSlide]);
 
     useEffect(() => {
         const canvas = canvasRef.current;
