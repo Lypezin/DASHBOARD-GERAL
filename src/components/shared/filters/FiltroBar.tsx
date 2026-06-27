@@ -2,11 +2,11 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { Filters, FilterOption, CurrentUser } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { useFiltroBar } from '@/hooks/ui/useFiltroBar';
-import { useFiltroBarOptions } from './dashboard/filters/hooks/useFiltroBarOptions';
-import { FilterModeSwitch } from './dashboard/filters/FilterModeSwitch';
-import { FilterPrimarySection } from './dashboard/filters/FilterPrimarySection';
-import { FilterSecondarySection } from './dashboard/filters/FilterSecondarySection';
-import { FilterClearButton } from './dashboard/filters/FilterClearButton';
+import { useFiltroBarOptions } from '@/components/dashboard/filters/hooks/useFiltroBarOptions';
+import { FilterModeSwitch } from '@/components/dashboard/filters/FilterModeSwitch';
+import { FilterPrimarySection } from '@/components/dashboard/filters/FilterPrimarySection';
+import { FilterSecondarySection } from '@/components/dashboard/filters/FilterSecondarySection';
+import { FilterClearButton } from '@/components/dashboard/filters/FilterClearButton';
 import { IS_DEV } from '@/constants/environment';
 
 
