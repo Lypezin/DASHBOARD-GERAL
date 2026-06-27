@@ -24,7 +24,6 @@ export function excelSerialToISODate(serial: number): string {
 export function convertDDMMYYYYToDate(dateStr: string | number | null | undefined): string | null {
     if (dateStr === null || dateStr === undefined || dateStr === '') return null;
 
-    // Se for número (serial do Excel), converter primeiro
     if (typeof dateStr === 'number') {
         try {
             return excelSerialToISODate(dateStr);
@@ -36,7 +35,6 @@ export function convertDDMMYYYYToDate(dateStr: string | number | null | undefine
 
     if (typeof dateStr !== 'string') return null;
 
-    // Remover espaços e tentar diferentes formatos
     const cleaned = dateStr.trim();
     if (cleaned === '' || cleaned === 'null' || cleaned === 'NULL') return null;
 
@@ -58,15 +56,12 @@ export function convertDDMMYYYYToDate(dateStr: string | number | null | undefine
         }
     }
 
-    // Se já estiver no formato YYYY-MM-DD, retornar como está
     const yyyymmddMatch = cleaned.match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (yyyymmddMatch) {
-        return cleaned.split('T')[0]; // Remove hora se houver
+        return cleaned.split('T')[0];
     }
 
-    // Tentar parsear como Date se for um formato conhecido
     try {
-        // Tentar formato brasileiro primeiro (DD/MM/YYYY)
         const brDateMatch = cleaned.match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
         if (brDateMatch) {
             const [, day, month, year] = brDateMatch;
@@ -79,14 +74,13 @@ export function convertDDMMYYYYToDate(dateStr: string | number | null | undefine
             }
         }
 
-        // Tentar parse direto
         const date = new Date(cleaned);
         if (!isNaN(date.getTime())) {
             const [y, m, d] = [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')];
             return `${y}-${m}-${d}`;
         }
     } catch (e) {
-        // Ignorar erro
+        // Ignore error
     }
 
     if (IS_DEV) {
@@ -94,4 +88,44 @@ export function convertDDMMYYYYToDate(dateStr: string | number | null | undefine
     }
 
     return null;
+}
+
+/**
+ * Extrai o número da semana de uma string ISO (ex: "2023-W05" -> "05")
+ */
+export function extractWeekNumber(isoWeek: string) {
+  if (!isoWeek) return '';
+  return isoWeek.split('-W')[1] || isoWeek;
+}
+
+/**
+ * Calcula o intervalo de datas (inicio e fim) a partir do ano e numero da semana
+ */
+export function getDateRangeFromWeek(year: number, week: number) {
+  const simple = new Date(year, 0, 1 + (week - 1) * 7);
+  const dayOfWeek = simple.getDay();
+  const isoWeekStart = simple;
+  if (dayOfWeek <= 4)
+    isoWeekStart.setDate(simple.getDate() - simple.getDay() + 1);
+  else
+    isoWeekStart.setDate(simple.getDate() + 8 - simple.getDay());
+
+  const isoWeekEnd = new Date(isoWeekStart);
+  isoWeekEnd.setDate(isoWeekStart.getDate() + 6);
+
+  return {
+    start: isoWeekStart.toISOString().split('T')[0],
+    end: isoWeekEnd.toISOString().split('T')[0]
+  };
+}
+
+/**
+ * Formata o label da semana (ex: "2023-W05" -> "Semana 05")
+ */
+export function formatWeekLabel(semana: string) {
+  const match = semana.match(/^(\d{4})-W(\d+)$/);
+  if (match) {
+    return `Semana ${match[2]}`;
+  }
+  return semana.replace(/^(\d{2})(\d{2})-W(\d+)$/, 'Semana $3');
 }

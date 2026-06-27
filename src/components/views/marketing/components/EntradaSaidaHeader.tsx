@@ -1,7 +1,7 @@
 import React from 'react';
 import { Calendar } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { formatWeekLabel } from '@/utils/timeHelpers';
+import { formatWeekLabel } from '@/utils/formatters/dateUtils';
 
 interface EntradaSaidaHeaderProps {
     semana: string;

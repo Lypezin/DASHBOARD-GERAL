@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import React from 'react';
 import { BarChart3, Download, LayoutDashboard, ListChecks, Table2, Trophy, Users } from 'lucide-react';
@@ -15,14 +15,29 @@ import {
   calculateCompletionRate,
   calculateHourlyAderencia,
   normalizeMetricNumber,
+'use client';
+
+import React from 'react';
+import { BarChart3, Download, LayoutDashboard, ListChecks, Table2, Trophy, Users } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { useTabData } from '@/hooks/data/useTabData';
+import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
+import { formatarHorasParaHMS } from '@/utils/formatters';
+import { exportarDedicadoParaExcel } from './dedicado/DedicadoExcelExport';
+import {
+  calculateAcceptanceRate,
+  calculateCompletionRate,
+  calculateHourlyAderencia,
+  normalizeMetricNumber,
 } from './dedicado/metrics';
 import {
   buildDedicadoFilterPayload,
 } from './dedicado/rpcFallback';
-import type { AderenciaDiaOrigem, AderenciaOrigem, CurrentUser } from '@/types';
+import type { AderenciaDiaOrigem, CurrentUser } from '@/types';
 import type { FilterPayload } from '@/types/filters';
-import { fetchDedicadoApi } from '@/utils/dedicado/fetchDedicadoApi';
 import { createRequestKey } from '@/utils/request/createRequestKey';
+import { useDedicadoOrigensData, type DedicadoOrigensPayload, type DedicadoOrigemRow } from '@/hooks/data/useDedicadoOrigensData';
 
 // ImportaÃ§Ã£o dos subcomponentes modulares extraÃ­dos
 import { DedicadoDashboard } from './dedicado/DedicadoDashboard';
@@ -31,195 +46,6 @@ import { DedicadoDiaOrigem, buildDayDateMap } from './dedicado/DedicadoDiaOrigem
 import { DedicadoRanking } from './dedicado/DedicadoRanking';
 import { DedicadoInlineNotice } from './dedicado/DedicadoInlineNotice';
 import { ViewContainer } from '@/components/layout/ViewContainer';
-
-type DedicadoSubTab = 'dashboard' | 'entregadores' | 'ranking' | 'resumo' | 'dia_origem';
-
-const SUB_TABS: { id: DedicadoSubTab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'entregadores', label: 'Entregadores', icon: Users },
-  { id: 'ranking', label: 'Ranking', icon: Trophy },
-  { id: 'resumo', label: 'Resumo por Origem', icon: ListChecks },
-  { id: 'dia_origem', label: 'Dia x Origem', icon: Table2 },
-];
-
-type DedicadoOrigemRow = AderenciaOrigem & {
-  segundos_realizados?: number;
-  segundos_planejados?: number;
-  taxa_aceitacao?: number;
-  taxa_completude?: number;
-};
-
-interface DedicadoOrigensPayload {
-  totais?: {
-    total_entregadores?: number;
-    total_origens?: number;
-    corridas_ofertadas?: number;
-    corridas_aceitas?: number;
-    corridas_rejeitadas?: number;
-    corridas_completadas?: number;
-    segundos_realizados?: number;
-    segundos_planejados?: number;
-  };
-  origem?: DedicadoOrigemRow[];
-  dia_origem?: AderenciaDiaOrigem[];
-  periodo_resolvido?: {
-    ano?: number | null;
-    semana?: number | null;
-    auto_semana?: boolean;
-  };
-}
-
-const DEDICADO_ORIGENS_CACHE_TTL_MS = 5 * 60 * 1000;
-const dedicadoOrigensCache = new Map<string, { timestamp: number; data: DedicadoOrigensPayload }>();
-const dedicadoOrigensRequests = new Map<string, Promise<DedicadoOrigensPayload>>();
-
-function getCachedDedicadoOrigens(cacheKey: string) {
-  const cached = dedicadoOrigensCache.get(cacheKey);
-  if (!cached) return null;
-
-  if (Date.now() - cached.timestamp > DEDICADO_ORIGENS_CACHE_TTL_MS) {
-    dedicadoOrigensCache.delete(cacheKey);
-    return null;
-  }
-
-  return cached.data;
-}
-
-async function fetchDedicadoOrigensWithDedupe(cacheKey: string, requestWithMode: Record<string, unknown>) {
-  const activeRequest = dedicadoOrigensRequests.get(cacheKey);
-  if (activeRequest) return activeRequest;
-
-  const request = (async () => {
-    const { data, error } = await fetchDedicadoApi<DedicadoOrigensPayload>('summary', requestWithMode);
-    if (error) throw error;
-
-    const normalized = {
-      totais: data?.totais || {},
-      origem: Array.isArray(data?.origem) ? data.origem : [],
-      dia_origem: Array.isArray(data?.dia_origem) ? data.dia_origem : [],
-      periodo_resolvido: data?.periodo_resolvido,
-    };
-
-    dedicadoOrigensCache.set(cacheKey, {
-      timestamp: Date.now(),
-      data: normalized,
-    });
-
-    return normalized;
-  })().finally(() => {
-    dedicadoOrigensRequests.delete(cacheKey);
-  });
-
-  dedicadoOrigensRequests.set(cacheKey, request);
-  return request;
-}
-
-const DedicadoView = React.memo(function DedicadoView({
-  filterPayload,
-  currentUser,
-}: {
-  filterPayload: FilterPayload;
-  currentUser: CurrentUser | null;
-}) {
-  const [activeSubTab, setActiveSubTab] = React.useState<DedicadoSubTab>('dashboard');
-  const [dedicadoData, setDedicadoData] = React.useState<DedicadoOrigensPayload>({ origem: [], dia_origem: [] });
-  const [dedicadoLoading, setDedicadoLoading] = React.useState(false);
-  const [dedicadoError, setDedicadoError] = React.useState<string | null>(null);
-  const [isExporting, setIsExporting] = React.useState(false);
-  const shouldReduceMotion = useReducedMotion();
-  const filterPayloadKey = React.useMemo(() => createRequestKey(filterPayload), [filterPayload]);
-  const dedicatedPayload = React.useMemo<FilterPayload>(() => {
-    const payload = JSON.parse(filterPayloadKey) as FilterPayload;
-    const isIntervalMode = payload.p_filtro_modo === 'intervalo';
-    const hasDateRange = Boolean(payload.p_data_inicial || payload.p_data_final);
-    const hasExplicitWeek = payload.p_semana !== null && payload.p_semana !== undefined;
-    const hasMultiWeekFilter = Array.isArray(payload.p_semanas) && payload.p_semanas.length > 0;
-
-    if (!isIntervalMode && !hasDateRange && !hasExplicitWeek && !hasMultiWeekFilter && payload.p_ano) {
-      // Marcador entendido apenas pelas RPCs v2 do DEDICADO: semana "Todas" = ano inteiro.
-      payload.p_semana = 0;
-    }
-
-    return payload;
-  }, [filterPayloadKey]);
-  const hasOrganizationContext = typeof dedicatedPayload.p_organization_id === 'string'
-    && dedicatedPayload.p_organization_id.trim().length > 0;
-  const shouldLoadEntregadores = hasOrganizationContext && (activeSubTab === 'entregadores' || activeSubTab === 'ranking');
-  const shouldLoadOrigemSummary = activeSubTab === 'dashboard' || activeSubTab === 'resumo';
-  const shouldLoadDiaOrigem = activeSubTab === 'dia_origem';
-  const { data: tabData, loading } = useTabData('dedicado', dedicatedPayload, currentUser, {
-    enabled: shouldLoadEntregadores,
-  });
-  const { entregadoresData } = useTabDataMapper({ activeTab: 'dedicado', tabData });
-  const origemPayload = React.useMemo(() => {
-    return buildDedicadoFilterPayload(dedicatedPayload);
-  }, [dedicatedPayload]);
-  const origemPayloadKey = React.useMemo(() => createRequestKey(origemPayload), [origemPayload]);
-  const origemOrganizationId = React.useMemo(() => {
-    return typeof origemPayload.p_organization_id === 'string'
-      ? origemPayload.p_organization_id.trim()
-      : '';
-  }, [origemPayload.p_organization_id]);
-
-  React.useEffect(() => {
-    let cancelled = false;
-
-    async function fetchDedicadoOrigens() {
-      if (!shouldLoadOrigemSummary && !shouldLoadDiaOrigem) {
-        setDedicadoLoading(false);
-        setDedicadoError(null);
-        return;
-      }
-
-      if (!origemOrganizationId) {
-        setDedicadoLoading(false);
-        setDedicadoError('Selecione uma organizaÃ§Ã£o para carregar os dados do DEDICADO.');
-        setDedicadoData({ origem: [], dia_origem: [] });
-        return;
-      }
-
-      setDedicadoLoading(true);
-      setDedicadoError(null);
-
-      try {
-        const requestPayload = JSON.parse(origemPayloadKey) as Record<string, unknown>;
-        const requestWithMode = {
-          ...requestPayload,
-          p_include_dia_origem: shouldLoadDiaOrigem,
-        };
-        const cacheKey = createRequestKey(requestWithMode);
-        const cached = getCachedDedicadoOrigens(cacheKey);
-        const data = cached || await fetchDedicadoOrigensWithDedupe(cacheKey, requestWithMode);
-
-        if (cancelled) return;
-
-        setDedicadoData({
-          totais: data?.totais || {},
-          origem: Array.isArray(data?.origem) ? data.origem : [],
-          dia_origem: shouldLoadDiaOrigem && Array.isArray(data?.dia_origem) ? data.dia_origem : [],
-          periodo_resolvido: data?.periodo_resolvido,
-        });
-      } catch (error) {
-        if (!cancelled) {
-          safeLog.error('Erro inesperado ao carregar dedicado por origem:', error);
-          setDedicadoError('Erro inesperado ao carregar o DEDICADO. Tente novamente em alguns instantes.');
-        }
-      } finally {
-        if (!cancelled) setDedicadoLoading(false);
-      }
-    }
-
-    void fetchDedicadoOrigens();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [origemOrganizationId, origemPayloadKey, shouldLoadDiaOrigem, shouldLoadOrigemSummary]);
-
-  const entregadores = React.useMemo(
-    () => entregadoresData?.entregadores || [],
-    [entregadoresData?.entregadores]
-  );
   const rankingEntregadores = React.useMemo(
     () => [...entregadores].sort((a, b) => {
       const aderenciaDiff = normalizeMetricNumber(b.aderencia_percentual) - normalizeMetricNumber(a.aderencia_percentual);

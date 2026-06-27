@@ -1,7 +1,7 @@
 import React from 'react';
-import FiltroDateRange from '@/components/FiltroDateRange';
-import FiltroMultiSelect from '@/components/FiltroMultiSelect';
-import FiltroSelect from '@/components/FiltroSelect';
+import FiltroDateRange from '@/components/shared/filters/FiltroDateRange';
+import FiltroMultiSelect from '@/components/shared/filters/FiltroMultiSelect';
+import FiltroSelect from '@/components/shared/filters/FiltroSelect';
 import { Filters } from '@/types';
 import type { FiltroBarChangeHandler } from '@/hooks/ui/useFiltroBar';
 

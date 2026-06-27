@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
-import { getDateRangeFromWeek } from '@/utils/timeHelpers';
+import { getDateRangeFromWeek } from '@/utils/formatters/dateUtils';
 
 interface UseMarketingExcelExportProps {
   semanaIso: string;

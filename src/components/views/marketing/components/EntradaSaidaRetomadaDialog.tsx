@@ -1,6 +1,6 @@
 import React from 'react';
 import { RotateCcw, ChevronDown, Users } from 'lucide-react';
-import { formatWeekLabel } from '@/utils/timeHelpers';
+import { formatWeekLabel } from '@/utils/formatters/dateUtils';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 

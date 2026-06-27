@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { formatWeekLabel } from '@/utils/timeHelpers';
+import { formatWeekLabel } from '@/utils/formatters/dateUtils';
 import { ArrowUpRight, ArrowDownRight, RotateCcw, ChevronDown, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { WeeklyData } from './EntradaSaidaCard';

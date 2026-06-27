@@ -1,6 +1,6 @@
 
 import { useState, useCallback, useEffect } from 'react';
-import { getDateRangeFromWeek } from '@/utils/timeHelpers';
+import { getDateRangeFromWeek } from '@/utils/formatters/dateUtils';
 import { safeLog } from '@/lib/errorHandler';
 import { EntregadorMarketing } from '@/types';
 import { useMarketingExcelExport } from './hooks/useMarketingExcelExport';

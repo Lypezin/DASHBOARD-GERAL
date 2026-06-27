@@ -1,6 +1,6 @@
 import React from 'react';
 import { TableCell } from "@/components/ui/table";
-import { formatDuration } from '@/utils/timeHelpers';
+import { formatDuration } from '@/utils/formatters/timeUtils';
 import { calculatePercentage } from '@/utils/formatHelpers';
 
 interface ComparisonMetricCellProps {

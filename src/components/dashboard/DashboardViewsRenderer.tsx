@@ -92,7 +92,7 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
   return (
     <ErrorBoundary>
       <Suspense fallback={<DashboardSkeleton contentOnly />}>
-        <AnimatePresence mode="sync" initial={false}>
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={activeTab}
             initial={shouldReduceMotion ? false : { opacity: 0, y: 8 }}

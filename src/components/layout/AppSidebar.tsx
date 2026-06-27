@@ -9,71 +9,14 @@ import { useHeaderAvatar } from '@/hooks/auth/useHeaderAvatar';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  LayoutDashboard,
-  BarChart3,
-  Gauge,
-  Users,
-  Coins,
-  Star,
-  TrendingUp,
-  GitCompare,
-  Megaphone,
-  Target,
-  Shield,
   ChevronLeft,
   ChevronRight,
   X
 } from 'lucide-react';
+import { SIDEBAR_GROUPS, SIDEBAR_LABELS } from '@/constants/navigation';
 import { TabType } from '@/types';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { prefetchDashboardTabResources } from '@/hooks/dashboard/prefetchDashboardTabResources';
-
-interface SidebarItem {
-  label: string;
-  value: TabType;
-  icon: React.ComponentType<any>;
-}
-
-interface SidebarGroup {
-  name: string;
-  items: SidebarItem[];
-}
-
-const SIDEBAR_GROUPS: SidebarGroup[] = [
-  {
-    name: 'Principal',
-    items: [
-      { label: 'Visão Geral', value: 'dashboard', icon: LayoutDashboard },
-      { label: 'Análise', value: 'analise', icon: BarChart3 },
-      { label: 'UTR', value: 'utr', icon: Gauge },
-      { label: 'Comparação', value: 'comparacao', icon: GitCompare },
-    ],
-  },
-  {
-    name: 'Operacional',
-    items: [
-      { label: 'Entregadores', value: 'entregadores', icon: Users },
-      { label: 'Valores', value: 'valores', icon: Coins },
-      { label: 'Prioridade | Promo', value: 'prioridade', icon: Star },
-      { label: 'Evolução', value: 'evolucao', icon: TrendingUp },
-      { label: 'Dedicado', value: 'dedicado', icon: Shield },
-    ],
-  },
-  {
-    name: 'Marketing',
-    items: [
-      { label: 'Operacional Marketing', value: 'marketing_comparacao', icon: Megaphone },
-      { label: 'Marketing', value: 'marketing', icon: Target },
-    ],
-  },
-];
-
-const SIDEBAR_LABELS: Partial<Record<TabType, string>> = {
-  dashboard: 'Visão Geral',
-  analise: 'Análise',
-  comparacao: 'Comparação',
-  evolucao: 'Evolução',
-};
 
 export function AppSidebar() {
   const { collapsed, toggleSidebar, mobileOpen, setMobileOpen } = useSidebar();

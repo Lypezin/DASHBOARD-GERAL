@@ -13,7 +13,7 @@ import { Eye, ArrowUpRight, ArrowDownRight, RotateCcw } from 'lucide-react';
 import { MetricDetailList } from './MetricDetailList';
 import { DesistenciasList } from './DesistenciasList';
 import { CITY_DB_MAPPING } from '@/constants/marketing';
-import { getDateRangeFromWeek } from '@/utils/timeHelpers';
+import { getDateRangeFromWeek } from '@/utils/formatters/dateUtils';
 import { fetchFluxoSemanal } from '../api/fetchFluxoSemanal';
 import { getMetricDialogConfig } from '../utils/getMetricDialogConfig';
 import { createRequestKey } from '@/utils/request/createRequestKey';

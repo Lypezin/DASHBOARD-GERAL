@@ -1,6 +1,6 @@
 import React from 'react';
 import { Clock, Send, CheckCircle2, XCircle, DollarSign, Users } from 'lucide-react';
-import { formatDuration } from '@/utils/timeHelpers';
+import { formatDuration } from '@/utils/formatters/timeUtils';
 import { calculatePercentage } from '@/utils/formatHelpers';
 import { MarketingSummaryCard } from './components/MarketingSummaryCard';
 

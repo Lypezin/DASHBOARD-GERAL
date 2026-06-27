@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 import { useMarketingComparacao } from './useMarketingComparacao';
 import { useAuth } from '@/hooks/auth/useAuth';
 import { DashboardFilters } from '@/types';
-import { getDateRangeFromWeek } from '@/utils/timeHelpers';
+import { getDateRangeFromWeek } from '@/utils/formatters/dateUtils';
 import { getAllYearsDateRange } from '@/utils/filters/allYearsRange';
 
 export function useMarketingComparacaoViewController(filters: DashboardFilters) {

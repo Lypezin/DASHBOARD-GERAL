@@ -1,6 +1,6 @@
 import React from 'react';
-import FiltroSelect from '@/components/FiltroSelect';
-import FiltroMultiSelect from '@/components/FiltroMultiSelect';
+import FiltroSelect from '@/components/shared/filters/FiltroSelect';
+import FiltroMultiSelect from '@/components/shared/filters/FiltroMultiSelect';
 import { Filters, FilterOption } from '@/types';
 import type { FiltroBarChangeHandler } from '@/hooks/ui/useFiltroBar';
 

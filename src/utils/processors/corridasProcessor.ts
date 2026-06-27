@@ -4,8 +4,8 @@
 
 import { validateString } from '@/lib/validate';
 import { COLUMN_MAP } from '@/constants/upload';
-import { excelSerialToISODate, convertDDMMYYYYToDate } from '@/utils/dateParsing';
-import { convertSecondsToHHMMSS, convertFractionToHHMMSS } from '@/utils/timeFormatters';
+import { excelSerialToISODate, convertDDMMYYYYToDate } from '@/utils/formatters/dateUtils';
+import { convertSecondsToHHMMSS, convertFractionToHHMMSS } from '@/utils/formatters/timeUtils';
 
 const COLUMN_ALIASES: Record<string, string[]> = {
   data_do_periodo: ['data', 'data do periodo'],

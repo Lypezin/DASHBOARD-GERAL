@@ -1,5 +1,5 @@
 import React from 'react';
-import FiltroBar from '@/components/FiltroBar';
+import FiltroBar from '@/components/shared/filters/FiltroBar';
 import type { Filters, FilterOption, CurrentUser } from '@/types';
 import { cn } from '@/lib/utils';
 

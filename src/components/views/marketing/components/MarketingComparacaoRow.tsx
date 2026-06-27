@@ -3,7 +3,7 @@ import { TableRow, TableCell } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
 import { Search } from 'lucide-react';
 import { ComparisonMetricCell } from './ComparisonMetricCell';
-import { extractWeekNumber } from '@/utils/timeHelpers';
+import { extractWeekNumber } from '@/utils/formatters/dateUtils';
 
 interface ComparacaoRow {
     semana_iso: string; segundos_ops: number; segundos_mkt: number;

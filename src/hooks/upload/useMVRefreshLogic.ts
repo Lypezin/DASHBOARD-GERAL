@@ -1,7 +1,7 @@
 
 import { useCallback, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
-import { isLowUsageTime, getTimeContextMessage } from '@/utils/timeHelpers';
+import { isLowUsageTime, getTimeContextMessage } from '@/utils/formatters/timeUtils';
 import { performRefresh } from './refreshUtils';
 
 export function useMVRefreshLogic() {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatWeekLabel } from '@/utils/timeHelpers';
+import { formatWeekLabel } from '@/utils/formatters/dateUtils';
 import { Badge } from '@/components/ui/badge';
 import { MetricDetailDialog } from './MetricDetailDialog';
 import { WeeklyData } from './EntradaSaidaCard';

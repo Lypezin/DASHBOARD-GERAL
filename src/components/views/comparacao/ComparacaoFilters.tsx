@@ -1,6 +1,6 @@
 import React from 'react';
 import { FilterOption } from '@/types';
-import FiltroSelect from '@/components/FiltroSelect';
+import FiltroSelect from '@/components/shared/filters/FiltroSelect';
 import { BarChart3, Presentation, X } from 'lucide-react';
 import { ComparacaoWeekSelector } from './components/ComparacaoWeekSelector';
 import { ComparacaoSectionSelector } from './components/ComparacaoSectionSelector';

@@ -1,4 +1,6 @@
 import { Skeleton } from "@/components/ui/skeleton";
+import { ChartSkeleton } from "@/components/skeletons/ChartSkeleton";
+import { TableSkeleton } from "@/components/skeletons/TableSkeleton";
 
 interface DashboardSkeletonProps {
     contentOnly?: boolean;
@@ -47,7 +49,7 @@ export function DashboardSkeleton({ contentOnly = false }: DashboardSkeletonProp
 
                     <div className="space-y-4 rounded-3xl border border-slate-200/70 bg-white/90 p-6 shadow-[0_14px_36px_-32px_rgba(15,23,42,0.55)] dark:border-slate-800/70 dark:bg-slate-900/80">
                         <Skeleton className="h-6 w-1/2 mb-4" />
-                        <Skeleton className="h-[200px] w-full rounded-lg" />
+                        <TableSkeleton rows={3} className="mt-4" />
                     </div>
                 </div>
 
@@ -76,7 +78,7 @@ export function DashboardSkeleton({ contentOnly = false }: DashboardSkeletonProp
                                 <Skeleton className="h-8 w-24 rounded-md" />
                             </div>
                         </div>
-                        <Skeleton className="h-[400px] w-full rounded-lg" />
+                        <ChartSkeleton className="h-[400px] border-none" />
                     </div>
 
                     {/* Secondary Charts Grid */}
@@ -84,7 +86,7 @@ export function DashboardSkeleton({ contentOnly = false }: DashboardSkeletonProp
                         {[...Array(2)].map((_, i) => (
                             <div key={i} className="rounded-3xl border border-slate-200/70 bg-white/90 p-6 shadow-[0_14px_36px_-32px_rgba(15,23,42,0.55)] dark:border-slate-800/70 dark:bg-slate-900/80">
                                 <Skeleton className="h-6 w-1/3 mb-4" />
-                                <Skeleton className="h-[300px] w-full rounded-lg" />
+                                <ChartSkeleton className="h-[300px] border-none" />
                             </div>
                         ))}
                     </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, ArrowDownRight, RotateCcw, Megaphone, Wrench, UserX, Eye } from 'lucide-react';
-import { formatWeekLabel } from '@/utils/timeHelpers';
+import { formatWeekLabel } from '@/utils/formatters/dateUtils';
 import { MetricDetailDialog } from './MetricDetailDialog';
 import { WeeklyData } from './EntradaSaidaCard';
 
