@@ -29,6 +29,41 @@ export function CityLastUpdatesTicker() {
 
   return (
     <div className="w-full flex items-center gap-3 overflow-hidden select-none pl-1">
+      <style dangerouslySetInnerHTML={{ __html: `
+        @keyframes city-updates-marquee {
+          0% {
+            transform: translate3d(0, 0, 0);
+          }
+          100% {
+            transform: translate3d(-50%, 0, 0);
+          }
+        }
+        @keyframes city-updates-spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+        .city-updates-marquee {
+          animation: city-updates-marquee 25s linear infinite !important;
+        }
+        .city-updates-marquee:hover {
+          animation-play-state: paused !important;
+        }
+        .animate-city-updates-spin {
+          animation: city-updates-spin 6s linear infinite !important;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .city-updates-marquee {
+            animation: city-updates-marquee 25s linear infinite !important;
+          }
+          .animate-city-updates-spin {
+            animation: city-updates-spin 6s linear infinite !important;
+          }
+        }
+      `}} />
       {/* Indicador de Status / Refresh sutil */}
       <div className="flex items-center gap-1.5 shrink-0">
         <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/10 dark:bg-emerald-500/15">
