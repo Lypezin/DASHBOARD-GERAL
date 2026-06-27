@@ -14,6 +14,19 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
     const containerRef = useRef<HTMLDivElement>(null);
     const [scale, setScale] = useState(0.5);
     const activeSlide = slides[currentSlide] || null;
+    
+    // Direction tracking for slides transition
+    const [prevSlideIndex, setPrevSlideIndex] = useState(currentSlide);
+    const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
+
+    useEffect(() => {
+        if (currentSlide > prevSlideIndex) {
+            setDirection('forward');
+        } else if (currentSlide < prevSlideIndex) {
+            setDirection('backward');
+        }
+        setPrevSlideIndex(currentSlide);
+    }, [currentSlide, prevSlideIndex]);
 
     const calculateScale = useCallback(() => {
         if (containerRef.current) {
@@ -58,6 +71,24 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
 
     const totalSlides = slides.length;
 
+    const slideVariants = {
+        enter: (dir: 'forward' | 'backward') => ({
+            opacity: 0,
+            x: dir === 'forward' ? 120 : -120,
+            scale: 0.98,
+        }),
+        center: {
+            opacity: 1,
+            x: 0,
+            scale: 1,
+        },
+        exit: (dir: 'forward' | 'backward') => ({
+            opacity: 0,
+            x: dir === 'forward' ? -120 : 120,
+            scale: 0.98,
+        }),
+    };
+
     return (
         <div
             ref={containerRef}
@@ -79,7 +110,7 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
                     overflow: 'hidden',
                 }}
             >
-                <AnimatePresence mode="wait" initial={false}>
+                <AnimatePresence mode="wait" custom={direction} initial={false}>
                     {totalSlides === 0 ? (
                         <motion.div
                             key="empty"
@@ -95,10 +126,16 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
                     ) : activeSlide ? (
                         <motion.div
                             key={activeSlide.key}
-                            initial={{ opacity: 0, x: 24, scale: 0.98 }}
-                            animate={{ opacity: 1, x: 0, scale: 1 }}
-                            exit={{ opacity: 0, x: -24, scale: 0.98 }}
-                            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+                            custom={direction}
+                            variants={slideVariants}
+                            initial="enter"
+                            animate="center"
+                            exit="exit"
+                            transition={{
+                                x: { type: 'spring', stiffness: 350, damping: 32 },
+                                opacity: { duration: 0.2 },
+                                scale: { duration: 0.2 }
+                            }}
                             style={{
                                 ...slideDimensionsStyle,
                                 position: 'absolute',

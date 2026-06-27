@@ -5,6 +5,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { SlideSidebarItemEdit } from './item/SlideSidebarItemEdit';
 import { SlideSidebarItemDisplay } from './item/SlideSidebarItemDisplay';
+import { motion } from 'framer-motion';
 
 interface SlideSidebarItemProps {
     slideKey: string; index: number; displayName: string; isActive: boolean; isMediaSlide: boolean; mediaId: string | null;
@@ -58,7 +59,10 @@ export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = ({
     };
 
     return (
-        <div
+        <motion.div
+            layout
+            whileHover={{ scale: 1.015, x: 2 }}
+            whileTap={{ scale: 0.985 }}
             draggable
             onDragStart={(e) => onDragStart(e, index)}
             onDragEnter={(e) => onDragEnter(e, index)}
@@ -72,6 +76,15 @@ export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = ({
                     : 'bg-white border-slate-100 dark:bg-slate-900/50 dark:border-slate-800/60 hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 hover:shadow-sm'}
             `}
         >
+            {/* Active glowing indicator line */}
+            {isActive && (
+                <motion.div 
+                    layoutId="activeIndicator"
+                    className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-blue-500 dark:bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.6)]"
+                    transition={{ type: "spring", stiffness: 350, damping: 30 }}
+                />
+            )}
+
             <div className="text-slate-400 dark:text-slate-500 cursor-grab active:cursor-grabbing p-0.5 hover:text-slate-600 dark:hover:text-slate-300 rounded transition-colors">
                 <GripVertical className="w-3.5 h-3.5" />
             </div>
@@ -116,6 +129,6 @@ export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = ({
                     </Button>
                 </div>
             )}
-        </div>
+        </motion.div>
     );
 };
