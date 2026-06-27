@@ -21,16 +21,6 @@ export const ATENDENTE_TO_ID: { [key: string]: string | string[] } = {
   'Mariane Zocoli': '5447',
 };
 
-export const CIDADE_TO_REGIAO: { [key: string]: string } = {
-  'SÃO PAULO': 'São Paulo 2.0',
-  'MANAUS': 'Manaus 2.0',
-  'ABC': 'ABC 2.0',
-  'SOROCABA': 'Sorocaba 2.0',
-  'GUARULHOS': 'Guarulhos 2.0',
-  'SALVADOR': 'Salvador 2.0',
-  'TABOÃO DA SERRA E EMBU DAS ARTES': 'Taboão da Serra e Embu das Artes 2.0',
-};
-
 export const REGIAO_TO_CIDADE_VALORES: { [key: string]: string } = {
   'São Paulo 2.0': 'SÃO PAULO',
   'Manaus 2.0': 'MANAUS',
