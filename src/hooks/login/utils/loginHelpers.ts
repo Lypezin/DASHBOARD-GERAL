@@ -2,6 +2,7 @@ import { safeLog } from '@/lib/errorHandler';
 import { getCurrentUserProfileData, postAppApiData } from '@/utils/app/fetchAppApi';
 import { IS_DEV } from '@/constants/environment';
 import { sleep } from '@/utils/async/sleep';
+import { DELAYS } from '@/constants/config';
 
 
 export async function fetchUserProfile() {
@@ -18,7 +19,7 @@ export async function fetchUserProfile() {
 
     // Se houver erro, tentar novamente uma vez
     if (profileError && !profile) {
-        await sleep(1000);
+        await sleep(DELAYS.AUTH_PROFILE_RETRY);
         try {
             const retryResult = await getCurrentUserProfileData<any>();
             profile = retryResult.data;

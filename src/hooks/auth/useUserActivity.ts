@@ -4,6 +4,7 @@ import type { CurrentUser } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { getActivityDescription } from '@/utils/activity/descriptionBuilder';
 import { logActivityToRpc } from '@/utils/activity/activityLogger';
+import { DELAYS } from '@/constants/config';
 
 function serializeActivityFilters(filters: DashboardFilters | Record<string, unknown>) {
   const values = filters as Record<string, unknown>;
@@ -73,7 +74,7 @@ export function useUserActivity(
     tabTimeout.current = setTimeout(() => {
       registrarAtividade('tab_change', { tab: activeTabRef.current }, activeTabRef.current, filtersRef.current);
       lastTrackedTabRef.current = activeTabRef.current;
-    }, 150);
+    }, DELAYS.ACTIVITY_TAB_CHANGE);
 
     return () => { if (tabTimeout.current) clearTimeout(tabTimeout.current); };
   }, [activeTab, sessionId, registrarAtividade]);
@@ -99,7 +100,7 @@ export function useUserActivity(
     filterTimeout.current = setTimeout(() => {
       registrarAtividade('filter_change', { filters: filtersRef.current }, activeTabRef.current, filtersRef.current);
       lastTrackedFiltersRef.current = currentFiltersKey;
-    }, 300);
+    }, DELAYS.DEBOUNCE);
 
     return () => { if (filterTimeout.current) clearTimeout(filterTimeout.current); };
   }, [filters, sessionId, registrarAtividade]);
@@ -127,12 +128,12 @@ export function useUserActivity(
       loginTimeout = setTimeout(() => {
         registrarAtividade('login', { dispositivo: 'web' }, activeTabRef.current, filtersRef.current);
         loginTrackedForUserRef.current = sessionId;
-      }, 500);
+      }, DELAYS.AUTH_SHORT_RETRY);
     }
 
     const heartbeat = setInterval(() => {
       if (currentUserRef.current && isPageVisibleRef.current && sessionId) registrarAtividade('heartbeat', {}, activeTabRef.current, filtersRef.current);
-    }, 60000);
+    }, DELAYS.ACTIVITY_HEARTBEAT);
 
     return () => {
       if (loginTimeout) clearTimeout(loginTimeout);

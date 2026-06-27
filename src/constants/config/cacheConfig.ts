@@ -35,6 +35,14 @@ export const DELAYS = {
     EVOLUCAO: 300, // 300ms
     /** Delay para proteção contra cliques rápidos em tabs */
     TAB_CHANGE_PROTECTION: 800, // 800ms
+    /** Delay curto para recriar cliente/auth antes de retry */
+    AUTH_SHORT_RETRY: 500,
+    /** Delay padrao para retry de perfil/autenticacao */
+    AUTH_PROFILE_RETRY: 1000,
+    /** Debounce para registrar troca de aba */
+    ACTIVITY_TAB_CHANGE: 150,
+    /** Intervalo de heartbeat de atividade */
+    ACTIVITY_HEARTBEAT: 60000,
 } as const;
 
 /**

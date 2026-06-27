@@ -5,6 +5,7 @@ import { UserProfile } from '@/hooks/auth/types';
 import { getCurrentUserProfileData } from '@/utils/app/fetchAppApi';
 import { IS_DEV } from '@/constants/environment';
 import { sleep } from '@/utils/async/sleep';
+import { DELAYS } from '@/constants/config';
 
 
 interface SupabaseClientWithRecreate {
@@ -28,7 +29,7 @@ export async function checkSupabaseMock() {
                 safeLog.warn('[Header] Cliente Supabase está usando mock, tentando recriar...');
             }
             supabaseClient._recreate?.();
-            await sleep(500);
+            await sleep(DELAYS.AUTH_SHORT_RETRY);
         }
     } catch (clientErr) {
         if (IS_DEV) {
@@ -52,7 +53,7 @@ export async function fetchUserProfileWithRetry(): Promise<{ profile: UserProfil
 
     // Retry uma vez após 1 segundo
     if (profileError && !profile) {
-        await sleep(1000);
+        await sleep(DELAYS.AUTH_PROFILE_RETRY);
         try {
             const retryResult = await getCurrentUserProfileData<UserProfile>();
             profile = retryResult.data;

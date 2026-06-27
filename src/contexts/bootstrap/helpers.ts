@@ -6,6 +6,8 @@ import { fetchOrganizationData } from '../hooks/organizationDataHelper';
 import type { Organization } from '../organizationTypes';
 import type { BootstrapProfile, AppBootstrapState } from './types';
 import { IS_DEV } from '@/constants/environment';
+import { DELAYS } from '@/constants/config';
+import { sleep } from '@/utils/async/sleep';
 
 
 export function createCurrentUser(profile: BootstrapProfile | null): CurrentUser | null {
@@ -39,7 +41,7 @@ export async function fetchProfileWithRetry(): Promise<BootstrapProfile | null> 
     }
 
     if (attempt === 0) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await sleep(DELAYS.AUTH_SHORT_RETRY);
     }
   }
 
