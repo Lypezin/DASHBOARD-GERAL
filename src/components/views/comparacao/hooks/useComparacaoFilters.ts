@@ -20,16 +20,10 @@ export function useComparacaoFilters(currentUser: CurrentUser | null) {
         return raw;
     };
     const getInitialPraca = () => searchParams.get('comp_praca') || null;
-    const getInitialApresentacao = () => searchParams.get('comp_apresentacao') === 'true';
 
     const [semanasSelecionadas, setSemanasSelecionadas] = useState<string[]>(getInitialSemanas);
     const [pracaSelecionada, setPracaSelecionada] = useState<string | null>(getInitialPraca);
-    const [mostrarApresentacao, setMostrarApresentacao] = useState(getInitialApresentacao);
-
-    useEffect(() => {
-        const isApresentacaoUrl = searchParams.get('comp_apresentacao') === 'true';
-        if (isApresentacaoUrl !== mostrarApresentacao) setMostrarApresentacao(isApresentacaoUrl);
-    }, [searchParams, mostrarApresentacao]);
+    const [mostrarApresentacao, setMostrarApresentacao] = useState(false);
 
     useEffect(() => {
         const params = new URLSearchParams(searchParams.toString());
@@ -43,11 +37,8 @@ export function useComparacaoFilters(currentUser: CurrentUser | null) {
         if (pracaSelecionada && currentPraca !== pracaSelecionada) { params.set('comp_praca', pracaSelecionada); changed = true; }
         else if (!pracaSelecionada && currentPraca) { params.delete('comp_praca'); changed = true; }
 
-        if (mostrarApresentacao && params.get('comp_apresentacao') !== 'true') { params.set('comp_apresentacao', 'true'); changed = true; }
-        else if (!mostrarApresentacao && params.has('comp_apresentacao')) { params.delete('comp_apresentacao'); changed = true; }
-
         if (changed) router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    }, [semanasSelecionadas, pracaSelecionada, mostrarApresentacao, pathname, router, searchParams]);
+    }, [semanasSelecionadas, pracaSelecionada, pathname, router, searchParams]);
 
     const [viewModeDetalhada, setViewModeDetalhada] = useState<ViewMode>('table');
     const [viewModeDia, setViewModeDia] = useState<ViewMode>('table');
