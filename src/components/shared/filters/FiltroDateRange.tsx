@@ -1,7 +1,7 @@
 import React from 'react';
-import { DateRangeInputs } from './date-range/DateRangeInputs';
-import { DateRangeActions } from './date-range/DateRangeActions';
-import { useDateRangeLogic } from './date-range/useDateRangeLogic';
+import { DateRangeInputs } from '@/components/date-range/DateRangeInputs';
+import { DateRangeActions } from '@/components/date-range/DateRangeActions';
+import { useDateRangeLogic } from '@/components/date-range/useDateRangeLogic';
 
 interface FiltroDateRangeProps {
   dataInicial: string | null;

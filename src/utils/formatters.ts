@@ -5,7 +5,7 @@ export {
   formatarHorasParaHMS,
   formatarHorasCompacta,
   formatCompactTime
-} from './formatters/timeFormatters';
+} from './formatters/timeUtils';
 
 // Re-export color helpers
 export {
