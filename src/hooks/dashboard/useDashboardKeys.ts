@@ -35,7 +35,7 @@ export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentU
     const assignedPracasKey = currentUser?.assigned_pracas?.join('|') || '';
 
     const filtersKey = useMemo(() => {
-        return JSON.stringify({
+        return createRequestKey({
             ano,
             semana,
             praca,
@@ -69,7 +69,7 @@ export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentU
     const effectiveOrganizationId = organizationId || currentUserOrganizationId;
 
     const currentUserKey = useMemo(() => {
-        return currentUser ? JSON.stringify({
+        return currentUser ? createRequestKey({
             id: currentUserId,
             is_admin: isCurrentUserAdmin,
             role: currentUserRole,

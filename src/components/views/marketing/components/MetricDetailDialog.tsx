@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
     Dialog,
     DialogContent,
@@ -16,6 +16,7 @@ import { CITY_DB_MAPPING } from '@/constants/marketing';
 import { getDateRangeFromWeek } from '@/utils/timeHelpers';
 import { fetchFluxoSemanal } from '../api/fetchFluxoSemanal';
 import { getMetricDialogConfig } from '../utils/getMetricDialogConfig';
+import { createRequestKey } from '@/utils/request/createRequestKey';
 
 interface MetricDetailDialogProps {
     type: 'entradas' | 'saidas' | 'retomada';
@@ -58,29 +59,24 @@ export const MetricDetailDialog: React.FC<MetricDetailDialogProps> = ({
     const [open, setOpen] = useState(false);
     const [loadingDetails, setLoadingDetails] = useState(false);
     const [detailsError, setDetailsError] = useState<string | null>(null);
-    const [details, setDetails] = useState({
-        marketingNames,
-        operacionalNames,
-        marketingNovosNames,
-        operacionalNovosNames
-    });
-
-    const initialDetailsKey = useMemo(() => JSON.stringify({
+    const initialDetails = useMemo(() => ({
         marketingNames,
         operacionalNames,
         marketingNovosNames,
         operacionalNovosNames
     }), [marketingNames, operacionalNames, marketingNovosNames, operacionalNovosNames]);
 
+    const initialDetailsRef = useRef(initialDetails);
+    initialDetailsRef.current = initialDetails;
+
+    const initialDetailsKey = useMemo(() => createRequestKey(initialDetails), [initialDetails]);
+
+    const [details, setDetails] = useState(initialDetails);
+
     useEffect(() => {
-        setDetails({
-            marketingNames,
-            operacionalNames,
-            marketingNovosNames,
-            operacionalNovosNames
-        });
+        setDetails(initialDetailsRef.current);
         setDetailsError(null);
-    }, [initialDetailsKey, marketingNames, operacionalNames, marketingNovosNames, operacionalNovosNames]);
+    }, [initialDetailsKey]);
 
     const hasNoRecords =
         !details.marketingNames.length &&

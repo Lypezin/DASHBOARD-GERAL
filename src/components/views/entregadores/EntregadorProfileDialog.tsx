@@ -15,6 +15,7 @@ import {
 } from '../dedicado/metrics';
 import type { FilterPayload } from '@/types/filters';
 import { fetchDedicadoApi } from '@/utils/dedicado/fetchDedicadoApi';
+import { createRequestKey } from '@/utils/request/createRequestKey';
 import { calcularPercentualAceitas, calcularPercentualCompletadas } from './EntregadoresUtils';
 import { fetchEntregadoresFirstSeen, formatFirstSeenDate } from './fetchEntregadoresFirstSeen';
 
@@ -65,7 +66,7 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
     const origemPayloadKey = React.useMemo(() => {
         if (!entregador || !isDedicado) return '';
 
-        return JSON.stringify(buildDedicadoFilterPayload(filterPayload, {
+        return createRequestKey(buildDedicadoFilterPayload(filterPayload, {
             p_entregador_id: entregador.id_entregador,
         }));
     }, [entregador, filterPayload, isDedicado]);

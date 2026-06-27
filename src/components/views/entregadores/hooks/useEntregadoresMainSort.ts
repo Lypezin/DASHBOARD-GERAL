@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useDeferredValue, useTransition } from 'react';
+import { useCallback, useState, useMemo, useEffect, useDeferredValue, useTransition } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Entregador, EntregadoresData } from '@/types';
 import { calcularPercentualAceitas, calcularPercentualCompletadas } from '../EntregadoresUtils';
@@ -99,13 +99,13 @@ export function useEntregadoresMainSort(entregadoresData: EntregadoresData | nul
 
     }, [deferredSearchTerm, indexedEntregadores, showInactiveOnly, sortDirection, sortField]);
 
-    const setShowInactiveOnly = (value: boolean) => {
+    const setShowInactiveOnly = useCallback((value: boolean) => {
         startTransition(() => {
             setShowInactiveOnlyState(value);
         });
-    };
+    }, []);
 
-    const handleSort = (field: EntregadoresSortField) => {
+    const handleSort = useCallback((field: EntregadoresSortField) => {
         startTransition(() => {
             if (sortField === field) setSortDirectionState(sortDirection === 'asc' ? 'desc' : 'asc');
             else {
@@ -113,7 +113,7 @@ export function useEntregadoresMainSort(entregadoresData: EntregadoresData | nul
                 setSortDirectionState('desc');
             }
         });
-    };
+    }, [sortDirection, sortField]);
 
     return { sortedEntregadores, sortField, sortDirection, showInactiveOnly, setShowInactiveOnly, handleSort, isFilteringDeferred: isPending || deferredSearchTerm !== searchTerm };
 }

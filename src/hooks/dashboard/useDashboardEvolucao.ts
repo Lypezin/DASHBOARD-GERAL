@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { CACHE, DELAYS } from '@/constants/config';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -59,8 +59,12 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
 
   const { isLoading: isOrgLoading } = useOrganization();
   const lastFetchSignature = useRef<string | null>(null);
+  const stableFilterPayloadRef = useRef<{ key: string; payload: FilterPayload } | null>(null);
   const filterPayloadKey = createRequestKey(filterPayload);
-  const stableFilterPayload = useMemo(() => JSON.parse(filterPayloadKey) as FilterPayload, [filterPayloadKey]);
+  if (!stableFilterPayloadRef.current || stableFilterPayloadRef.current.key !== filterPayloadKey) {
+    stableFilterPayloadRef.current = { key: filterPayloadKey, payload: filterPayload };
+  }
+  const stableFilterPayload = stableFilterPayloadRef.current.payload;
 
   useEffect(() => {
     if (isOrgLoading) return;

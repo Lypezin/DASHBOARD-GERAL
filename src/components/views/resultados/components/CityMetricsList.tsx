@@ -7,16 +7,18 @@ interface CityMetricsListProps {
     atendenteNome: string;
 }
 
+const cityCollator = new Intl.Collator('pt-BR', { sensitivity: 'base', numeric: true });
+
 export const CityMetricsList: React.FC<CityMetricsListProps> = ({ cidades, atendenteNome }) => {
-    const activeCidades = cidades
-        .filter(c => c.enviado > 0 || c.liberado > 0)
-        .sort((a, b) => {
+    const activeCidades = React.useMemo(() => {
+        return cidades.filter(c => c.enviado > 0 || c.liberado > 0).sort((a, b) => {
             const liberadoDiff = (b.liberado || 0) - (a.liberado || 0);
             if (liberadoDiff !== 0) return liberadoDiff;
             const enviadoDiff = (b.enviado || 0) - (a.enviado || 0);
             if (enviadoDiff !== 0) return enviadoDiff;
-            return a.cidade.localeCompare(b.cidade, 'pt-BR');
+            return cityCollator.compare(a.cidade, b.cidade);
         });
+    }, [cidades]);
 
     if (activeCidades.length === 0) return null;
 

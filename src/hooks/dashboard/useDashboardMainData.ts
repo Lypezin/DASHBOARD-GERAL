@@ -1,6 +1,6 @@
 /** Hook para buscar dados principais do dashboard */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import type {
   Totals,
   AderenciaSemanal,
@@ -38,7 +38,11 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     [filterPayload.p_organization_id]
   );
 
-  const initialCache = getInitialCacheData(payloadKey);
+  const initialCacheRef = useRef<ReturnType<typeof getInitialCacheData>>();
+  if (initialCacheRef.current === undefined) {
+    initialCacheRef.current = getInitialCacheData(payloadKey);
+  }
+  const initialCache = initialCacheRef.current;
   const cachedTotals: Totals | null = initialCache?.totais ? {
     ofertadas: initialCache.totais.corridas_ofertadas,
     aceitas: initialCache.totais.corridas_aceitas,

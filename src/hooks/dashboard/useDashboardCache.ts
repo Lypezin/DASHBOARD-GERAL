@@ -46,7 +46,7 @@ export function getInitialCacheData(payloadKey?: string): DashboardResumoData | 
     return cached.data;
 }
 
-export function getCacheKey(): string {
+function getCacheKey(): string {
     pruneCache();
     const latestKey = Array.from(globalDashboardCache.keys()).pop();
     return latestKey || '';
@@ -83,17 +83,10 @@ export function useDashboardCache() {
         globalDashboardCache.clear();
     }, []);
 
-    const getCacheData = useCallback(() => {
-        pruneCache();
-        const latestEntry = Array.from(globalDashboardCache.values()).pop();
-        return latestEntry?.data ?? null;
-    }, []);
-
     return {
         checkCache,
         updateCache,
         clearCache,
-        getCacheData,
         previousPayloadRef,
         isFirstExecutionRef,
         pendingPayloadKeyRef

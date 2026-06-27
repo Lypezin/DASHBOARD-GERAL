@@ -12,23 +12,6 @@ import {
 import { PageLoading } from '@/components/ui/loading';
 import { BarChart2, Megaphone, DollarSign } from 'lucide-react';
 import { useUploadPageLogic } from './useUploadPageLogic';
-import { motion, Variants } from 'framer-motion';
-
-const containerVariants: Variants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.05
-    },
-  },
-};
-
-const itemVariants: Variants = {
-  hidden: { opacity: 0, y: 15 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: [0.16, 1, 0.3, 1] } },
-};
 
 export default function UploadPage() {
   const {
@@ -59,22 +42,17 @@ export default function UploadPage() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-[linear-gradient(180deg,#f8fbff_0%,#f1f5f9_100%)] p-4 sm:p-6 md:p-10 dark:bg-[linear-gradient(180deg,#020617_0%,#0f172a_100%)]">
-        <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          animate="show"
-          className="mx-auto max-w-[1600px] space-y-8"
-        >
-          <motion.div variants={itemVariants}>
+        <div className="mx-auto max-w-[1600px] space-y-8 animate-fade-in">
+          <div className="animate-slide-up">
             <UploadHeader
               isAuthorized={isAuthorized} user={user}
               organizations={organizations} selectedOrgId={selectedOrgId}
               isLoadingOrgs={isLoadingOrgs} onOrgChange={setSelectedOrgId}
             />
-          </motion.div>
+          </div>
 
           <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-3">
-            <motion.div variants={itemVariants} className="h-full">
+            <div className="h-full animate-slide-up">
               <UploadSection
                 title="Corridas" description="Upload de dados de corridas"
                 icon={<BarChart2 className="h-5 w-5" />}
@@ -92,9 +70,9 @@ export default function UploadPage() {
                 expectedColumns={Object.keys(COLUMN_MAP)} isRefreshingMVs={corridasUpload.isRefreshingMVs}
                 mvRefreshProgress={corridasUpload.mvRefreshProgress} mvRefreshStatus={corridasUpload.mvRefreshStatus}
               />
-            </motion.div>
+            </div>
 
-            <motion.div variants={itemVariants} className="h-full">
+            <div className="h-full animate-slide-up">
               <UploadSection
                 title="Marketing" description="Upload de dados de Marketing"
                 icon={<Megaphone className="h-5 w-5" />}
@@ -110,9 +88,9 @@ export default function UploadPage() {
                 ]}
                 expectedColumns={Object.keys(MARKETING_COLUMN_MAP)}
               />
-            </motion.div>
+            </div>
 
-            <motion.div variants={itemVariants} className="h-full">
+            <div className="h-full animate-slide-up">
               <UploadSection
                 title="Valores por Cidade" description="Upload de valores por cidade"
                 icon={<DollarSign className="h-5 w-5" />}
@@ -128,15 +106,15 @@ export default function UploadPage() {
                 ]}
                 expectedColumns={Object.keys(VALORES_CIDADE_COLUMN_MAP)}
               />
-            </motion.div>
+            </div>
           </div>
 
-          <motion.div variants={itemVariants} className="flex justify-center pb-12">
+          <div className="flex justify-center pb-12 animate-slide-up">
             <div className="w-full max-w-4xl">
               <UploadRefreshMVs />
             </div>
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
     </ErrorBoundary>
   );

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import { Entregador } from '@/types';
 import {
     calcularPercentualAceitas,
@@ -7,6 +7,8 @@ import {
 
 export type SortField = keyof Entregador | 'percentual_aceitas' | 'percentual_completadas';
 export type SortDirection = 'asc' | 'desc';
+
+const stringCollator = new Intl.Collator('pt-BR', { sensitivity: 'base', numeric: true });
 
 export function usePrioridadeSort(dataFiltrada: Entregador[]) {
     const [sortField, setSortField] = useState<SortField>('aderencia_percentual');
@@ -23,7 +25,7 @@ export function usePrioridadeSort(dataFiltrada: Entregador[]) {
                 const bPercent = calcularPercentualAceitas(b);
                 const comparison = aPercent - bPercent;
                 if (comparison === 0) {
-                    return a.nome_entregador.localeCompare(b.nome_entregador, 'pt-BR');
+                    return stringCollator.compare(a.nome_entregador, b.nome_entregador);
                 }
                 return sortDirection === 'asc' ? comparison : -comparison;
             }
@@ -33,7 +35,7 @@ export function usePrioridadeSort(dataFiltrada: Entregador[]) {
                 const bPercent = calcularPercentualCompletadas(b);
                 const comparison = aPercent - bPercent;
                 if (comparison === 0) {
-                    return a.nome_entregador.localeCompare(b.nome_entregador, 'pt-BR');
+                    return stringCollator.compare(a.nome_entregador, b.nome_entregador);
                 }
                 return sortDirection === 'asc' ? comparison : -comparison;
             }
@@ -48,7 +50,7 @@ export function usePrioridadeSort(dataFiltrada: Entregador[]) {
             if (sortField === 'nome_entregador' || sortField === 'id_entregador') {
                 const aStr = String(aValue).toLowerCase().trim();
                 const bStr = String(bValue).toLowerCase().trim();
-                const comparison = aStr.localeCompare(bStr, 'pt-BR', { sensitivity: 'base', numeric: true });
+                const comparison = stringCollator.compare(aStr, bStr);
                 return sortDirection === 'asc' ? comparison : -comparison;
             }
 
@@ -58,21 +60,21 @@ export function usePrioridadeSort(dataFiltrada: Entregador[]) {
             const comparison = aNum - bNum;
 
             if (comparison === 0) {
-                return a.nome_entregador.localeCompare(b.nome_entregador, 'pt-BR');
+                return stringCollator.compare(a.nome_entregador, b.nome_entregador);
             }
 
             return sortDirection === 'asc' ? comparison : -comparison;
         });
     }, [dataFiltrada, sortField, sortDirection]);
 
-    const handleSort = (field: SortField) => {
+    const handleSort = useCallback((field: SortField) => {
         if (sortField === field) {
             setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
         } else {
             setSortField(field);
             setSortDirection('desc');
         }
-    };
+    }, [sortDirection, sortField]);
 
     return {
         sortedEntregadores,

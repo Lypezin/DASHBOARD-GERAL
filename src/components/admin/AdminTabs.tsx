@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { AdminUsersTab } from '@/components/admin/tabs/AdminUsersTab';
 import { Building, Users } from 'lucide-react';
@@ -55,11 +54,7 @@ export const AdminTabs: React.FC<AdminTabsProps> = ({
                                 )}
                             >
                                 {active && (
-                                    <motion.div
-                                        layoutId="activeAdminTab"
-                                        className="absolute inset-0 rounded-xl bg-white dark:bg-slate-950 shadow-sm"
-                                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
-                                    />
+                                    <div className="absolute inset-0 rounded-xl bg-white shadow-sm transition-all duration-200 dark:bg-slate-950" />
                                 )}
                                 <Icon className="relative z-10 h-4 w-4 shrink-0" />
                                 <span className="relative z-10">{label}</span>
@@ -69,38 +64,29 @@ export const AdminTabs: React.FC<AdminTabsProps> = ({
                 </div>
             </div>
 
-            <AnimatePresence mode="wait">
-                <motion.div
-                    key={activeTab}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -8 }}
-                    transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-                    className="w-full focus-visible:outline-none focus-visible:ring-0"
-                >
-                    {activeTab === 'users' && (
-                        <AdminUsersTab
-                            currentUser={currentUser}
-                            users={users}
-                            pendingUsers={pendingUsers}
-                            pracasDisponiveis={pracasDisponiveis}
-                            loading={loading}
-                            error={error}
-                            fetchData={fetchData}
-                            organizations={organizations}
-                        />
-                    )}
-                    {activeTab === 'organizations' && (
-                        <AdminOrganizationsTab
-                            organizations={organizations}
-                            loading={orgsLoading}
-                            error={orgsError}
-                            createOrganization={createOrganization}
-                            updateOrganization={updateOrganization}
-                        />
-                    )}
-                </motion.div>
-            </AnimatePresence>
+            <div key={activeTab} className="w-full animate-fade-in focus-visible:outline-none focus-visible:ring-0">
+                {activeTab === 'users' && (
+                    <AdminUsersTab
+                        currentUser={currentUser}
+                        users={users}
+                        pendingUsers={pendingUsers}
+                        pracasDisponiveis={pracasDisponiveis}
+                        loading={loading}
+                        error={error}
+                        fetchData={fetchData}
+                        organizations={organizations}
+                    />
+                )}
+                {activeTab === 'organizations' && (
+                    <AdminOrganizationsTab
+                        organizations={organizations}
+                        loading={orgsLoading}
+                        error={orgsError}
+                        createOrganization={createOrganization}
+                        updateOrganization={updateOrganization}
+                    />
+                )}
+            </div>
         </div>
     );
 };

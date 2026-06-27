@@ -3,12 +3,9 @@
 import React from 'react';
 import SlideCapaMarketing from '@/components/apresentacao/slides/marketing/SlideCapaMarketing';
 import SlideEvolucaoResumoMarketing from '@/components/apresentacao/slides/marketing/SlideEvolucaoResumoMarketing';
-import SlideComparativoSemanalMarketing from '@/components/apresentacao/slides/marketing/SlideComparativoSemanalMarketing';
-import SlideComparativoCustosMarketing from '@/components/apresentacao/slides/marketing/SlideComparativoCustosMarketing';
 import { MarketingTotals, MarketingCityData, MarketingCostsComparison } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
-import { motion } from 'framer-motion';
 
 interface MarketingReportSlidesProps {
     totals: MarketingTotals;
@@ -28,13 +25,13 @@ import { PresentationSpotlight } from '@/components/apresentacao/components/Pres
 import { MarketingFloatingNav } from '@/components/apresentacao/components/MarketingFloatingNav';
 
 export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
-    totals,
+    totals: _totals,
     citiesData,
     evolutionData,
     weeklyData,
     weeklyDataByCity,
     costsComparison,
-    titulo,
+    titulo: _titulo,
     periodoFormatado
 }) => {
     const router = useRouter();
@@ -51,13 +48,13 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
             <MarketingFloatingNav />
             <MarketingExitButton onExit={onExit} theme={theme} />
 
-            <motion.div id="top" className="page" initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8 }} viewport={{ once: true }}>
+            <div id="top" className="page animate-slide-up">
                 <SlideCapaMarketing isVisible titulo="Cadastros Marketing" periodo={periodoFormatado} subtitulo="Relatório de Resultados" />
-            </motion.div>
+            </div>
 
-            <motion.div id="unidades" className="page" initial={{ opacity: 0, y: 40 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.8, delay: 0.1 }} viewport={{ once: true }}>
+            <div id="unidades" className="page animate-slide-up">
                 <SlideEvolucaoResumoMarketing isVisible={true} evolutionData={evolutionData} citiesData={citiesData} />
-            </motion.div>
+            </div>
 
             <div id="semanal">
                 <WeeklySlidesSection weeklyData={weeklyData} weeklyDataByCity={weeklyDataByCity} />

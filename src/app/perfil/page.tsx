@@ -9,7 +9,6 @@ import { ThemeSettingsCard } from '@/components/perfil/ThemeSettingsCard';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ArrowLeft, UserCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { SaasPanel, SaasPanelHeader } from '@/components/views/shared/SaasPrimitives';
 
 export default function PerfilPage() {
@@ -38,12 +37,7 @@ export default function PerfilPage() {
   return (
     <ErrorBoundary>
       <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.08),transparent_32%),linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] px-4 py-8 dark:bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_34%),linear-gradient(180deg,#020617_0%,#0f172a_100%)] sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45 }}
-          className="mx-auto max-w-5xl space-y-6"
-        >
+        <div className="mx-auto max-w-5xl space-y-6 animate-slide-up">
           <SaasPanel className="overflow-visible">
             <SaasPanelHeader
               eyebrow="Conta"
@@ -62,21 +56,12 @@ export default function PerfilPage() {
           </SaasPanel>
 
           <div className="grid gap-6 md:grid-cols-[350px_1fr]">
-            <motion.div
-              initial={{ opacity: 0, x: -16 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.12, duration: 0.35 }}
-              className="space-y-6"
-            >
+            <div className="space-y-6 animate-slide-in-left">
               <ProfileHeaderCard user={user} onAvatarUpdate={handleAvatarUpdate} />
               <ThemeSettingsCard />
-            </motion.div>
+            </div>
 
-            <motion.div
-              initial={{ opacity: 0, x: 16 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.18, duration: 0.35 }}
-            >
+            <div className="animate-slide-in-right">
               <SaasPanel className="h-full">
                 <SaasPanelHeader
                   eyebrow="Perfil"
@@ -89,9 +74,9 @@ export default function PerfilPage() {
                   <PerfilUserInfo user={user} memberSince={memberSince} onProfileUpdate={refreshUser} />
                 </div>
               </SaasPanel>
-            </motion.div>
+            </div>
           </div>
-        </motion.div>
+        </div>
       </div>
     </ErrorBoundary>
   );

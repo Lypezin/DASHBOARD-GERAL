@@ -1,5 +1,5 @@
 /**
- * Utilitários para mapeamento de atendentes
+ * Utilitarios para mapeamento de atendentes.
  */
 
 export const ATENDENTES = [
@@ -40,61 +40,3 @@ export const REGIAO_TO_CIDADE_VALORES: { [key: string]: string } = {
   'Salvador 2.0': 'SALVADOR',
   'Taboão da Serra e Embu das Artes 2.0': 'TABOÃO DA SERRA E EMBU DAS ARTES',
 };
-
-/**
- * Encontra o nome do atendente pelo ID
- */
-export function findAtendenteNomeById(id: string): string {
-  const idNormalizado = String(id).trim();
-  for (const [nome, atendenteIds] of Object.entries(ATENDENTE_TO_ID)) {
-    // Suporta tanto string única quanto array de IDs
-    const ids = Array.isArray(atendenteIds) ? atendenteIds : [atendenteIds];
-    if (ids.some(aid => String(aid).trim() === idNormalizado)) {
-      return nome;
-    }
-  }
-  return '';
-}
-
-/**
- * Encontra valor de cidade com múltiplas tentativas de mapeamento
- */
-export function findCidadeValue(
-  cidadeData: { cidade: string },
-  valoresAtendente: Map<string, number>
-): number {
-  const cidadeUpper = cidadeData.cidade.toUpperCase().trim();
-  const cidadeNormalizada = cidadeData.cidade.trim();
-
-  // Tentar encontrar o valor usando o nome da cidade diretamente
-  let valorCidade = valoresAtendente.get(cidadeNormalizada) || 0;
-
-  if (valorCidade === 0) {
-    // Se for uma cidade do ABC, tentar buscar por "ABC"
-    if (cidadeData.cidade === 'Santo André' || cidadeData.cidade === 'São Bernardo' || cidadeData.cidade === 'ABC 2.0') {
-      valorCidade = valoresAtendente.get('ABC') || valoresAtendente.get('ABC 2.0') || 0;
-    } else {
-      // Tentar buscar pelo nome em maiúsculas ou pelo mapeamento
-      const regiaoMapeada = REGIAO_TO_CIDADE_VALORES[cidadeData.cidade] || cidadeUpper;
-      valorCidade = valoresAtendente.get(regiaoMapeada) ||
-        valoresAtendente.get(cidadeUpper) ||
-        valoresAtendente.get(cidadeNormalizada) ||
-        valoresAtendente.get(cidadeData.cidade) || 0;
-
-      // Se ainda não encontrou, tentar todas as variações possíveis
-      if (valorCidade === 0) {
-        for (const [cidadeKey, valor] of valoresAtendente.entries()) {
-          if (cidadeKey.toUpperCase().trim() === cidadeUpper ||
-            cidadeKey.trim() === cidadeNormalizada ||
-            cidadeKey.toUpperCase().trim() === regiaoMapeada.toUpperCase().trim()) {
-            valorCidade = valor;
-            break;
-          }
-        }
-      }
-    }
-  }
-
-  return valorCidade;
-}
-

@@ -1,9 +1,11 @@
-import { DashboardResumoData, AderenciaDia } from '@/types';
+import { AderenciaDia } from '@/types';
 import { getPedidosAceitosConcluidosBreakdown } from '@/utils/comparisonDemandMetrics';
+
+type AderenciaMetricKey = keyof AderenciaDia;
 
 export interface MetricConfig {
     label: string;
-    key: string;
+    key: AderenciaMetricKey | 'pedidos_aceitos_concluidos';
     color: string;
     isPercent?: boolean;
     isTime?: boolean;
@@ -46,8 +48,7 @@ export function getRawValue(dayData: AderenciaDia | undefined, metricKey: string
         return getPedidosAceitosConcluidosBreakdown(dayData);
     }
 
-    // @ts-ignore - dynamic key access
-    return dayData[metricKey] ?? 0;
+    return dayData[metricKey as AderenciaMetricKey] ?? 0;
 }
 
 export function formatValue(rawValue: number | string, metric: MetricConfig): string {

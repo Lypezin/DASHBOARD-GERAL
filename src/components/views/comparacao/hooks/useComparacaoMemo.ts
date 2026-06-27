@@ -1,6 +1,8 @@
 
 import { useMemo } from 'react';
 
+const origemCollator = new Intl.Collator('pt-BR', { sensitivity: 'base', numeric: true });
+
 export function useComparacaoMemo(
     dadosComparacao: any[],
     semanasSelecionadas: string[],
@@ -17,7 +19,7 @@ export function useComparacaoMemo(
                 }
             });
         });
-        return Array.from(conjunto).sort((a, b) => a.localeCompare(b, 'pt-BR'));
+        return Array.from(conjunto).sort((a, b) => origemCollator.compare(a, b));
     }, [dadosComparacao]);
 
     const totalColunasOrigem = useMemo(

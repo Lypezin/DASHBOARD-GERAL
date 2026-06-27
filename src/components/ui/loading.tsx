@@ -26,23 +26,6 @@ export function LoadingSpinner({ size = 'md', className, text }: LoadingSpinnerP
     );
 }
 
-interface LoadingOverlayProps {
-    show: boolean;
-    text?: string;
-}
-
-export function LoadingOverlay({ show, text = 'Carregando...' }: LoadingOverlayProps) {
-    if (!show) return null;
-
-    return (
-        <div className="absolute inset-0 z-50 flex items-center justify-center bg-white/75 backdrop-blur-md animate-in fade-in-0 duration-200 dark:bg-slate-950/70">
-            <div className="rounded-3xl border border-slate-200/70 bg-white/90 px-6 py-5 shadow-[0_24px_70px_-44px_rgba(15,23,42,0.75)] dark:border-slate-800/80 dark:bg-slate-900/90">
-                <LoadingSpinner size="lg" text={text} />
-            </div>
-        </div>
-    );
-}
-
 interface PageLoadingProps {
     text?: string;
 }

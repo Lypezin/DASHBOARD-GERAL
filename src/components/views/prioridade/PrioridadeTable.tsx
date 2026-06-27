@@ -53,7 +53,7 @@ export const PrioridadeTable = React.memo<PrioridadeTableProps>(({
                                 const ranking = index + 1;
                                 return (
                                     <PrioridadeTableRow
-                                        key={`${entregador.id_entregador}-${sortField}-${sortDirection}-${ranking}`}
+                                        key={entregador.id_entregador}
                                         entregador={entregador}
                                     />
                                 );

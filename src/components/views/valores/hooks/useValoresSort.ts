@@ -86,7 +86,7 @@ export function useValoresSort(dataToDisplay: ValoresEntregador[]) {
         });
     }, [deferredDataToDisplay, sortField, sortDirection]);
 
-    const handleSort = (field: keyof ValoresEntregador) => {
+    const handleSort = useCallback((field: keyof ValoresEntregador) => {
         startTransition(() => {
             if (sortField === field) {
                 setSortDirectionState(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -95,7 +95,7 @@ export function useValoresSort(dataToDisplay: ValoresEntregador[]) {
                 setSortDirectionState('desc');
             }
         });
-    };
+    }, [sortDirection, sortField]);
 
     return {
         sortedValores,
