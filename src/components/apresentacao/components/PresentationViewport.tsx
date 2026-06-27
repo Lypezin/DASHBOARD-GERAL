@@ -15,18 +15,20 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
     const [scale, setScale] = useState(0.5);
     const activeSlide = slides[currentSlide] || null;
     
-    // Direction tracking for slides transition
-    const [prevSlideIndex, setPrevSlideIndex] = useState(currentSlide);
-    const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
+    // Synchronous direction tracking derived from currentSlide updates
+    const [slideState, setSlideState] = useState({
+        current: currentSlide,
+        direction: 'forward' as 'forward' | 'backward'
+    });
 
-    useEffect(() => {
-        if (currentSlide > prevSlideIndex) {
-            setDirection('forward');
-        } else if (currentSlide < prevSlideIndex) {
-            setDirection('backward');
-        }
-        setPrevSlideIndex(currentSlide);
-    }, [currentSlide, prevSlideIndex]);
+    if (currentSlide !== slideState.current) {
+        setSlideState({
+            current: currentSlide,
+            direction: currentSlide > slideState.current ? 'forward' : 'backward'
+        });
+    }
+
+    const direction = slideState.direction;
 
     const calculateScale = useCallback(() => {
         if (containerRef.current) {
@@ -110,7 +112,7 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
                     overflow: 'hidden',
                 }}
             >
-                <AnimatePresence mode="wait" custom={direction} initial={false}>
+                <AnimatePresence custom={direction} initial={false}>
                     {totalSlides === 0 ? (
                         <motion.div
                             key="empty"

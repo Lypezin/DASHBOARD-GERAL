@@ -61,7 +61,7 @@ const SlideUTR: React.FC<SlideUTRProps> = ({ isVisible, numeroSemana1, numeroSem
                                                 </span>
                                             ) : (
                                                 <span className="text-5xl font-black text-slate-800 dark:text-slate-100 tracking-tight">
-                                                    {utrValue.toFixed(2)}%
+                                                    {utrValue.toFixed(2)}
                                                 </span>
                                             )}
                                         </td>
