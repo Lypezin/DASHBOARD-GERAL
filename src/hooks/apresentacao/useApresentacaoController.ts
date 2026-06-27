@@ -40,26 +40,13 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
         return `dashboard_presentation_${type}_${strOpts}${type === 'sections' ? `_${SECTIONS_VERSION}` : ''}`;
     };
 
-    const getInitialViewMode = () => searchParams.get('comp_apres_mode') === 'web_presentation' ? 'web_presentation' : 'preview';
-
     const [currentSlide, setCurrentSlide] = useState(0);
-    const [viewMode, setViewMode] = useState<'preview' | 'web_presentation'>(getInitialViewMode);
+    const [viewMode, setViewMode] = useState<'preview' | 'web_presentation'>('preview');
     const [isMediaManagerOpen, setIsMediaManagerOpen] = useState(false);
     const [orderedPresentationSlides, setOrderedPresentationSlides] = useState<Array<{ key: string; render: (visible: boolean) => React.ReactNode }>>([]);
     const [isLoaded, setIsLoaded] = useState(false);
 
     const [visibleSections, setVisibleSections] = useState<VisibleSections>(DEFAULT_VISIBLE_SECTIONS);
-
-    useEffect(() => {
-        const params = new URLSearchParams(searchParams.toString());
-        let changed = false;
-
-        if (viewMode === 'web_presentation') {
-            if (params.get('comp_apres_mode') !== 'web_presentation') { params.set('comp_apres_mode', 'web_presentation'); changed = true; }
-        } else if (params.has('comp_apres_mode')) { params.delete('comp_apres_mode'); changed = true; }
-
-        if (changed) router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-    }, [viewMode, pathname, router, searchParams]);
 
     const sectionsKey = getStorageKey('sections');
     const slidesKey = getStorageKey('slides');
