@@ -9,7 +9,7 @@ import type { TabType } from '@/types';
 function ViewLoadingIndicator() {
   return (
     <div className="flex h-28 items-center justify-center">
-      <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600 dark:border-slate-800 dark:border-t-blue-300" />
+      <div className="h-6 w-6 rounded-full border-2 border-slate-200 border-t-blue-600 motion-safe:animate-spin dark:border-slate-800 dark:border-t-blue-300" />
     </div>
   );
 }

@@ -41,7 +41,7 @@ export function LoadingNotice({
     <div className={cn('relative overflow-hidden rounded-2xl border px-4 py-3 shadow-sm', styles.shell, className)}>
       <div className="flex items-start gap-3">
         <span className={cn('mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl', styles.icon)}>
-          <LoaderCircle className="h-4 w-4 animate-spin" />
+          <LoaderCircle className="h-4 w-4 motion-safe:animate-spin" />
         </span>
         <div className="min-w-0">
           <p className="text-sm font-black leading-tight">{message}</p>
@@ -49,7 +49,7 @@ export function LoadingNotice({
         </div>
       </div>
       <div className="mt-3 h-1 overflow-hidden rounded-full bg-white/50 dark:bg-white/10">
-        <div className={cn('h-full w-1/2 animate-pulse rounded-full bg-gradient-to-r', styles.bar)} />
+        <div className={cn('h-full w-1/2 rounded-full bg-gradient-to-r motion-safe:animate-pulse', styles.bar)} />
       </div>
     </div>
   );
