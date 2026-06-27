@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { 
-    GripVertical, X, Home, Activity, MapPin, Calendar, Award, Sparkles, Building2, HelpCircle, Image, SunMoon, Navigation, ShoppingBag, Brain
+    GripVertical, X, Home, Activity, MapPin, Calendar, Award, Sparkles, Building2, HelpCircle, Image as ImageIcon, SunMoon, Navigation, ShoppingBag, Brain
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SlideSidebarItemEdit } from './item/SlideSidebarItemEdit';
@@ -25,7 +25,7 @@ const getSlideIcon = (key: string) => {
     if (key === 'ranking') return <Award className={iconClass} />;
     if (key === 'resumo-ia' || key === 'smart-summary') return <Brain className={iconClass} />;
     if (key === 'utr') return <Building2 className={iconClass} />;
-    if (key.startsWith('media-')) return <Image className={iconClass} />;
+    if (key.startsWith('media-')) return <ImageIcon className={iconClass} />;
     return <HelpCircle className={iconClass} />;
 };
 
