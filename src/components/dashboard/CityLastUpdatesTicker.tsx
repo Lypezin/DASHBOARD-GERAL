@@ -46,7 +46,7 @@ export function CityLastUpdatesTicker() {
         <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-card to-transparent" />
         <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-card to-transparent" />
 
-        <div className="city-updates-marquee flex min-w-max items-center gap-4 hover:[animation-play-state:paused]">
+        <div className="city-updates-marquee flex min-w-max items-center gap-4">
           {marqueeItems.map((item, index) => (
             <div
               key={`${item.city}-${index}`}
