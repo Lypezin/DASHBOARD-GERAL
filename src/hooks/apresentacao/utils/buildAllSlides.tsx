@@ -37,6 +37,10 @@ export function buildAllSlides(
     const aderenciaGeral = buildSlideAderenciaGeral(visibleSections['aderencia-geral'], dadosProcessados);
     if (aderenciaGeral) slidesConfig.push(aderenciaGeral);
 
+    if (visibleSections['entregadores'] !== false && entregadoresComparativo && entregadoresComparativo.length > 0) {
+        slidesConfig.push({ key: 'entregadores', render: (visible) => <SlideEntregadores isVisible={visible} numeroSemana1={numeroSemana1} numeroSemana2={numeroSemana2} entregadores={entregadoresComparativo} /> });
+    }
+
     const ranking = buildSlideRanking(visibleSections['ranking'], subPracasComparativo);
     if (ranking) slidesConfig.push(ranking);
 
@@ -47,10 +51,6 @@ export function buildAllSlides(
 
     if (visibleSections['utr'] !== false) {
         slidesConfig.push({ key: 'utr', render: (visible) => <SlideUTR isVisible={visible} numeroSemana1={numeroSemana1} numeroSemana2={numeroSemana2} utrComparacao={utrComparacao} /> });
-    }
-
-    if (visibleSections['entregadores'] !== false && entregadoresComparativo && entregadoresComparativo.length > 0) {
-        slidesConfig.push({ key: 'entregadores', render: (visible) => <SlideEntregadores isVisible={visible} numeroSemana1={numeroSemana1} numeroSemana2={numeroSemana2} entregadores={entregadoresComparativo} /> });
     }
 
     slidesConfig.push(...buildSlidesTurnos(visibleSections.turnos, turnosComparativo, { numeroSemana1, numeroSemana2 }));

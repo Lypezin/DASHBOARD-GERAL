@@ -3,9 +3,15 @@
 import { useState, useEffect } from 'react';
 
 export const useAnimatedProgress = (targetValue: number, duration: number = 1000, delay: number = 0, isActive: boolean = true) => {
-    const [progress, setProgress] = useState(0);
+    const isCapturing = typeof window !== 'undefined' && (window as any).isCapturingPDF;
+    const [progress, setProgress] = useState(isCapturing ? targetValue : 0);
 
     useEffect(() => {
+        if (isCapturing) {
+            setProgress(targetValue);
+            return;
+        }
+
         if (!isActive) {
             setProgress(0);
             return;
@@ -16,7 +22,7 @@ export const useAnimatedProgress = (targetValue: number, duration: number = 1000
         }, delay);
 
         return () => clearTimeout(timeout);
-    }, [targetValue, delay, isActive]);
+    }, [targetValue, delay, isActive, isCapturing]);
 
-    return progress;
+    return isCapturing ? targetValue : progress;
 };

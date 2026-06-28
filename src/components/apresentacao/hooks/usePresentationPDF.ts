@@ -18,6 +18,9 @@ export const usePresentationPDF = ({ slides, numeroSemana1, numeroSemana2, conte
 
         setIsGenerating(true);
         setGeneratingProgress({ current: 0, total: slides.length });
+        if (typeof window !== 'undefined') {
+            (window as any).isCapturingPDF = true;
+        }
 
         try {
             const { jsPDF } = await import('jspdf');
@@ -81,6 +84,9 @@ export const usePresentationPDF = ({ slides, numeroSemana1, numeroSemana2, conte
             alert('Erro ao gerar PDF. Tente novamente.');
 
         } finally {
+            if (typeof window !== 'undefined') {
+                (window as any).isCapturingPDF = false;
+            }
             setIsGenerating(false);
             setGeneratingProgress({ current: 0, total: 0 });
             setCapturingIndex(null);
