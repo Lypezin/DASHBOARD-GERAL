@@ -35,7 +35,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
 }) => {
     return (
         <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center md:justify-between md:p-4">
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white md:text-xl">Preview da Apresentacao</h3>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white md:text-xl">Preview da Apresentação</h3>
 
             <div className="flex flex-nowrap w-full items-center gap-2 md:gap-4 overflow-x-auto pb-1 md:pb-0 hide-scrollbar-custom" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
                 <style dangerouslySetInnerHTML={{ __html: `.hide-scrollbar-custom::-webkit-scrollbar { display: none; }` }} />
@@ -73,7 +73,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
                         variant="outline"
                         className="shrink-0 border-slate-200 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
                         onClick={onManageClick}
-                        title="Minhas Apresentacoes"
+                        title="Minhas Apresentações"
                     >
                         <FolderOpen className="h-4 w-4 sm:mr-2" />
                         <span className="hidden sm:inline">Minhas</span>
@@ -85,7 +85,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
                         variant="outline"
                         className="shrink-0 border-slate-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700"
                         onClick={onSaveClick}
-                        title="Salvar Apresentacao"
+                        title="Salvar Apresentação"
                     >
                         <Save className="h-4 w-4 sm:mr-2" />
                         <span className="hidden sm:inline">Salvar</span>
