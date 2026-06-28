@@ -18,7 +18,7 @@ const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView(
     } = useMarketingFilters();
 
     return (
-        <div className="space-y-6 animate-fade-in pb-8">
+        <div className="space-y-6 motion-safe:animate-fade-in pb-8">
             <div className="space-y-4">
                 <div className="flex items-center gap-3 px-2">
                     <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-sky-500 to-blue-600 shadow-sm" />

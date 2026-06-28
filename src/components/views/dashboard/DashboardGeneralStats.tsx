@@ -30,7 +30,7 @@ export const DashboardGeneralStats = React.memo(function DashboardGeneralStats({
     if (!stats) return null;
 
     return (
-        <div className="grid grid-cols-1 gap-4 animate-fade-in lg:grid-cols-12">
+        <div className="grid grid-cols-1 gap-4 motion-safe:animate-fade-in lg:grid-cols-12">
             <GeneralStatsScoreCard
                 percentual={stats.percentual}
                 progressColor={stats.progressColor}

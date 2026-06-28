@@ -13,7 +13,7 @@ export const LoginPageLayout = React.memo(function LoginPageLayout({
   children,
 }: LoginPageLayoutProps) {
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 selection:bg-blue-500/30">
+    <div className="relative flex min-h-screen w-screen max-w-full items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-3 selection:bg-blue-500/30 sm:px-4">
       {/* Background Context */}
       <div className="absolute inset-0 z-0">
         <div className="absolute top-0 -left-4 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
@@ -22,7 +22,7 @@ export const LoginPageLayout = React.memo(function LoginPageLayout({
         <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-60"></div>
       </div>
 
-      <div className="relative z-10 w-full max-w-[420px] px-4">
+      <div className="relative z-10 w-full max-w-[min(420px,calc(100vw-24px))]">
         {/* Logo Section */}
         <div className="mb-8 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 shadow-xl shadow-blue-500/20 ring-1 ring-black/5">
@@ -37,7 +37,7 @@ export const LoginPageLayout = React.memo(function LoginPageLayout({
         {/* Login Card */}
         <div className="relative group">
           <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-blue-400 via-indigo-400 to-cyan-400 opacity-40 blur transition duration-500 group-hover:opacity-60"></div>
-          <div className="relative rounded-2xl border border-white/60 bg-white/70 p-8 backdrop-blur-xl shadow-2xl ring-1 ring-black/5">
+          <div className="relative min-w-0 rounded-2xl border border-white/60 bg-white/70 p-5 shadow-2xl ring-1 ring-black/5 backdrop-blur-xl sm:p-8">
             {children}
           </div>
         </div>

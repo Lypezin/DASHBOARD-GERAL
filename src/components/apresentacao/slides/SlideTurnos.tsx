@@ -35,7 +35,7 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({ isVisible, numeroSemana1, num
             <div
               key={item.nome}
               onClick={() => setSelectedItem(item)}
-              className="min-h-[360px] bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col gap-6 hover:shadow-lg hover:scale-[1.01] transition-all duration-200 cursor-pointer"
+              className="min-h-[360px] bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col gap-6 hover:shadow-lg motion-safe:hover:scale-[1.01] transition-all duration-200 cursor-pointer"
             >
               <div className="flex items-center justify-center">
                 <h3 className="text-xl font-black text-slate-700 dark:text-slate-200 uppercase tracking-wider bg-slate-50 dark:bg-slate-800/80 px-6 py-2 rounded-lg border border-slate-100 dark:border-slate-700 text-center leading-tight">

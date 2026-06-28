@@ -37,7 +37,7 @@ const UtrView = React.memo(function UtrView({
   if (loading && (!utrData || !utrData.geral)) {
     stateKey = 'utr-loading';
     content = (
-      <div className="mx-auto w-full max-w-[1600px] space-y-5 px-4 pt-4 animate-fade-in sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-[1600px] space-y-5 px-4 pt-4 motion-safe:animate-fade-in sm:px-6 lg:px-8">
         <TableSkeleton rows={6} columns={4} />
       </div>
     );

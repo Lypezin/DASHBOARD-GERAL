@@ -71,7 +71,7 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
     );
 
     return (
-        <div className="mx-auto max-w-7xl space-y-8 animate-fade-in">
+        <div className="mx-auto max-w-7xl space-y-8 motion-safe:animate-fade-in">
             {loading ? (
                 <div className="rounded-2xl border border-sky-200/70 bg-sky-50/80 px-4 py-3 text-sm font-semibold text-sky-800 shadow-sm dark:border-sky-900/50 dark:bg-sky-950/25 dark:text-sky-200">
                     Atualizando fluxo semanal com os filtros atuais...

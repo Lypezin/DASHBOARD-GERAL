@@ -66,7 +66,7 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
     if (isLoading) return null;
 
     return (
-        <div className="relative space-y-8 overflow-hidden pb-12 pt-4 animate-fade-in">
+        <div className="relative space-y-8 overflow-hidden pb-12 pt-4 motion-safe:animate-fade-in">
             <div className="pointer-events-none absolute -top-24 -right-24 h-96 w-96 rounded-full bg-blue-500/10 blur-[100px]" />
             <div className="pointer-events-none absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-sky-500/10 blur-[100px]" />
 

@@ -56,14 +56,21 @@ function styleWorksheet(
     headers: string[],
     rows: any[][],
     theme: WorksheetTheme,
-    totalRowIndex?: number
+    totalRowIndex?: number,
+    headerRowIndex = 0
 ) {
     const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:A1');
     const themeColor = THEME_COLORS[theme];
+    const tableRange = {
+        s: { r: headerRowIndex, c: 0 },
+        e: range.e,
+    };
 
-    ws['!autofilter'] = { ref: XLSX.utils.encode_range(range) };
-    ws['!freeze'] = { xSplit: 0, ySplit: 1 };
-    ws['!rows'] = [{ hpt: 24 }];
+    ws['!autofilter'] = { ref: XLSX.utils.encode_range(tableRange) };
+    ws['!freeze'] = { xSplit: 0, ySplit: headerRowIndex + 1 };
+    ws['!rows'] = Array.from({ length: range.e.r + 1 }, (_, index) => ({
+        hpt: index === 0 ? 28 : index === headerRowIndex ? 24 : 20,
+    }));
     ws['!cols'] = headers.map((header, colIndex) => {
         const maxContentLength = Math.max(
             String(header).length,
@@ -74,7 +81,7 @@ function styleWorksheet(
     });
 
     headers.forEach((_, colIndex) => {
-        const cell = ws[XLSX.utils.encode_cell({ r: 0, c: colIndex })];
+        const cell = ws[XLSX.utils.encode_cell({ r: headerRowIndex, c: colIndex })];
         if (!cell) return;
 
         cell.s = {
@@ -84,15 +91,30 @@ function styleWorksheet(
         };
     });
 
-    for (let rowIndex = 1; rowIndex <= range.e.r; rowIndex += 1) {
+    for (let rowIndex = 0; rowIndex <= range.e.r; rowIndex += 1) {
         for (let colIndex = 0; colIndex <= range.e.c; colIndex += 1) {
             const cell = ws[XLSX.utils.encode_cell({ r: rowIndex, c: colIndex })];
             if (!cell) continue;
 
+            if (rowIndex < headerRowIndex) {
+                cell.s = {
+                    font: {
+                        bold: rowIndex === 0,
+                        sz: rowIndex === 0 ? 16 : 11,
+                        color: { rgb: rowIndex === 0 ? themeColor : '475569' },
+                    },
+                    alignment: { horizontal: rowIndex === 0 ? 'center' : 'left', vertical: 'center' },
+                };
+                continue;
+            }
+
+            if (rowIndex === headerRowIndex) continue;
+
             const isTotal = totalRowIndex !== undefined && rowIndex === totalRowIndex;
+            const isEven = (rowIndex - headerRowIndex) % 2 === 0;
             cell.s = {
                 font: { bold: isTotal },
-                fill: isTotal ? { fgColor: { rgb: 'E0F2FE' } } : undefined,
+                fill: isTotal ? { fgColor: { rgb: 'E0F2FE' } } : isEven ? { fgColor: { rgb: 'F8FAFC' } } : undefined,
                 alignment: {
                     horizontal: colIndex === 0 ? 'left' : 'center',
                     vertical: 'center',
@@ -106,9 +128,26 @@ function styleWorksheet(
     }
 }
 
-function createStyledSheet(headers: string[], rows: any[][], theme: WorksheetTheme, totalRowIndex?: number) {
-    const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
-    styleWorksheet(ws, headers, rows, theme, totalRowIndex);
+function createStyledSheet(
+    headers: string[],
+    rows: any[][],
+    theme: WorksheetTheme,
+    title: string,
+    subtitle: string,
+    totalRowIndex?: number
+) {
+    const ws = XLSX.utils.aoa_to_sheet([[title], [subtitle], [], headers, ...rows]);
+    const headerRowIndex = 3;
+    const totalSheetRowIndex = totalRowIndex !== undefined ? totalRowIndex + headerRowIndex : undefined;
+
+    if (headers.length > 1) {
+        ws['!merges'] = [
+            { s: { r: 0, c: 0 }, e: { r: 0, c: headers.length - 1 } },
+            { s: { r: 1, c: 0 }, e: { r: 1, c: headers.length - 1 } },
+        ];
+    }
+
+    styleWorksheet(ws, headers, rows, theme, totalSheetRowIndex, headerRowIndex);
     return ws;
 }
 
@@ -136,6 +175,9 @@ export function exportComparacaoToExcel(
     const sem2 = semanasSelecionadas[1];
     const d1 = dadosComparacao[0];
     const d2 = dadosComparacao[1];
+    const periodoLabel = `Semana ${sem1} vs Semana ${sem2}`;
+    const pracaResumo = pracaSelecionada || 'Todas as praças';
+    const subtitleBase = `${periodoLabel} - ${pracaResumo}`;
 
     const headersResumo = ['Métrica', `Semana ${sem1}`, `Semana ${sem2}`, 'Variação Absoluta', 'Variação %'];
     const rowsResumo: any[][] = [];
@@ -316,12 +358,34 @@ export function exportComparacaoToExcel(
     }
 
     const wb = XLSX.utils.book_new();
-    appendSheet(wb, createStyledSheet(headersResumo, rowsResumo, 'blue'), 'Resumo Geral', THEME_COLORS.blue);
-    appendSheet(wb, createStyledSheet(headersDia, rowsDia, 'green'), 'Aderência por Dia', THEME_COLORS.green);
-    appendSheet(wb, createStyledSheet(headersSub, rowsSub, 'purple'), 'Sub-Praças', THEME_COLORS.purple);
-    appendSheet(wb, createStyledSheet(headersTurnos, rowsTurnos, 'amber'), 'Turnos', THEME_COLORS.amber);
-    appendSheet(wb, createStyledSheet(headersOrigens, rowsOrigens, 'blue'), 'Origens', THEME_COLORS.blue);
-    appendSheet(wb, createStyledSheet(headersUtr, rowsUtr, 'slate'), 'UTR', THEME_COLORS.slate);
+    wb.Props = {
+        Title: `Comparativo Semana ${sem1} vs Semana ${sem2}`,
+        Subject: 'Exportação da apresentação comparativa',
+        Author: 'Dashboard Geral',
+        Company: 'Dashboard Geral',
+        CreatedDate: new Date(),
+    };
+
+    const exportInfoRows = [
+        ['Relatório', `Comparativo Semana ${sem1} vs Semana ${sem2}`],
+        ['Praça', pracaSelecionada || 'Todas as praças'],
+        ['Gerado em', new Date().toLocaleString('pt-BR')],
+        ['Abas principais', entregadoresComparativo && entregadoresComparativo.length > 0 ? 7 : 6],
+    ];
+
+    appendSheet(
+        wb,
+        createStyledSheet(['Informação', 'Valor'], exportInfoRows, 'slate', 'Informações da exportação', subtitleBase),
+        'Exportação',
+        THEME_COLORS.slate
+    );
+
+    appendSheet(wb, createStyledSheet(headersResumo, rowsResumo, 'blue', 'Resumo geral', subtitleBase), 'Resumo Geral', THEME_COLORS.blue);
+    appendSheet(wb, createStyledSheet(headersDia, rowsDia, 'green', 'Aderência por dia', subtitleBase), 'Aderência por Dia', THEME_COLORS.green);
+    appendSheet(wb, createStyledSheet(headersSub, rowsSub, 'purple', 'Sub-praças', subtitleBase), 'Sub-Praças', THEME_COLORS.purple);
+    appendSheet(wb, createStyledSheet(headersTurnos, rowsTurnos, 'amber', 'Turnos', subtitleBase), 'Turnos', THEME_COLORS.amber);
+    appendSheet(wb, createStyledSheet(headersOrigens, rowsOrigens, 'blue', 'Origens', subtitleBase), 'Origens', THEME_COLORS.blue);
+    appendSheet(wb, createStyledSheet(headersUtr, rowsUtr, 'slate', 'UTR', subtitleBase), 'UTR', THEME_COLORS.slate);
 
     if (entregadoresComparativo && entregadoresComparativo.length > 0) {
         const headersEnt = ['Entregador', 'ID', `Horas Sem ${sem1}`, `Horas Sem ${sem2}`, 'Diferença'];
@@ -345,7 +409,7 @@ export function exportComparacaoToExcel(
 
         appendSheet(
             wb,
-            createStyledSheet(headersEnt, rowsEnt, 'green', rowsEnt.length),
+            createStyledSheet(headersEnt, rowsEnt, 'green', 'Entregadores', subtitleBase, rowsEnt.length),
             'Entregadores',
             THEME_COLORS.green
         );

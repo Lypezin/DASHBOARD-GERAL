@@ -34,7 +34,7 @@ export const LoginForm = React.memo(function LoginForm({ loading, error, onSubmi
       )}
 
       {/* Login Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <form onSubmit={handleSubmit} className="min-w-0 space-y-6">
         <LoginFields email={email} onEmailChange={handleEmailChange} password={password} onPasswordChange={handlePasswordChange} showPassword={showPassword} onTogglePassword={toggleShowPassword} loading={loading} />
 
         {/* Submit Button */}

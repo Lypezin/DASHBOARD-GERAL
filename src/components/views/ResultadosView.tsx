@@ -28,7 +28,7 @@ const ResultadosView = React.memo(function ResultadosView() {
   if (loading && !hasResultadosData) {
     return (
       <ViewTransition stateKey="resultados-loading">
-        <div className="space-y-6 animate-fade-in">
+        <div className="space-y-6 motion-safe:animate-fade-in">
           <TableSkeleton rows={8} columns={4} />
         </div>
       </ViewTransition>
@@ -45,7 +45,7 @@ const ResultadosView = React.memo(function ResultadosView() {
 
   return (
     <ViewTransition stateKey="resultados-content">
-      <div className="space-y-8 pb-8 animate-fade-in">
+      <div className="space-y-8 pb-8 motion-safe:animate-fade-in">
       {loading ? (
         <div className="rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/25 dark:text-blue-200">
           Atualizando resultados com os filtros atuais...

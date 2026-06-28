@@ -16,7 +16,7 @@ const MarketingComparacaoView = React.memo(function MarketingComparacaoView({ fi
     const { data, loading, error, totals, praca } = useMarketingComparacaoViewController(filters);
 
     return (
-        <div className="mx-auto w-full max-w-[1800px] space-y-8 pb-20 animate-fade-in">
+        <div className="mx-auto w-full max-w-[1800px] space-y-8 pb-20 motion-safe:animate-fade-in">
             {error && (
                 <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />

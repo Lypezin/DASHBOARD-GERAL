@@ -41,7 +41,7 @@ const MarketingDashboardView = React.memo(function MarketingDashboardView() {
 
   return (
     <ViewTransition stateKey="marketing-dashboard-content">
-      <div className="space-y-6 pb-8 animate-fade-in">
+      <div className="space-y-6 pb-8 motion-safe:animate-fade-in">
         <MarketingFiltersSection filters={filters} onFilterChange={handleFilterChange} />
 
         {loading ? (

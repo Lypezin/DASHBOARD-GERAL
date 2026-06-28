@@ -137,7 +137,7 @@ function DashboardShellContent() {
         {ui.error && <DashboardErrorState error={ui.error} />}
 
         {!showInitialLoading && !ui.error && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-6 motion-safe:animate-fade-in">
             <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
               <div className="min-w-0 flex-1">
                 <DashboardFiltersContainer

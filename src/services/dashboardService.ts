@@ -14,12 +14,12 @@ const VALORES_DETALHADOS_ALLOWED_PARAMS = ['p_ano', 'p_semana', 'p_praca', 'p_su
 export type DashboardDataMode = 'utr' | 'entregadores' | 'valores' | 'valores_detalhados' | 'valores_breakdown' | 'resumo_local';
 
 const CACHE_TTL_BY_MODE_MS: Record<DashboardDataMode, number> = {
-  utr: 90_000,
-  entregadores: 90_000,
-  valores: 90_000,
+  utr: 5 * 60_000,
+  entregadores: 5 * 60_000,
+  valores: 5 * 60_000,
   valores_detalhados: 30_000,
-  valores_breakdown: 90_000,
-  resumo_local: 90_000,
+  valores_breakdown: 5 * 60_000,
+  resumo_local: 5 * 60_000,
 };
 const MAX_CACHE_ENTRIES = 120;
 

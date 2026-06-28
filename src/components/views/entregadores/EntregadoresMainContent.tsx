@@ -134,8 +134,8 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
         {loading || isRefreshing || isFilteringDeferred ? (
           <LoadingNotice
             tone={loading || isRefreshing ? 'emerald' : 'sky'}
-            message={loading || isRefreshing ? 'Atualizando entregadores com os filtros atuais' : 'Aplicando busca e ordenacao sem travar a tela'}
-            detail={loading || isRefreshing ? 'Os dados anteriores continuam visiveis durante a atualizacao.' : 'A lista responde primeiro e finaliza o processamento em segundo plano.'}
+            message={loading || isRefreshing ? 'Atualizando entregadores com os filtros atuais' : 'Aplicando busca e ordenação sem travar a tela'}
+            detail={loading || isRefreshing ? 'Os dados anteriores continuam visíveis durante a atualização.' : 'A lista responde primeiro e finaliza o processamento em segundo plano.'}
           />
         ) : null}
 

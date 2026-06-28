@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { formatWeekLabel } from '@/utils/formatters/dateUtils';
 import { ArrowUpRight, ArrowDownRight, RotateCcw, ChevronDown, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -14,12 +14,14 @@ interface EntradaSaidaRowProps {
     praca?: string | null;
 }
 
-export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst, organizationId, praca }) => {
+export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = React.memo(function EntradaSaidaRow({ item, isFirst, organizationId, praca }) {
     const [isExpanded, setIsExpanded] = useState(false);
 
-    const retomadaOrigins = item.retomada_origins || {};
-    const hasOrigins = Object.keys(retomadaOrigins).length > 0;
-    const sortedOrigins = hasOrigins ? Object.entries(retomadaOrigins).sort((a, b) => b[0].localeCompare(a[0])) : [];
+    const sortedOrigins = useMemo(
+        () => Object.entries(item.retomada_origins || {}).sort((a, b) => b[0].localeCompare(a[0])),
+        [item.retomada_origins]
+    );
+    const hasOrigins = sortedOrigins.length > 0;
     const totalRetomada = item.retomada_total || 0;
 
     const entradasOps = (item.entradas_total || 0) - (item.entradas_marketing || 0);
@@ -124,4 +126,4 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = ({ item, isFirst,
             </AnimatePresence>
         </motion.div>
     );
-};
+});

@@ -45,7 +45,7 @@ export function SaasPanel({
   return (
     <div
       className={cn(
-        'min-w-0 overflow-hidden rounded-[1.65rem] border border-slate-200/80 bg-white/95 shadow-[0_24px_70px_-52px_rgba(15,23,42,0.45)] animate-fade-in dark:border-slate-800/80 dark:bg-slate-950/80',
+        'min-w-0 overflow-hidden rounded-[1.65rem] border border-slate-200/80 bg-white/95 shadow-[0_24px_70px_-52px_rgba(15,23,42,0.45)] motion-safe:animate-fade-in dark:border-slate-800/80 dark:bg-slate-950/80',
         className
       )}
     >

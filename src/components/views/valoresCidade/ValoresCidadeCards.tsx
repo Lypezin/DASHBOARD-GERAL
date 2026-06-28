@@ -17,7 +17,7 @@ export const ValoresCidadeCards: React.FC<ValoresCidadeCardsProps> = ({
   cidadesData,
 }) => {
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-8 motion-safe:animate-fade-in">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
           title="Total Geral"

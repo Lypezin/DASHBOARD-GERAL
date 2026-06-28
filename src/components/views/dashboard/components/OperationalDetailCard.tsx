@@ -51,7 +51,7 @@ export const OperationalDetailCard: React.FC<OperationalDetailCardProps> = ({ da
             <TooltipTrigger asChild>
                 <Card
                     className={cn(
-                        "group relative cursor-help overflow-hidden rounded-2xl border-slate-200/80 bg-white/95 shadow-sm animate-fade-in transition-[border-color,box-shadow,transform] duration-300 dark:border-slate-800/80 dark:bg-slate-950/70",
+                        "group relative cursor-help overflow-hidden rounded-2xl border-slate-200/80 bg-white/95 shadow-sm motion-safe:animate-fade-in transition-[border-color,box-shadow,transform] duration-300 dark:border-slate-800/80 dark:bg-slate-950/70",
                         "hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-[0_22px_54px_-38px_rgba(15,23,42,0.55)] dark:hover:border-slate-700"
                     )}
                     style={{ animationDelay: `${Math.min(index * 35, 180)}ms` }}

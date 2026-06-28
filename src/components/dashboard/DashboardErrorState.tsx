@@ -9,7 +9,7 @@ export const DashboardErrorState = React.memo(function DashboardErrorState({
   error,
 }: DashboardErrorStateProps) {
   return (
-    <div className="flex h-[60vh] items-center justify-center px-4 sm:h-[70vh] animate-fade-in">
+    <div className="flex h-[60vh] items-center justify-center px-4 sm:h-[70vh] motion-safe:animate-fade-in">
       <div className="w-full max-w-xl rounded-[2rem] border border-rose-200/80 bg-white/90 p-7 text-center shadow-[0_30px_80px_-50px_rgba(244,63,94,0.45)] backdrop-blur dark:border-rose-900/50 dark:bg-slate-900/90 dark:shadow-black/30 sm:p-9">
         <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-3xl bg-gradient-to-br from-rose-500 via-orange-400 to-amber-300 text-white shadow-lg shadow-rose-500/20">
           <AlertTriangle className="h-8 w-8" />

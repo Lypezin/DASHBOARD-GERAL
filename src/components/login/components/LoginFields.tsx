@@ -28,9 +28,9 @@ export const LoginFields = React.memo(function LoginFields({
             {/* Email Field */}
             <div className="space-y-2">
                 <Label htmlFor="email" className="text-slate-600 font-medium">Email</Label>
-                <div className="relative group">
+                <div className="group relative min-w-0">
                     <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 transition duration-300 group-hover:opacity-20 blur"></div>
-                    <div className="relative">
+                    <div className="relative min-w-0">
                         <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                         <Input
                             id="email"
@@ -49,9 +49,9 @@ export const LoginFields = React.memo(function LoginFields({
             {/* Password Field */}
             <div className="space-y-2">
                 <Label htmlFor="password" className="text-slate-600 font-medium">Senha</Label>
-                <div className="relative group">
+                <div className="group relative min-w-0">
                     <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 transition duration-300 group-hover:opacity-20 blur"></div>
-                    <div className="relative">
+                    <div className="relative min-w-0">
                         <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
                         <Input
                             id="password"
