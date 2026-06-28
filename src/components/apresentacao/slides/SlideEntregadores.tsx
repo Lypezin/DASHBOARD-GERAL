@@ -84,26 +84,26 @@ export const SlideEntregadores: React.FC<SlideEntregadoresProps> = ({
                     </table>
                 </div>
 
-                {/* Subtotal & stats 2-column footer card (Enlarged sizes) */}
+                {/* Subtotal & stats 2-column footer card (Stacked, responsive and professional) */}
                 <div className="mt-6 grid grid-cols-2 gap-6">
                     {/* Card 1: Soma Total das Horas */}
-                    <div className="bg-slate-900 text-white dark:bg-white dark:text-slate-950 p-5 rounded-2xl flex items-center justify-between shadow-xl border border-slate-200 dark:border-slate-800">
-                        <div className="flex items-center gap-3 w-1/3">
+                    <div className="bg-slate-900 text-white dark:bg-white dark:text-slate-950 p-5 rounded-2xl flex flex-col gap-4 shadow-xl border border-slate-200 dark:border-slate-800">
+                        <div className="flex items-center gap-3 border-b border-slate-800 dark:border-slate-200 pb-3">
                             <Users className="h-6 w-6 text-sky-400 dark:text-sky-600 shrink-0" />
-                            <span className="text-sm font-black uppercase tracking-wider leading-tight">Soma Total<br/>das Horas</span>
+                            <span className="text-sm font-black uppercase tracking-wider">Soma Total das Horas</span>
                         </div>
-                        <div className="flex gap-4 md:gap-6 font-mono text-xl font-bold shrink-0">
+                        <div className="grid grid-cols-3 gap-2 font-mono text-center">
                             <div>
-                                <span className="text-xs uppercase tracking-widest text-slate-400 block dark:text-slate-500 font-bold">Sem {numeroSemana1}</span>
-                                <span className="text-2xl font-black">{formatarSegundosParaHMS(totalSegundosSem1)}</span>
+                                <span className="text-[10px] md:text-xs uppercase tracking-widest text-slate-400 block dark:text-slate-500 font-bold mb-1">Sem {numeroSemana1}</span>
+                                <span className="text-lg md:text-2xl font-black block truncate">{formatarSegundosParaHMS(totalSegundosSem1)}</span>
                             </div>
-                            <div className="border-l border-slate-700 dark:border-slate-200 pl-4 md:pl-6">
-                                <span className="text-xs uppercase tracking-widest text-slate-400 block dark:text-slate-500 font-bold">Sem {numeroSemana2}</span>
-                                <span className="text-2xl font-black text-sky-400 dark:text-sky-600">{formatarSegundosParaHMS(totalSegundosSem2)}</span>
+                            <div className="border-l border-slate-800 dark:border-slate-200 pl-2">
+                                <span className="text-[10px] md:text-xs uppercase tracking-widest text-slate-400 block dark:text-slate-500 font-bold mb-1">Sem {numeroSemana2}</span>
+                                <span className="text-lg md:text-2xl font-black text-sky-400 dark:text-sky-600 block truncate">{formatarSegundosParaHMS(totalSegundosSem2)}</span>
                             </div>
-                            <div className="border-l border-slate-700 dark:border-slate-200 pl-4 md:pl-6">
-                                <span className="text-xs uppercase tracking-widest text-slate-400 block dark:text-slate-500 font-bold">Diferença</span>
-                                <span className={`text-2xl font-black ${diferencaSegundos >= 0 ? "text-emerald-400 dark:text-emerald-600" : "text-rose-400 dark:text-rose-600"}`}>
+                            <div className="border-l border-slate-800 dark:border-slate-200 pl-2">
+                                <span className="text-[10px] md:text-xs uppercase tracking-widest text-slate-400 block dark:text-slate-500 font-bold mb-1">Diferença</span>
+                                <span className={`text-lg md:text-2xl font-black block truncate ${diferencaSegundos >= 0 ? "text-emerald-400 dark:text-emerald-600" : "text-rose-400 dark:text-rose-600"}`}>
                                     {formatarSegundosParaHMS(diferencaSegundos)}
                                 </span>
                             </div>
@@ -111,23 +111,23 @@ export const SlideEntregadores: React.FC<SlideEntregadoresProps> = ({
                     </div>
 
                     {/* Card 2: Quantidade de Entregadores */}
-                    <div className="bg-slate-900 text-white dark:bg-white dark:text-slate-950 p-5 rounded-2xl flex items-center justify-between shadow-xl border border-slate-200 dark:border-slate-800">
-                        <div className="flex items-center gap-3 w-1/3">
+                    <div className="bg-slate-900 text-white dark:bg-white dark:text-slate-950 p-5 rounded-2xl flex flex-col gap-4 shadow-xl border border-slate-200 dark:border-slate-800">
+                        <div className="flex items-center gap-3 border-b border-slate-800 dark:border-slate-200 pb-3">
                             <Users className="h-6 w-6 text-purple-400 dark:text-purple-600 shrink-0" />
-                            <span className="text-sm font-black uppercase tracking-wider leading-tight">Qtd.<br/>Entregadores</span>
+                            <span className="text-sm font-black uppercase tracking-wider">Qtd. Entregadores</span>
                         </div>
-                        <div className="flex gap-4 md:gap-6 font-mono text-xl font-bold shrink-0">
+                        <div className="grid grid-cols-3 gap-2 font-mono text-center">
                             <div>
-                                <span className="text-xs uppercase tracking-widest text-slate-400 block dark:text-slate-500 font-bold">Sem {numeroSemana1}</span>
-                                <span className="text-2xl font-black">{qtdSem1}</span>
+                                <span className="text-[10px] md:text-xs uppercase tracking-widest text-slate-400 block dark:text-slate-500 font-bold mb-1">Sem {numeroSemana1}</span>
+                                <span className="text-lg md:text-2xl font-black block truncate">{qtdSem1}</span>
                             </div>
-                            <div className="border-l border-slate-700 dark:border-slate-200 pl-4 md:pl-6">
-                                <span className="text-xs uppercase tracking-widest text-slate-400 block dark:text-slate-500 font-bold">Sem {numeroSemana2}</span>
-                                <span className="text-2xl font-black text-purple-400 dark:text-purple-600">{qtdSem2}</span>
+                            <div className="border-l border-slate-800 dark:border-slate-200 pl-2">
+                                <span className="text-[10px] md:text-xs uppercase tracking-widest text-slate-400 block dark:text-slate-500 font-bold mb-1">Sem {numeroSemana2}</span>
+                                <span className="text-lg md:text-2xl font-black text-purple-400 dark:text-purple-600 block truncate">{qtdSem2}</span>
                             </div>
-                            <div className="border-l border-slate-700 dark:border-slate-200 pl-4 md:pl-6">
-                                <span className="text-xs uppercase tracking-widest text-slate-400 block dark:text-slate-500 font-bold">Total Únicos</span>
-                                <span className="text-2xl font-black text-emerald-400 dark:text-emerald-600">{totalUnicos}</span>
+                            <div className="border-l border-slate-800 dark:border-slate-200 pl-2">
+                                <span className="text-[10px] md:text-xs uppercase tracking-widest text-slate-400 block dark:text-slate-500 font-bold mb-1">Total Únicos</span>
+                                <span className="text-lg md:text-2xl font-black text-emerald-400 dark:text-emerald-600 block truncate">{totalUnicos}</span>
                             </div>
                         </div>
                     </div>
