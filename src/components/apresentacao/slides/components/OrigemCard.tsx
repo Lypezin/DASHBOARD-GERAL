@@ -48,7 +48,7 @@ export const OrigemCard: React.FC<OrigemCardProps> = ({
             {/* Card Body */}
             <div className={`${isSingleItem ? 'p-8' : 'p-5'} flex-1 flex flex-col justify-between`}>
                 {/* Week Comparison */}
-                <div className={`flex items-start justify-center ${isSingleItem ? 'gap-12' : 'gap-6'} mb-5`}>
+                <div className={`flex items-start justify-center ${isSingleItem ? 'gap-12' : 'gap-4'} mb-5`}>
                     <WeekComparisonCircle
                         aderencia={item.semana1.aderencia}
                         horasEntregues={item.semana1.horasEntregues}

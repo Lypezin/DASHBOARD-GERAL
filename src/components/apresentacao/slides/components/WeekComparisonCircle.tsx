@@ -74,20 +74,20 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
 
             {/* Hours - Compact Row-by-Row Design */}
             {(horasPlanejadas || horasEntregues) && (
-                <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 rounded-xl px-2.5 py-2 w-full mt-2 flex flex-col gap-1.5 min-w-[140px] max-w-[170px]">
+                <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 rounded-xl px-4 py-3 w-full mt-2 flex flex-col gap-2 min-w-[172px] max-w-[220px]">
                     {horasPlanejadas && (
-                        <div className="flex min-w-0 items-center justify-between gap-2 text-[10px] sm:text-xs">
-                            <span className="shrink-0 font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-[8px] sm:text-[9px]">Meta</span>
-                            <span className="min-w-0 text-right font-extrabold text-slate-700 dark:text-slate-350 leading-none tabular-nums" style={buildTimeTextStyle(horasPlanejadas, 0.78)}>{horasPlanejadas}</span>
+                        <div className="flex min-w-0 items-center justify-between gap-3 text-sm">
+                            <span className="shrink-0 font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider text-[10px]">Meta</span>
+                            <span className="min-w-0 text-right font-black text-slate-800 dark:text-slate-200 leading-none tabular-nums" style={buildTimeTextStyle(horasPlanejadas, 1)}>{horasPlanejadas}</span>
                         </div>
                     )}
                     {horasPlanejadas && horasEntregues && (
                         <div className="h-px bg-slate-200/60 dark:bg-slate-700 w-full my-0.5" />
                     )}
                     {horasEntregues && (
-                        <div className="flex min-w-0 items-center justify-between gap-2 text-[10px] sm:text-xs">
-                            <span className="shrink-0 font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-[8px] sm:text-[9px]">Entregue</span>
-                            <span className="min-w-0 text-right font-extrabold text-emerald-600 dark:text-emerald-400 leading-none tabular-nums" style={buildTimeTextStyle(horasEntregues, 0.78)}>{horasEntregues}</span>
+                        <div className="flex min-w-0 items-center justify-between gap-3 text-sm">
+                            <span className="shrink-0 font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider text-[10px]">Entregue</span>
+                            <span className="min-w-0 text-right font-black text-emerald-600 dark:text-emerald-400 leading-none tabular-nums" style={buildTimeTextStyle(horasEntregues, 1)}>{horasEntregues}</span>
                         </div>
                     )}
                 </div>
