@@ -45,7 +45,7 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
     const [viewMode, setViewMode] = useState<'preview' | 'web_presentation'>('preview');
     const [isMediaManagerOpen, setIsMediaManagerOpen] = useState(false);
     const [orderedPresentationSlides, setOrderedPresentationSlides] = useState<Array<{ key: string; render: (visible: boolean) => React.ReactNode }>>([]);
-    const [isLoaded, setIsLoaded] = useState(false);
+    const [loadedKey, setLoadedKey] = useState<string>('');
 
     const [visibleSections, setVisibleSections] = useState<VisibleSections>(DEFAULT_VISIBLE_SECTIONS);
 
@@ -54,15 +54,17 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
 
     useEffect(() => {
         const savedSections = readJsonStorage<Partial<VisibleSections>>(window.localStorage, sectionsKey, {});
-        setVisibleSections(prev => ({ ...prev, ...savedSections }));
-        setIsLoaded(true);
+        setVisibleSections({ ...DEFAULT_VISIBLE_SECTIONS, ...savedSections });
+        setLoadedKey(sectionsKey);
     }, [sectionsKey]);
 
     useEffect(() => {
-        if (isLoaded) writeJsonStorage(window.localStorage, sectionsKey, visibleSections);
-    }, [visibleSections, isLoaded, sectionsKey]);
+        if (loadedKey === sectionsKey) {
+            writeJsonStorage(window.localStorage, sectionsKey, visibleSections);
+        }
+    }, [visibleSections, sectionsKey, loadedKey]);
 
-    const mediaSlidesHook = useMediaSlides({ storageKey: slidesKey, isLoaded });
+    const mediaSlidesHook = useMediaSlides({ storageKey: slidesKey });
 
     const toggleSection = useCallback((section: string) => {
         setVisibleSections(prev => ({ ...prev, [section]: !prev[section as keyof typeof prev] }));

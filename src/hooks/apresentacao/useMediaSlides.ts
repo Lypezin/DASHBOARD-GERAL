@@ -4,21 +4,23 @@ import { readJsonStorage, writeJsonStorage } from '@/utils/storage/jsonStorage';
 
 interface UseMediaSlidesProps {
     storageKey: string;
-    isLoaded: boolean;
 }
 
-export function useMediaSlides({ storageKey, isLoaded }: UseMediaSlidesProps) {
+export function useMediaSlides({ storageKey }: UseMediaSlidesProps) {
     const [mediaSlides, setMediaSlides] = useState<MediaSlideData[]>([]);
+    const [loadedKey, setLoadedKey] = useState<string>('');
 
     useEffect(() => {
-        setMediaSlides(readJsonStorage<MediaSlideData[]>(window.localStorage, storageKey, []));
+        const data = readJsonStorage<MediaSlideData[]>(window.localStorage, storageKey, []);
+        setMediaSlides(data);
+        setLoadedKey(storageKey);
     }, [storageKey]);
 
     useEffect(() => {
-        if (isLoaded) {
+        if (loadedKey === storageKey) {
             writeJsonStorage(window.localStorage, storageKey, mediaSlides);
         }
-    }, [mediaSlides, isLoaded, storageKey]);
+    }, [mediaSlides, storageKey, loadedKey]);
 
     const handleUpdateMediaSlide = useCallback((id: string, updates: Partial<MediaSlideData>) => {
         setMediaSlides(prev => prev.map(slide => slide.id === id ? { ...slide, ...updates } : slide));

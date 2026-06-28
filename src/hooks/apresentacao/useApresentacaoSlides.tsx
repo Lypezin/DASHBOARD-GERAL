@@ -15,7 +15,7 @@ export const useApresentacaoSlides = (
   periodoSemana2: string,
   pracaSelecionada: string | null,
   visibleSections: Record<string, boolean> = {
-    capa: true, 'resumo-ia': true, 'aderencia-geral': true, 'ranking': true, 'sub-pracas': true,
+    capa: true, 'resumo-ia': false, 'aderencia-geral': true, 'ranking': false, 'sub-pracas': true,
     'aderencia-diaria': true, 'utr': true, turnos: true, 'media-origens': true, origens: true, 'demanda-origem': true, demanda: true,
     entregadores: true,
   },

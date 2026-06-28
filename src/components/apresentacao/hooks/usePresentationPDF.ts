@@ -38,12 +38,8 @@ export const usePresentationPDF = ({ slides, numeroSemana1, numeroSemana2, conte
                 setGeneratingProgress({ current: i + 1, total: slides.length });
                 setCapturingIndex(i);
 
-                // Wait for React to render the slide
-                await new Promise(resolve => {
-                    requestAnimationFrame(() => {
-                        requestAnimationFrame(() => resolve(undefined));
-                    });
-                });
+                // Wait for React to mount and layout the slide fully before capturing
+                await new Promise(resolve => setTimeout(resolve, 400));
 
                 const captureElement = captureContainerRef.current;
                 if (!captureElement) continue;
@@ -79,9 +75,10 @@ export const usePresentationPDF = ({ slides, numeroSemana1, numeroSemana2, conte
 
             const filename = `Comparativo_Semana${numeroSemana1}_vs_Semana${numeroSemana2}.pdf`;
             pdf.save(filename);
-        } catch (error) {
+        } catch (error: any) {
             safeLog.error('Erro ao gerar PDF:', error);
-            alert('Erro ao gerar PDF. Tente novamente.');
+            const errMsg = error instanceof Error ? error.message : String(error);
+            alert(`Erro ao gerar PDF: ${errMsg}\nTente novamente.`);
 
         } finally {
             if (typeof window !== 'undefined') {
