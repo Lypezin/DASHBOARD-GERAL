@@ -75,7 +75,7 @@ export const processarTurnos = (dadosBasicos: DadosBasicos) => {
             },
             variacoes: [
                 {
-                    label: 'Δ Horas',
+                    label: 'Horas',
                     valor: formatarDiferenca(diffHoras, true),
                     positivo: diffHoras >= 0,
                 },

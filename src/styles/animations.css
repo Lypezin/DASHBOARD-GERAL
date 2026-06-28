@@ -141,7 +141,17 @@
 @media (prefers-reduced-motion: reduce) {
   .city-updates-marquee,
   .animate-city-updates-spin,
-  .animate-blob {
+  .animate-blob,
+  .animate-slide-up,
+  .animate-slide-down,
+  .animate-scale-in,
+  .animate-pop-in,
+  .animate-pulse-scale,
+  .animate-slide-in-left,
+  .animate-slide-in-right,
+  .animate-float-up,
+  .animate-glow-pulse,
+  .animate-count-in {
     animation: none !important;
   }
 }

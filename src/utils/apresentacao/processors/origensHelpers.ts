@@ -60,7 +60,7 @@ export function processarOrigemIndividual(origemNome: string, origemSemana1: any
         },
         variacoes: [
             {
-                label: 'Δ Horas',
+                label: 'Horas',
                 valor: formatarDiferenca(diffHoras, true),
                 positivo: diffHoras >= 0,
             },

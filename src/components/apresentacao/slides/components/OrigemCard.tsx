@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { buildTimeTextStyle } from '../../utils';
 import { VariationBadge } from './VariationBadge';
 import { WeekComparisonCircle } from './WeekComparisonCircle';
 
@@ -71,7 +70,7 @@ export const OrigemCard: React.FC<OrigemCardProps> = ({
                 </div>
 
                 {/* Variations Row */}
-                <div className="flex gap-1.5 lg:gap-2 xl:gap-3 animate-float-up w-full mt-auto" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+                <div className="grid grid-cols-3 gap-2 lg:gap-3 animate-float-up w-full mt-auto" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
                     {item.variacoes.map((variacao) => (
                         <VariationBadge
                             key={variacao.label}

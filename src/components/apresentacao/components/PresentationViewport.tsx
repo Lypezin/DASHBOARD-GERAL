@@ -19,6 +19,8 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
     const [scale, setScale] = useState(0.5);
     const activeSlide = slides[currentSlide] || null;
     const lastScrollTimeRef = useRef(0);
+    const previousSlideRef = useRef(currentSlide);
+    const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
 
     useEffect(() => {
         const container = containerRef.current;
@@ -49,20 +51,11 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
         };
     }, [onNext, onPrev]);
     
-    // Synchronous direction tracking derived from currentSlide updates
-    const [slideState, setSlideState] = useState({
-        current: currentSlide,
-        direction: 'forward' as 'forward' | 'backward'
-    });
-
-    if (currentSlide !== slideState.current) {
-        setSlideState({
-            current: currentSlide,
-            direction: currentSlide > slideState.current ? 'forward' : 'backward'
-        });
-    }
-
-    const direction = slideState.direction;
+    useEffect(() => {
+        if (currentSlide === previousSlideRef.current) return;
+        setDirection(currentSlide > previousSlideRef.current ? 'forward' : 'backward');
+        previousSlideRef.current = currentSlide;
+    }, [currentSlide]);
 
     const calculateScale = useCallback(() => {
         if (containerRef.current) {
@@ -75,8 +68,7 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
             const scaleX = availableWidth / SLIDE_WIDTH;
             const scaleY = availableHeight / SLIDE_HEIGHT;
 
-            // Use 0.95 factor to leave a small margin for shadow
-            const newScale = Math.min(scaleX, scaleY) * 0.95;
+            const newScale = Math.min(scaleX, scaleY) * 0.98;
             setScale(Math.max(0.1, Math.min(1.2, newScale)));
         }
     }, []);
@@ -128,10 +120,10 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
     return (
         <div
             ref={containerRef}
-            className="bg-slate-100 dark:bg-slate-950 flex-1 w-full h-full overflow-hidden relative flex items-center justify-center"
+            className="bg-slate-100 dark:bg-slate-950 flex-1 w-full h-full overflow-hidden relative flex items-center justify-center p-2"
         >
             <div
-                className="relative shadow-2xl transition-transform duration-200 ease-out"
+                className="relative shadow-2xl transition-transform duration-200 ease-out will-change-transform"
                 style={{
                     ...slideDimensionsStyle,
                     position: 'absolute',

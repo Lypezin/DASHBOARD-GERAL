@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { SlideSidebarItem } from './SlideSidebarItem';
 import { MediaSlideData } from '@/types/presentation';
@@ -15,7 +14,7 @@ interface SlideSidebarListProps {
     onDeleteMediaSlide?: (id: string) => void;
 }
 
-export const SlideSidebarList: React.FC<SlideSidebarListProps> = ({
+export const SlideSidebarList: React.FC<SlideSidebarListProps> = React.memo(({
     displaySlides,
     currentSlideIndex,
     mediaSlides,
@@ -54,9 +53,10 @@ export const SlideSidebarList: React.FC<SlideSidebarListProps> = ({
             })}
         </div>
     );
-};
+});
 
-// Helper for labels
+SlideSidebarList.displayName = 'SlideSidebarList';
+
 function formatSlideLabel(key: string): string {
     const labels: Record<string, string> = {
         'capa': 'Capa',
@@ -70,7 +70,9 @@ function formatSlideLabel(key: string): string {
         'smart-summary': 'Resumo IA',
         'entregadores-overview': 'Entregadores',
         'financeiro': 'Financeiro',
-        'marketing': 'Marketing'
+        'marketing': 'Marketing',
+        'utr': 'UTR',
     };
+
     return labels[key] || key.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 }

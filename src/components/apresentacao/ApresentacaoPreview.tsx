@@ -70,13 +70,13 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
         .slide-for-capture { font-family: Inter, Arial, sans-serif !important; }
       `}</style>
       <PresentationCaptureLayer ref={captureContainerRef} slides={orderedSlides} capturingIndex={capturingIndex} />
-      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 animate-in fade-in duration-200">
-        <Card className="w-full max-w-[95vw] h-[95vh] flex flex-col md:flex-row overflow-hidden border-slate-200 dark:border-slate-800 shadow-2xl bg-slate-100 dark:bg-black">
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[99999] p-2 sm:p-3 animate-in fade-in duration-200">
+        <Card className="w-full max-w-[98vw] h-[97vh] flex flex-col md:flex-row overflow-hidden border-slate-200 dark:border-slate-800 shadow-2xl bg-slate-100 dark:bg-black">
           <SlideSidebar
             slides={slides} currentSlideIndex={currentSlide} onSlideSelect={onSlideChange}
             mediaSlides={mediaSlides || []} onUpdateMediaSlide={onUpdateMediaSlide} onAddMediaSlide={handleAddMediaSlideAndSelect} onDeleteMediaSlide={onDeleteMediaSlide}
           />
-          <div className="flex-1 flex flex-col h-full min-w-0 bg-white relative">
+          <div className="flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-slate-950 relative">
             <ApresentacaoControls
               currentSlide={currentSlide} totalSlides={orderedSlides.length}
               onPrev={handlePrev} onNext={handleNext} onClose={onClose}

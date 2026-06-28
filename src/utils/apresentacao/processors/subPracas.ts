@@ -94,7 +94,7 @@ export const processarSubPracas = (dadosBasicos: DadosBasicos) => {
                 horasPlanejadas: formatarHorasParaHMS(Math.abs(horasPlanejadasSem2).toString()),
             },
             variacoes: [
-                { label: 'Δ Horas', valor: formatarDiferenca(diffHoras, true), positivo: diffHoras >= 0 },
+                { label: 'Horas', valor: formatarDiferenca(diffHoras, true), positivo: diffHoras >= 0 },
                 { label: '% Horas', valor: formatarDiferencaPercentual(diffHorasPercent), positivo: diffHorasPercent >= 0 },
                 { label: '% Aderência', valor: formatarDiferencaPercentual(diffAderenciaPercent), positivo: diffAderenciaPercent >= 0 },
             ],

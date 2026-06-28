@@ -30,7 +30,7 @@ export function processTurnos(
             semana1: { aderencia: a1, horasEntregues: formatHMS(Math.abs(h1).toString()) },
             semana2: { aderencia: a2, horasEntregues: formatHMS(Math.abs(h2).toString()) },
             variacoes: [
-                { label: 'Δ Horas', valor: `${difHoras > 0 ? '+' : difHoras < 0 ? '−' : ''}${formatHMS(Math.abs(difHoras).toString())}`, positivo: difHoras >= 0 },
+                { label: 'Horas', valor: `${difHoras > 0 ? '+' : difHoras < 0 ? '−' : ''}${formatHMS(Math.abs(difHoras).toString())}`, positivo: difHoras >= 0 },
                 { label: '% Horas', valor: formatSigned(difPercentHoras), positivo: difPercentHoras >= 0 },
                 { label: '% Aderência', valor: formatSigned(difAderencia), positivo: difAderencia >= 0 },
             ],

@@ -18,65 +18,44 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = React.memo(({ is
     <SlideWrapper
       isVisible={isVisible}
       className="flex flex-col items-center justify-center"
-      style={{ padding: '32px 48px' }}
+      style={{ padding: '32px 44px' }}
     >
-      {/* Header */}
-      <header className="text-center mb-8">
+      <header className="mb-7 text-center">
         <div className="inline-block">
-          <h2 className="text-[3.5rem] font-black tracking-wider text-blue-600 leading-none">
+          <h2 className="text-[3.5rem] font-black leading-none tracking-wider text-blue-600">
             ADERÊNCIA GERAL
           </h2>
-          <div className="h-2 bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600 rounded-full mt-3" />
+          <div className="mt-3 h-2 rounded-full bg-gradient-to-r from-blue-600 via-blue-400 to-blue-600" />
         </div>
-        <p className="text-xl font-light text-slate-500 dark:text-slate-400 mt-3">
+        <p className="mt-3 text-xl font-light text-slate-500 dark:text-slate-400">
           Comparativo Semanas {semana1.numeroSemana} vs {semana2.numeroSemana}
         </p>
       </header>
 
-      {/* Main content */}
-      <div className="flex w-full justify-evenly items-center gap-4 flex-1 px-8">
-        {/* Semana 1 */}
+      <div className="flex w-full flex-1 items-center justify-evenly gap-5 px-4">
         <div className="animate-slide-in-left" style={{ animationFillMode: 'forwards' }}>
           <SemanaCard semana={semana1} isHighlighted={false} isActive={isVisible} />
         </div>
 
-        {/* Central variation box */}
-        <div className="flex flex-col items-center justify-center animate-count-in" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
-          <div className={`rounded-2xl border-2 px-12 py-10 text-center flex flex-col items-center gap-8 shadow-xl ${variacao.positiva
-            ? 'bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-50 dark:from-emerald-900/40 dark:via-emerald-800/20 dark:to-emerald-900/40 border-emerald-300 dark:border-emerald-700'
-            : 'bg-gradient-to-br from-rose-50 via-rose-100 to-rose-50 dark:from-rose-900/40 dark:via-rose-800/20 dark:to-rose-900/40 border-rose-300 dark:border-rose-700'
+        <div className="flex animate-count-in flex-col items-center justify-center" style={{ animationDelay: '200ms', animationFillMode: 'forwards' }}>
+          <div className={`flex flex-col items-center gap-7 rounded-2xl border-2 px-10 py-9 text-center shadow-xl ${variacao.positiva
+            ? 'border-emerald-300 bg-gradient-to-br from-emerald-50 via-emerald-100 to-emerald-50 dark:border-emerald-700 dark:from-emerald-900/40 dark:via-emerald-800/20 dark:to-emerald-900/40'
+            : 'border-rose-300 bg-gradient-to-br from-rose-50 via-rose-100 to-rose-50 dark:border-rose-700 dark:from-rose-900/40 dark:via-rose-800/20 dark:to-rose-900/40'
             }`}>
+            <p className="text-xl font-bold uppercase tracking-widest text-slate-600 dark:text-slate-300">Variação</p>
 
-            <p className="text-xl font-bold text-slate-600 dark:text-slate-300 uppercase tracking-widest">Variação</p>
-
-            {/* Arrow and difference */}
             <div className={`flex items-center gap-4 ${variacao.positiva ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
-              {variacao.positiva ? (
-                <svg className="w-14 h-14" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 4l-8 8h5v8h6v-8h5z" />
-                </svg>
-              ) : (
-                <svg className="w-14 h-14" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 20l8-8h-5V4H9v8H4z" />
-                </svg>
-              )}
+              <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/70 text-4xl shadow-sm dark:bg-slate-950/30" aria-hidden="true">
+                {variacao.positiva ? '🚀' : '⚠'}
+              </span>
               <span className="font-black" style={buildTimeTextStyle(variacao.horasDiferenca, 2.25)}>
                 {variacao.horasDiferenca}
               </span>
             </div>
 
-            {/* Percentage badge */}
-            <div className={`flex items-center gap-2 px-6 py-2.5 rounded-full ${variacao.positiva ? 'bg-emerald-200 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-300' : 'bg-rose-200 dark:bg-rose-900 text-rose-800 dark:text-rose-300'
+            <div className={`flex items-center gap-2 rounded-full px-6 py-2.5 ${variacao.positiva ? 'bg-emerald-200 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-300' : 'bg-rose-200 text-rose-800 dark:bg-rose-900 dark:text-rose-300'
               }`}>
-              {variacao.positiva ? (
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 4l-8 8h5v8h6v-8h5z" />
-                </svg>
-              ) : (
-                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M12 20l8-8h-5V4H9v8H4z" />
-                </svg>
-              )}
+              <span aria-hidden="true">{variacao.positiva ? '🚀' : '⚠'}</span>
               <span className="text-2xl font-bold">
                 {variacao.horasPercentual}
               </span>
@@ -84,7 +63,6 @@ const SlideAderenciaGeral: React.FC<SlideAderenciaGeralProps> = React.memo(({ is
           </div>
         </div>
 
-        {/* Semana 2 */}
         <div className="animate-slide-in-right" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
           <SemanaCard semana={semana2} isHighlighted={true} isActive={isVisible} />
         </div>

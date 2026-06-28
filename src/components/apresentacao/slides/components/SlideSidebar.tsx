@@ -1,4 +1,4 @@
-import React, { useRef, useCallback } from 'react';
+import React, { useRef, useCallback, useMemo } from 'react';
 import { usePresentationEditor } from '../../context/PresentationEditorContext';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -32,15 +32,16 @@ export const SlideSidebar: React.FC<SlideSidebarProps> = ({
     const dragOverItem = useRef<number | null>(null);
 
     // Create a map for quick lookup
-    const slidesMap = slides.reduce((acc, slide) => {
+    const slidesMap = useMemo(() => slides.reduce((acc, slide) => {
         acc[slide.key] = slide;
         return acc;
-    }, {} as Record<string, { key: string }>);
+    }, {} as Record<string, { key: string }>), [slides]);
 
-    // Valid ordered slides
-    const orderedMiddleware = slideOrder.filter(key => slidesMap[key]).map(key => slidesMap[key]);
-    const unorderedSlides = slides.filter(s => !slideOrder.includes(s.key));
-    const displaySlides = [...orderedMiddleware, ...unorderedSlides];
+    const displaySlides = useMemo(() => {
+        const orderedMiddleware = slideOrder.filter(key => slidesMap[key]).map(key => slidesMap[key]);
+        const unorderedSlides = slides.filter(s => !slideOrder.includes(s.key));
+        return [...orderedMiddleware, ...unorderedSlides];
+    }, [slideOrder, slides, slidesMap]);
 
     const onDragStart = useCallback((e: React.DragEvent<HTMLDivElement>, position: number) => {
         dragItem.current = position;
@@ -62,9 +63,12 @@ export const SlideSidebar: React.FC<SlideSidebarProps> = ({
     }, []);
 
     return (
-        <div className="h-40 w-full shrink-0 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex flex-col md:h-full md:w-64 md:border-b-0 md:border-r">
+        <div className="h-44 w-full shrink-0 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex flex-col md:h-full md:w-72 md:border-b-0 md:border-r">
             <div className="p-3 md:p-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-10 flex items-center justify-between">
-                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Slides</h3>
+                <div>
+                    <h3 className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-wider">Preview</h3>
+                    <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500">Arraste para ordenar os slides</p>
+                </div>
                 {onAddMediaSlide && (
                     <Button variant="outline" size="sm" onClick={onAddMediaSlide} className="h-7 w-7 p-0 rounded-full hover:bg-blue-50 hover:text-blue-600" title="Adicionar Novo Slide">
                         <Plus className="w-4 h-4" />

@@ -29,7 +29,7 @@ export function processSubPracas(
             semana2: { aderencia: aderenciaSem2, horasEntregues: formatHMS(Math.abs(horasSem2).toString()) },
             variacoes: [
                 {
-                    label: 'Δ Horas', valor: (() => {
+                    label: 'Horas', valor: (() => {
                         const dif = horasSem2 - horasSem1;
                         const prefix = dif > 0 ? '+' : dif < 0 ? '−' : '';
                         return `${prefix}${formatHMS(Math.abs(dif).toString())}`;

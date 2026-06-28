@@ -4,14 +4,14 @@ import { SubPracaComparativo } from '../SlideSubPracas';
 export const SubPracaModalMetrics = ({ selectedItem }: { selectedItem: SubPracaComparativo }) => (
     <div className="grid grid-cols-2 gap-8 border-t border-slate-100 pt-8">
         <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-5 border border-slate-100 dark:border-slate-700/50">
-            <h4 className="text-base font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Planejado vs Realizado</h4>
+            <h4 className="text-base font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Planejado vs Entregue</h4>
             <div className="flex items-end justify-between">
                 <div>
                     <p className="text-sm text-slate-400 dark:text-slate-500 font-semibold uppercase">Total Planejado Sem 2</p>
                     <p className="text-2xl font-bold text-slate-700 dark:text-slate-200">{selectedItem.semana2.horasPlanejadas}</p>
                 </div>
                 <div className="text-right">
-                    <p className="text-sm text-slate-400 dark:text-slate-500 font-semibold uppercase">Realizado Sem 2</p>
+                    <p className="text-sm text-slate-400 dark:text-slate-500 font-semibold uppercase">Entregue Sem 2</p>
                     <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{selectedItem.semana2.horasEntregues}</p>
                 </div>
             </div>

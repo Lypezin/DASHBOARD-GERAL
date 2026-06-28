@@ -33,7 +33,7 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
                 </div>
                 <div className="flex items-center gap-2 rounded-full border border-slate-200/80 bg-slate-50 px-3 py-1.5 dark:border-slate-800 dark:bg-slate-900/65">
                     <div className="h-1.5 w-1.5 rounded-full bg-emerald-500"></div>
-                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Entregue (realizado)</span>
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Entregue</span>
                 </div>
             </div>
 
@@ -59,7 +59,7 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
                             {semanasSelecionadas.map((semana) => (
                                 <React.Fragment key={`subheader-${semana}`}>
                                     <TableHead className="h-10 min-w-[72px] pb-4 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Meta</TableHead>
-                                    <TableHead className="h-10 min-w-[72px] pb-4 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Real</TableHead>
+                                    <TableHead className="h-10 min-w-[82px] pb-4 text-center text-[10px] font-bold uppercase tracking-[0.16em] text-slate-400 dark:text-slate-500">Entregue</TableHead>
                                     <TableHead className="h-10 min-w-[72px] pb-4 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">%</TableHead>
                                     <TableHead className="h-10 min-w-[62px] pb-4 text-center text-[10px] font-bold uppercase tracking-[0.18em] text-slate-400 dark:text-slate-500">Var</TableHead>
                                 </React.Fragment>

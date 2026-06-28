@@ -74,7 +74,7 @@ export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = React.memo(({
             <div
                 onClick={handleSelect}
                 className={`
-                    group flex min-w-56 md:min-w-0 items-center gap-3 p-3 rounded-xl border cursor-pointer select-none relative pr-8
+                    group flex min-w-64 md:min-w-0 items-center gap-3 p-3.5 rounded-xl border cursor-pointer select-none relative pr-8
                     transform transition-all duration-150 ease-in-out hover:translate-x-1 hover:shadow-sm
                     ${isActive
                         ? 'bg-blue-50/80 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900/60 shadow-sm ring-1 ring-blue-500/20 scale-[1.01]'

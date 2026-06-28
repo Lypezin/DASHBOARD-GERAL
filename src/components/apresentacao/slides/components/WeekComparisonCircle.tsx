@@ -86,7 +86,7 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
                     )}
                     {horasEntregues && (
                         <div className="flex justify-between items-center text-[10px] sm:text-xs">
-                            <span className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-[8px] sm:text-[9px]">Real</span>
+                            <span className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-[8px] sm:text-[9px]">Entregue</span>
                             <span className="font-extrabold text-emerald-600 dark:text-emerald-400 leading-none">{horasEntregues}</span>
                         </div>
                     )}
