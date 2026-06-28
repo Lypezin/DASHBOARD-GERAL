@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Check, FilePlus, FolderOpen, Save } from 'lucide-react';
+import { X, Check, FilePlus, FolderOpen, Save, Download, FileSpreadsheet } from 'lucide-react';
 import { PresentationSectionToggle } from './PresentationSectionToggle';
 import { PresentationNavigation } from './PresentationNavigation';
 
@@ -18,6 +18,7 @@ interface ApresentacaoControlsProps {
     onManageMedia?: () => void;
     onSaveClick?: () => void;
     onManageClick?: () => void;
+    onExportExcel?: () => void;
 }
 
 export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
@@ -26,12 +27,15 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
     onPrev,
     onNext,
     onClose,
+    onGeneratePDF,
     onStartPresentation,
+    isGenerating,
     visibleSections,
     onToggleSection,
     onManageMedia,
     onSaveClick,
-    onManageClick
+    onManageClick,
+    onExportExcel
 }) => {
     return (
         <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center md:justify-between md:p-4">
@@ -91,6 +95,31 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
                         <span className="hidden sm:inline">Salvar</span>
                     </Button>
                 )}
+
+                <div className="h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700" />
+
+                {onExportExcel && (
+                    <Button
+                        variant="outline"
+                        className="shrink-0 border-slate-200 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                        onClick={onExportExcel}
+                        title="Exportar Planilha Excel"
+                    >
+                        <FileSpreadsheet className="h-4 w-4 sm:mr-2 text-emerald-600" />
+                        <span className="hidden sm:inline">Excel</span>
+                    </Button>
+                )}
+
+                <Button
+                    variant="outline"
+                    className="shrink-0 border-slate-200 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                    onClick={onGeneratePDF}
+                    disabled={isGenerating}
+                    title="Exportar PDF"
+                >
+                    <Download className="h-4 w-4 sm:mr-2 text-sky-600" />
+                    <span className="hidden sm:inline">PDF</span>
+                </Button>
 
                 <div className="h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700" />
 

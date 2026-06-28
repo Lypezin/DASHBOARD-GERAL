@@ -8,6 +8,7 @@ import { PresentationManager } from './apresentacao/components/PresentationManag
 import { SavePresentationDialog } from './apresentacao/components/SavePresentationDialog';
 import { PresentationEditorProvider } from '@/components/apresentacao/context/PresentationEditorContext';
 import { useApresentacaoFacade } from '@/hooks/apresentacao/useApresentacaoFacade';
+import { exportComparacaoToExcel } from '@/utils/comparacao/exportExcel';
 
 interface ApresentacaoViewProps {
   dadosComparacao: DashboardResumoData[];
@@ -66,6 +67,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = (props) => {
             onDeleteMediaSlide={actions.handleDeleteMediaSlide}
             onManageClick={() => setIsManagersOpen(true)}
             onSaveClick={() => setIsSaveDialogOpen(true)}
+            onExportExcel={() => exportComparacaoToExcel(props.dadosComparacao, props.utrComparacao, props.semanasSelecionadas, props.pracaSelecionada)}
           />
         )}
 

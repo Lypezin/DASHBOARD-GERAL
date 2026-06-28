@@ -10,11 +10,11 @@ export const ComparacaoDiaHeader: React.FC<ComparacaoDiaHeaderProps> = ({ semana
         <TableHeader>
             <TableRow className="hover:bg-transparent border-none">
                 {/* Dia da Semana — fixed col */}
-                <TableHead className="w-[130px] text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] pl-8 pb-4 align-bottom h-16">
+                <TableHead className="w-[160px] text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] pl-8 pb-4 align-bottom h-16">
                     Dia
                 </TableHead>
                 {/* Métrica label col */}
-                <TableHead className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] min-w-[130px] pb-4 align-bottom h-16">
+                <TableHead className="w-[180px] text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-[0.2em] pb-4 align-bottom h-16">
                     Métrica
                 </TableHead>
                 {semanasSelecionadas.map((semana, idx) => {

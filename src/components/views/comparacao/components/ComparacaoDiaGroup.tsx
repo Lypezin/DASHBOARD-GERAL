@@ -31,7 +31,7 @@ export const ComparacaoDiaGroup = React.memo<ComparacaoDiaGroupProps>(({ dia, di
                     ) : null}
 
                     {/* Metric label */}
-                    <TableCell className={`text-xs py-2.5 font-medium ${metric.color}`}>
+                    <TableCell className={`text-xs py-2.5 font-medium w-[180px] ${metric.color}`}>
                         {metric.label}
                     </TableCell>
 

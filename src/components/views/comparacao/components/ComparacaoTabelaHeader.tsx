@@ -9,7 +9,7 @@ export const ComparacaoTabelaHeader: React.FC<ComparacaoTabelaHeaderProps> = ({ 
     return (
         <TableHeader>
             <TableRow className="hover:bg-transparent border-none">
-                <TableHead className="h-16 w-[200px] pb-4 pl-8 align-bottom text-xs font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
+                <TableHead className="h-16 w-[280px] pb-4 pl-8 align-bottom text-xs font-bold uppercase tracking-[0.2em] text-slate-400 dark:text-slate-500">
                     Métrica
                 </TableHead>
                 {semanasSelecionadas.map((semana, idx) => (

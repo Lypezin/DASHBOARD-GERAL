@@ -4,6 +4,7 @@ import { MediaSlideData } from '@/types/presentation';
 import { UtrComparacaoItem } from '@/types';
 import SlideMedia from '@/components/apresentacao/slides/SlideMedia';
 import SlideUTR from '@/components/apresentacao/slides/SlideUTR';
+import SlideEntregadores from '@/components/apresentacao/slides/SlideEntregadores';
 import SlideCapaFinal from '@/components/apresentacao/slides/SlideCapaFinal';
 import {
     buildSlideCapa, buildSlideResumoIA, buildSlideAderenciaGeral, buildSlideRanking,
@@ -21,7 +22,8 @@ export function buildAllSlides(
     pracaSelecionada: string | null,
     visibleSections: Record<string, boolean>,
     mediaSlides: MediaSlideData[],
-    onUpdateMediaSlide?: (id: string, updates: Partial<MediaSlideData>) => void
+    onUpdateMediaSlide?: (id: string, updates: Partial<MediaSlideData>) => void,
+    entregadoresComparativo?: any[]
 ): SlideConfig[] {
     const slidesConfig: SlideConfig[] = [];
     const { subPracasComparativo, semana1Dias, semana2Dias, turnosComparativo, origensComparativo, mediaOrigens, demandaItens, demandaOrigemItens } = dadosProcessados;
@@ -45,6 +47,10 @@ export function buildAllSlides(
 
     if (visibleSections['utr'] !== false) {
         slidesConfig.push({ key: 'utr', render: (visible) => <SlideUTR isVisible={visible} numeroSemana1={numeroSemana1} numeroSemana2={numeroSemana2} utrComparacao={utrComparacao} /> });
+    }
+
+    if (visibleSections['entregadores'] !== false && entregadoresComparativo && entregadoresComparativo.length > 0) {
+        slidesConfig.push({ key: 'entregadores', render: (visible) => <SlideEntregadores isVisible={visible} numeroSemana1={numeroSemana1} numeroSemana2={numeroSemana2} entregadores={entregadoresComparativo} /> });
     }
 
     slidesConfig.push(...buildSlidesTurnos(visibleSections.turnos, turnosComparativo, { numeroSemana1, numeroSemana2 }));

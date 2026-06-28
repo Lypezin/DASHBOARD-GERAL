@@ -17,17 +17,19 @@ export const useApresentacaoSlides = (
   visibleSections: Record<string, boolean> = {
     capa: true, 'resumo-ia': true, 'aderencia-geral': true, 'ranking': true, 'sub-pracas': true,
     'aderencia-diaria': true, 'utr': true, turnos: true, 'media-origens': true, origens: true, 'demanda-origem': true, demanda: true,
+    entregadores: true,
   },
   mediaSlides: MediaSlideData[] = [],
-  onUpdateMediaSlide?: (id: string, updates: Partial<MediaSlideData>) => void
+  onUpdateMediaSlide?: (id: string, updates: Partial<MediaSlideData>) => void,
+  entregadoresComparativo: any[] = []
 ) => {
   const slides = useMemo(() => {
     if (!dadosProcessados) {
       return [] as Array<{ key: string; render: (visible: boolean) => React.ReactNode }>;
     }
-    return buildAllSlides(dadosProcessados, utrComparacao, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada, visibleSections, mediaSlides, onUpdateMediaSlide);
+    return buildAllSlides(dadosProcessados, utrComparacao, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada, visibleSections, mediaSlides, onUpdateMediaSlide, entregadoresComparativo);
   }, [
-    dadosProcessados, visibleSections, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada, mediaSlides, utrComparacao, onUpdateMediaSlide
+    dadosProcessados, visibleSections, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada, mediaSlides, utrComparacao, onUpdateMediaSlide, entregadoresComparativo
   ]);
 
   return slides;

@@ -24,6 +24,7 @@ const SECTION_LABELS: Record<string, string> = {
     'sub-pracas': 'Sub-praças',
     'aderencia-diaria': 'Detalhamento Diário',
     utr: 'UTR',
+    entregadores: 'Entregadores',
     turnos: 'Turnos',
     'media-origens': 'Média das Origens',
     origens: 'Origens',

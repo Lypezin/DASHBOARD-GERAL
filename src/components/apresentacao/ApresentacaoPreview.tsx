@@ -20,10 +20,11 @@ interface ApresentacaoPreviewProps {
   mediaSlides?: MediaSlideData[]; onUpdateMediaSlide?: (id: string, updates: Partial<MediaSlideData>) => void;
   onAddMediaSlide?: () => string | void; onDeleteMediaSlide?: (id: string) => void; onManageMedia?: () => void;
   onSaveClick?: () => void; onManageClick?: () => void;
+  onExportExcel?: () => void;
 }
 
 const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
-  slides, currentSlide, onSlideChange, onClose, numeroSemana1, numeroSemana2, visibleSections, onToggleSection, onStartPresentation, mediaSlides, onUpdateMediaSlide, onAddMediaSlide, onDeleteMediaSlide, onSaveClick, onManageClick
+  slides, currentSlide, onSlideChange, onClose, numeroSemana1, numeroSemana2, visibleSections, onToggleSection, onStartPresentation, mediaSlides, onUpdateMediaSlide, onAddMediaSlide, onDeleteMediaSlide, onSaveClick, onManageClick, onExportExcel
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const captureContainerRef = useRef<HTMLDivElement>(null);
@@ -83,6 +84,7 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
               onGeneratePDF={generatePDF} onStartPresentation={() => onStartPresentation(orderedSlides)}
               isGenerating={isGenerating} visibleSections={visibleSections} onToggleSection={onToggleSection}
               onSaveClick={onSaveClick} onManageClick={onManageClick}
+              onExportExcel={onExportExcel}
             />
             <div className="flex-1 overflow-hidden relative bg-slate-100/50 flex flex-col">
               <PresentationViewport

@@ -27,7 +27,7 @@ export const ComparingTableRow: React.FC<ComparingTableRowProps> = ({
 }) => {
     return (
         <TableRow className="group border-b border-transparent transition-all duration-200 hover:bg-slate-50/60 dark:hover:bg-slate-900/55">
-            <TableCell className="py-4 pl-6 text-[13px] font-semibold text-slate-800 transition-colors group-hover:text-sky-600 dark:text-slate-200 dark:group-hover:text-sky-300 sm:pl-8">
+            <TableCell className="py-4 pl-6 text-[13px] font-semibold text-slate-800 transition-colors group-hover:text-sky-600 dark:text-slate-200 dark:group-hover:text-sky-300 sm:pl-8 w-[280px]">
                 <div className="flex items-center gap-2">
                     {icon && icon}
                     {label}

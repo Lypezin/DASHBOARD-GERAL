@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useApresentacaoController } from './useApresentacaoController';
 import { useSavedPresentations } from './useSavedPresentations';
 import { usePresentationManagerActions } from './usePresentationManagerActions';
@@ -6,6 +6,8 @@ import { useApresentacaoData } from './useApresentacaoData';
 import { useApresentacaoSlides } from './useApresentacaoSlides';
 import { usePresentationNavigation } from './usePresentationNavigation';
 import { DashboardResumoData, UtrComparacaoItem } from '@/types';
+import { useOrganization } from '@/contexts/OrganizationContext';
+import { fetchEntregadoresData } from '@/utils/tabData/fetchers/entregadoresFetcher';
 
 interface FacadeProps {
     dadosComparacao: DashboardResumoData[];
@@ -35,11 +37,90 @@ export function useApresentacaoFacade(props: FacadeProps) {
 
     const { dadosBasicos, dadosProcessados } = useApresentacaoData(dadosComparacao, semanasSelecionadas, anoSelecionado);
 
+    const { organizationId } = useOrganization();
+    const [entregadoresComparativo, setEntregadoresComparativo] = useState<any[]>([]);
+
+    useEffect(() => {
+        if (semanasSelecionadas.length !== 2) return;
+        
+        let active = true;
+        const load = async () => {
+            try {
+                const getWeekNumber = (weekStr: string): number => {
+                    const match = weekStr.match(/\d+/);
+                    return match ? Number(match[0]) : 0;
+                };
+                const sem1 = getWeekNumber(semanasSelecionadas[0]);
+                const sem2 = getWeekNumber(semanasSelecionadas[1]);
+                
+                const [res1, res2] = await Promise.all([
+                    fetchEntregadoresData({
+                        filterPayload: {
+                            p_ano: anoSelecionado,
+                            p_semana: sem1,
+                            p_praca: pracaSelecionada,
+                            p_organization_id: organizationId
+                        }
+                    }),
+                    fetchEntregadoresData({
+                        filterPayload: {
+                            p_ano: anoSelecionado,
+                            p_semana: sem2,
+                            p_praca: pracaSelecionada,
+                            p_organization_id: organizationId
+                        }
+                    })
+                ]);
+                
+                if (!active) return;
+                
+                const list1 = res1.data?.entregadores || [];
+                const list2 = res2.data?.entregadores || [];
+                
+                const map = new Map<string, { id: string; nome: string; horasSem1: number; horasSem2: number }>();
+                
+                list1.forEach((e: any) => {
+                    map.set(e.id_entregador, {
+                        id: e.id_entregador,
+                        nome: e.nome_entregador,
+                        horasSem1: e.total_segundos / 3600,
+                        horasSem2: 0
+                    });
+                });
+                
+                list2.forEach((e: any) => {
+                    const existing = map.get(e.id_entregador);
+                    if (existing) {
+                        existing.horasSem2 = e.total_segundos / 3600;
+                    } else {
+                        map.set(e.id_entregador, {
+                            id: e.id_entregador,
+                            nome: e.nome_entregador,
+                            horasSem1: 0,
+                            horasSem2: e.total_segundos / 3600
+                        });
+                    }
+                });
+                
+                const comparisonList = Array.from(map.values())
+                    .sort((a, b) => (b.horasSem1 + b.horasSem2) - (a.horasSem1 + a.horasSem2));
+                
+                setEntregadoresComparativo(comparisonList);
+            } catch (err) {
+                console.error('Erro ao buscar entregadores comparativo:', err);
+            }
+        };
+        
+        load();
+        return () => { active = false; };
+    }, [semanasSelecionadas, pracaSelecionada, anoSelecionado, organizationId]);
+
     const slides = useApresentacaoSlides(
         dadosProcessados, dadosComparacao, utrComparacao,
         dadosBasicos.numeroSemana1, dadosBasicos.numeroSemana2,
         dadosBasicos.periodoSemana1, dadosBasicos.periodoSemana2,
-        pracaSelecionada, state.visibleSections, state.mediaSlides, actions.handleUpdateMediaSlide
+        pracaSelecionada, state.visibleSections, state.mediaSlides, actions.handleUpdateMediaSlide,
+        entregadoresComparativo
     );
 
     const { goToNextSlide, goToPrevSlide } = usePresentationNavigation(slides, actions.setCurrentSlide);

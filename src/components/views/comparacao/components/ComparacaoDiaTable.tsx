@@ -74,11 +74,15 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
                                                 {aderencia.toFixed(1)}%
                                             </span>
                                         </td>
-                                        {idx > 0 && variacao !== null ? (
+                                        {idx > 0 && (
                                             <td className="px-4 py-4 text-center sm:px-6">
-                                                <VariacaoBadge variacao={variacao} className="px-2 py-0.5 text-xs" />
+                                                {variacao !== null ? (
+                                                    <VariacaoBadge variacao={variacao} className="px-2 py-0.5 text-xs" />
+                                                ) : (
+                                                    <span className="text-slate-300 dark:text-slate-600">-</span>
+                                                )}
                                             </td>
-                                        ) : null}
+                                        )}
                                     </React.Fragment>
                                 );
                             })}
