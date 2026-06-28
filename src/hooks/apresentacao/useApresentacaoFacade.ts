@@ -5,11 +5,11 @@ import { usePresentationManagerActions } from './usePresentationManagerActions';
 import { useApresentacaoData } from './useApresentacaoData';
 import { useApresentacaoSlides } from './useApresentacaoSlides';
 import { usePresentationNavigation } from './usePresentationNavigation';
-import { DashboardResumoData } from '@/types';
+import { DashboardResumoData, UtrComparacaoItem } from '@/types';
 
 interface FacadeProps {
     dadosComparacao: DashboardResumoData[];
-    utrComparacao: any[];
+    utrComparacao: UtrComparacaoItem[];
     semanasSelecionadas: string[];
     pracaSelecionada: string | null;
     anoSelecionado?: number;

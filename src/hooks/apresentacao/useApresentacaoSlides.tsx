@@ -2,12 +2,13 @@ import { useMemo } from 'react';
 import { DadosProcessados } from '@/utils/apresentacao/dataProcessor';
 import { DashboardResumoData } from '@/types/dashboard';
 import { MediaSlideData } from '@/types/presentation';
+import { UtrComparacaoItem } from '@/types';
 import { buildAllSlides } from './utils/buildAllSlides';
 
 export const useApresentacaoSlides = (
   dadosProcessados: DadosProcessados | null,
   dadosComparacao: DashboardResumoData[],
-  utrComparacao: any[],
+  utrComparacao: UtrComparacaoItem[],
   numeroSemana1: string,
   numeroSemana2: string,
   periodoSemana1: string,

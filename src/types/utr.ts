@@ -45,6 +45,11 @@ export interface UtrData {
     por_turno?: UtrPorTurno[];
 }
 
+export interface UtrComparacaoItem {
+    semana: string;
+    utr: UtrData | null;
+}
+
 export interface UtrSemanal {
     ano: number;
     semana: number;

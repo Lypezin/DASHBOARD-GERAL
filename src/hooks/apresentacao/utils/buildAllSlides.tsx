@@ -1,6 +1,7 @@
 import React from 'react';
 import { DadosProcessados } from '@/utils/apresentacao/dataProcessor';
 import { MediaSlideData } from '@/types/presentation';
+import { UtrComparacaoItem } from '@/types';
 import SlideMedia from '@/components/apresentacao/slides/SlideMedia';
 import SlideUTR from '@/components/apresentacao/slides/SlideUTR';
 import SlideCapaFinal from '@/components/apresentacao/slides/SlideCapaFinal';
@@ -12,7 +13,7 @@ import {
 
 export function buildAllSlides(
     dadosProcessados: DadosProcessados,
-    utrComparacao: any[],
+    utrComparacao: UtrComparacaoItem[],
     numeroSemana1: string,
     numeroSemana2: string,
     periodoSemana1: string,

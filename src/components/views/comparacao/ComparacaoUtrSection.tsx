@@ -1,6 +1,6 @@
 import React from 'react';
 import { safeLog } from '@/lib/errorHandler';
-import { UtrData } from '@/types';
+import { UtrData, UtrComparacaoItem } from '@/types';
 import { AlertTriangle } from 'lucide-react';
 import { extractUtrValue } from '@/utils/utr/extractUtrValue';
 import {
@@ -11,11 +11,6 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-
-interface UtrComparacaoItem {
-    semana: string;
-    utr: UtrData | null;
-}
 
 interface ComparacaoUtrSectionProps {
     utrComparacao: UtrComparacaoItem[];

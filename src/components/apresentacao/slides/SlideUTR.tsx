@@ -3,10 +3,8 @@ import SlideWrapper from '../SlideWrapper';
 import { SlideHeader } from './components/SlideHeader';
 import { cn } from '@/lib/utils';
 import { Target, AlertTriangle } from 'lucide-react';
-import { UtrData } from '@/types';
+import { UtrData, UtrComparacaoItem } from '@/types';
 import { extractUtrValue } from '@/utils/utr/extractUtrValue';
-
-interface UtrComparacaoItem { semana: string; utr: UtrData | null; }
 
 interface SlideUTRProps { isVisible: boolean; numeroSemana1: string; numeroSemana2: string; utrComparacao: UtrComparacaoItem[]; }
 

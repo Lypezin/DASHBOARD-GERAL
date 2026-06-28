@@ -1,5 +1,5 @@
 import React from 'react';
-import { DashboardResumoData } from '@/types';
+import { DashboardResumoData, UtrComparacaoItem } from '@/types';
 import { ApresentacaoPreview } from './apresentacao/ApresentacaoPreview';
 import { ApresentacaoWebMode } from './apresentacao/ApresentacaoWebMode';
 import { PresentationContext } from '@/contexts/PresentationContext';
@@ -11,7 +11,7 @@ import { useApresentacaoFacade } from '@/hooks/apresentacao/useApresentacaoFacad
 
 interface ApresentacaoViewProps {
   dadosComparacao: DashboardResumoData[];
-  utrComparacao: any[];
+  utrComparacao: UtrComparacaoItem[];
   semanasSelecionadas: string[];
   pracaSelecionada: string | null;
   anoSelecionado?: number;
