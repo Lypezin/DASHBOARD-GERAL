@@ -4,7 +4,7 @@ import { SLIDE_HEIGHT, SLIDE_WIDTH } from '../constants';
 
 const A4_WIDTH_MM = 297;
 const A4_HEIGHT_MM = 210;
-const SCALE_FACTOR = 1.15;
+const SCALE_FACTOR = 2;
 
 interface UsePresentationPDFProps { slides: Array<{ key: string; render: (visible: boolean) => React.ReactNode }>; numeroSemana1: string; numeroSemana2: string; contentRef: RefObject<HTMLDivElement>; captureContainerRef: RefObject<HTMLDivElement>; }
 

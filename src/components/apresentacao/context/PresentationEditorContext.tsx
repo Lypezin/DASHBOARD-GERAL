@@ -39,7 +39,20 @@ export const PresentationEditorProvider: React.FC<{ children: ReactNode; initial
 
             // If we have new keys, append them (or more complex merge logic if needed)
             if (newKeys.length > 0) {
-                return [...prev, ...newKeys];
+                const nextOrder = [...prev];
+                newKeys.forEach(key => {
+                    const canonicalIndex = initialOrder.indexOf(key);
+                    nextOrder.splice(canonicalIndex, 0, key);
+                });
+                return nextOrder;
+            }
+
+            // We also need to handle the case where a slide is removed (toggled off)
+            // But if we want to support toggling, we should remove keys that are no longer in initialOrder?
+            // Wait, if we remove keys, we lose their custom order if they are toggled back on. But that's fine.
+            const removedKeys = prev.filter(key => !initialOrder.includes(key));
+            if (removedKeys.length > 0) {
+                return prev.filter(key => initialOrder.includes(key));
             }
 
             return prev;
