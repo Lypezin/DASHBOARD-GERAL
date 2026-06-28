@@ -15,7 +15,8 @@ const PUBLIC_LAYOUT_ROUTES = new Set([
   '/login',
   '/registro',
   '/esqueci-senha',
-  '/redefinir-senha'
+  '/redefinir-senha',
+  '/visual-smoke'
 ]);
 
 export function AppLayoutShell({ children }: { children: React.ReactNode }) {

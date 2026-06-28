@@ -17,70 +17,70 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({ isVisible, numeroSemana1, num
   const [selectedItem, setSelectedItem] = React.useState<TurnoComparativo | null>(null);
 
   return (
-    <SlideWrapper isVisible={isVisible} style={{ padding: '32px 48px' }}>
+    <SlideWrapper isVisible={isVisible} style={{ padding: '28px 42px' }}>
       <SlideHeader
         title="TURNOS"
         subTitle={`Comparativo Semanas ${numeroSemana1} vs ${numeroSemana2}`}
       />
 
-      {totalPaginas > 1 && (
-        <p className="text-center text-base font-medium text-slate-400 dark:text-slate-500 -mt-4 mb-6">
+      {totalPaginas > 1 ? (
+        <p className="mb-3 -mt-3 text-center text-base font-medium text-slate-400 dark:text-slate-500">
           Página {paginaAtual} de {totalPaginas}
         </p>
-      )}
+      ) : null}
 
-      <div className="flex-1 w-full max-w-[1550px] mx-auto flex items-center justify-center">
-        <div className={`grid gap-x-12 gap-y-8 w-full ${itens.length === 1 ? 'grid-cols-1 max-w-xl' : 'grid-cols-2 h-[390px]'}`}>
+      <div className="flex-1 w-full max-w-[1550px] mx-auto flex items-start justify-center pt-4">
+        <div className={`grid gap-x-12 gap-y-8 w-full ${itens.length === 1 ? 'grid-cols-1 max-w-xl' : 'grid-cols-2'}`}>
           {itens.map((item) => (
-          <div
-            key={item.nome}
-            onClick={() => setSelectedItem(item)}
-            className="bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col gap-6 hover:shadow-lg hover:scale-[1.01] transition-all duration-200 cursor-pointer"
-          >
-            <div className="flex items-center justify-center">
-              <h3 className="text-xl font-black text-slate-700 dark:text-slate-200 uppercase tracking-wider bg-slate-50 dark:bg-slate-800/80 px-6 py-2 rounded-lg border border-slate-100 dark:border-slate-700">
-                {item.nome}
-              </h3>
-            </div>
+            <div
+              key={item.nome}
+              onClick={() => setSelectedItem(item)}
+              className="min-h-[360px] bg-white dark:bg-slate-900 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800 p-6 flex flex-col gap-6 hover:shadow-lg hover:scale-[1.01] transition-all duration-200 cursor-pointer"
+            >
+              <div className="flex items-center justify-center">
+                <h3 className="text-xl font-black text-slate-700 dark:text-slate-200 uppercase tracking-wider bg-slate-50 dark:bg-slate-800/80 px-6 py-2 rounded-lg border border-slate-100 dark:border-slate-700 text-center leading-tight">
+                  {item.nome}
+                </h3>
+              </div>
 
-            <div className="flex justify-center items-center gap-12">
-              <WeekCircle
-                semana={item.semana1}
-                label={`SEM ${numeroSemana1}`}
-                isSecond={false}
-                isActive={isVisible}
-              />
-              <WeekCircle
-                semana={item.semana2}
-                label={`SEM ${numeroSemana2}`}
-                isSecond={true}
-                isActive={isVisible}
-              />
-            </div>
-
-            <div className="flex gap-3 mt-auto bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
-              {item.variacoes.map((variacao) => (
-                <VariationBadge
-                  key={variacao.label}
-                  label={variacao.label}
-                  value={variacao.valor}
-                  positive={variacao.positivo}
+              <div className="flex justify-center items-start gap-12">
+                <WeekCircle
+                  semana={item.semana1}
+                  label={`SEM ${numeroSemana1}`}
+                  isSecond={false}
+                  isActive={isVisible}
                 />
-              ))}
+                <WeekCircle
+                  semana={item.semana2}
+                  label={`SEM ${numeroSemana2}`}
+                  isSecond={true}
+                  isActive={isVisible}
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 mt-auto bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-700/50">
+                {item.variacoes.map((variacao) => (
+                  <VariationBadge
+                    key={variacao.label}
+                    label={variacao.label}
+                    value={variacao.valor}
+                    positive={variacao.positivo}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
         </div>
       </div>
 
-      {selectedItem && (
+      {selectedItem ? (
         <SubPracaModal
           selectedItem={selectedItem as any}
           numeroSemana1={numeroSemana1}
           numeroSemana2={numeroSemana2}
           onClose={() => setSelectedItem(null)}
         />
-      )}
+      ) : null}
     </SlideWrapper>
   );
 };

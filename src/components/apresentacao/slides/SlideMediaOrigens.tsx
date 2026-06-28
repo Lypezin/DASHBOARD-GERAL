@@ -20,7 +20,6 @@ const SlideMediaOrigens: React.FC<SlideMediaOrigensProps> = ({
 }) => {
     if (!media) return null;
 
-    // Usa apenas a primeira variação de aderência se houver
     const variacaoAderencia = media.variacoes.find(v => v.label.includes('Aderência')) || media.variacoes[0];
 
     return (
@@ -29,21 +28,17 @@ const SlideMediaOrigens: React.FC<SlideMediaOrigensProps> = ({
             className="flex flex-col items-center justify-center"
             style={{ padding: '32px 48px' }}
         >
-            <header className="text-center mb-10 w-full flex-shrink-0">
+            <header className="mb-8 w-full flex-shrink-0 text-center">
                 <SlideHeader
                     title="MÉDIA DAS ORIGENS"
                     subTitle={`Comparativo Semanas ${numeroSemana1} vs ${numeroSemana2}`}
                 />
             </header>
 
-            {/* Main content - Simpler layout as requested */}
-            <div className="flex w-full max-w-5xl justify-evenly items-center gap-12 flex-1 px-8 animate-slide-up opacity-0" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
-
-                {/* Semana 1 */}
+            <div className="flex w-full max-w-5xl flex-1 animate-slide-up items-start justify-evenly gap-12 px-8 pt-8" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
                 <div className="flex flex-col items-center gap-6">
                     <WeekComparisonCircle
                         aderencia={media.semana1.aderencia}
-                        // passamos string vazia para ocultar as horasEntregues, já que foi pedido 'apenas a média'
                         horasEntregues=""
                         label={`SEM ${numeroSemana1}`}
                         isSecond={false}
@@ -53,12 +48,10 @@ const SlideMediaOrigens: React.FC<SlideMediaOrigensProps> = ({
                     />
                 </div>
 
-                {/* Central variation Box */}
-                {variacaoAderencia && (
+                {variacaoAderencia ? (
                     <VariacaoAderenciaBox variacaoAderencia={variacaoAderencia as any} />
-                )}
+                ) : null}
 
-                {/* Semana 2 */}
                 <div className="flex flex-col items-center gap-6">
                     <WeekComparisonCircle
                         aderencia={media.semana2.aderencia}
@@ -70,7 +63,6 @@ const SlideMediaOrigens: React.FC<SlideMediaOrigensProps> = ({
                         isActive={isVisible}
                     />
                 </div>
-
             </div>
         </SlideWrapper>
     );

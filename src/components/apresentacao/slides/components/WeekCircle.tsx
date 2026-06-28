@@ -67,20 +67,20 @@ export const WeekCircle: React.FC<WeekCircleProps> = ({
 
             {/* Hours - Compact Row-by-Row Design */}
             {(semana.horasPlanejadas || semana.horasEntregues) && (
-                <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 rounded-xl px-2.5 py-1.5 w-full mt-2 flex flex-col gap-1 min-w-[125px]">
+                <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 rounded-xl px-2.5 py-2 w-full mt-2 flex flex-col gap-1.5 min-w-[140px] max-w-[170px]">
                     {semana.horasPlanejadas && (
-                        <div className="flex justify-between items-center text-[10px] sm:text-xs">
-                            <span className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-[8px] sm:text-[9px]">Meta</span>
-                            <span className="font-extrabold text-slate-700 dark:text-slate-350 leading-none">{semana.horasPlanejadas}</span>
+                        <div className="flex min-w-0 items-center justify-between gap-2 text-[10px] sm:text-xs">
+                            <span className="shrink-0 font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-[8px] sm:text-[9px]">Meta</span>
+                            <span className="min-w-0 text-right font-extrabold text-slate-700 dark:text-slate-350 leading-none tabular-nums" style={buildTimeTextStyle(semana.horasPlanejadas, 0.78)}>{semana.horasPlanejadas}</span>
                         </div>
                     )}
                     {semana.horasPlanejadas && semana.horasEntregues && (
                         <div className="h-px bg-slate-200/60 dark:bg-slate-700 w-full my-0.5" />
                     )}
                     {semana.horasEntregues && (
-                        <div className="flex justify-between items-center text-[10px] sm:text-xs">
-                            <span className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-[8px] sm:text-[9px]">Entregue</span>
-                            <span className="font-extrabold text-emerald-600 dark:text-emerald-400 leading-none">{semana.horasEntregues}</span>
+                        <div className="flex min-w-0 items-center justify-between gap-2 text-[10px] sm:text-xs">
+                            <span className="shrink-0 font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-[8px] sm:text-[9px]">Entregue</span>
+                            <span className="min-w-0 text-right font-extrabold text-emerald-600 dark:text-emerald-400 leading-none tabular-nums" style={buildTimeTextStyle(semana.horasEntregues, 0.78)}>{semana.horasEntregues}</span>
                         </div>
                     )}
                 </div>

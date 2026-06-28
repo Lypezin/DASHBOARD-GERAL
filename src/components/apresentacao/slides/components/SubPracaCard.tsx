@@ -24,7 +24,7 @@ export const SubPracaCard: React.FC<SubPracaCardProps> = ({
     return (
         <div
             onClick={() => onClick(item)}
-            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg ${isSingleItem ? 'w-full max-w-7xl mx-auto' : 'h-full flex flex-col'} animate-slide-up opacity-0 cursor-pointer hover:scale-[1.02] transition-transform duration-200`}
+            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg ${isSingleItem ? 'w-full max-w-7xl mx-auto' : 'min-h-[360px] flex flex-col'} animate-slide-up cursor-pointer hover:scale-[1.02] transition-transform duration-200`}
             style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
         >
             {/* Card Header - Fixed height for alignment */}
@@ -42,7 +42,7 @@ export const SubPracaCard: React.FC<SubPracaCardProps> = ({
             </div>
 
             {/* Card Body */}
-            <div className={`${isSingleItem ? 'p-10' : 'p-5'} flex-1 flex flex-col justify-center`}>
+            <div className={`${isSingleItem ? 'p-10' : 'p-5'} flex-1 flex flex-col justify-between`}>
                 {/* Week Comparison */}
                 <div className={`flex items-start justify-center ${isSingleItem ? 'gap-12' : 'gap-6'} mb-5`}>
                     <WeekComparisonCircle

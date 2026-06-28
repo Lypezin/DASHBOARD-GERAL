@@ -18,7 +18,7 @@ interface VariacaoResumo {
 
 export interface SubPracaComparativo {
   nome: string;
-  horasPlanejadas: string; // We'll keep this as a fallback or remove it if not needed. Let's keep it for compatibility with OrigemCard if it expects it, but we can deprecate it.
+  horasPlanejadas: string;
   semana1: SemanaResumo & { horasPlanejadas: string };
   semana2: SemanaResumo & { horasPlanejadas: string };
   variacoes: VariacaoResumo[];
@@ -45,25 +45,24 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
   const [selectedItem, setSelectedItem] = React.useState<SubPracaComparativo | null>(null);
 
   return (
-    <SlideWrapper isVisible={isVisible} style={{ padding: '32px 48px' }}>
+    <SlideWrapper isVisible={isVisible} style={{ padding: '28px 42px' }}>
       <SlideHeader
         title="SUB-PRAÇAS"
         subTitle={`Comparativo Semanas ${numeroSemana1} vs ${numeroSemana2}`}
       />
 
-      {totalPaginas > 1 && (
-        <p className="text-center text-base font-medium text-slate-400 -mt-4 mb-2">
+      {totalPaginas > 1 ? (
+        <p className="mb-3 -mt-3 text-center text-base font-medium text-slate-400">
           Página {paginaAtual} de {totalPaginas}
         </p>
-      )}
+      ) : null}
 
-      {/* Cards Grid - Adaptive */}
       <div className={cn(
-        "grid gap-7 flex-1 place-content-center w-full max-w-[1550px] mx-auto",
-        itens.length === 1 && "flex justify-center items-center",
-        itens.length === 2 && "grid-cols-2 h-[390px]",
-        itens.length === 3 && "grid-cols-3 h-[390px]",
-        itens.length >= 4 && "grid-cols-2 lg:grid-cols-4 h-[390px]"
+        'grid flex-1 w-full max-w-[1550px] mx-auto content-start items-stretch gap-6 pt-4',
+        itens.length === 1 && 'flex justify-center items-start',
+        itens.length === 2 && 'grid-cols-2',
+        itens.length === 3 && 'grid-cols-3',
+        itens.length >= 4 && 'grid-cols-2 lg:grid-cols-4'
       )}>
         {itens.map((item, index) => (
           <SubPracaCard
@@ -78,16 +77,14 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
         ))}
       </div>
 
-      {/* Drill Down Modal */}
-      {selectedItem && (
+      {selectedItem ? (
         <SubPracaModal
           selectedItem={selectedItem}
           numeroSemana1={numeroSemana1}
           numeroSemana2={numeroSemana2}
           onClose={() => setSelectedItem(null)}
         />
-      )}
-
+      ) : null}
     </SlideWrapper>
   );
 };

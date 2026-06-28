@@ -1,4 +1,3 @@
-
 import React from 'react';
 import SlideWrapper from '../SlideWrapper';
 import { SlideHeader } from './components/SlideHeader';
@@ -12,7 +11,7 @@ interface VariacaoResumo {
 
 interface OrigemComparativo {
   nome: string;
-  horasPlanejadas: string; // Deprecated fallback
+  horasPlanejadas: string;
   semana1: {
     aderencia: number;
     horasEntregues: string;
@@ -46,20 +45,20 @@ const SlideOrigem: React.FC<SlideOrigemProps> = ({
   const isSingleItem = itens.length === 1;
 
   return (
-    <SlideWrapper isVisible={isVisible} style={{ padding: '28px 48px' }}>
+    <SlideWrapper isVisible={isVisible} style={{ padding: '28px 42px' }}>
       <SlideHeader
         title="ORIGENS"
         subTitle={`Comparativo Semanas ${numeroSemana1} vs ${numeroSemana2}`}
       />
 
-      {totalPaginas > 1 && (
-        <p className="text-center text-base font-medium text-slate-400 -mt-4 mb-2">
+      {totalPaginas > 1 ? (
+        <p className="mb-3 -mt-3 text-center text-base font-medium text-slate-400">
           Página {paginaAtual} de {totalPaginas}
         </p>
-      )}
+      ) : null}
 
-      <div className="flex-1 w-full max-w-[1550px] mx-auto flex items-center justify-center">
-        <div className={`w-full gap-6 ${itens.length === 1 ? 'flex justify-center items-center' : 'h-[390px]'} ${itens.length === 2 ? 'grid grid-cols-2 max-w-4xl' : ''} ${itens.length === 3 ? 'grid grid-cols-3' : ''}`}>
+      <div className="flex-1 w-full max-w-[1550px] mx-auto flex items-start justify-center pt-4">
+        <div className={`w-full gap-6 ${itens.length === 1 ? 'flex justify-center items-start' : ''} ${itens.length === 2 ? 'grid grid-cols-2 max-w-5xl' : ''} ${itens.length === 3 ? 'grid grid-cols-3' : ''}`}>
           {itens.map((item, index) => (
             <OrigemCard
               key={item.nome}

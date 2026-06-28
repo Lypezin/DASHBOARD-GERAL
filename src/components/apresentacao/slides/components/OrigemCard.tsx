@@ -28,7 +28,7 @@ export const OrigemCard: React.FC<OrigemCardProps> = ({
 }) => {
     return (
         <div
-            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg ${isSingleItem ? 'w-full max-w-7xl mx-auto' : 'h-full flex flex-col'} animate-slide-up opacity-0`}
+            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg ${isSingleItem ? 'w-full max-w-7xl mx-auto' : 'min-h-[360px] flex flex-col'} animate-slide-up`}
             style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
         >
             {/* Card Header */}
@@ -46,7 +46,7 @@ export const OrigemCard: React.FC<OrigemCardProps> = ({
             </div>
 
             {/* Card Body */}
-            <div className={`${isSingleItem ? 'p-8' : 'p-5'} flex-1 flex flex-col justify-center`}>
+            <div className={`${isSingleItem ? 'p-8' : 'p-5'} flex-1 flex flex-col justify-between`}>
                 {/* Week Comparison */}
                 <div className={`flex items-start justify-center ${isSingleItem ? 'gap-12' : 'gap-6'} mb-5`}>
                     <WeekComparisonCircle
