@@ -21,16 +21,16 @@ export const PrioridadeHeroCard = ({
     iconColor: string;
     isPercentage?: boolean
 }) => (
-    <Card className="relative overflow-hidden rounded-[1.65rem] border border-slate-200/50 bg-white/90 shadow-[0_12px_32px_-22px_rgba(15,23,42,0.18)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_-24px_rgba(15,23,42,0.25)] hover:border-slate-350 dark:border-slate-900/60 dark:bg-slate-900/40 dark:hover:border-slate-800 group">
+    <Card className="relative overflow-hidden rounded-[1.65rem] border border-slate-200/50 bg-white/90 shadow-[0_12px_32px_-22px_rgba(15,23,42,0.18)] transition-all duration-300 motion-safe:hover:-translate-y-1 hover:shadow-[0_18px_40px_-24px_rgba(15,23,42,0.25)] hover:border-slate-350 dark:border-slate-900/60 dark:bg-slate-900/40 dark:hover:border-slate-800 group">
         <div className={`absolute inset-0 bg-gradient-to-br ${colorFrom} ${colorTo} opacity-[0.06] group-hover:opacity-[0.1] transition-opacity duration-300`} />
 
-        <div className="absolute -right-6 -bottom-6 opacity-[0.04] transform rotate-12 group-hover:scale-110 group-hover:rotate-[15deg] transition-all duration-300">
+        <div className="absolute -right-6 -bottom-6 opacity-[0.04] transform rotate-12 motion-safe:group-hover:scale-110 motion-safe:group-hover:rotate-[15deg] transition-all duration-300">
             <Icon className={`w-32 h-32 ${iconColor}`} />
         </div>
 
         <CardContent className="p-5 relative z-10 flex flex-col justify-between h-full">
             <div className="flex justify-between items-start mb-3">
-                <div className={`p-2.5 rounded-xl bg-white dark:bg-slate-800 shadow-sm ring-1 ring-black/5 dark:ring-white/10 group-hover:scale-105 transition-transform duration-300 ${iconColor}`}>
+                <div className={`p-2.5 rounded-xl bg-white dark:bg-slate-800 shadow-sm ring-1 ring-black/5 dark:ring-white/10 motion-safe:group-hover:scale-105 transition-transform duration-300 ${iconColor}`}>
                     <Icon className="w-5 h-5" />
                 </div>
             </div>

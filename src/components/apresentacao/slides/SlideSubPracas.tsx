@@ -47,13 +47,13 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
   return (
     <SlideWrapper isVisible={isVisible} style={{ padding: '28px 42px' }}>
       <SlideHeader
-        title="SUB-PRAÇAS"
+        title="SUB-PRACAS"
         subTitle={`Comparativo Semanas ${numeroSemana1} vs ${numeroSemana2}`}
       />
 
       {totalPaginas > 1 ? (
         <p className="mb-3 -mt-3 text-center text-base font-medium text-slate-400">
-          Página {paginaAtual} de {totalPaginas}
+          Pagina {paginaAtual} de {totalPaginas}
         </p>
       ) : null}
 

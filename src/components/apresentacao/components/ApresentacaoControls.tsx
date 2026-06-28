@@ -38,8 +38,8 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
     onExportExcel
 }) => {
     return (
-        <div className="sticky top-0 z-10 flex flex-col gap-3 border-b border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center md:p-4">
-            <div className="flex items-center gap-3 shrink-0">
+        <div className="sticky top-0 z-10 flex min-w-0 flex-col gap-3 border-b border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center md:p-4">
+            <div className="flex min-w-0 shrink-0 items-center gap-3">
                 <PresentationSectionToggle
                     visibleSections={visibleSections}
                     onToggleSection={onToggleSection}
@@ -49,7 +49,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
             {/* Spacer to push controls to the right on desktop */}
             <div className="hidden md:block flex-grow" />
 
-            <div className="flex flex-wrap items-center gap-2 md:gap-3 pb-1 md:pb-0">
+            <div className="subtle-scrollbar flex min-w-0 max-w-full flex-wrap items-center gap-2 overflow-x-auto pb-1 md:gap-3 md:overflow-visible md:pb-0">
 
                 <PresentationNavigation
                     currentSlide={currentSlide}
@@ -58,7 +58,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
                     onNext={onNext}
                 />
 
-                <div className="h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700" />
+                <div className="hidden h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700 sm:block" />
 
                 {onManageMedia && (
                     <Button
@@ -71,7 +71,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
                     </Button>
                 )}
 
-                {onManageMedia && <div className="h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700" />}
+                {onManageMedia && <div className="hidden h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700 sm:block" />}
 
                 {onManageClick && (
                     <Button
@@ -97,7 +97,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
                     </Button>
                 )}
 
-                <div className="h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700" />
+                <div className="hidden h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700 sm:block" />
 
                 {onExportExcel && (
                     <Button
@@ -122,7 +122,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
                     <span className="hidden sm:inline">PDF</span>
                 </Button>
 
-                <div className="h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700" />
+                <div className="hidden h-6 w-px shrink-0 bg-slate-200 dark:bg-slate-700 sm:block" />
 
                 <Button
                     onClick={onStartPresentation}

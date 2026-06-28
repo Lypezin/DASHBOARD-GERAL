@@ -23,7 +23,7 @@ import type { FilterPayload } from '@/types/filters';
 import { createRequestKey } from '@/utils/request/createRequestKey';
 import { useDedicadoOrigensData } from '@/hooks/data/useDedicadoOrigensData';
 
-// ImportaÃ§Ã£o dos subcomponentes modulares extraÃ­dos
+// Subcomponentes modulares do DEDICADO
 import { DedicadoDashboard } from './dedicado/DedicadoDashboard';
 import { DedicadoResumo } from './dedicado/DedicadoResumo';
 import { DedicadoDiaOrigem, buildDayDateMap } from './dedicado/DedicadoDiaOrigem';
@@ -213,7 +213,7 @@ const DedicadoView = React.memo(function DedicadoView({
               DEDICADO
             </h2>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-              VisÃ£o separada para restaurantes e origens, com entregadores, resumo por origem e matriz Dia x Origem no mesmo lugar.
+              Visao separada para restaurantes e origens, com entregadores, resumo por origem e matriz Dia x Origem no mesmo lugar.
             </p>
           </div>
 
@@ -280,7 +280,7 @@ const DedicadoView = React.memo(function DedicadoView({
                 filterPayload={dedicatedPayload}
               />
             ) : (
-              <DedicadoInlineNotice message="Selecione uma organizaÃ§Ã£o para carregar os entregadores dedicados." />
+              <DedicadoInlineNotice message="Selecione uma organizacao para carregar os entregadores dedicados." />
             )
           ) : null}
 
@@ -288,7 +288,7 @@ const DedicadoView = React.memo(function DedicadoView({
             hasOrganizationContext ? (
               <DedicadoRanking entregadores={rankingEntregadores} loading={loading} />
             ) : (
-              <DedicadoInlineNotice message="Selecione uma organizaÃ§Ã£o para montar o ranking do DEDICADO." />
+              <DedicadoInlineNotice message="Selecione uma organizacao para montar o ranking do DEDICADO." />
             )
           ) : null}
 

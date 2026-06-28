@@ -69,16 +69,16 @@ export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = React.memo(({
             onDragEnter={(e) => onDragEnter(e, index)}
             onDragOver={(e) => e.preventDefault()}
             onDragEnd={onDragEnd}
-            className="w-full"
+            className="w-auto md:w-full"
         >
             <div
                 onClick={handleSelect}
                 className={`
                     group flex min-w-64 md:min-w-0 items-center gap-3 p-3.5 rounded-xl border cursor-pointer select-none relative pr-8
-                    transform transition-all duration-150 ease-in-out hover:translate-x-1 hover:shadow-sm
+                    transform transition-all duration-150 ease-in-out motion-safe:md:hover:translate-x-1 hover:shadow-sm
                     ${isActive
-                        ? 'bg-blue-50/80 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900/60 shadow-sm ring-1 ring-blue-500/20 scale-[1.01]'
-                        : 'bg-white border-slate-100 dark:bg-slate-900/50 dark:border-slate-800/60 hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 hover:shadow-sm hover:scale-[1.01] active:scale-[0.99]'}
+                        ? 'bg-blue-50/80 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900/60 shadow-sm ring-1 ring-blue-500/20 motion-safe:scale-[1.01]'
+                        : 'bg-white border-slate-100 dark:bg-slate-900/50 dark:border-slate-800/60 hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 hover:shadow-sm motion-safe:hover:scale-[1.01] motion-safe:active:scale-[0.99]'}
                 `}
             >
                 {/* Active glowing indicator line */}

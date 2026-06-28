@@ -30,7 +30,7 @@ export const ValoresHeader = React.memo(function ValoresHeader({
                     variant="outline"
                     onClick={onExport}
                     disabled={isExporting}
-                    className="h-11 gap-2 rounded-2xl border-slate-200/80 bg-white/85 px-4 shadow-[0_12px_24px_-22px_rgba(15,23,42,0.4)] transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white dark:border-slate-800/80 dark:bg-slate-900/85 dark:hover:border-blue-500/40 dark:hover:bg-slate-900"
+                    className="h-11 gap-2 rounded-2xl border-slate-200/80 bg-white/85 px-4 shadow-[0_12px_24px_-22px_rgba(15,23,42,0.4)] transition-[border-color,background-color,box-shadow,transform] duration-200 motion-safe:hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white dark:border-slate-800/80 dark:bg-slate-900/85 dark:hover:border-blue-500/40 dark:hover:bg-slate-900"
                 >
                     <Download className="h-4 w-4" />
                     {isExporting ? 'Exportando...' : 'Exportar Excel'}

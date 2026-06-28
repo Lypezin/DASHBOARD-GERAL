@@ -59,7 +59,7 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
           className={cn(
             "h-[38px] w-full appearance-none rounded-lg border border-slate-200/80 text-left focus:outline-none dark:border-slate-800",
             "bg-white px-3 py-1 pr-10 text-xs font-semibold text-slate-900 shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-200 dark:bg-slate-900 dark:text-slate-100",
-            "hover:-translate-y-0.5 hover:border-blue-300 hover:bg-white hover:shadow-md dark:hover:border-blue-500/50 dark:hover:bg-slate-900",
+            "hover:border-blue-300 hover:bg-white hover:shadow-md motion-safe:hover:-translate-y-0.5 dark:hover:border-blue-500/50 dark:hover:bg-slate-900",
             isOpen ? "border-blue-400 ring-2 ring-blue-500/20" : "",
             "disabled:cursor-not-allowed disabled:opacity-50"
           )}

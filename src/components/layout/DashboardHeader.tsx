@@ -43,9 +43,9 @@ export function DashboardHeader() {
   const breadcrumb = BREADCRUMB_MAP[activeTab] || { group: 'Principal', label: 'Visão Geral' };
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 w-full items-center justify-between border-b border-border bg-card/95 px-4 py-3 shadow-[0_1px_2px_0_rgba(0,0,0,0.03)] backdrop-blur transition-all duration-200 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 flex h-14 w-full min-w-0 items-center justify-between border-b border-border bg-card/95 px-3 py-3 shadow-[0_1px_2px_0_rgba(0,0,0,0.03)] backdrop-blur transition-all duration-200 sm:px-6 lg:px-8">
       {/* Esquerda: Menu toggle + Breadcrumb */}
-      <div className="flex items-center gap-3 shrink-0">
+      <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
         {/* Toggle para Desktop / Mobile */}
         <Button
           variant="ghost"
@@ -70,10 +70,10 @@ export function DashboardHeader() {
         <div className="hidden h-4 w-px bg-border/80 sm:block shrink-0" />
 
         {/* Breadcrumb */}
-        <nav className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground sm:text-sm shrink-0">
-          <span className="font-medium text-muted-foreground/72">{breadcrumb.group}</span>
-          <ChevronRight className="h-3.5 w-3.5 opacity-60" />
-          <span className="font-bold text-foreground">{breadcrumb.label}</span>
+        <nav className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-muted-foreground sm:text-sm">
+          <span className="hidden shrink-0 font-medium text-muted-foreground/72 xs:inline sm:inline">{breadcrumb.group}</span>
+          <ChevronRight className="hidden h-3.5 w-3.5 shrink-0 opacity-60 xs:block sm:block" />
+          <span className="min-w-0 truncate font-bold text-foreground">{breadcrumb.label}</span>
         </nav>
       </div>
 
@@ -83,7 +83,7 @@ export function DashboardHeader() {
       </div>
 
       {/* Direita: Conquistas + Tema + Perfil */}
-      <div className="flex items-center gap-1 sm:gap-2 shrink-0">
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0 pl-2">
         {/* Conquistas (Apenas se logado) */}
         {user && (
           <Button

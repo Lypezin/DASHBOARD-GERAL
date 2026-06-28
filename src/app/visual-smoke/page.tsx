@@ -14,7 +14,7 @@ const itemBase = {
   variacoes: [
     { label: 'Horas', valor: '-788:04:59', positivo: false },
     { label: '% Horas', valor: '-11,6%', positivo: false },
-    { label: '% Aderência', valor: '-2,4%', positivo: false },
+    { label: '% Aderencia', valor: '-2,4%', positivo: false },
   ],
 };
 
@@ -34,7 +34,7 @@ export default function VisualSmokePage() {
             { ...itemBase, nome: 'Centro Expandido Norte' },
             { ...itemBase, nome: 'Leste Operacional' },
             { ...itemBase, nome: 'Zona Sul Premium' },
-            { ...itemBase, nome: 'Região Oeste' },
+            { ...itemBase, nome: 'Regiao Oeste' },
           ]}
         />
       ),
@@ -66,8 +66,8 @@ export default function VisualSmokePage() {
           paginaAtual={1}
           totalPaginas={8}
           itens={[
-            { ...itemBase, nome: 'ALMOÇO' },
-            { ...itemBase, nome: 'ALMOÇO 11H30-15H29' },
+            { ...itemBase, nome: 'ALMOCO' },
+            { ...itemBase, nome: 'ALMOCO 11H30-15H29' },
           ]}
         />
       ),

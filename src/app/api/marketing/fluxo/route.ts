@@ -88,7 +88,7 @@ export async function POST(request: Request) {
     try {
         const auth = await loadCurrentUserProfile({
             requireApproved: true,
-            notApprovedMessage: 'Usuário ainda não aprovado.',
+            notApprovedMessage: 'Usuario ainda nao aprovado.',
         });
 
         if ('failure' in auth) {
@@ -108,16 +108,16 @@ export async function POST(request: Request) {
         const includeNames = body?.includeNames === true;
 
         if (!dataInicial || !dataFinal) {
-            return NextResponse.json({ data: null, error: 'Período inválido para consulta.' }, { status: 400 });
+            return NextResponse.json({ data: null, error: 'Periodo invalido para consulta.' }, { status: 400 });
         }
 
         if (!organizationId || !UUID_RE.test(organizationId)) {
-            return NextResponse.json({ data: null, error: 'Organização inválida para consulta.' }, { status: 400 });
+            return NextResponse.json({ data: null, error: 'Organizacao invalida para consulta.' }, { status: 400 });
         }
 
         if (!hasElevatedRole(auth.profile)) {
             if (!profileOrganizationId || organizationId !== profileOrganizationId) {
-                return NextResponse.json({ data: null, error: 'Organização não permitida para este usuário.' }, { status: 403 });
+                return NextResponse.json({ data: null, error: 'Organizacao nao permitida para este usuario.' }, { status: 403 });
             }
         }
 

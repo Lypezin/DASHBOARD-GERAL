@@ -71,13 +71,13 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
         .slide-for-capture { font-family: Inter, Arial, sans-serif !important; }
       `}</style>
       <PresentationCaptureLayer ref={captureContainerRef} slides={orderedSlides} capturingIndex={capturingIndex} />
-      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[99999] p-2 sm:p-3 animate-in fade-in duration-200">
-        <Card className="w-full max-w-[98vw] h-[97vh] flex flex-col md:flex-row overflow-hidden border-slate-200 dark:border-slate-800 shadow-2xl bg-slate-100 dark:bg-black">
+      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[99999] overflow-hidden p-2 sm:p-3 animate-in fade-in duration-200">
+        <Card className="flex h-[97vh] w-full max-w-[98vw] min-w-0 flex-col overflow-hidden border-slate-200 bg-slate-100 shadow-2xl dark:border-slate-800 dark:bg-black md:flex-row">
           <SlideSidebar
             slides={slides} currentSlideIndex={currentSlide} onSlideSelect={onSlideChange}
             mediaSlides={mediaSlides || []} onUpdateMediaSlide={onUpdateMediaSlide} onAddMediaSlide={handleAddMediaSlideAndSelect} onDeleteMediaSlide={onDeleteMediaSlide}
           />
-          <div className="flex-1 flex flex-col h-full min-w-0 bg-white dark:bg-slate-950 relative">
+          <div className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden bg-white dark:bg-slate-950">
             <ApresentacaoControls
               currentSlide={currentSlide} totalSlides={orderedSlides.length}
               onPrev={handlePrev} onNext={handleNext} onClose={onClose}
@@ -86,7 +86,7 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
               onSaveClick={onSaveClick} onManageClick={onManageClick}
               onExportExcel={onExportExcel}
             />
-            <div className="flex-1 overflow-hidden relative bg-slate-100/50 flex flex-col">
+            <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-slate-100/50">
               <PresentationViewport
                 slides={orderedSlides}
                 currentSlide={currentSlide}

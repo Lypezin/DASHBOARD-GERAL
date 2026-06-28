@@ -63,9 +63,9 @@ export const SlideSidebar: React.FC<SlideSidebarProps> = ({
     }, []);
 
     return (
-        <div className="h-44 w-full shrink-0 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex flex-col md:h-full md:w-72 md:border-b-0 md:border-r">
-            <div className="p-3 md:p-4 border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 z-10 flex items-center justify-between">
-                <div>
+        <div className="flex h-44 w-full min-w-0 shrink-0 flex-col overflow-hidden border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900 md:h-full md:w-72 md:border-b-0 md:border-r">
+            <div className="z-10 flex min-w-0 items-center justify-between gap-3 border-b border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 md:p-4">
+                <div className="min-w-0">
                     <h3 className="text-sm font-black text-slate-700 dark:text-slate-200 uppercase tracking-wider">Preview</h3>
                     <p className="text-[11px] font-semibold text-slate-400 dark:text-slate-500">Arraste para ordenar os slides</p>
                 </div>
@@ -76,7 +76,7 @@ export const SlideSidebar: React.FC<SlideSidebarProps> = ({
                 )}
             </div>
 
-            <ScrollArea className="flex-1">
+            <ScrollArea className="min-w-0 flex-1">
                 <SlideSidebarList
                     displaySlides={displaySlides}
                     currentSlideIndex={currentSlideIndex}

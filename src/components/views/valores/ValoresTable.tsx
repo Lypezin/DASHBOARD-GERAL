@@ -88,7 +88,7 @@ export const ValoresTable = React.memo(function ValoresTable({
     return (
         <div className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white/90 shadow-[0_18px_48px_-40px_rgba(15,23,42,0.52)] ring-1 ring-slate-100/80 dark:border-slate-800/70 dark:bg-slate-900/80 dark:ring-slate-800/50">
             <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
-                <Table>
+                <Table className={isDetailed ? "min-w-[920px]" : "min-w-[720px]"}>
                     <TableHeader>
                         <TableRow className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/80">
                             <ValoresSortableHeader field="nome_entregador" label="Entregador" sortField={sortField} sortDirection={sortDirection} onSort={onSort} className="w-[300px] pl-6" />

@@ -1,19 +1,13 @@
 'use client';
 
-import { safeLog } from './errorHandler';
 import { IS_DEV } from '@/constants/environment';
+import { safeLog } from './errorHandler';
 
-
-// Cache para evitar múltiplos imports
 let xlsxCache: typeof import('xlsx') | null = null;
 
-/**
- * Carrega xlsx dinamicamente apenas quando necessário
- * Usa cache para evitar múltiplos imports
- */
 export async function loadXLSX(): Promise<typeof import('xlsx')> {
   if (typeof window === 'undefined') {
-    throw new Error('xlsx só pode ser usado no cliente');
+    throw new Error('xlsx so pode ser usado no cliente');
   }
 
   if (xlsxCache) {
@@ -22,19 +16,19 @@ export async function loadXLSX(): Promise<typeof import('xlsx')> {
 
   try {
     if (IS_DEV) {
-      safeLog.info('📦 Importando xlsx...');
+      safeLog.info('Importando xlsx...');
     }
-    
+
     const xlsxModule = await import('xlsx');
     xlsxCache = xlsxModule;
-    
+
     if (IS_DEV) {
-      safeLog.info('✅ xlsx carregado');
+      safeLog.info('xlsx carregado');
     }
-    
+
     return xlsxModule;
   } catch (error) {
-    safeLog.error('❌ Erro ao carregar xlsx:', error);
+    safeLog.error('Erro ao carregar xlsx:', error);
     throw error;
   }
 }
