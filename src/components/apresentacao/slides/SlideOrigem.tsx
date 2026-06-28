@@ -58,9 +58,8 @@ const SlideOrigem: React.FC<SlideOrigemProps> = ({
         </p>
       )}
 
-      {/* Cards Grid - responsive based on count */}
       <div className="flex-1 w-full max-w-[1300px] mx-auto flex items-center justify-center">
-        <div className={`${isSingleItem ? 'flex justify-center items-center' : 'grid grid-cols-3 gap-6'} w-full`}>
+        <div className={`w-full gap-6 ${itens.length === 1 ? 'flex justify-center items-center' : ''} ${itens.length === 2 ? 'grid grid-cols-2 max-w-4xl' : ''} ${itens.length === 3 ? 'grid grid-cols-3' : ''}`}>
           {itens.map((item, index) => (
             <OrigemCard
               key={item.nome}

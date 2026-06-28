@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useCallback } from 'react';
 import { usePresentationEditor } from '../../context/PresentationEditorContext';
 import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -42,24 +42,24 @@ export const SlideSidebar: React.FC<SlideSidebarProps> = ({
     const unorderedSlides = slides.filter(s => !slideOrder.includes(s.key));
     const displaySlides = [...orderedMiddleware, ...unorderedSlides];
 
-    const onDragStart = (e: React.DragEvent<HTMLDivElement>, position: number) => {
+    const onDragStart = useCallback((e: React.DragEvent<HTMLDivElement>, position: number) => {
         dragItem.current = position;
         e.dataTransfer.effectAllowed = "move";
-    };
+    }, []);
 
-    const onDragEnter = (e: React.DragEvent<HTMLDivElement>, position: number) => {
+    const onDragEnter = useCallback((e: React.DragEvent<HTMLDivElement>, position: number) => {
         dragOverItem.current = position;
         e.preventDefault();
         if (dragItem.current !== null && dragItem.current !== position) {
             moveSlide(dragItem.current, position);
             dragItem.current = position;
         }
-    };
+    }, [moveSlide]);
 
-    const onDragEnd = () => {
+    const onDragEnd = useCallback(() => {
         dragItem.current = null;
         dragOverItem.current = null;
-    };
+    }, []);
 
     return (
         <div className="h-40 w-full shrink-0 bg-slate-50 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex flex-col md:h-full md:w-64 md:border-b-0 md:border-r">

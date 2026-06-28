@@ -43,15 +43,11 @@ export const SlideSidebarList: React.FC<SlideSidebarListProps> = ({
                         isActive={index === currentSlideIndex}
                         isMediaSlide={isMediaSlide}
                         mediaId={mediaId}
-                        onSelect={() => onSlideSelect(index)}
+                        onSelect={onSlideSelect}
                         onDragStart={onDragStart}
                         onDragEnter={onDragEnter}
                         onDragEnd={onDragEnd}
-                        onUpdateTitle={
-                            onUpdateMediaSlide
-                                ? (id, title) => onUpdateMediaSlide(id, { title })
-                                : undefined
-                        }
+                        onUpdateMediaSlide={onUpdateMediaSlide}
                         onDelete={onDeleteMediaSlide}
                     />
                 );

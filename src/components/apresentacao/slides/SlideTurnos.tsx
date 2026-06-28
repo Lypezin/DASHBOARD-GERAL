@@ -30,7 +30,7 @@ const SlideTurnos: React.FC<SlideTurnosProps> = ({ isVisible, numeroSemana1, num
       )}
 
       <div className="flex-1 w-full max-w-[1300px] mx-auto flex items-center justify-center">
-        <div className="grid grid-cols-2 gap-x-12 gap-y-8 w-full">
+        <div className={`grid gap-x-12 gap-y-8 w-full ${itens.length === 1 ? 'grid-cols-1 max-w-xl' : 'grid-cols-2'}`}>
           {itens.map((item) => (
           <div
             key={item.nome}

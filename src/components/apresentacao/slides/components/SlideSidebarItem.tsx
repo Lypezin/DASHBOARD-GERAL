@@ -3,15 +3,15 @@ import {
     GripVertical, X, Home, Activity, MapPin, Calendar, Award, Sparkles, Building2, HelpCircle, Image as ImageIcon, SunMoon, Navigation, ShoppingBag, Brain
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { MediaSlideData } from '@/types/presentation';
 import { SlideSidebarItemEdit } from './item/SlideSidebarItemEdit';
 import { SlideSidebarItemDisplay } from './item/SlideSidebarItemDisplay';
-import { motion } from 'framer-motion';
 
 interface SlideSidebarItemProps {
     slideKey: string; index: number; displayName: string; isActive: boolean; isMediaSlide: boolean; mediaId: string | null;
-    onSelect: () => void; onDragStart: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
+    onSelect: (index: number) => void; onDragStart: (e: React.DragEvent<HTMLDivElement>, index: number) => void;
     onDragEnter: (e: React.DragEvent<HTMLDivElement>, index: number) => void; onDragEnd: () => void;
-    onUpdateTitle?: (id: string, newTitle: string) => void; onDelete?: (id: string) => void;
+    onUpdateMediaSlide?: (id: string, updates: Partial<MediaSlideData>) => void; onDelete?: (id: string) => void;
 }
 
 const getSlideIcon = (key: string) => {
@@ -30,9 +30,9 @@ const getSlideIcon = (key: string) => {
     return <HelpCircle className={iconClass} />;
 };
 
-export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = ({
+export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = React.memo(({
     slideKey, index, displayName, isActive, isMediaSlide, mediaId,
-    onSelect, onDragStart, onDragEnter, onDragEnd, onUpdateTitle, onDelete
+    onSelect, onDragStart, onDragEnter, onDragEnd, onUpdateMediaSlide, onDelete
 }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [editTitle, setEditTitle] = useState('');
@@ -45,8 +45,8 @@ export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = ({
 
     const saveTitle = (e?: React.MouseEvent | React.KeyboardEvent) => {
         e?.stopPropagation();
-        if (mediaId && onUpdateTitle && editTitle.trim()) {
-            onUpdateTitle(mediaId, editTitle);
+        if (mediaId && onUpdateMediaSlide && editTitle.trim()) {
+            onUpdateMediaSlide(mediaId, { title: editTitle });
         }
         setIsEditing(false);
     };
@@ -58,6 +58,10 @@ export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = ({
         }
     };
 
+    const handleSelect = () => {
+        onSelect(index);
+    };
+
     return (
         <div
             draggable
@@ -67,24 +71,20 @@ export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = ({
             onDragEnd={onDragEnd}
             className="w-full"
         >
-            <motion.div
-                layout
-                whileHover={{ scale: 1.015, x: 2 }}
-                whileTap={{ scale: 0.985 }}
-                onClick={onSelect}
+            <div
+                onClick={handleSelect}
                 className={`
-                    group flex min-w-56 md:min-w-0 items-center gap-3 p-3 rounded-xl border transition-all duration-200 cursor-pointer select-none relative pr-8
+                    group flex min-w-56 md:min-w-0 items-center gap-3 p-3 rounded-xl border cursor-pointer select-none relative pr-8
+                    transform transition-all duration-150 ease-in-out hover:translate-x-1 hover:shadow-sm
                     ${isActive
-                        ? 'bg-blue-50/80 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900/60 shadow-sm ring-1 ring-blue-500/20'
-                        : 'bg-white border-slate-100 dark:bg-slate-900/50 dark:border-slate-800/60 hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 hover:shadow-sm'}
+                        ? 'bg-blue-50/80 border-blue-200 dark:bg-blue-950/20 dark:border-blue-900/60 shadow-sm ring-1 ring-blue-500/20 scale-[1.01]'
+                        : 'bg-white border-slate-100 dark:bg-slate-900/50 dark:border-slate-800/60 hover:border-slate-200 dark:hover:border-slate-700 hover:bg-slate-50/50 dark:hover:bg-slate-800/40 hover:shadow-sm hover:scale-[1.01] active:scale-[0.99]'}
                 `}
             >
                 {/* Active glowing indicator line */}
                 {isActive && (
-                    <motion.div 
-                        layoutId="activeIndicator"
+                    <div 
                         className="absolute left-0 top-2 bottom-2 w-1 rounded-r bg-blue-500 dark:bg-blue-400 shadow-[0_0_8px_rgba(59,130,246,0.6)]"
-                        transition={{ type: "spring", stiffness: 350, damping: 30 }}
                     />
                 )}
 
@@ -110,7 +110,7 @@ export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = ({
                             displayName={displayName}
                             isActive={isActive}
                             isMediaSlide={isMediaSlide}
-                            onUpdateTitle={onUpdateTitle}
+                            onUpdateTitle={onUpdateMediaSlide ? (id, title) => onUpdateMediaSlide(id, { title }) : undefined}
                             startEditing={startEditing}
                         />
                     )}
@@ -132,7 +132,9 @@ export const SlideSidebarItem: React.FC<SlideSidebarItemProps> = ({
                         </Button>
                     </div>
                 )}
-            </motion.div>
+            </div>
         </div>
     );
-};
+});
+
+SlideSidebarItem.displayName = 'SlideSidebarItem';
