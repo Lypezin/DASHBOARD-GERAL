@@ -47,7 +47,7 @@ export function CityLastUpdatesTicker() {
           }
         }
         .city-updates-marquee {
-          animation: city-updates-marquee 25s linear infinite !important;
+          animation: city-updates-marquee 21s linear infinite !important;
         }
         .city-updates-marquee:hover {
           animation-play-state: paused !important;
@@ -57,7 +57,7 @@ export function CityLastUpdatesTicker() {
         }
         @media (prefers-reduced-motion: reduce) {
           .city-updates-marquee {
-            animation: city-updates-marquee 25s linear infinite !important;
+            animation: city-updates-marquee 21s linear infinite !important;
           }
           .animate-city-updates-spin {
             animation: city-updates-spin 6s linear infinite !important;

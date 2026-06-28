@@ -78,7 +78,7 @@ export function DashboardHeader() {
       </div>
 
       {/* Centro: Ticker de Cidades Sincronizadas Permanente em Desktop */}
-      <div className="hidden lg:flex flex-1 max-w-[28rem] xl:max-w-[46rem] mx-8 overflow-hidden">
+      <div className="hidden lg:flex flex-1 max-w-[40rem] xl:max-w-[62rem] mx-8 overflow-hidden">
         <CityLastUpdatesTicker />
       </div>
 
