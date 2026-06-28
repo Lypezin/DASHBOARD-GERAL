@@ -1,12 +1,11 @@
 import React from 'react';
 import { FilterOption } from '@/types';
 import FiltroSelect from '@/components/shared/filters/FiltroSelect';
-import { BarChart3, Presentation, X, FileSpreadsheet } from 'lucide-react';
+import { BarChart3, Presentation, X } from 'lucide-react';
 import { ComparacaoWeekSelector } from './components/ComparacaoWeekSelector';
 import { ComparacaoSectionSelector } from './components/ComparacaoSectionSelector';
 import { SecoesVisiveis } from './hooks/useComparacaoFilters';
 import { SaasPanel, SaasPanelHeader } from '@/components/views/shared/SaasPrimitives';
-import { exportComparacaoToExcel } from '@/utils/comparacao/exportExcel';
 
 interface ComparacaoFiltersProps {
     pracas: FilterOption[];
@@ -64,16 +63,7 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
                             </button>
                         ) : null}
 
-                        <button
-                            onClick={() => exportComparacaoToExcel(dadosComparacao, utrComparacao, semanasSelecionadas, pracaSelecionada)}
-                            disabled={!hasEnoughData}
-                            type="button"
-                            className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200/80 bg-white px-4 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500 shadow-sm transition-[background-color,border-color,color,box-shadow,transform,opacity] duration-200 hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-600 disabled:cursor-not-allowed disabled:opacity-30 disabled:grayscale dark:border-slate-800/80 dark:bg-slate-950 dark:text-slate-400 dark:hover:border-sky-800 dark:hover:bg-sky-950/20 dark:hover:text-sky-400"
-                            title={!hasEnoughData ? 'Selecione exatamente 2 semanas' : 'Exportar planilha Excel'}
-                        >
-                            <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
-                            Excel
-                        </button>
+
 
                         <button
                             onClick={onMostrarApresentacao}

@@ -51,7 +51,7 @@ export const usePresentationPDF = ({ slides, numeroSemana1, numeroSemana2, conte
                     const canvas = await html2canvas(slideElement, {
                         scale: SCALE_FACTOR,
                         useCORS: true,
-                        allowTaint: true,
+                        allowTaint: false,
                         backgroundColor: '#ffffff',
                         width: SLIDE_WIDTH,
                         height: SLIDE_HEIGHT,

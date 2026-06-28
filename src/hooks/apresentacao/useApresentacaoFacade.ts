@@ -77,33 +77,33 @@ export function useApresentacaoFacade(props: FacadeProps) {
                 const list1 = res1.data?.entregadores || [];
                 const list2 = res2.data?.entregadores || [];
                 
-                const map = new Map<string, { id: string; nome: string; horasSem1: number; horasSem2: number }>();
+                const map = new Map<string, { id: string; nome: string; segundosSem1: number; segundosSem2: number }>();
                 
                 list1.forEach((e: any) => {
                     map.set(e.id_entregador, {
                         id: e.id_entregador,
                         nome: e.nome_entregador,
-                        horasSem1: e.total_segundos / 3600,
-                        horasSem2: 0
+                        segundosSem1: e.total_segundos || 0,
+                        segundosSem2: 0
                     });
                 });
                 
                 list2.forEach((e: any) => {
                     const existing = map.get(e.id_entregador);
                     if (existing) {
-                        existing.horasSem2 = e.total_segundos / 3600;
+                        existing.segundosSem2 = e.total_segundos || 0;
                     } else {
                         map.set(e.id_entregador, {
                             id: e.id_entregador,
                             nome: e.nome_entregador,
-                            horasSem1: 0,
-                            horasSem2: e.total_segundos / 3600
+                            segundosSem1: 0,
+                            segundosSem2: e.total_segundos || 0
                         });
                     }
                 });
                 
                 const comparisonList = Array.from(map.values())
-                    .sort((a, b) => (b.horasSem1 + b.horasSem2) - (a.horasSem1 + a.horasSem2));
+                    .sort((a, b) => (b.segundosSem1 + b.segundosSem2) - (a.segundosSem1 + a.segundosSem2));
                 
                 setEntregadoresComparativo(comparisonList);
             } catch (err) {
@@ -132,6 +132,7 @@ export function useApresentacaoFacade(props: FacadeProps) {
         isManagersOpen, setIsManagersOpen,
         isSaveDialogOpen, setIsSaveDialogOpen,
         handleSavePresentation, handleLoadPresentation,
-        dadosBasicos, slides, goToNextSlide, goToPrevSlide, initialOrder
+        dadosBasicos, slides, goToNextSlide, goToPrevSlide, initialOrder,
+        entregadoresComparativo
     };
 }

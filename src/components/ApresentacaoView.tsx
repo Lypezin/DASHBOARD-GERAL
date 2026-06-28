@@ -28,7 +28,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = (props) => {
     state, actions, savedPresentations, isLoadingSaves, deletePresentation,
     isManagersOpen, setIsManagersOpen, isSaveDialogOpen, setIsSaveDialogOpen,
     handleSavePresentation, handleLoadPresentation, dadosBasicos, slides,
-    goToNextSlide, goToPrevSlide, initialOrder
+    goToNextSlide, goToPrevSlide, initialOrder, entregadoresComparativo
   } = facade;
 
   const isWebMode = state.viewMode === 'web_presentation';
@@ -67,7 +67,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = (props) => {
             onDeleteMediaSlide={actions.handleDeleteMediaSlide}
             onManageClick={() => setIsManagersOpen(true)}
             onSaveClick={() => setIsSaveDialogOpen(true)}
-            onExportExcel={() => exportComparacaoToExcel(props.dadosComparacao, props.utrComparacao, props.semanasSelecionadas, props.pracaSelecionada)}
+            onExportExcel={() => exportComparacaoToExcel(props.dadosComparacao, props.utrComparacao, props.semanasSelecionadas, props.pracaSelecionada, entregadoresComparativo)}
           />
         )}
 

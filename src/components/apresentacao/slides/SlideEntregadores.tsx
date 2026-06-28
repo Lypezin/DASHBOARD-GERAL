@@ -7,8 +7,16 @@ interface SlideEntregadoresProps {
     isVisible: boolean;
     numeroSemana1: string;
     numeroSemana2: string;
-    entregadores: Array<{ id: string; nome: string; horasSem1: number; horasSem2: number }>;
+    entregadores: Array<{ id: string; nome: string; segundosSem1: number; segundosSem2: number }>;
 }
+
+const formatarSegundosParaHMS = (totalSegundos: number): string => {
+    const hrs = Math.floor(totalSegundos / 3600);
+    const mins = Math.floor((totalSegundos % 3600) / 60);
+    const secs = Math.floor(totalSegundos % 60);
+    const pad = (num: number) => String(num).padStart(2, '0');
+    return `${hrs}:${pad(mins)}:${pad(secs)}`;
+};
 
 export const SlideEntregadores: React.FC<SlideEntregadoresProps> = ({
     isVisible,
@@ -16,9 +24,9 @@ export const SlideEntregadores: React.FC<SlideEntregadoresProps> = ({
     numeroSemana2,
     entregadores
 }) => {
-    // Total hours sum
-    const totalSem1 = entregadores.reduce((sum, e) => sum + e.horasSem1, 0);
-    const totalSem2 = entregadores.reduce((sum, e) => sum + e.horasSem2, 0);
+    // Total hours sum in seconds
+    const totalSegundosSem1 = entregadores.reduce((sum, e) => sum + e.segundosSem1, 0);
+    const totalSegundosSem2 = entregadores.reduce((sum, e) => sum + e.segundosSem2, 0);
 
     const renderContent = () => {
         if (!entregadores || entregadores.length === 0) {
@@ -33,7 +41,7 @@ export const SlideEntregadores: React.FC<SlideEntregadoresProps> = ({
 
         return (
             <div className="flex-1 flex flex-col justify-between w-full max-w-4xl mx-auto min-h-0">
-                <div className="flex-1 overflow-y-auto max-h-[360px] bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 subtle-scrollbar">
+                <div className="flex-1 overflow-y-auto max-h-[500px] bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 subtle-scrollbar">
                     <table className="w-full border-collapse text-left">
                         <thead className="sticky top-0 bg-slate-50 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 z-10">
                             <tr>
@@ -46,10 +54,10 @@ export const SlideEntregadores: React.FC<SlideEntregadoresProps> = ({
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {entregadores.slice(0, 50).map((e) => (
                                 <tr key={e.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/30 transition-colors">
-                                    <td className="px-6 py-3.5 text-left text-sm font-bold text-slate-800 dark:text-slate-200">{e.nome}</td>
-                                    <td className="px-6 py-3.5 text-center text-xs font-mono text-slate-400 dark:text-slate-500">{e.id}</td>
-                                    <td className="px-6 py-3.5 text-center font-mono text-sm font-semibold text-slate-600 dark:text-slate-400">{e.horasSem1.toFixed(1)}h</td>
-                                    <td className="px-6 py-3.5 text-center font-mono text-sm font-semibold text-slate-800 dark:text-slate-200">{e.horasSem2.toFixed(1)}h</td>
+                                    <td className="px-6 py-3 text-left text-sm font-bold text-slate-800 dark:text-slate-200">{e.nome}</td>
+                                    <td className="px-6 py-3 text-center text-xs font-mono text-slate-400 dark:text-slate-500">{e.id}</td>
+                                    <td className="px-6 py-3 text-center font-mono text-sm font-semibold text-slate-600 dark:text-slate-400">{formatarSegundosParaHMS(e.segundosSem1)}</td>
+                                    <td className="px-6 py-3 text-center font-mono text-sm font-semibold text-slate-800 dark:text-slate-200">{formatarSegundosParaHMS(e.segundosSem2)}</td>
                                 </tr>
                             ))}
                         </tbody>
@@ -65,11 +73,11 @@ export const SlideEntregadores: React.FC<SlideEntregadoresProps> = ({
                     <div className="flex gap-6 font-mono text-lg font-bold">
                         <div>
                             <span className="text-xs uppercase tracking-widest text-slate-400 block dark:text-slate-500">Sem {numeroSemana1}</span>
-                            <span>{totalSem1.toFixed(1)}h</span>
+                            <span>{formatarSegundosParaHMS(totalSegundosSem1)}</span>
                         </div>
                         <div className="border-l border-slate-700 dark:border-slate-200 pl-6">
                             <span className="text-xs uppercase tracking-widest text-slate-400 block dark:text-slate-500">Sem {numeroSemana2}</span>
-                            <span className="text-sky-400 dark:text-sky-600">{totalSem2.toFixed(1)}h</span>
+                            <span className="text-sky-400 dark:text-sky-600">{formatarSegundosParaHMS(totalSegundosSem2)}</span>
                         </div>
                     </div>
                 </div>

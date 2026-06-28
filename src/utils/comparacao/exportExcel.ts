@@ -9,7 +9,8 @@ export function exportComparacaoToExcel(
     dadosComparacao: DashboardResumoData[],
     utrComparacao: any[],
     semanasSelecionadas: string[],
-    pracaSelecionada: string | null
+    pracaSelecionada: string | null,
+    entregadoresComparativo?: any[]
 ) {
     if (dadosComparacao.length < 2 || semanasSelecionadas.length < 2) {
         alert('Dados insuficientes para exportar.');
@@ -298,6 +299,38 @@ export function exportComparacaoToExcel(
     XLSX.utils.book_append_sheet(wb, wsTurnos, "Turnos");
     XLSX.utils.book_append_sheet(wb, wsOrigens, "Origens");
     XLSX.utils.book_append_sheet(wb, wsUtr, "UTR");
+
+    // --- TAB 7: ENTREGADORES ---
+    if (entregadoresComparativo && entregadoresComparativo.length > 0) {
+        const headersEnt = ["Entregador", "ID", `Horas Sem ${sem1}`, `Horas Sem ${sem2}`];
+        
+        const formatarSegundosParaHMS = (totalSegundos: number): string => {
+            const hrs = Math.floor(totalSegundos / 3600);
+            const mins = Math.floor((totalSegundos % 3600) / 60);
+            const secs = Math.floor(totalSegundos % 60);
+            const pad = (num: number) => String(num).padStart(2, '0');
+            return `${hrs}:${pad(mins)}:${pad(secs)}`;
+        };
+
+        const rowsEnt = entregadoresComparativo.map(e => [
+            e.nome,
+            e.id,
+            formatarSegundosParaHMS(e.segundosSem1),
+            formatarSegundosParaHMS(e.segundosSem2)
+        ]);
+        
+        const totalSem1 = entregadoresComparativo.reduce((sum, e) => sum + e.segundosSem1, 0);
+        const totalSem2 = entregadoresComparativo.reduce((sum, e) => sum + e.segundosSem2, 0);
+        rowsEnt.push([
+            "SOMA TOTAL",
+            "-",
+            formatarSegundosParaHMS(totalSem1),
+            formatarSegundosParaHMS(totalSem2)
+        ]);
+
+        const wsEnt = XLSX.utils.aoa_to_sheet([headersEnt, ...rowsEnt]);
+        XLSX.utils.book_append_sheet(wb, wsEnt, "Entregadores");
+    }
 
     // Filename
     const pracaLabel = pracaSelecionada ? `_${pracaSelecionada}` : '_TodasPracas';
