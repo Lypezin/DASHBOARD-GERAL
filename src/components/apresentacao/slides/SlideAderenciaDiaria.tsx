@@ -23,11 +23,11 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({ isVisible, 
         {/* Week 1 Section */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-sky-300 dark:to-sky-700" />
+            <div className="h-px flex-1 bg-sky-200 dark:bg-sky-700" />
             <h3 className="text-sm font-bold text-sky-700 dark:text-sky-300 px-4 py-1 bg-sky-50 dark:bg-sky-900/30 rounded-full border border-sky-200 dark:border-sky-800">
               SEMANA {numeroSemana1}
             </h3>
-            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-sky-300 dark:to-sky-700" />
+            <div className="h-px flex-1 bg-sky-200 dark:bg-sky-700" />
           </div>
           <div className="grid grid-cols-7 gap-2">
             {semana1Dias.map(dia => <DayCard key={`sem1-${dia.sigla}`} dia={dia} isSecondWeek={false} isActive={isVisible} />)}
@@ -37,11 +37,11 @@ const SlideAderenciaDiaria: React.FC<SlideAderenciaDiariaProps> = ({ isVisible, 
         {/* Week 2 Section */}
         <div>
           <div className="flex items-center gap-2 mb-2">
-            <div className="h-px flex-1 bg-gradient-to-r from-transparent to-blue-300 dark:to-blue-700" />
+            <div className="h-px flex-1 bg-blue-200 dark:bg-blue-700" />
             <h3 className="text-sm font-bold text-white px-4 py-1 bg-blue-600 dark:bg-blue-700 rounded-full shadow border border-transparent dark:border-blue-600">
               SEMANA {numeroSemana2}
             </h3>
-            <div className="h-px flex-1 bg-gradient-to-l from-transparent to-blue-300 dark:to-blue-700" />
+            <div className="h-px flex-1 bg-blue-200 dark:bg-blue-700" />
           </div>
           <div className="grid grid-cols-7 gap-2">
             {semana2Dias.map(dia => (

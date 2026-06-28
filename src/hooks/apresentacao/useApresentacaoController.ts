@@ -33,12 +33,12 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
     const router = useRouter();
     const pathname = usePathname();
 
-    const SECTIONS_VERSION = 'v2';
+    const SECTIONS_VERSION = 'v3';
     const getStorageKey = (type: 'slides' | 'sections') => {
         const pracaKey = praca ? praca.replace(/\s+/g, '_').toLowerCase() : 'geral';
         const sortedWeeks = [...semanas].sort((a, b) => a.localeCompare(b));
         const strOpts = `${ano || new Date().getFullYear()}_${pracaKey}_${sortedWeeks.join('-')}`;
-        return `dashboard_presentation_${type}_${strOpts}${type === 'sections' ? `_${SECTIONS_VERSION}` : ''}`;
+        return `dashboard_presentation_${type}_${strOpts}${type === 'sections' ? `_${SECTIONS_VERSION}` : '_v3'}`;
     };
 
     const [currentSlide, setCurrentSlide] = useState(0);
