@@ -8,6 +8,10 @@ interface SlideEntregadoresProps {
     numeroSemana1: string;
     numeroSemana2: string;
     entregadores: Array<{ id: string; nome: string; segundosSem1: number; segundosSem2: number }>;
+    totaisHorasOficiais?: {
+        semana1?: string;
+        semana2?: string;
+    };
 }
 
 const formatarSegundosParaHMS = (totalSegundos: number): string => {
@@ -18,6 +22,18 @@ const formatarSegundosParaHMS = (totalSegundos: number): string => {
     const pad = (num: number) => String(num).padStart(2, '0');
     const sign = totalSegundos < 0 ? '-' : '';
     return `${sign}${hrs}:${pad(mins)}:${pad(secs)}`;
+};
+
+const converterHMSParaSegundos = (valor?: string): number | null => {
+    if (!valor) return null;
+
+    const partes = valor.split(':').map((parte) => Number(parte));
+    if (partes.length !== 3 || partes.some((parte) => !Number.isFinite(parte))) {
+        return null;
+    }
+
+    const [horas, minutos, segundos] = partes;
+    return (horas * 3600) + (minutos * 60) + segundos;
 };
 
 const formatarHMSComNaoRodou = (segundos: number): React.ReactNode => {
@@ -31,11 +47,15 @@ export const SlideEntregadores: React.FC<SlideEntregadoresProps> = ({
     isVisible,
     numeroSemana1,
     numeroSemana2,
-    entregadores
+    entregadores,
+    totaisHorasOficiais
 }) => {
-    // Total hours sum in seconds
-    const totalSegundosSem1 = entregadores.reduce((sum, e) => sum + e.segundosSem1, 0);
-    const totalSegundosSem2 = entregadores.reduce((sum, e) => sum + e.segundosSem2, 0);
+    const totalSegundosEntregadoresSem1 = entregadores.reduce((sum, e) => sum + e.segundosSem1, 0);
+    const totalSegundosEntregadoresSem2 = entregadores.reduce((sum, e) => sum + e.segundosSem2, 0);
+    const totalOficialSem1 = converterHMSParaSegundos(totaisHorasOficiais?.semana1);
+    const totalOficialSem2 = converterHMSParaSegundos(totaisHorasOficiais?.semana2);
+    const totalSegundosSem1 = totalOficialSem1 ?? totalSegundosEntregadoresSem1;
+    const totalSegundosSem2 = totalOficialSem2 ?? totalSegundosEntregadoresSem2;
     const diferencaSegundos = totalSegundosSem2 - totalSegundosSem1;
 
     // Counts

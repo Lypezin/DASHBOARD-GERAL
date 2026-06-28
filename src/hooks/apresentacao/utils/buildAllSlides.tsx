@@ -26,7 +26,7 @@ export function buildAllSlides(
     entregadoresComparativo?: any[]
 ): SlideConfig[] {
     const slidesConfig: SlideConfig[] = [];
-    const { subPracasComparativo, semana1Dias, semana2Dias, turnosComparativo, origensComparativo, mediaOrigens, demandaItens, demandaOrigemItens } = dadosProcessados;
+    const { resumoSemana1, resumoSemana2, subPracasComparativo, semana1Dias, semana2Dias, turnosComparativo, origensComparativo, mediaOrigens, demandaItens, demandaOrigemItens } = dadosProcessados;
 
     const capa = buildSlideCapa(visibleSections.capa, { pracaSelecionada, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2 });
     if (capa) slidesConfig.push(capa);
@@ -38,7 +38,21 @@ export function buildAllSlides(
     if (aderenciaGeral) slidesConfig.push(aderenciaGeral);
 
     if (visibleSections['entregadores'] !== false && entregadoresComparativo && entregadoresComparativo.length > 0) {
-        slidesConfig.push({ key: 'entregadores', render: (visible) => <SlideEntregadores isVisible={visible} numeroSemana1={numeroSemana1} numeroSemana2={numeroSemana2} entregadores={entregadoresComparativo} /> });
+        slidesConfig.push({
+            key: 'entregadores',
+            render: (visible) => (
+                <SlideEntregadores
+                    isVisible={visible}
+                    numeroSemana1={numeroSemana1}
+                    numeroSemana2={numeroSemana2}
+                    entregadores={entregadoresComparativo}
+                    totaisHorasOficiais={{
+                        semana1: resumoSemana1.horasEntregues,
+                        semana2: resumoSemana2.horasEntregues,
+                    }}
+                />
+            )
+        });
     }
 
     const ranking = buildSlideRanking(visibleSections['ranking'], subPracasComparativo);
