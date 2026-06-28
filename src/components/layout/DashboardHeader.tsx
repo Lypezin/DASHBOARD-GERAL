@@ -45,7 +45,7 @@ export function DashboardHeader() {
   return (
     <header className="sticky top-0 z-40 flex h-14 w-full min-w-0 items-center justify-between border-b border-border bg-card/95 px-3 py-3 shadow-[0_1px_2px_0_rgba(0,0,0,0.03)] backdrop-blur transition-all duration-200 sm:px-6 lg:px-8">
       {/* Esquerda: Menu toggle + Breadcrumb */}
-      <div className="flex min-w-0 flex-1 items-center gap-2 sm:gap-3">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
         {/* Toggle para Desktop / Mobile */}
         <Button
           variant="ghost"
@@ -83,7 +83,7 @@ export function DashboardHeader() {
       </div>
 
       {/* Direita: Conquistas + Tema + Perfil */}
-      <div className="flex items-center gap-1 sm:gap-2 shrink-0 pl-2">
+      <div className="flex items-center gap-1 sm:gap-2 shrink-0 pl-2 ml-auto">
         {/* Conquistas (Apenas se logado) */}
         {user && (
           <Button
