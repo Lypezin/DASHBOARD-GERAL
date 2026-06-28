@@ -70,6 +70,8 @@ export const TextElement: React.FC<TextElementProps> = ({
                         fontWeight: el.style?.fontWeight === 'bold' ? 'bold' : 'normal',
                         fontStyle: el.style?.fontStyle === 'italic' ? 'italic' : 'normal',
                         fontSize: el.style?.fontSize || '1.875rem',
+                        fontFamily: el.style?.fontFamily === 'Outfit' ? 'var(--font-outfit), sans-serif' : 'var(--font-inter), sans-serif',
+                        textAlign: el.style?.textAlign || 'center',
                         backgroundColor,
                         boxShadow: backgroundColor === 'transparent' ? 'none' : '0 18px 42px rgba(15,23,42,0.16)',
                     }}

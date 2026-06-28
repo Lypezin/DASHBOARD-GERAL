@@ -11,12 +11,15 @@ export interface SlideElement {
         bg?: string;
         fontWeight?: 'bold' | 'normal';
         fontStyle?: 'italic' | 'normal';
+        fontFamily?: string;
+        textAlign?: 'left' | 'center' | 'right';
     };
 }
 
 export interface MediaSlideData {
     id: string;
     elements: SlideElement[];
+    backgroundColor?: string;
     // Deprecated fields kept for temporary compatibility if needed, but we will migrate away
     url?: string;
     text?: string;

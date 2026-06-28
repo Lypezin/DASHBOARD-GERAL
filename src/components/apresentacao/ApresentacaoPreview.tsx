@@ -99,6 +99,8 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
                   onAddText={handleAddText}
                   onAddImage={handleAddImage}
                   onDeleteSelection={handleDeleteSelection}
+                  slideBackground={activeMediaSlide.backgroundColor || '#ffffff'}
+                  onUpdateSlideBackground={(color) => onUpdateMediaSlide(activeMediaSlide.id, { backgroundColor: color })}
                 />
               )}
             </div>

@@ -1,11 +1,12 @@
 import React from 'react';
 import { FilterOption } from '@/types';
 import FiltroSelect from '@/components/shared/filters/FiltroSelect';
-import { BarChart3, Presentation, X } from 'lucide-react';
+import { BarChart3, Presentation, X, FileSpreadsheet } from 'lucide-react';
 import { ComparacaoWeekSelector } from './components/ComparacaoWeekSelector';
 import { ComparacaoSectionSelector } from './components/ComparacaoSectionSelector';
 import { SecoesVisiveis } from './hooks/useComparacaoFilters';
 import { SaasPanel, SaasPanelHeader } from '@/components/views/shared/SaasPrimitives';
+import { exportComparacaoToExcel } from '@/utils/comparacao/exportExcel';
 
 interface ComparacaoFiltersProps {
     pracas: FilterOption[];
@@ -18,7 +19,8 @@ interface ComparacaoFiltersProps {
     onClearSemanas: () => void;
     onMostrarApresentacao: () => void;
     loading: boolean;
-    dadosComparacaoLength: number;
+    dadosComparacao: any[];
+    utrComparacao: any[];
     secoesVisiveis: SecoesVisiveis;
     onToggleSecao: (secao: keyof SecoesVisiveis) => void;
 }
@@ -33,10 +35,13 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
     onToggleSemana,
     onClearSemanas,
     onMostrarApresentacao,
-    dadosComparacaoLength,
+    dadosComparacao,
+    utrComparacao,
     secoesVisiveis,
     onToggleSecao
 }) => {
+    const hasEnoughData = semanasSelecionadas.length === 2 && dadosComparacao.length === 2;
+
     return (
         <SaasPanel className="overflow-visible">
             <SaasPanelHeader
@@ -60,11 +65,22 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
                         ) : null}
 
                         <button
+                            onClick={() => exportComparacaoToExcel(dadosComparacao, utrComparacao, semanasSelecionadas, pracaSelecionada)}
+                            disabled={!hasEnoughData}
+                            type="button"
+                            className="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200/80 bg-white px-4 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-500 shadow-sm transition-[background-color,border-color,color,box-shadow,transform,opacity] duration-200 hover:-translate-y-0.5 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-600 disabled:cursor-not-allowed disabled:opacity-30 disabled:grayscale dark:border-slate-800/80 dark:bg-slate-950 dark:text-slate-400 dark:hover:border-sky-800 dark:hover:bg-sky-950/20 dark:hover:text-sky-400"
+                            title={!hasEnoughData ? 'Selecione exatamente 2 semanas' : 'Exportar planilha Excel'}
+                        >
+                            <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
+                            Excel
+                        </button>
+
+                        <button
                             onClick={onMostrarApresentacao}
-                            disabled={semanasSelecionadas.length !== 2 || dadosComparacaoLength !== 2}
+                            disabled={!hasEnoughData}
                             type="button"
                             className="inline-flex h-10 items-center gap-2 rounded-xl bg-slate-950 px-4 text-[11px] font-black uppercase tracking-[0.18em] text-white shadow-sm transition-[background-color,box-shadow,transform,opacity] duration-200 hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-30 disabled:grayscale dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100"
-                            title={semanasSelecionadas.length !== 2 ? 'Selecione exatamente 2 semanas' : 'Gerar apresentação'}
+                            title={!hasEnoughData ? 'Selecione exatamente 2 semanas' : 'Gerar apresentação'}
                         >
                             <Presentation className="h-4 w-4" />
                             Apresentação

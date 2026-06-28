@@ -86,7 +86,7 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
             </div>
 
             {/* Premium floating presentation controller at the bottom center */}
-            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100006] flex items-center gap-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md px-4 py-2.5 rounded-full border border-slate-200 dark:border-slate-800 shadow-xl transition-all duration-300 opacity-20 hover:opacity-100 focus-within:opacity-100 hover:translate-y-0 translate-y-1 pointer-events-auto presentation-floating-bar">
+            <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100006] flex items-center gap-3 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl px-5 py-3 rounded-full border border-white/20 dark:border-slate-800/40 shadow-[0_24px_50px_-16px_rgba(15,23,42,0.3)] dark:shadow-[0_24px_50px_-16px_rgba(0,0,0,0.5)] transition-all duration-300 opacity-30 hover:opacity-100 focus-within:opacity-100 hover:translate-y-0 translate-y-1 pointer-events-auto presentation-floating-bar hover:scale-[1.03] active:scale-[1.01]">
                 
                 {/* Exit Button */}
                 <button

@@ -52,13 +52,24 @@ const SlideMedia: React.FC<SlideMediaProps> = ({ isVisible, slideData, index, on
         }
     };
 
+    const gridClass = canDrag ? 'dotted-grid' : '';
+
     return (
         <SlideWrapper
             isVisible={isVisible}
-            style={{ padding: 0, backgroundColor: '#ffffff' }}
+            style={{ padding: 0, backgroundColor: slideData.backgroundColor || '#ffffff' }}
             onClick={() => canDrag && setSelectedElementId(null)}
         >
-            <div ref={containerRef} className="w-full h-full relative bg-white">
+            <style>{`
+                .dotted-grid {
+                    background-image: radial-gradient(circle, #cbd5e1 1.2px, transparent 1.2px);
+                    background-size: 24px 24px;
+                }
+                .dark .dotted-grid {
+                    background-image: radial-gradient(circle, #334155 1.2px, transparent 1.2px);
+                }
+            `}</style>
+            <div ref={containerRef} className={`w-full h-full relative ${gridClass}`}>
                 {elements.map((el) => (
                     <SlideElementItem
                         key={el.id}

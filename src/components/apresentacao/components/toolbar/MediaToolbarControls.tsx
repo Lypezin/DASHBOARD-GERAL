@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Bold, Italic, Palette, Type as TypeSize, Highlighter } from 'lucide-react';
+import { Bold, Italic, Palette, Type as TypeSize, Highlighter, AlignLeft, AlignCenter, AlignRight, ChevronDown } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { SlideElement } from '@/types/presentation';
 
@@ -93,6 +93,68 @@ export const MediaToolbarControls: React.FC<MediaToolbarControlsProps> = ({ sele
                     <Highlighter className="w-4 h-4" style={{ color: selectedElement.style?.bg && selectedElement.style.bg !== 'transparent' ? selectedElement.style.bg : undefined }} />
                 </Button>
             </div>
+
+            <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-2" />
+
+            {/* Align Left */}
+            <Button
+                variant={selectedElement.style?.textAlign === 'left' ? "secondary" : "ghost"}
+                size="icon"
+                className="rounded-full h-8 w-8"
+                onClick={() => handleStyleUpdate('textAlign', 'left')}
+                title="Alinhar à esquerda"
+            >
+                <AlignLeft className="w-4 h-4" />
+            </Button>
+
+            {/* Align Center */}
+            <Button
+                variant={selectedElement.style?.textAlign === 'center' || !selectedElement.style?.textAlign ? "secondary" : "ghost"}
+                size="icon"
+                className="rounded-full h-8 w-8"
+                onClick={() => handleStyleUpdate('textAlign', 'center')}
+                title="Alinhar ao centro"
+            >
+                <AlignCenter className="w-4 h-4" />
+            </Button>
+
+            {/* Align Right */}
+            <Button
+                variant={selectedElement.style?.textAlign === 'right' ? "secondary" : "ghost"}
+                size="icon"
+                className="rounded-full h-8 w-8"
+                onClick={() => handleStyleUpdate('textAlign', 'right')}
+                title="Alinhar à direita"
+            >
+                <AlignRight className="w-4 h-4" />
+            </Button>
+
+            <div className="w-px h-6 bg-slate-300 dark:bg-slate-600 mx-2" />
+
+            {/* Font Family Selection */}
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-8 px-2 text-xs font-semibold gap-1">
+                        <span className="truncate max-w-[60px]">{selectedElement.style?.fontFamily || 'Inter'}</span>
+                        <ChevronDown className="w-3 h-3 text-slate-400" />
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-32 p-2" align="end">
+                    <div className="grid grid-cols-1 gap-1">
+                        {['Inter', 'Outfit'].map(font => (
+                            <Button
+                                key={font}
+                                variant={selectedElement.style?.fontFamily === font || (!selectedElement.style?.fontFamily && font === 'Inter') ? "secondary" : "ghost"}
+                                size="sm"
+                                className="justify-start text-xs font-semibold"
+                                onClick={() => handleStyleUpdate('fontFamily', font)}
+                            >
+                                <span className="truncate">{font}</span>
+                            </Button>
+                        ))}
+                    </div>
+                </PopoverContent>
+            </Popover>
         </>
     );
 };

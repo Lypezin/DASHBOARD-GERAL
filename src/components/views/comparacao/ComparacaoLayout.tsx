@@ -43,7 +43,8 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                 onClearSemanas={actions.limparSemanas}
                 onMostrarApresentacao={() => actions.setMostrarApresentacao(true)}
                 loading={state.loading}
-                dadosComparacaoLength={data.dadosComparacao.length}
+                dadosComparacao={data.dadosComparacao}
+                utrComparacao={data.utrComparacao}
                 secoesVisiveis={state.secoesVisiveis}
                 onToggleSecao={actions.toggleSecao}
             />

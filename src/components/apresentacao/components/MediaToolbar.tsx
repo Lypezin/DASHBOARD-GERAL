@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Image as ImageIcon, Type, Trash2 } from 'lucide-react';
+import { Image as ImageIcon, Type, Trash2, Paintbrush } from 'lucide-react';
 import { SlideElement } from '@/types/presentation';
 import { useMediaUpload } from '@/hooks/apresentacao/useMediaUpload';
 import { MediaToolbarControls } from './toolbar/MediaToolbarControls';
@@ -12,6 +12,8 @@ interface MediaToolbarProps {
     selectedElement?: SlideElement;
     onUpdateElement?: (updates: Partial<SlideElement>) => void;
     onDeleteSelection: () => void;
+    slideBackground?: string;
+    onUpdateSlideBackground?: (color: string) => void;
 }
 
 export const MediaToolbar: React.FC<MediaToolbarProps> = ({
@@ -20,7 +22,9 @@ export const MediaToolbar: React.FC<MediaToolbarProps> = ({
     hasSelection,
     selectedElement,
     onUpdateElement,
-    onDeleteSelection
+    onDeleteSelection,
+    slideBackground,
+    onUpdateSlideBackground
 }) => {
     const { fileInputRef, handleFileUpload, triggerUpload, isUploading } = useMediaUpload(onAddImage);
     const isTextSelected = selectedElement?.type === 'text';
@@ -47,6 +51,25 @@ export const MediaToolbar: React.FC<MediaToolbarProps> = ({
                         <Type className="w-4 h-4 mr-2 text-emerald-600" />
                         Texto
                     </Button>
+
+                    {onUpdateSlideBackground && (
+                        <>
+                            <div className="w-px h-4 bg-slate-200 dark:bg-slate-700 mx-1" />
+                            <div className="relative flex items-center justify-center">
+                                <input
+                                    type="color"
+                                    className="absolute opacity-0 w-8 h-8 cursor-pointer"
+                                    title="Cor de fundo do slide"
+                                    value={slideBackground || '#ffffff'}
+                                    onChange={(e) => onUpdateSlideBackground(e.target.value)}
+                                />
+                                <Button variant="ghost" size="sm" className="h-8 px-3" title="Cor de fundo do slide">
+                                    <Paintbrush className="w-4 h-4 mr-2 text-indigo-600" />
+                                    Fundo
+                                </Button>
+                            </div>
+                        </>
+                    )}
 
                     {hasSelection && isTextSelected && selectedElement && (
                         <MediaToolbarControls

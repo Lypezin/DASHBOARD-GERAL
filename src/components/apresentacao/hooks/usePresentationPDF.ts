@@ -29,10 +29,7 @@ export const usePresentationPDF = ({ slides, numeroSemana1, numeroSemana2, conte
                 format: 'a4',
             });
 
-            // Hide the preview container during capture to avoid interference
-            if (contentRef.current) {
-                contentRef.current.style.visibility = 'hidden';
-            }
+
 
             for (let i = 0; i < slides.length; i++) {
                 setGeneratingProgress({ current: i + 1, total: slides.length });
@@ -82,10 +79,8 @@ export const usePresentationPDF = ({ slides, numeroSemana1, numeroSemana2, conte
         } catch (error) {
             safeLog.error('Erro ao gerar PDF:', error);
             alert('Erro ao gerar PDF. Tente novamente.');
+
         } finally {
-            if (contentRef.current) {
-                contentRef.current.style.visibility = 'visible';
-            }
             setIsGenerating(false);
             setGeneratingProgress({ current: 0, total: 0 });
             setCapturingIndex(null);

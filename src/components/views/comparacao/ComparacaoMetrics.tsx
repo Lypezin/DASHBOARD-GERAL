@@ -100,7 +100,15 @@ function MetricCard({
     }[tone];
 
     return (
-        <div className="group min-w-0 rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-[0_18px_48px_-38px_rgba(15,23,42,0.38)] dark:border-slate-800/80 dark:bg-slate-950/70 dark:hover:border-slate-700">
+        <div className="group min-w-0 rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-[0_18px_48px_-38px_rgba(15,23,42,0.38)] dark:border-slate-800/80 dark:bg-slate-950/70 dark:hover:border-slate-700 relative overflow-hidden">
+            {/* Top border dynamic gradient glow line */}
+            <div className={cn(
+                "absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r opacity-0 group-hover:opacity-100 transition-opacity duration-300",
+                tone === 'emerald' ? 'from-emerald-400 to-teal-500' :
+                tone === 'sky' ? 'from-sky-400 to-blue-500' :
+                tone === 'amber' ? 'from-amber-400 to-yellow-500' :
+                'from-rose-400 to-pink-500'
+            )} />
             <div className="mb-4 flex items-start justify-between gap-3">
                 <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border', toneClass.icon)}>
                     <Icon className="h-4 w-4" />
