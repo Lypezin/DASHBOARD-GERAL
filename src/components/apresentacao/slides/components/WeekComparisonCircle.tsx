@@ -72,26 +72,22 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
                 </div>
             </div>
 
-            {/* Hours - Compact Side-by-Side Design */}
+            {/* Hours - Compact Row-by-Row Design */}
             {(horasPlanejadas || horasEntregues) && (
-                <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 rounded-xl p-2 w-full mt-2 flex justify-between items-center gap-1.5 min-w-[125px]">
+                <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-100 dark:border-slate-700/50 rounded-xl px-2.5 py-1.5 w-full mt-2 flex flex-col gap-1 min-w-[125px]">
                     {horasPlanejadas && (
-                        <div className="flex-1 text-center">
-                            <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase block tracking-wider mb-0.5">Meta</span>
-                            <span className="font-extrabold text-slate-700 dark:text-slate-350 block text-xs sm:text-sm">
-                                {horasPlanejadas}
-                            </span>
+                        <div className="flex justify-between items-center text-[10px] sm:text-xs">
+                            <span className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-[8px] sm:text-[9px]">Meta</span>
+                            <span className="font-extrabold text-slate-700 dark:text-slate-350 leading-none">{horasPlanejadas}</span>
                         </div>
                     )}
                     {horasPlanejadas && horasEntregues && (
-                        <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 shrink-0" />
+                        <div className="h-px bg-slate-200/60 dark:bg-slate-700 w-full my-0.5" />
                     )}
                     {horasEntregues && (
-                        <div className="flex-1 text-center">
-                            <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500 uppercase block tracking-wider mb-0.5">Real</span>
-                            <span className="font-extrabold text-emerald-600 dark:text-emerald-400 block text-xs sm:text-sm">
-                                {horasEntregues}
-                            </span>
+                        <div className="flex justify-between items-center text-[10px] sm:text-xs">
+                            <span className="font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider text-[8px] sm:text-[9px]">Real</span>
+                            <span className="font-extrabold text-emerald-600 dark:text-emerald-400 leading-none">{horasEntregues}</span>
                         </div>
                     )}
                 </div>

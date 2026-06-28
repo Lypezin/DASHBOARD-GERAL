@@ -45,7 +45,7 @@ export const SubPracaCard: React.FC<SubPracaCardProps> = ({
             {/* Card Body */}
             <div className={`${isSingleItem ? 'p-10' : 'p-5'} flex-1 flex flex-col justify-center`}>
                 {/* Week Comparison */}
-                <div className={`flex items-start justify-center ${isSingleItem ? 'gap-12' : 'gap-8'} mb-5`}>
+                <div className={`flex items-start justify-center ${isSingleItem ? 'gap-12' : 'gap-6'} mb-5`}>
                     <WeekComparisonCircle
                         aderencia={item.semana1.aderencia}
                         horasEntregues={item.semana1.horasEntregues}
@@ -53,7 +53,7 @@ export const SubPracaCard: React.FC<SubPracaCardProps> = ({
                         label={`SEM ${numeroSemana1}`}
                         isSecond={false}
                         size={isSingleItem ? 'large' : 'normal'}
-                        circleSizePx={isSingleItem ? 110 : 95} // 95 to match original SubPracas
+                        circleSizePx={isSingleItem ? 110 : 98}
                     />
                     <WeekComparisonCircle
                         aderencia={item.semana2.aderencia}
@@ -62,12 +62,12 @@ export const SubPracaCard: React.FC<SubPracaCardProps> = ({
                         label={`SEM ${numeroSemana2}`}
                         isSecond={true}
                         size={isSingleItem ? 'large' : 'normal'}
-                        circleSizePx={isSingleItem ? 110 : 95}
+                        circleSizePx={isSingleItem ? 110 : 98}
                     />
                 </div>
 
                 {/* Variations Row */}
-                <div className="flex gap-1.5 lg:gap-2 xl:gap-3 animate-float-up w-full" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+                <div className="flex gap-1.5 lg:gap-2 xl:gap-3 animate-float-up w-full mt-auto" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
                     {item.variacoes.map((variacao) => (
                         <VariationBadge
                             key={variacao.label}

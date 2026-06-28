@@ -59,11 +59,11 @@ const SlideSubPracas: React.FC<SlideSubPracasProps> = ({
 
       {/* Cards Grid - Adaptive */}
       <div className={cn(
-        "grid gap-7 flex-1 place-content-center w-full max-w-[1400px] mx-auto",
+        "grid gap-7 flex-1 place-content-center w-full max-w-[1550px] mx-auto",
         itens.length === 1 && "flex justify-center items-center",
-        itens.length === 2 && "grid-cols-2",
-        itens.length === 3 && "grid-cols-3",
-        itens.length >= 4 && "grid-cols-2 lg:grid-cols-4" // Use 4 cols if space permits, else 2x2
+        itens.length === 2 && "grid-cols-2 h-[390px]",
+        itens.length === 3 && "grid-cols-3 h-[390px]",
+        itens.length >= 4 && "grid-cols-2 lg:grid-cols-4 h-[390px]"
       )}>
         {itens.map((item, index) => (
           <SubPracaCard
