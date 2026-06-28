@@ -29,13 +29,13 @@ export const OrigemCard: React.FC<OrigemCardProps> = ({
 }) => {
     return (
         <div
-            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg ${isSingleItem ? 'w-full max-w-7xl mx-auto' : ''} animate-slide-up opacity-0`}
+            className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg ${isSingleItem ? 'w-full max-w-7xl mx-auto' : 'h-full flex flex-col'} animate-slide-up opacity-0`}
             style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
         >
             {/* Card Header */}
-            <div className="bg-gradient-to-r from-blue-700 to-blue-600 dark:from-blue-900 dark:to-blue-800 px-5 py-3 flex items-center justify-between gap-3 min-h-[4.5rem] rounded-t-2xl">
+            <div className="bg-gradient-to-r from-blue-700 to-blue-600 dark:from-blue-900 dark:to-blue-800 px-5 py-3 flex items-center justify-between gap-3 min-h-[4.5rem] rounded-t-2xl flex-shrink-0">
                 <h3
-                    className="text-white font-bold text-lg uppercase tracking-wide flex-1 leading-snug"
+                    className="text-white font-bold text-lg uppercase tracking-wide flex-1 leading-snug line-clamp-2"
                     style={{
                         wordBreak: 'break-word',
                         hyphens: 'auto'
@@ -47,7 +47,7 @@ export const OrigemCard: React.FC<OrigemCardProps> = ({
             </div>
 
             {/* Card Body */}
-            <div className={isSingleItem ? 'p-8' : 'p-5'}>
+            <div className={`${isSingleItem ? 'p-8' : 'p-5'} flex-1 flex flex-col justify-center`}>
                 {/* Week Comparison */}
                 <div className={`flex items-start justify-center ${isSingleItem ? 'gap-12' : 'gap-6'} mb-5`}>
                     <WeekComparisonCircle
@@ -57,7 +57,7 @@ export const OrigemCard: React.FC<OrigemCardProps> = ({
                         label={`SEM ${numeroSemana1}`}
                         isSecond={false}
                         size={isSingleItem ? 'large' : 'normal'}
-                        circleSizePx={isSingleItem ? 110 : 90}
+                        circleSizePx={isSingleItem ? 110 : 98}
                     />
                     <WeekComparisonCircle
                         aderencia={item.semana2.aderencia}
@@ -66,12 +66,12 @@ export const OrigemCard: React.FC<OrigemCardProps> = ({
                         label={`SEM ${numeroSemana2}`}
                         isSecond={true}
                         size={isSingleItem ? 'large' : 'normal'}
-                        circleSizePx={isSingleItem ? 110 : 90}
+                        circleSizePx={isSingleItem ? 110 : 98}
                     />
                 </div>
 
                 {/* Variations Row */}
-                <div className="flex gap-3 animate-float-up" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+                <div className="flex gap-1.5 lg:gap-2 xl:gap-3 animate-float-up w-full mt-auto" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
                     {item.variacoes.map((variacao) => (
                         <VariationBadge
                             key={variacao.label}

@@ -58,8 +58,8 @@ const SlideOrigem: React.FC<SlideOrigemProps> = ({
         </p>
       )}
 
-      <div className="flex-1 w-full max-w-[1300px] mx-auto flex items-center justify-center">
-        <div className={`w-full gap-6 ${itens.length === 1 ? 'flex justify-center items-center' : ''} ${itens.length === 2 ? 'grid grid-cols-2 max-w-4xl' : ''} ${itens.length === 3 ? 'grid grid-cols-3' : ''}`}>
+      <div className="flex-1 w-full max-w-[1550px] mx-auto flex items-center justify-center">
+        <div className={`w-full gap-6 ${itens.length === 1 ? 'flex justify-center items-center' : 'h-[390px]'} ${itens.length === 2 ? 'grid grid-cols-2 max-w-4xl' : ''} ${itens.length === 3 ? 'grid grid-cols-3' : ''}`}>
           {itens.map((item, index) => (
             <OrigemCard
               key={item.nome}
