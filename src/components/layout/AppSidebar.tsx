@@ -8,15 +8,10 @@ import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
 import { useHeaderAvatar } from '@/hooks/auth/useHeaderAvatar';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-  ChevronLeft,
-  ChevronRight,
-  X
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { SIDEBAR_GROUPS, SIDEBAR_LABELS } from '@/constants/navigation';
 import { TabType } from '@/types';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import { prefetchDashboardTabResources } from '@/hooks/dashboard/prefetchDashboardTabResources';
+import { SidebarMenuItem } from './SidebarMenuItem';
 
 export function AppSidebar() {
   const { collapsed, toggleSidebar, mobileOpen, setMobileOpen } = useSidebar();
@@ -54,52 +49,18 @@ export function AppSidebar() {
         <div className="space-y-0.5">
           {group.items.map((item) => {
             const isActive = activeTab === item.value;
-            const Icon = item.icon;
             const displayLabel = SIDEBAR_LABELS[item.value] || item.label;
 
-            const buttonEl = (
-              <button
-                onClick={() => handleItemClick(item.value)}
-                onMouseEnter={() => prefetchDashboardTabResources(item.value)}
-                onFocus={() => prefetchDashboardTabResources(item.value)}
-                className={cn(
-                  'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-all duration-150',
-                  'relative overflow-hidden group focus:outline-none',
-                  isActive
-                    ? 'bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(59,130,246,0.15)]'
-                    : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                )}
-              >
-                <Icon className={cn('h-[18px] w-[18px] shrink-0', isActive ? 'text-current' : 'text-muted-foreground/80 group-hover:text-foreground')} />
-                
-                {!collapsed && (
-                  <motion.span
-                    initial={{ opacity: 0, width: 0 }}
-                    animate={{ opacity: 1, width: 'auto' }}
-                    exit={{ opacity: 0, width: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="truncate"
-                  >
-                    {displayLabel}
-                  </motion.span>
-                )}
-              </button>
+            return (
+              <SidebarMenuItem
+                key={item.value}
+                item={item}
+                isActive={isActive}
+                collapsed={collapsed}
+                displayLabel={displayLabel}
+                onClick={handleItemClick}
+              />
             );
-
-            if (collapsed) {
-              return (
-                <Tooltip key={item.value} delayDuration={0}>
-                  <TooltipTrigger asChild>
-                    {buttonEl}
-                  </TooltipTrigger>
-                  <TooltipContent side="right" className="font-bold border border-border">
-                    {displayLabel}
-                  </TooltipContent>
-                </Tooltip>
-              );
-            }
-
-            return <React.Fragment key={item.value}>{buttonEl}</React.Fragment>;
           })}
         </div>
       </div>
@@ -217,38 +178,30 @@ export function AppSidebar() {
               {/* Navegação Mobile */}
               <div className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
                 {/* Aqui os itens são sempre expandidos (collapsed = false) */}
-                {(() => {
-                  return SIDEBAR_GROUPS.map((group) => (
-                    <div key={`mobile-${group.name}`} className="space-y-1.5 pt-2">
-                      <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
-                        {group.name}
-                      </p>
-                      <div className="space-y-0.5">
-                        {group.items.map((item) => {
-                          const isActive = activeTab === item.value;
-                          const Icon = item.icon;
-                          const displayLabel = SIDEBAR_LABELS[item.value] || item.label;
+                {SIDEBAR_GROUPS.map((group) => (
+                  <div key={`mobile-${group.name}`} className="space-y-1.5 pt-2">
+                    <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+                      {group.name}
+                    </p>
+                    <div className="space-y-0.5">
+                      {group.items.map((item) => {
+                        const isActive = activeTab === item.value;
+                        const displayLabel = SIDEBAR_LABELS[item.value] || item.label;
 
-                          return (
-                            <button
-                              key={`mobile-${item.value}`}
-                              onClick={() => handleItemClick(item.value)}
-                              onMouseEnter={() => prefetchDashboardTabResources(item.value)}
-                              onFocus={() => prefetchDashboardTabResources(item.value)}
-                              className={cn(
-                                'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-all duration-150',
-                                isActive ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'
-                              )}
-                            >
-                              <Icon className="h-[18px] w-[18px]" />
-                              <span>{displayLabel}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
+                        return (
+                          <SidebarMenuItem
+                            key={`mobile-${item.value}`}
+                            item={item}
+                            isActive={isActive}
+                            collapsed={false}
+                            displayLabel={displayLabel}
+                            onClick={handleItemClick}
+                          />
+                        );
+                      })}
                     </div>
-                  ));
-                })()}
+                  </div>
+                ))}
               </div>
             </motion.aside>
           </>
