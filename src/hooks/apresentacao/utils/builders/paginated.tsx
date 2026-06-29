@@ -9,6 +9,8 @@ import { DemandaOrigemItem } from '@/utils/apresentacao/processors/demandaOrigem
 import SlideResumoOrigens from '@/components/apresentacao/slides/SlideResumoOrigens';
 import SlideResumoSubPracas from '@/components/apresentacao/slides/SlideResumoSubPracas';
 import { OrigemProcessada } from '@/utils/apresentacao/processors/origens';
+import SlideResumoTurnos from '@/components/apresentacao/slides/SlideResumoTurnos';
+import SlideResumoDemandaOrigem from '@/components/apresentacao/slides/SlideResumoDemandaOrigem';
 
 // Constants
 const SUB_PRACAS_PER_PAGE = 3;
@@ -110,6 +112,59 @@ export const buildSlidesResumoSubPracas = (
             key: `resumo-sub-pracas-${indice}`,
             render: (v) => (
                 <SlideResumoSubPracas
+                    isVisible={v}
+                    numeroSemana1={props.numeroSemana1}
+                    numeroSemana2={props.numeroSemana2}
+                    paginaAtual={indice + 1}
+                    totalPaginas={paginas.length}
+                    itens={pagina}
+                />
+            ),
+        });
+    });
+    return slides;
+};
+
+export const buildSlidesResumoTurnos = (
+    visible: boolean,
+    turnosComparativo: any[],
+    props: { numeroSemana1: string; numeroSemana2: string }
+): SlideConfig[] => {
+    if (!visible || !turnosComparativo || turnosComparativo.length === 0) return [];
+    const slides: SlideConfig[] = [];
+    const paginas = chunkArray(turnosComparativo, RESUMO_PER_PAGE);
+    paginas.forEach((pagina, indice) => {
+        slides.push({
+            key: `resumo-turnos-${indice}`,
+            render: (v) => (
+                <SlideResumoTurnos
+                    isVisible={v}
+                    numeroSemana1={props.numeroSemana1}
+                    numeroSemana2={props.numeroSemana2}
+                    paginaAtual={indice + 1}
+                    totalPaginas={paginas.length}
+                    itens={pagina}
+                />
+            ),
+        });
+    });
+    return slides;
+};
+
+export const buildSlidesResumoDemandaOrigem = (
+    visible: boolean,
+    demandaOrigemItens: DemandaOrigemItem[],
+    props: { numeroSemana1: string; numeroSemana2: string }
+): SlideConfig[] => {
+    if (!visible || !demandaOrigemItens || demandaOrigemItens.length === 0) return [];
+    const slides: SlideConfig[] = [];
+    const DEMANDA_RESUMO_PER_PAGE = 10;
+    const paginas = chunkArray(demandaOrigemItens, DEMANDA_RESUMO_PER_PAGE);
+    paginas.forEach((pagina, indice) => {
+        slides.push({
+            key: `resumo-demanda-origem-${indice}`,
+            render: (v) => (
+                <SlideResumoDemandaOrigem
                     isVisible={v}
                     numeroSemana1={props.numeroSemana1}
                     numeroSemana2={props.numeroSemana2}

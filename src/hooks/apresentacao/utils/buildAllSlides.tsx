@@ -10,7 +10,8 @@ import {
     buildSlideCapa, buildSlideResumoIA, buildSlideAderenciaGeral, buildSlideRanking,
     buildSlidesSubPracas, buildSlideAderenciaDiaria, buildSlidesTurnos, buildSlidesOrigem,
     buildSlideMediaOrigens, buildSlideDemanda, buildSlidesDemandaOrigem, SlideConfig,
-    buildSlidesResumoOrigens, buildSlidesResumoSubPracas
+    buildSlidesResumoOrigens, buildSlidesResumoSubPracas,
+    buildSlidesResumoTurnos, buildSlidesResumoDemandaOrigem
 } from './slideBuilders';
 
 export function buildAllSlides(
@@ -70,6 +71,8 @@ export function buildAllSlides(
         slidesConfig.push({ key: 'utr', render: (visible) => <SlideUTR isVisible={visible} numeroSemana1={numeroSemana1} numeroSemana2={numeroSemana2} utrComparacao={utrComparacao} /> });
     }
 
+    slidesConfig.push(...buildSlidesResumoTurnos(visibleSections['resumo-turnos'], turnosComparativo, { numeroSemana1, numeroSemana2 }));
+
     slidesConfig.push(...buildSlidesTurnos(visibleSections.turnos, turnosComparativo, { numeroSemana1, numeroSemana2 }));
 
     // Novo slider de Media Origens
@@ -82,6 +85,8 @@ export function buildAllSlides(
 
     const demanda = buildSlideDemanda(visibleSections.demanda, demandaItens, { numeroSemana1, numeroSemana2 });
     if (demanda) slidesConfig.push(demanda);
+
+    slidesConfig.push(...buildSlidesResumoDemandaOrigem(visibleSections['resumo-demanda-origem'], demandaOrigemItens ?? [], { numeroSemana1, numeroSemana2 }));
 
     slidesConfig.push(...buildSlidesDemandaOrigem(visibleSections['demanda-origem'], demandaOrigemItens ?? [], { numeroSemana1, numeroSemana2 }));
 
