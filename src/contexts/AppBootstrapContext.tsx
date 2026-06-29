@@ -56,8 +56,7 @@ async function resolveBootstrapState(force: boolean = false): Promise<AppBootstr
         return cachedState;
       }
 
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      const authUser = userError || !user ? session.user : user;
+      const authUser = session.user;
       const cachedUserId = cachedState?.authUser?.id || null;
 
       if (!force && cachedState?.hasResolved && cachedUserId === authUser.id) {

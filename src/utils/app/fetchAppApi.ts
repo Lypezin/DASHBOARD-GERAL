@@ -6,6 +6,8 @@ type ApiErrorShape = {
 };
 
 const inFlightGetRequests = new Map<string, Promise<{ data: unknown | null; error: string | null }>>();
+const completedGetCache = new Map<string, { data: unknown | null; expiresAt: number }>();
+const COMPLETED_GET_CACHE_TTL_MS = 10_000;
 const CURRENT_USER_PROFILE_PATH = '/api/app/current-user-profile';
 
 async function sendAppApiData<T>(
@@ -28,10 +30,22 @@ async function sendAppApiData<T>(
         return { data: null, error: payload?.error || 'Erro ao enviar dados para API interna.' };
     }
 
+    completedGetCache.clear();
+
     return { data: (payload?.data ?? null) as T | null, error: null };
 }
 
 export async function getAppApiData<T>(path: string): Promise<{ data: T | null; error: string | null }> {
+    const cached = completedGetCache.get(path);
+
+    if (cached && cached.expiresAt > Date.now()) {
+        return { data: cached.data as T | null, error: null };
+    }
+
+    if (cached) {
+        completedGetCache.delete(path);
+    }
+
     const existingRequest = inFlightGetRequests.get(path);
 
     if (existingRequest) {
@@ -51,7 +65,13 @@ export async function getAppApiData<T>(path: string): Promise<{ data: T | null; 
             return { data: null, error: payload?.error || 'Erro ao consultar API interna.' };
         }
 
-        return { data: (payload?.data ?? null) as T | null, error: null };
+        const data = (payload?.data ?? null) as T | null;
+        completedGetCache.set(path, {
+            data,
+            expiresAt: Date.now() + COMPLETED_GET_CACHE_TTL_MS,
+        });
+
+        return { data, error: null };
     })().finally(() => {
         inFlightGetRequests.delete(path);
     });

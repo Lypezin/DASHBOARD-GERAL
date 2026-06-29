@@ -19,8 +19,9 @@ export function useGamificationState() {
     const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
     const { triggerCelebration } = useGamificationCelebration();
     const { currentUser, isAuthenticated, hasResolved } = useAppBootstrap();
-    const shouldBootstrapGamification = useDeferredMount({ timeoutMs: 1200 });
+    const shouldBootstrapGamification = useDeferredMount({ timeoutMs: 6000 });
     const loginRegisteredRef = useRef<string | null>(null);
+    const recentInteractionRef = useRef<Map<string, number>>(new Map());
 
     const refreshLeaderboard = useCallback(async () => {
         const { data } = await getAppApiData<LeaderboardEntry[]>('/api/app/gamification');
@@ -58,6 +59,14 @@ export function useGamificationState() {
         if (!currentUser?.id) return;
 
         try {
+            const interactionKey = `${currentUser.id}:${type}`;
+            const now = Date.now();
+            const lastInteractionAt = recentInteractionRef.current.get(interactionKey) || 0;
+            if (now - lastInteractionAt < 30000) {
+                return;
+            }
+            recentInteractionRef.current.set(interactionKey, now);
+
             const { data, error } = await postAppApiData<{
                 new_badge_slug: string;
                 new_badge_name: string;
@@ -66,6 +75,7 @@ export function useGamificationState() {
             }[]>('/api/app/gamification', { type });
 
             if (error) {
+                recentInteractionRef.current.delete(interactionKey);
                 safeLog.error('Error registering interaction:', error);
                 return;
             }
@@ -86,6 +96,7 @@ export function useGamificationState() {
                 });
             }
         } catch (e) {
+            recentInteractionRef.current.delete(`${currentUser.id}:${type}`);
             safeLog.error('Gamification error:', e);
         }
     }, [currentUser?.id, triggerCelebration]);

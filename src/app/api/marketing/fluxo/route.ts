@@ -28,6 +28,7 @@ type FluxoCacheEntry = {
 };
 
 const FLUXO_CACHE_TTL_MS = 15 * 60 * 1000;
+const FLUXO_STALE_CACHE_TTL_MS = 60 * 60 * 1000;
 const FLUXO_CACHE_MAX_ENTRIES = 160;
 const fluxoCache = new Map<string, FluxoCacheEntry>();
 const fluxoInFlight = new Map<string, Promise<unknown[]>>();
@@ -59,17 +60,39 @@ function buildFluxoCacheKey(params: {
     ].join('|');
 }
 
-function getCachedFluxo(cacheKey: string) {
+function getCachedFluxo(cacheKey: string, options: { allowStale?: boolean } = {}) {
     const cached = fluxoCache.get(cacheKey);
 
     if (!cached) return null;
 
-    if (cached.expiresAt <= Date.now()) {
+    const now = Date.now();
+    const staleExpiresAt = cached.expiresAt + (FLUXO_STALE_CACHE_TTL_MS - FLUXO_CACHE_TTL_MS);
+
+    if (cached.expiresAt <= now && (!options.allowStale || staleExpiresAt <= now)) {
         fluxoCache.delete(cacheKey);
         return null;
     }
 
     return cached.data;
+}
+
+function refreshFluxoCache(cacheKey: string, fetcher: () => Promise<unknown[]>) {
+    const existingRequest = fluxoInFlight.get(cacheKey);
+    if (existingRequest) return existingRequest;
+
+    const requestPromise = fetcher()
+        .then((data) => {
+            setCachedFluxo(cacheKey, data);
+            return data;
+        })
+        .finally(() => {
+            if (fluxoInFlight.get(cacheKey) === requestPromise) {
+                fluxoInFlight.delete(cacheKey);
+            }
+        });
+
+    fluxoInFlight.set(cacheKey, requestPromise);
+    return requestPromise;
 }
 
 function setCachedFluxo(cacheKey: string, data: unknown[]) {
@@ -134,32 +157,33 @@ export async function POST(request: Request) {
             return NextResponse.json({ data: cached, error: null, cached: true });
         }
 
-        let requestPromise = fluxoInFlight.get(cacheKey);
+        const fetchFluxo = async () => {
+            const admin = createServiceRoleClient();
+            const { data, error } = await admin.rpc('get_fluxo_semanal', {
+                p_data_inicial: dataInicial,
+                p_data_final: dataFinal,
+                p_include_names: includeNames,
+                p_organization_id: organizationId,
+                p_praca: praca,
+            });
 
-        if (!requestPromise) {
-            requestPromise = (async () => {
-                const admin = createServiceRoleClient();
-                const { data, error } = await admin.rpc('get_fluxo_semanal', {
-                    p_data_inicial: dataInicial,
-                    p_data_final: dataFinal,
-                    p_include_names: includeNames,
-                    p_organization_id: organizationId,
-                    p_praca: praca,
-                });
+            if (error) {
+                throw Object.assign(new Error(error.message), { details: error });
+            }
 
-                if (error) {
-                    throw Object.assign(new Error(error.message), { details: error });
-                }
+            return Array.isArray(data) ? data : [];
+        };
 
-                return Array.isArray(data) ? data : [];
-            })();
-
-            fluxoInFlight.set(cacheKey, requestPromise);
+        const staleCached = getCachedFluxo(cacheKey, { allowStale: true });
+        if (staleCached) {
+            void refreshFluxoCache(cacheKey, fetchFluxo).catch(() => undefined);
+            return NextResponse.json({ data: staleCached, error: null, cached: true, stale: true });
         }
+
+        const requestPromise = refreshFluxoCache(cacheKey, fetchFluxo);
 
         try {
             const data = await requestPromise;
-            setCachedFluxo(cacheKey, data);
             return NextResponse.json({ data, error: null, cached: false });
         } catch (rpcError) {
             const message = rpcError instanceof Error ? rpcError.message : 'Erro ao consultar fluxo semanal.';
@@ -168,10 +192,6 @@ export async function POST(request: Request) {
                 : rpcError;
 
             return NextResponse.json({ data: null, error: message, details }, { status: 500 });
-        } finally {
-            if (fluxoInFlight.get(cacheKey) === requestPromise) {
-                fluxoInFlight.delete(cacheKey);
-            }
         }
     } catch (error) {
         if (isServiceRoleConfigError(error)) {

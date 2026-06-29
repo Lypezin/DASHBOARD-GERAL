@@ -59,7 +59,7 @@ export async function POST(request: Request) {
     params = pracaScope.params || params;
 
     const admin = createServiceRoleClient();
-    const { data, cached } = await resolveSecureRpcWithCache(functionName, params, auth.profile, async () => {
+    const { data, cached, stale } = await resolveSecureRpcWithCache(functionName, params, auth.profile, async () => {
       const scopedPracas = functionName === 'dashboard_resumo' ? getInternalScopedPracas(params) : [];
 
       if (functionName === 'dashboard_resumo' && scopedPracas.length > 1) {
@@ -99,6 +99,7 @@ export async function POST(request: Request) {
       data,
       error: null,
       cached,
+      stale,
     });
   } catch (error) {
     if (isServiceRoleConfigError(error)) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { ArrowUpRight, ArrowDownRight, RotateCcw, Megaphone, Wrench, UserX, Eye } from 'lucide-react';
 import { formatWeekLabel } from '@/utils/formatters/dateUtils';
 import { MetricDetailDialog } from './MetricDetailDialog';
@@ -53,12 +53,14 @@ export const EntradaSaidaExpanded: React.FC<Props> = ({
     organizationId,
     praca,
 }) => {
+    const shouldReduceMotion = useReducedMotion();
+
     return (
         <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            initial={shouldReduceMotion ? false : { height: 0, opacity: 0 }}
+            animate={shouldReduceMotion ? { opacity: 1 } : { height: 'auto', opacity: 1 }}
+            exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            transition={{ duration: shouldReduceMotion ? 0.01 : 0.25, ease: 'easeInOut' }}
             className="overflow-hidden"
         >
             <div className="border-t border-slate-100 bg-gradient-to-b from-slate-50/80 to-white dark:border-slate-800 dark:from-slate-800/30 dark:to-slate-900">

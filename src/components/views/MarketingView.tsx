@@ -70,31 +70,6 @@ const MarketingView = React.memo(function MarketingView() {
     });
   };
 
-  React.useEffect(() => {
-    let cancelled = false;
-    let timeoutId: number | null = null;
-    const tabs = ['dashboard', 'resultados', 'valores-cidade', 'entrada-saida', 'apresentacao'];
-    const warmSequentially = () => {
-      let index = 0;
-      const warmNext = () => {
-        if (cancelled || index >= tabs.length) return;
-        preloadMarketingSubTab(tabs[index]);
-        index += 1;
-        timeoutId = window.setTimeout(warmNext, 180);
-      };
-
-      warmNext();
-    };
-
-    timeoutId = window.setTimeout(warmSequentially, 900);
-    return () => {
-      cancelled = true;
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, []);
-
   const content = (() => {
     switch (activeSubTab) {
       case 'resultados':

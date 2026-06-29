@@ -36,6 +36,21 @@ function cellAddress(XLSX: typeof XLSXType, row: number, col: number) {
   return XLSX.utils.encode_cell({ r: row, c: col });
 }
 
+function getCellFormat(header: string, value: unknown) {
+  if (typeof value !== 'number') return undefined;
+
+  const normalizedHeader = header.toLocaleLowerCase('pt-BR');
+  if (normalizedHeader.includes('%') || normalizedHeader.includes('taxa') || normalizedHeader.includes('aderencia') || normalizedHeader.includes('aderência')) {
+    return '0.0';
+  }
+
+  if (!Number.isInteger(value)) {
+    return '#,##0.00';
+  }
+
+  return '#,##0';
+}
+
 export function createStyledJsonSheet(
   XLSX: typeof XLSXType,
   rows: SheetRow[],
@@ -79,7 +94,8 @@ export function createStyledJsonSheet(
 
       if (row === 0) {
         cell.s = {
-          font: { bold: true, sz: 16, color: { rgb: themeColor } },
+          font: { bold: true, sz: 17, color: { rgb: 'FFFFFF' } },
+          fill: { fgColor: { rgb: themeColor } },
           alignment: { horizontal: 'center', vertical: 'center' },
         };
       } else if (row === 1) {
@@ -92,14 +108,20 @@ export function createStyledJsonSheet(
           font: { bold: true, color: { rgb: 'FFFFFF' } },
           fill: { fgColor: { rgb: themeColor } },
           alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+          border: {
+            top: { style: 'thin', color: { rgb: themeColor } },
+            bottom: { style: 'thin', color: { rgb: 'CBD5E1' } },
+          },
         };
       } else if (row > headerRowIndex) {
         const isEven = (row - headerRowIndex) % 2 === 0;
+        const header = headers[col] || '';
         cell.s = {
           fill: isEven ? { fgColor: { rgb: 'F8FAFC' } } : undefined,
           alignment: { horizontal: col === 0 ? 'left' : 'center', vertical: 'center', wrapText: true },
           border: { bottom: { style: 'thin', color: { rgb: 'E2E8F0' } } },
         };
+        cell.z = getCellFormat(header, cell.v);
       }
     }
   }

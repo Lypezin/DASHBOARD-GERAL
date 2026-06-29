@@ -1,10 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import type { CurrentUser } from '@/types';
 import { SidebarTrigger } from './SidebarTrigger';
-import { scheduleIdleTask } from '@/utils/scheduling/idleTask';
 
 const DeferredOnlineUsersSidebar = dynamic(
   () => import('./index').then((mod) => ({ default: mod.OnlineUsersSidebar })),
@@ -20,31 +19,6 @@ export function OnlineUsersSidebarLauncher({ currentUser, currentTab }: OnlineUs
   const [activated, setActivated] = useState(false);
   const [openOnLoad, setOpenOnLoad] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
-
-  useEffect(() => {
-    if (!currentUser || activated || typeof window === 'undefined') {
-      return;
-    }
-
-    let cancelled = false;
-
-    const warmRealtime = () => {
-      void import('./index')
-        .catch(() => null)
-        .finally(() => {
-          if (!cancelled) {
-            setActivated(true);
-          }
-        });
-    };
-
-    const cancelWarmRealtime = scheduleIdleTask(warmRealtime, { timeoutMs: 6000, fallbackDelayMs: 2500 });
-
-    return () => {
-      cancelled = true;
-      cancelWarmRealtime();
-    };
-  }, [activated, currentUser]);
 
   if (!currentUser) return null;
 
@@ -72,7 +46,6 @@ export function OnlineUsersSidebarLauncher({ currentUser, currentTab }: OnlineUs
       initialOpen={openOnLoad}
       initialMinimized={isMinimized}
       onMinimizedChange={setIsMinimized}
-      preloadRealtime
     />
   );
 }

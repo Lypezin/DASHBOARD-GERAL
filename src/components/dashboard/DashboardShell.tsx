@@ -13,9 +13,6 @@ import { useDashboardPage } from '@/hooks/dashboard/useDashboardPage';
 import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
 import { FaviconManager } from '@/components/layout/FaviconManager';
-import { preloadDashboardView } from '@/config/dynamicImports';
-import { scheduleIdleTask } from '@/utils/scheduling/idleTask';
-import type { TabType } from '@/types';
 
 const DeferredActivityTracker = dynamic(
   () => import('@/components/dashboard/ActivityTracker').then((mod) => ({ default: mod.ActivityTracker })),
@@ -60,48 +57,6 @@ function DashboardShellContent() {
     || data.aderenciaOrigem.length > 0
     || data.aderenciaDiaOrigem.length > 0;
   const showInitialLoading = ui.loading && !hasMainData;
-
-  React.useEffect(() => {
-    if (!auth.isAuthenticated) return;
-
-    const tabsToWarm: TabType[] = [
-      'analise',
-      'utr',
-      'comparacao',
-      'entregadores',
-      'valores',
-      'prioridade',
-      'evolucao',
-      'dedicado',
-      'marketing_comparacao',
-      'marketing',
-    ];
-    let cancelled = false;
-    let timeoutId: number | null = null;
-
-    const warmSequentially = () => {
-      let index = 0;
-      const warmNext = () => {
-        if (cancelled || index >= tabsToWarm.length) return;
-        preloadDashboardView(tabsToWarm[index]);
-        index += 1;
-        timeoutId = window.setTimeout(warmNext, 140);
-      };
-
-      warmNext();
-    };
-
-    const cancelWarmStart = scheduleIdleTask(warmSequentially, { timeoutMs: 1800, fallbackDelayMs: 900 });
-
-    return () => {
-      cancelled = true;
-      cancelWarmStart();
-      if (timeoutId !== null) {
-        window.clearTimeout(timeoutId);
-      }
-    };
-  }, [auth.isAuthenticated]);
-
 
   if (auth.isCheckingAuth) return <DashboardAuthLoading />;
   if (auth.hasSessionWithoutProfile) {

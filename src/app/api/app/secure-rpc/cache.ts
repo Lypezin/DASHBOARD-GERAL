@@ -3,6 +3,7 @@ import { createRequestKey } from '@/utils/request/createRequestKey';
 
 const SECURE_RPC_CACHE_TTL_MS = 5 * 60_000;
 const SECURE_RPC_DETAIL_CACHE_TTL_MS = 20_000;
+const SECURE_RPC_STALE_CACHE_TTL_MS = 30 * 60_000;
 const MAX_SECURE_RPC_CACHE_ENTRIES = 160;
 
 export type SecureRpcCacheEntry = {
@@ -17,6 +18,10 @@ export function getSecureRpcCacheTtl(functionName: string) {
   return functionName === 'get_entregador_detail' || functionName === 'get_entregadores_details'
     ? SECURE_RPC_DETAIL_CACHE_TTL_MS
     : SECURE_RPC_CACHE_TTL_MS;
+}
+
+function allowsStaleCache(functionName: string) {
+  return functionName !== 'get_entregador_detail' && functionName !== 'get_entregadores_details';
 }
 
 export function normalizeAssignedPracas(profile: CurrentUserProfile) {
@@ -68,7 +73,30 @@ export async function resolveSecureRpcWithCache(
   const cached = secureRpcCache.get(cacheKey);
 
   if (cached && cached.expiresAt > now) {
-    return { data: cached.data, cached: true };
+    return { data: cached.data, cached: true, stale: false };
+  }
+
+  if (cached && allowsStaleCache(functionName) && cached.expiresAt + SECURE_RPC_STALE_CACHE_TTL_MS > now) {
+    const existingRequest = inFlightSecureRpc.get(cacheKey);
+    if (!existingRequest) {
+      const request = fetcher();
+      inFlightSecureRpc.set(cacheKey, request);
+      void request
+        .then((data) => {
+          secureRpcCache.set(cacheKey, {
+            data,
+            expiresAt: Date.now() + getSecureRpcCacheTtl(functionName),
+          });
+        })
+        .catch(() => undefined)
+        .finally(() => {
+          if (inFlightSecureRpc.get(cacheKey) === request) {
+            inFlightSecureRpc.delete(cacheKey);
+          }
+        });
+    }
+
+    return { data: cached.data, cached: true, stale: true };
   }
 
   if (cached) {
@@ -79,7 +107,7 @@ export async function resolveSecureRpcWithCache(
 
   const existingRequest = inFlightSecureRpc.get(cacheKey);
   if (existingRequest) {
-    return { data: await existingRequest, cached: true };
+    return { data: await existingRequest, cached: true, stale: false };
   }
 
   const request = fetcher();
@@ -91,7 +119,7 @@ export async function resolveSecureRpcWithCache(
       data,
       expiresAt: Date.now() + getSecureRpcCacheTtl(functionName),
     });
-    return { data, cached: false };
+    return { data, cached: false, stale: false };
   } finally {
     inFlightSecureRpc.delete(cacheKey);
   }

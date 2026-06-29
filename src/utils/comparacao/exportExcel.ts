@@ -1,4 +1,5 @@
-import * as XLSX from 'xlsx';
+import * as XLSXStyle from 'xlsx-js-style';
+import type * as XLSXType from 'xlsx';
 import { DashboardResumoData } from '@/types';
 import { getWeeklyHours, getMetricValue, getTimeMetric } from '@/utils/comparacao/metrics';
 import { converterHorasParaDecimal, formatarHorasParaHMS } from '@/utils/formatters';
@@ -6,6 +7,8 @@ import { findDayData } from '@/utils/comparacao/dataLookup';
 import { DIAS_DA_SEMANA } from '@/constants/comparacao';
 
 type WorksheetTheme = 'blue' | 'green' | 'purple' | 'amber' | 'slate';
+
+const XLSX = XLSXStyle as unknown as typeof import('xlsx');
 
 const THEME_COLORS: Record<WorksheetTheme, string> = {
     blue: '2563EB',
@@ -52,7 +55,7 @@ function getOfficialWeeklySeconds(dados: DashboardResumoData) {
 }
 
 function styleWorksheet(
-    ws: XLSX.WorkSheet,
+    ws: XLSXType.WorkSheet,
     headers: string[],
     rows: any[][],
     theme: WorksheetTheme,
@@ -151,7 +154,7 @@ function createStyledSheet(
     return ws;
 }
 
-function appendSheet(wb: XLSX.WorkBook, ws: XLSX.WorkSheet, name: string, color: string) {
+function appendSheet(wb: XLSXType.WorkBook, ws: XLSXType.WorkSheet, name: string, color: string) {
     XLSX.utils.book_append_sheet(wb, ws, name);
     const sheet = wb.Workbook?.Sheets?.find((item) => item.name === name);
     if (sheet) {

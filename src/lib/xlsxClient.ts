@@ -19,8 +19,8 @@ export async function loadXLSX(): Promise<typeof import('xlsx')> {
       safeLog.info('Importando xlsx...');
     }
 
-    const xlsxModule = await import('xlsx');
-    xlsxCache = xlsxModule;
+    const xlsxModule = await import('xlsx-js-style');
+    xlsxCache = xlsxModule as unknown as typeof import('xlsx');
 
     if (IS_DEV) {
       safeLog.info('xlsx carregado');
