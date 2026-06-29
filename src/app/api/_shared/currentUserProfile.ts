@@ -33,6 +33,11 @@ type LoadCurrentUserProfileResult =
   | { profile: CurrentUserProfile }
   | { failure: ProfileFailure };
 
+const PROFILE_SELECT = 'id, email, full_name, role, is_admin, is_approved, organization_id, assigned_pracas, avatar_url, created_at, updated_at';
+const PROFILE_CACHE_TTL_MS = 10_000;
+const profileCache = new Map<string, { profile: CurrentUserProfile; expiresAt: number }>();
+const inFlightProfileRequests = new Map<string, Promise<{ profile: CurrentUserProfile | null; error: unknown }>>();
+
 export function normalizeCurrentUserProfile(profile: unknown): CurrentUserProfile | null {
   if (Array.isArray(profile)) {
     return (profile[0] as CurrentUserProfile) || null;
@@ -110,16 +115,65 @@ export async function loadCurrentUserProfile(
     return { failure: auth.failure };
   }
 
-  const admin = createServiceRoleClient();
-  const { data: profileData, error: profileError } = await admin
-    .from('user_profiles')
-    .select('id, email, full_name, role, is_admin, is_approved, organization_id, assigned_pracas, avatar_url, created_at, updated_at')
-    .eq('id', auth.user.id)
-    .maybeSingle();
-  const profile = normalizeProfileRow(normalizeCurrentUserProfile(profileData));
+  const cachedProfile = profileCache.get(auth.user.id);
+
+  if (cachedProfile && cachedProfile.expiresAt > Date.now()) {
+    const profile = cachedProfile.profile;
+
+    if (requireApproved && profile.is_approved !== true) {
+      return {
+        failure: {
+          status: 403,
+          message: notApprovedMessage,
+        },
+      };
+    }
+
+    if (requireElevatedRole && !hasElevatedRole(profile)) {
+      return {
+        failure: {
+          status: 403,
+          message: forbiddenMessage,
+        },
+      };
+    }
+
+    return { profile };
+  }
+
+  if (cachedProfile) {
+    profileCache.delete(auth.user.id);
+  }
+
+  const existingProfileRequest = inFlightProfileRequests.get(auth.user.id);
+  const profileResult = existingProfileRequest
+    ? await existingProfileRequest
+    : await (async () => {
+      const admin = createServiceRoleClient();
+      const request = (async () => {
+        const { data: profileData, error } = await admin
+          .from('user_profiles')
+          .select(PROFILE_SELECT)
+          .eq('id', auth.user.id)
+          .maybeSingle();
+
+        return {
+          profile: normalizeProfileRow(normalizeCurrentUserProfile(profileData)),
+          error,
+        };
+      })().finally(() => {
+        inFlightProfileRequests.delete(auth.user.id);
+      });
+
+      inFlightProfileRequests.set(auth.user.id, request);
+      return request;
+    })();
+  const profileError = profileResult.error;
+  const profile = profileResult.profile;
 
   if (profileError || !profile) {
     if (!profileError) {
+      const admin = createServiceRoleClient();
       const metadata = auth.user.user_metadata || {};
       const fullName =
         typeof metadata.full_name === 'string' && metadata.full_name.trim()
@@ -141,7 +195,7 @@ export async function loadCurrentUserProfile(
           assigned_pracas: [],
           role: 'user',
         })
-        .select('id, email, full_name, role, is_admin, is_approved, organization_id, assigned_pracas, avatar_url, created_at, updated_at')
+        .select(PROFILE_SELECT)
         .maybeSingle();
 
       const normalizedCreatedProfile = normalizeProfileRow(normalizeCurrentUserProfile(createdProfile));
@@ -162,7 +216,7 @@ export async function loadCurrentUserProfile(
       if (createError?.code === '23505') {
         const { data: racedProfile } = await admin
           .from('user_profiles')
-          .select('id, email, full_name, role, is_admin, is_approved, organization_id, assigned_pracas, avatar_url, created_at, updated_at')
+          .select(PROFILE_SELECT)
           .eq('id', auth.user.id)
           .maybeSingle();
 
@@ -207,6 +261,11 @@ export async function loadCurrentUserProfile(
       },
     };
   }
+
+  profileCache.set(auth.user.id, {
+    profile,
+    expiresAt: Date.now() + PROFILE_CACHE_TTL_MS,
+  });
 
   return { profile };
 }
