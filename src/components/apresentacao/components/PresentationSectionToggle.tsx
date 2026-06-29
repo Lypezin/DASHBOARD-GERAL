@@ -36,7 +36,7 @@ const SECTION_LABELS: Record<string, string> = {
     'capa-final': 'Capa Final',
 };
 
-export const PresentationSectionToggle: React.FC<PresentationSectionToggleProps> = ({
+export const PresentationSectionToggle: React.FC<PresentationSectionToggleProps> = React.memo(({
     visibleSections,
     onToggleSection,
 }) => {
@@ -64,4 +64,6 @@ export const PresentationSectionToggle: React.FC<PresentationSectionToggleProps>
             </DropdownMenuContent>
         </DropdownMenu>
     );
-};
+});
+
+PresentationSectionToggle.displayName = 'PresentationSectionToggle';

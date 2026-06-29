@@ -4,7 +4,6 @@ import { Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MediaSlideData } from '@/types/presentation';
-import { SlideSidebarItem } from './SlideSidebarItem';
 import { SlideSidebarList } from './SlideSidebarList';
 
 interface SlideSidebarProps {
@@ -18,7 +17,7 @@ interface SlideSidebarProps {
     onDeleteMediaSlide?: (id: string) => void;
 }
 
-export const SlideSidebar: React.FC<SlideSidebarProps> = ({
+export const SlideSidebar: React.FC<SlideSidebarProps> = React.memo(({
     slides,
     currentSlideIndex,
     onSlideSelect,
@@ -91,4 +90,6 @@ export const SlideSidebar: React.FC<SlideSidebarProps> = ({
             </ScrollArea>
         </div>
     );
-};
+});
+
+SlideSidebar.displayName = 'SlideSidebar';

@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { SLIDE_HEIGHT, SLIDE_WIDTH, slideDimensionsStyle } from '../constants';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -9,7 +9,7 @@ interface PresentationViewportProps {
     onPrev?: () => void;
 }
 
-export const PresentationViewport: React.FC<PresentationViewportProps> = ({
+export const PresentationViewport: React.FC<PresentationViewportProps> = React.memo(({
     slides,
     currentSlide,
     onNext,
@@ -21,6 +21,11 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
     const lastScrollTimeRef = useRef(0);
     const previousSlideRef = useRef(currentSlide);
     const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
+
+    const renderedSlide = useMemo(() => {
+        if (!activeSlide) return null;
+        return activeSlide.render(true);
+    }, [activeSlide?.key, activeSlide?.render]);
 
     useEffect(() => {
         const container = containerRef.current;
@@ -171,11 +176,13 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = ({
                                 left: 0,
                             }}
                         >
-                            {activeSlide.render(true)}
+                            {renderedSlide}
                         </motion.div>
                     ) : null}
                 </AnimatePresence>
             </div>
         </div>
     );
-};
+});
+
+PresentationViewport.displayName = 'PresentationViewport';

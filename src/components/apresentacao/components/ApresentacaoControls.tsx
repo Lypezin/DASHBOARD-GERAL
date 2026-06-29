@@ -21,7 +21,7 @@ interface ApresentacaoControlsProps {
     onExportExcel?: () => void;
 }
 
-export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
+export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = React.memo(({
     currentSlide,
     totalSlides,
     onPrev,
@@ -144,4 +144,6 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = ({
             </div>
         </div>
     );
-};
+});
+
+ApresentacaoControls.displayName = 'ApresentacaoControls';
