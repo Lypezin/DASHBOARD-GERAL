@@ -7,6 +7,7 @@ import { EntradaSaidaStatsCards } from './components/EntradaSaidaStatsCards';
 import { EntradaSaidaWeeklyGrid } from './components/EntradaSaidaWeeklyGrid';
 import { Button } from '@/components/ui/button';
 import { loadXLSX } from '@/lib/xlsxClient';
+import { appendStyledJsonSheet, applyWorkbookMetadata } from '@/utils/excel/workbookStyle';
 
 interface EntradaSaidaViewProps {
     dataInicial: string | null;
@@ -40,9 +41,13 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
         }));
 
         const XLSX = await loadXLSX();
-        const ws = XLSX.utils.json_to_sheet(formattedData);
         const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, 'Fluxo Semanal');
+        applyWorkbookMetadata(wb, 'Fluxo semanal de entregadores');
+        appendStyledJsonSheet(XLSX, wb, formattedData, 'Fluxo Semanal', {
+            title: 'Fluxo semanal de entregadores',
+            subtitle: praca ? `Praça: ${praca}` : 'Todas as praças',
+            theme: 'blue',
+        });
 
         const dateStr = new Date().toISOString().split('T')[0];
         XLSX.writeFile(wb, `fluxo_entregadores_marketing_${dateStr}.xlsx`);

@@ -55,6 +55,9 @@ export function useValoresSort(dataToDisplay: ValoresEntregador[]) {
 
     const sortedValores = useMemo(() => {
         if (!Array.isArray(deferredDataToDisplay) || deferredDataToDisplay.length === 0) return [];
+        if (sortField === 'total_taxas' && sortDirection === 'desc') {
+            return deferredDataToDisplay;
+        }
 
         const dataCopy = [...deferredDataToDisplay];
 

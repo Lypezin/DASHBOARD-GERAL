@@ -100,7 +100,7 @@ export function useUserActivity(
     filterTimeout.current = setTimeout(() => {
       registrarAtividade('filter_change', { filters: filtersRef.current }, activeTabRef.current, filtersRef.current);
       lastTrackedFiltersRef.current = currentFiltersKey;
-    }, DELAYS.DEBOUNCE);
+    }, DELAYS.ACTIVITY_FILTER_CHANGE);
 
     return () => { if (filterTimeout.current) clearTimeout(filterTimeout.current); };
   }, [filters, sessionId, registrarAtividade]);

@@ -15,6 +15,7 @@ import {
 import type { Entregador } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 import { fetchDedicadoApi } from '@/utils/dedicado/fetchDedicadoApi';
+import { appendStyledJsonSheet, applyWorkbookMetadata } from '@/utils/excel/workbookStyle';
 
 interface DedicadoExportPayload {
   totais?: {
@@ -78,11 +79,10 @@ function formatFilters(payload: Record<string, unknown>) {
 }
 
 function appendSheet(XLSX: typeof import('xlsx'), workbook: import('xlsx').WorkBook, data: Record<string, unknown>[], sheetName: string) {
-  const worksheet = XLSX.utils.json_to_sheet(data.length > 0 ? data : [{ Aviso: 'Sem dados para os filtros atuais' }]);
-  worksheet['!cols'] = Object.keys(data[0] || { Aviso: '' }).map((key) => ({
-    wch: Math.max(12, Math.min(34, key.length + 8)),
-  }));
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
+  appendStyledJsonSheet(XLSX, workbook, data, sheetName, {
+    title: `DEDICADO - ${sheetName}`,
+    theme: sheetName === 'Ranking' ? 'amber' : sheetName === 'Filtros' ? 'slate' : 'blue',
+  });
 }
 
 export async function exportarDedicadoParaExcel(filterPayload: FilterPayload): Promise<void> {
@@ -90,6 +90,7 @@ export async function exportarDedicadoParaExcel(filterPayload: FilterPayload): P
     const rpcPayload = buildDedicadoFilterPayload(filterPayload);
     const XLSX = await loadXLSX();
     const workbook = XLSX.utils.book_new();
+    applyWorkbookMetadata(workbook, 'DEDICADO');
 
     const [summaryResult, entregadoresResult] = await Promise.all([
       fetchDedicadoApi<DedicadoExportPayload>('summary', {

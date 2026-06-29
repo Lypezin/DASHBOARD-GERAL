@@ -5,6 +5,7 @@ import { formatarHorasParaHMS } from '@/utils/formatters';
 import { calcularTaxas } from '@/hooks/analise/useAnaliseTaxas';
 import { formatarPorcentagem, formatarNumero, gerarDadosFormatados } from './excel/AnaliseExcelHelpers';
 import { IS_DEV } from '@/constants/environment';
+import { appendStyledJsonSheet, applyWorkbookMetadata } from '@/utils/excel/workbookStyle';
 
 
 export async function exportarAnaliseParaExcel(
@@ -18,6 +19,7 @@ export async function exportarAnaliseParaExcel(
   try {
     const XLSX = await loadXLSX();
     const wb = XLSX.utils.book_new();
+    applyWorkbookMetadata(wb, 'Análise de taxas');
 
     if (totals) {
       const { taxaAceitacao, taxaCompletude, taxaRejeicao } = calcularTaxas({
@@ -41,16 +43,18 @@ export async function exportarAnaliseParaExcel(
         'Taxa Completude': formatarPorcentagem(taxaCompletude),
         'Horas Entregues': horasFormatadas,
       }];
-      const wsResumo = XLSX.utils.json_to_sheet(resumoData);
-      XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo Geral');
+      appendStyledJsonSheet(XLSX, wb, resumoData, 'Resumo Geral', {
+        title: 'Resumo geral',
+        theme: 'blue',
+      });
     }
 
     const appendPlanilha = (dados: any[], nomePlanilha: string, campoChave: string, labelChave: string) => {
       const dadosFormatados = gerarDadosFormatados(dados, campoChave, labelChave);
-      if (dadosFormatados.length > 0) {
-        const ws = XLSX.utils.json_to_sheet(dadosFormatados);
-        XLSX.utils.book_append_sheet(wb, ws, nomePlanilha);
-      }
+      appendStyledJsonSheet(XLSX, wb, dadosFormatados, nomePlanilha, {
+        title: nomePlanilha,
+        theme: 'slate',
+      });
     };
 
     appendPlanilha(aderenciaDia, 'Por Dia', 'data', 'Dia');

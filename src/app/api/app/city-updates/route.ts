@@ -4,7 +4,7 @@ import { createServiceRoleClient } from '@/utils/supabase/admin';
 
 export const runtime = 'nodejs';
 
-const CITY_UPDATES_CACHE_TTL_MS = 60 * 1000;
+const CITY_UPDATES_CACHE_TTL_MS = 30 * 60 * 1000;
 const cityUpdatesCache = new Map<string, { data: unknown[]; expiresAt: number }>();
 
 export async function GET() {

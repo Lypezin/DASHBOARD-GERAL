@@ -41,8 +41,10 @@ export const DELAYS = {
     AUTH_PROFILE_RETRY: 1000,
     /** Debounce para registrar troca de aba */
     ACTIVITY_TAB_CHANGE: 150,
+    /** Debounce para registrar mudancas de filtro sem competir com o carregamento */
+    ACTIVITY_FILTER_CHANGE: 1200,
     /** Intervalo de heartbeat de atividade */
-    ACTIVITY_HEARTBEAT: 60000,
+    ACTIVITY_HEARTBEAT: 180000,
 } as const;
 
 /**

@@ -5,6 +5,7 @@ import { calcularPercentualAceitas, calcularPercentualCompletadas } from './Entr
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { fetchEntregadoresFirstSeen, formatFirstSeenDate } from './fetchEntregadoresFirstSeen';
 import { IS_DEV } from '@/constants/environment';
+import { appendStyledJsonSheet, applyWorkbookMetadata } from '@/utils/excel/workbookStyle';
 
 
 const formatarPorcentagem = (valor: number) => {
@@ -18,6 +19,7 @@ export async function exportarEntregadoresMainParaExcel(
     try {
         const XLSX = await loadXLSX();
         const wb = XLSX.utils.book_new();
+        applyWorkbookMetadata(wb, 'Entregadores operacional');
 
         if (entregadores && entregadores.length > 0) {
             let firstSeenById = new Map<string, string | null>();
@@ -47,23 +49,15 @@ export async function exportarEntregadoresMainParaExcel(
                 '% Rejei\u00e7\u00e3o': formatarPorcentagem(e.rejeicao_percentual)
             }));
 
-            const ws = XLSX.utils.json_to_sheet(dadosExportacao);
-            ws['!cols'] = [
-                { wch: 40 },
-                { wch: 35 },
-                { wch: 18 },
-                { wch: 15 },
-                { wch: 10 },
-                { wch: 10 },
-                { wch: 10 },
-                { wch: 10 },
-                { wch: 15 },
-                { wch: 15 },
-                { wch: 15 },
-                { wch: 15 },
-            ];
-
-            XLSX.utils.book_append_sheet(wb, ws, 'Entregadores Operacional');
+            appendStyledJsonSheet(XLSX, wb, dadosExportacao, 'Entregadores Operacional', {
+                title: 'Entregadores operacional',
+                theme: 'green',
+            });
+        } else {
+            appendStyledJsonSheet(XLSX, wb, [], 'Entregadores Operacional', {
+                title: 'Entregadores operacional',
+                theme: 'green',
+            });
         }
 
         const agora = new Date();

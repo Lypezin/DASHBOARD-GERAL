@@ -4,7 +4,7 @@ import { CITY_DB_MAPPING } from '@/constants/marketing';
 import { fetchFluxoSemanal } from './api/fetchFluxoSemanal';
 import { processFluxoData, FluxoEntregadores } from './utils/processFluxoData';
 
-const CACHE_TTL_MS = 1000 * 60 * 5;
+const CACHE_TTL_MS = 1000 * 60 * 15;
 const fluxoCache = new Map<string, { timestamp: number; data: FluxoEntregadores[] }>();
 const inFlightRequests = new Map<string, Promise<FluxoEntregadores[]>>();
 

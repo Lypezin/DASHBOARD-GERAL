@@ -18,8 +18,8 @@ import { createRequestKey } from '@/utils/request/createRequestKey';
 
 export const runtime = 'nodejs';
 
-const DEDICADO_CACHE_TTL_MS = 60_000;
-const DEDICADO_DETAIL_CACHE_TTL_MS = 20_000;
+const DEDICADO_CACHE_TTL_MS = 5 * 60_000;
+const DEDICADO_DETAIL_CACHE_TTL_MS = 60_000;
 const MAX_DEDICADO_CACHE_ENTRIES = 100;
 
 type DedicadoMode = 'summary' | 'entregadores' | 'entregador';

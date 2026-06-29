@@ -3,6 +3,7 @@ import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { IS_DEV } from '@/constants/environment';
+import { appendStyledJsonSheet, applyWorkbookMetadata } from '@/utils/excel/workbookStyle';
 
 
 // Helper local para formatação
@@ -26,6 +27,7 @@ export async function exportarUtrParaExcel(utrData: UtrData): Promise<void> {
     try {
         const XLSX = await loadXLSX();
         const wb = XLSX.utils.book_new();
+        applyWorkbookMetadata(wb, 'UTR dashboard');
 
         // 1. Aba: Resumo Geral
         if (utrData.geral) {
@@ -35,22 +37,24 @@ export async function exportarUtrParaExcel(utrData: UtrData): Promise<void> {
                 'Corridas': formatarNumero(g.corridas),
                 'UTR Score': formatarDecimal(g.utr)
             }];
-            const wsResumo = XLSX.utils.json_to_sheet(resumoData);
-            XLSX.utils.book_append_sheet(wb, wsResumo, 'Resumo Geral');
+            appendStyledJsonSheet(XLSX, wb, resumoData, 'Resumo Geral', {
+                title: 'Resumo geral UTR',
+                theme: 'purple',
+            });
         }
 
         // Helper para gerar abas detalhadas
         const exportarSecao = (dados: any[], nomeAba: string, campoChave: string, labelChave: string) => {
-            if (!dados || dados.length === 0) return;
-
-            const dadosFormatados = dados.map(item => ({
+            const dadosFormatados = (dados || []).map(item => ({
                 [labelChave]: item[campoChave] || 'N/A',
                 'Tempo Total (h)': formatarDecimal(item.tempo_horas),
                 'Corridas': formatarNumero(item.corridas),
                 'UTR Score': formatarDecimal(item.utr)
             }));
-            const ws = XLSX.utils.json_to_sheet(dadosFormatados);
-            XLSX.utils.book_append_sheet(wb, ws, nomeAba);
+            appendStyledJsonSheet(XLSX, wb, dadosFormatados, nomeAba, {
+                title: nomeAba,
+                theme: 'purple',
+            });
         };
 
         // 2. Aba: Por Praça

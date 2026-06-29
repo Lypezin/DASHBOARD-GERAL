@@ -2,6 +2,7 @@ import { ValoresEntregador } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { IS_DEV } from '@/constants/environment';
+import { appendStyledJsonSheet, applyWorkbookMetadata } from '@/utils/excel/workbookStyle';
 
 
 const formatarMoeda = (valor: number | undefined) => {
@@ -12,27 +13,20 @@ export async function exportarValoresParaExcel(valoresData: ValoresEntregador[])
     try {
         const XLSX = await loadXLSX();
         const wb = XLSX.utils.book_new();
+        applyWorkbookMetadata(wb, 'Valores por entregador');
 
-        if (valoresData && valoresData.length > 0) {
-            const dadosExportacao = valoresData.map(v => ({
-                'ID Entregador': v.id_entregador,
-                Nome: v.nome_entregador,
-                'Valor Total': formatarMoeda(v.total_taxas),
-                Corridas: v.numero_corridas_aceitas,
-                'M\u00e9dia': formatarMoeda(v.taxa_media)
-            }));
+        const dadosExportacao = (valoresData || []).map(v => ({
+            'ID Entregador': v.id_entregador,
+            Nome: v.nome_entregador,
+            'Valor Total': formatarMoeda(v.total_taxas),
+            Corridas: v.numero_corridas_aceitas,
+            'Média': formatarMoeda(v.taxa_media)
+        }));
 
-            const ws = XLSX.utils.json_to_sheet(dadosExportacao);
-            ws['!cols'] = [
-                { wch: 15 },
-                { wch: 35 },
-                { wch: 15 },
-                { wch: 10 },
-                { wch: 15 }
-            ];
-
-            XLSX.utils.book_append_sheet(wb, ws, 'Valores');
-        }
+        appendStyledJsonSheet(XLSX, wb, dadosExportacao, 'Valores', {
+            title: 'Valores por entregador',
+            theme: 'emerald',
+        });
 
         const agora = new Date();
         const dataHora = agora.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');

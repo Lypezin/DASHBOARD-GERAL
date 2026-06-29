@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { getDateRangeFromWeek } from '@/utils/formatters/dateUtils';
+import { appendStyledJsonSheet, applyWorkbookMetadata } from '@/utils/excel/workbookStyle';
 
 interface UseMarketingExcelExportProps {
   semanaIso: string;
@@ -77,9 +78,13 @@ export function useMarketingExcelExport({ semanaIso, organizationId, activeTab, 
         }));
       }
 
-      const ws = XLSX.utils.json_to_sheet(exportData);
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Dados');
+      applyWorkbookMetadata(wb, `Detalhes ${activeTab}`);
+      appendStyledJsonSheet(XLSX, wb, exportData, 'Dados', {
+        title: `Detalhes ${activeTab}`,
+        subtitle: `${semanaIso || 'Semana não informada'} - ${praca || 'Todas as praças'}`,
+        theme: activeTab === 'operacional' ? 'amber' : 'emerald',
+      });
       XLSX.writeFile(wb, `Detalhes_${activeTab}_${semanaIso}.xlsx`);
     } catch (err) {
       safeLog.error('Erro ao exportar:', err);

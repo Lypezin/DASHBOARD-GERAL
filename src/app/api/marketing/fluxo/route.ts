@@ -27,8 +27,8 @@ type FluxoCacheEntry = {
     expiresAt: number;
 };
 
-const FLUXO_CACHE_TTL_MS = 5 * 60 * 1000;
-const FLUXO_CACHE_MAX_ENTRIES = 80;
+const FLUXO_CACHE_TTL_MS = 15 * 60 * 1000;
+const FLUXO_CACHE_MAX_ENTRIES = 160;
 const fluxoCache = new Map<string, FluxoCacheEntry>();
 const fluxoInFlight = new Map<string, Promise<unknown[]>>();
 

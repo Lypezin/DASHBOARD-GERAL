@@ -1,7 +1,7 @@
 import { CurrentUserProfile, hasElevatedRole } from '@/app/api/_shared/currentUserProfile';
 import { createRequestKey } from '@/utils/request/createRequestKey';
 
-const SECURE_RPC_CACHE_TTL_MS = 60_000;
+const SECURE_RPC_CACHE_TTL_MS = 5 * 60_000;
 const SECURE_RPC_DETAIL_CACHE_TTL_MS = 20_000;
 const MAX_SECURE_RPC_CACHE_ENTRIES = 160;
 
