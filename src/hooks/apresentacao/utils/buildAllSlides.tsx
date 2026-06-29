@@ -9,7 +9,8 @@ import SlideCapaFinal from '@/components/apresentacao/slides/SlideCapaFinal';
 import {
     buildSlideCapa, buildSlideResumoIA, buildSlideAderenciaGeral, buildSlideRanking,
     buildSlidesSubPracas, buildSlideAderenciaDiaria, buildSlidesTurnos, buildSlidesOrigem,
-    buildSlideMediaOrigens, buildSlideDemanda, buildSlidesDemandaOrigem, SlideConfig
+    buildSlideMediaOrigens, buildSlideDemanda, buildSlidesDemandaOrigem, SlideConfig,
+    buildSlidesResumoOrigens, buildSlidesResumoSubPracas
 } from './slideBuilders';
 
 export function buildAllSlides(
@@ -58,6 +59,8 @@ export function buildAllSlides(
     const ranking = buildSlideRanking(visibleSections['ranking'], subPracasComparativo);
     if (ranking) slidesConfig.push(ranking);
 
+    slidesConfig.push(...buildSlidesResumoSubPracas(visibleSections['resumo-sub-pracas'], subPracasComparativo, { numeroSemana1, numeroSemana2 }));
+
     slidesConfig.push(...buildSlidesSubPracas(visibleSections['sub-pracas'], subPracasComparativo, { numeroSemana1, numeroSemana2 }));
 
     const aderenciaDiaria = buildSlideAderenciaDiaria(visibleSections['aderencia-diaria'], { numeroSemana1, numeroSemana2, semana1Dias, semana2Dias });
@@ -72,6 +75,8 @@ export function buildAllSlides(
     // Novo slider de Media Origens
     const mediaOrigensSlide = buildSlideMediaOrigens(visibleSections['media-origens'], mediaOrigens, { numeroSemana1, numeroSemana2 });
     if (mediaOrigensSlide) slidesConfig.push(mediaOrigensSlide);
+
+    slidesConfig.push(...buildSlidesResumoOrigens(visibleSections['resumo-origens'], origensComparativo, { numeroSemana1, numeroSemana2 }));
 
     slidesConfig.push(...buildSlidesOrigem(visibleSections.origens, origensComparativo, { numeroSemana1, numeroSemana2 }));
 
