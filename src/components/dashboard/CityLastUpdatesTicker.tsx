@@ -42,27 +42,29 @@ export function CityLastUpdatesTicker() {
       <div className="h-4 w-px bg-border shrink-0" />
 
       {/* Marquee de Cidades e Datas */}
-      <div className="relative flex-1 overflow-hidden h-6 flex items-center">
+      <div className="relative flex-1 overflow-hidden h-6">
         <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-card to-transparent" />
         <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-card to-transparent" />
 
-        <div className="city-updates-marquee flex w-max min-w-max shrink-0 items-center gap-4">
-          {marqueeItems.map((item, index) => (
-            <div
-              key={`${item.city}-${index}`}
-              className="flex items-center gap-2 shrink-0"
-            >
-              <div className="h-1 w-1 rounded-full bg-emerald-500/80 shrink-0" />
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                <span className="text-foreground/90 font-bold whitespace-nowrap font-outfit">
-                  {item.city}
-                </span>
-                <span className="text-[10px] font-mono font-extrabold text-emerald-600 dark:text-emerald-400 opacity-100 whitespace-nowrap bg-emerald-500/10 dark:bg-emerald-500/15 px-1.5 py-0.5 rounded shadow-sm">
-                  {item.formattedDate}
-                </span>
+        <div className="absolute inset-y-0 left-0 flex items-center">
+          <div className="city-ticker-track flex items-center gap-4">
+            {marqueeItems.map((item, index) => (
+              <div
+                key={`${item.city}-${index}`}
+                className="flex items-center gap-2 shrink-0"
+              >
+                <div className="h-1 w-1 rounded-full bg-emerald-500/80 shrink-0" />
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  <span className="text-foreground/90 font-bold whitespace-nowrap font-outfit">
+                    {item.city}
+                  </span>
+                  <span className="text-[10px] font-mono font-extrabold text-emerald-600 dark:text-emerald-400 opacity-100 whitespace-nowrap bg-emerald-500/10 dark:bg-emerald-500/15 px-1.5 py-0.5 rounded shadow-sm">
+                    {item.formattedDate}
+                  </span>
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       </div>
 

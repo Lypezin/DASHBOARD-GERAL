@@ -87,15 +87,6 @@
 .delay-800 { animation-delay: 800ms; }
 
 /* City updates ticker animations */
-@keyframes city-updates-marquee {
-  0% {
-    transform: translate3d(0, 0, 0);
-  }
-  100% {
-    transform: translate3d(-50%, 0, 0);
-  }
-}
-
 @keyframes city-updates-spin {
   from {
     transform: rotate(0deg);
@@ -103,16 +94,6 @@
   to {
     transform: rotate(360deg);
   }
-}
-
-.city-updates-marquee {
-  animation: city-updates-marquee 20s linear infinite !important;
-  transform: translate3d(0, 0, 0);
-  will-change: transform;
-}
-
-.city-updates-marquee:hover {
-  animation-play-state: paused !important;
 }
 
 .animate-city-updates-spin {
@@ -210,7 +191,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .city-updates-marquee,
+  .city-ticker-track,
   .animate-city-updates-spin,
   .animate-blob,
   .animate-slide-up,
