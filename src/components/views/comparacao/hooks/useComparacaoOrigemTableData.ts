@@ -12,6 +12,15 @@ export function useComparacaoOrigemTableData(dadosComparacao: DashboardResumoDat
             }
         });
         const origensOrdenadas = Array.from(todasOrigens).sort();
+        const origemMaps = dadosComparacao.map((dado) => {
+            const map = new Map<string, number>();
+            dado.aderencia_origem?.forEach((item) => {
+                if (item.origem) {
+                    map.set(item.origem, item.aderencia_percentual ?? 0);
+                }
+            });
+            return map;
+        });
 
         const dadosPorOrigem: Record<string, Record<number, number>> = {};
         const mediaPorSemana: Record<number, number> = {};
@@ -19,9 +28,8 @@ export function useComparacaoOrigemTableData(dadosComparacao: DashboardResumoDat
         // Calculate data per origin
         origensOrdenadas.forEach((origem) => {
             dadosPorOrigem[origem] = {};
-            dadosComparacao.forEach((dado, idx) => {
-                const origemData = dado.aderencia_origem?.find((x) => x.origem === origem);
-                dadosPorOrigem[origem][idx] = origemData ? origemData.aderencia_percentual : 0;
+            origemMaps.forEach((origemMap, idx) => {
+                dadosPorOrigem[origem][idx] = origemMap.get(origem) ?? 0;
             });
         });
 

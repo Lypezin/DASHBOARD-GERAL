@@ -9,11 +9,11 @@ interface ComparacaoChartOrigemProps {
     origensDisponiveis: string[];
 }
 
-export const ComparacaoChartOrigem: React.FC<ComparacaoChartOrigemProps> = ({
+export const ComparacaoChartOrigem = React.memo(function ComparacaoChartOrigem({
     dadosComparacao,
     semanasSelecionadas,
     origensDisponiveis,
-}) => {
+}: ComparacaoChartOrigemProps) {
     const { origemChartData, origemChartOptions } = useComparacaoChartOrigem(
         dadosComparacao,
         semanasSelecionadas,
@@ -29,4 +29,6 @@ export const ComparacaoChartOrigem: React.FC<ComparacaoChartOrigemProps> = ({
             </div>
         </div>
     );
-};
+});
+
+ComparacaoChartOrigem.displayName = 'ComparacaoChartOrigem';

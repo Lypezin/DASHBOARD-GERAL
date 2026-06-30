@@ -1,4 +1,4 @@
-import { useEffect, useMemo, RefObject } from 'react';
+import { useCallback, useMemo, RefObject } from 'react';
 import { usePresentationEditor } from '../context/PresentationEditorContext';
 import { usePresentationPDF } from './usePresentationPDF';
 
@@ -21,37 +21,35 @@ export function usePreviewController({
     contentRef,
     captureContainerRef
 }: UsePreviewControllerProps) {
-    const { slideOrder, setSlideOrder } = usePresentationEditor();
+    const { slideOrder } = usePresentationEditor();
 
-    // Initialize order
-    useEffect(() => {
-        const currentKeys = slides.map(s => s.key);
-        if (slideOrder.length === 0) {
-            setSlideOrder(currentKeys);
-        }
-    }, [slides, setSlideOrder, slideOrder.length]);
-
-    // Compute Ordered Slides
     const orderedSlides = useMemo(() => {
-        const map = new Map(slides.map(s => [s.key, s]));
-        const ordered = slideOrder
-            .map(key => map.get(key))
-            .filter((s): s is typeof slides[0] => !!s);
+        const slideMap = new Map(slides.map((slide) => [slide.key, slide]));
+        const orderedKeys = new Set<string>();
+        const ordered: typeof slides = [];
 
-        slides.forEach(s => {
-            if (!slideOrder.includes(s.key)) ordered.push(s);
+        slideOrder.forEach((key) => {
+            const slide = slideMap.get(key);
+            if (slide) {
+                ordered.push(slide);
+                orderedKeys.add(key);
+            }
+        });
+
+        slides.forEach((slide) => {
+            if (!orderedKeys.has(slide.key)) ordered.push(slide);
         });
 
         return ordered;
     }, [slides, slideOrder]);
 
-    const handleNext = () => {
+    const handleNext = useCallback(() => {
         if (currentSlide < orderedSlides.length - 1) onSlideChange(currentSlide + 1);
-    };
+    }, [currentSlide, onSlideChange, orderedSlides.length]);
 
-    const handlePrev = () => {
+    const handlePrev = useCallback(() => {
         if (currentSlide > 0) onSlideChange(currentSlide - 1);
-    };
+    }, [currentSlide, onSlideChange]);
 
     const pdfState = usePresentationPDF({
         slides: orderedSlides,

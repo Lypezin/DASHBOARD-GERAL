@@ -19,7 +19,7 @@ interface ComparacaoSectionProps {
     totalColunasOrigem?: number;
 }
 
-export const ComparacaoSection: React.FC<ComparacaoSectionProps> = ({
+export const ComparacaoSection = React.memo(function ComparacaoSection({
     title,
     description,
     type,
@@ -27,7 +27,7 @@ export const ComparacaoSection: React.FC<ComparacaoSectionProps> = ({
     semanasSelecionadas,
     viewMode,
     onViewModeChange,
-}) => {
+}: ComparacaoSectionProps) {
     if (type === 'dia') {
         return (
             <SaasPanel>
@@ -59,4 +59,6 @@ export const ComparacaoSection: React.FC<ComparacaoSectionProps> = ({
     }
 
     return null;
-};
+});
+
+ComparacaoSection.displayName = 'ComparacaoSection';

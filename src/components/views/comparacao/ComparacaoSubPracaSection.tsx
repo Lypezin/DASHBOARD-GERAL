@@ -13,12 +13,12 @@ interface ComparacaoSubPracaSectionProps {
     onViewModeChange: (mode: 'table' | 'chart') => void;
 }
 
-export const ComparacaoSubPracaSection: React.FC<ComparacaoSubPracaSectionProps> = ({
+export const ComparacaoSubPracaSection = React.memo(function ComparacaoSubPracaSection({
     dadosComparacao,
     semanasSelecionadas,
     viewMode,
     onViewModeChange,
-}) => {
+}: ComparacaoSubPracaSectionProps) {
     if (!dadosComparacao.some(d => (d.aderencia_sub_praca && d.aderencia_sub_praca.length > 0) || (d.sub_praca && d.sub_praca.length > 0))) {
         return null;
     }
@@ -49,4 +49,6 @@ export const ComparacaoSubPracaSection: React.FC<ComparacaoSubPracaSectionProps>
             )}
         </SaasPanel>
     );
-};
+});
+
+ComparacaoSubPracaSection.displayName = 'ComparacaoSubPracaSection';

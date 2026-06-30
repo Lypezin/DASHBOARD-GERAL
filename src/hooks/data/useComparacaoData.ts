@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DashboardResumoData, UtrData, CurrentUser } from '@/types';
 import { getSafeErrorMessage, safeLog } from '@/lib/errorHandler';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -100,6 +100,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
   const [error, setError] = useState<string | null>(null);
   const [dadosComparacao, setDadosComparacao] = useState<DashboardResumoData[]>([]);
   const [utrComparacao, setUtrComparacao] = useState<Array<{ semana: string | number; utr: UtrData | null }>>([]);
+  const hasVisibleDataRef = useRef(false);
 
   const todasSemanas = useAllWeeks(semanas, anoSelecionado);
   const cacheKey = useMemo(() => createComparacaoCacheKey(
@@ -109,6 +110,10 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
     organizationId,
     anoSelecionado
   ), [anoSelecionado, currentUser, organizationId, pracaSelecionada, semanasSelecionadas]);
+
+  useEffect(() => {
+    hasVisibleDataRef.current = dadosComparacao.length > 0 || utrComparacao.length > 0;
+  }, [dadosComparacao.length, utrComparacao.length]);
 
   useEffect(() => {
     if (isOrgLoading) {
@@ -135,7 +140,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
         return;
       }
 
-      const hasVisibleData = dadosComparacao.length > 0 || utrComparacao.length > 0;
+      const hasVisibleData = hasVisibleDataRef.current;
       setLoading(true);
       setError(null);
 
@@ -174,7 +179,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
     return () => {
       isMounted = false;
     };
-  }, [anoSelecionado, cacheKey, currentUser, dadosComparacao.length, isOrgLoading, organizationId, pracaSelecionada, semanasSelecionadas, semanas, utrComparacao.length]);
+  }, [anoSelecionado, cacheKey, currentUser, isOrgLoading, organizationId, pracaSelecionada, semanasSelecionadas]);
 
   return { loading: loading || isOrgLoading, error, dadosComparacao, utrComparacao, todasSemanas };
 }

@@ -12,12 +12,21 @@ export function processSubPracaData(dadosComparacao: DashboardResumoData[]) {
         }
     });
     const subPracasOrdenadas = Array.from(todasSubPracas).sort();
+    const subPracaMaps = dadosComparacao.map((dado) => {
+        const map = new Map<string, NonNullable<DashboardResumoData['aderencia_sub_praca']>[number]>();
+        dado.aderencia_sub_praca?.forEach((subPraca) => {
+            if (subPraca.sub_praca) {
+                map.set(subPraca.sub_praca, subPraca);
+            }
+        });
+        return map;
+    });
 
     const dadosPorSubPraca: Record<string, Record<number, SubPracaMetric>> = {};
     subPracasOrdenadas.forEach((sp) => {
         dadosPorSubPraca[sp] = {};
-        dadosComparacao.forEach((dado, idx) => {
-            const spData = dado.aderencia_sub_praca?.find((x) => x.sub_praca === sp);
+        subPracaMaps.forEach((subPracaMap, idx) => {
+            const spData = subPracaMap.get(sp);
 
             let entregueStr = spData?.horas_entregues || '-';
             let metaStr = spData?.horas_a_entregar || '-';

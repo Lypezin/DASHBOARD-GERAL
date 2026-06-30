@@ -1,7 +1,8 @@
 import React from 'react';
 import { DashboardResumoData } from '@/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { METRICAS, formatVariation, getValorOrigem } from './helpers/comparacaoOrigemHelpers';
+import { METRICAS, formatVariation, getValorOrigemItem } from './helpers/comparacaoOrigemHelpers';
+import type { OrigemMetricItem } from './helpers/comparacaoOrigemHelpers';
 
 interface ComparacaoOrigemDetalhadaProps {
     dadosComparacao: DashboardResumoData[];
@@ -12,12 +13,22 @@ export const ComparacaoOrigemDetalhada = React.memo(function ComparacaoOrigemDet
     dadosComparacao,
     semanasSelecionadas,
 }: ComparacaoOrigemDetalhadaProps) {
-    const origens = React.useMemo(() => {
-        if (!dadosComparacao || dadosComparacao.length === 0) return [];
+    const { origens, origemIndex } = React.useMemo(() => {
+        const index = new Map<string, Record<number, OrigemMetricItem>>();
+        if (!dadosComparacao || dadosComparacao.length === 0) {
+            return { origens: [] as string[], origemIndex: index };
+        }
 
-        const todasOrigens = new Set<string>();
-        dadosComparacao.forEach((d) => d.aderencia_origem?.forEach((o) => todasOrigens.add(o.origem)));
-        return Array.from(todasOrigens).sort();
+        dadosComparacao.forEach((d, semanaIndex) => {
+            d.aderencia_origem?.forEach((origemData) => {
+                if (!origemData.origem) return;
+                const current = index.get(origemData.origem) ?? {};
+                current[semanaIndex] = origemData;
+                index.set(origemData.origem, current);
+            });
+        });
+
+        return { origens: Array.from(index.keys()).sort(), origemIndex: index };
     }, [dadosComparacao]);
 
     if (origens.length === 0) return null;
@@ -60,7 +71,8 @@ export const ComparacaoOrigemDetalhada = React.memo(function ComparacaoOrigemDet
 
                                 <TableBody>
                                     {METRICAS.map((metrica, metricIndex) => {
-                                        const valores = dadosComparacao.map((_, index) => getValorOrigem(dadosComparacao, index, origem, metrica.campo));
+                                        const origemPorSemana = origemIndex.get(origem);
+                                        const valores = dadosComparacao.map((_, index) => getValorOrigemItem(origemPorSemana?.[index], metrica.campo));
                                         return (
                                             <TableRow
                                                 key={metrica.campo}

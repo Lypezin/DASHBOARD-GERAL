@@ -10,10 +10,20 @@ interface ComparacaoDiaTableProps {
     dadosComparacao: DashboardResumoData[];
 }
 
-export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
+export const ComparacaoDiaTable = React.memo(function ComparacaoDiaTable({
     semanasSelecionadas,
     dadosComparacao,
-}) => {
+}: ComparacaoDiaTableProps) {
+    const dayRows = React.useMemo(() => (
+        DIAS_DA_SEMANA.map((dia) => ({
+            dia,
+            valores: dadosComparacao.map((dados) => {
+                const diaData = findDayData(dia, dados?.aderencia_dia);
+                return getMetricValue(diaData, 'aderencia_percentual');
+            }),
+        }))
+    ), [dadosComparacao]);
+
     return (
         <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
             <table className="w-full min-w-[720px]">
@@ -52,18 +62,14 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
                     </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {DIAS_DA_SEMANA.map((dia) => (
+                    {dayRows.map(({ dia, valores }) => (
                         <tr key={dia} className="transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
                             <td className="px-4 py-4 text-center font-semibold text-slate-900 dark:text-white sm:px-6">{dia}</td>
-                            {dadosComparacao.map((dados, idx) => {
-                                const diaData = findDayData(dia, dados?.aderencia_dia);
-                                const aderencia = getMetricValue(diaData, 'aderencia_percentual');
+                            {valores.map((aderencia, idx) => {
 
                                 let variacao = null;
                                 if (idx > 0) {
-                                    const dadosAnterior = dadosComparacao[idx - 1];
-                                    const diaDataAnterior = findDayData(dia, dadosAnterior?.aderencia_dia);
-                                    const aderenciaAnterior = getMetricValue(diaDataAnterior, 'aderencia_percentual');
+                                    const aderenciaAnterior = valores[idx - 1];
                                     variacao = calcularVariacaoPercentual(aderenciaAnterior, aderencia);
                                 }
 
@@ -92,4 +98,6 @@ export const ComparacaoDiaTable: React.FC<ComparacaoDiaTableProps> = ({
             </table>
         </div>
     );
-};
+});
+
+ComparacaoDiaTable.displayName = 'ComparacaoDiaTable';

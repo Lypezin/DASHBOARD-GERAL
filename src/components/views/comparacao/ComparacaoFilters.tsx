@@ -24,7 +24,7 @@ interface ComparacaoFiltersProps {
     onToggleSecao: (secao: keyof SecoesVisiveis) => void;
 }
 
-export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
+export const ComparacaoFilters = React.memo(function ComparacaoFilters({
     pracas,
     todasSemanas,
     semanasSelecionadas,
@@ -37,7 +37,7 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
     dadosComparacao,
     secoesVisiveis,
     onToggleSecao
-}) => {
+}: ComparacaoFiltersProps) {
     const hasEnoughData = semanasSelecionadas.length === 2 && dadosComparacao.length === 2;
 
     return (
@@ -114,4 +114,6 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
             </div>
         </SaasPanel>
     );
-};
+});
+
+ComparacaoFilters.displayName = 'ComparacaoFilters';

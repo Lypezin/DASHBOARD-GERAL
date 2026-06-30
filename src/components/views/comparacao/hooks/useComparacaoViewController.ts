@@ -1,5 +1,5 @@
 
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { FilterOption, CurrentUser } from '@/types';
 import { useComparacaoData } from '@/hooks/data/useComparacaoData';
 import { useComparacaoChartRegistration } from './useComparacaoChart';
@@ -36,16 +36,33 @@ export function useComparacaoViewController({ semanas, currentUser, anoSeleciona
 
     const { origensDisponiveis, totalColunasOrigem, utrComparacaoNormalizada } = useComparacaoMemo(dadosComparacao, semanasSelecionadas, utrComparacao);
 
-    return {
-        state: {
+    const limparSemanas = useCallback(() => setSemanasSelecionadas([]), [setSemanasSelecionadas]);
+
+    const state = useMemo(() => ({
             semanasSelecionadas, pracaSelecionada, mostrarApresentacao, viewModeDetalhada, viewModeDia,
             viewModeSubPraca, viewModeOrigem, loading, error, shouldDisablePracaFilter, anoSelecionado, secoesVisiveis
-        },
-        data: { dadosComparacao, utrComparacao: utrComparacaoNormalizada, todasSemanas, origensDisponiveis, totalColunasOrigem },
-        actions: {
+    }), [
+        semanasSelecionadas, pracaSelecionada, mostrarApresentacao, viewModeDetalhada, viewModeDia,
+        viewModeSubPraca, viewModeOrigem, loading, error, shouldDisablePracaFilter, anoSelecionado, secoesVisiveis
+    ]);
+
+    const data = useMemo(() => ({
+        dadosComparacao,
+        utrComparacao: utrComparacaoNormalizada,
+        todasSemanas,
+        origensDisponiveis,
+        totalColunasOrigem
+    }), [dadosComparacao, utrComparacaoNormalizada, todasSemanas, origensDisponiveis, totalColunasOrigem]);
+
+    const actions = useMemo(() => ({
             setPracaSelecionada, setMostrarApresentacao, setViewModeDetalhada, setViewModeDia,
             setViewModeSubPraca, setViewModeOrigem, toggleSemana, setSemanasSelecionadas,
-            limparSemanas: () => setSemanasSelecionadas([]), toggleSecao
-        }
-    };
+            limparSemanas, toggleSecao
+    }), [
+        setPracaSelecionada, setMostrarApresentacao, setViewModeDetalhada, setViewModeDia,
+        setViewModeSubPraca, setViewModeOrigem, toggleSemana, setSemanasSelecionadas,
+        limparSemanas, toggleSecao
+    ]);
+
+    return { state, data, actions };
 }

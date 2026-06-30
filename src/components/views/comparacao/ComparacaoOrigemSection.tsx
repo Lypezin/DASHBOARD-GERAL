@@ -15,13 +15,13 @@ interface ComparacaoOrigemSectionProps {
     totalColunasOrigem: number;
 }
 
-export const ComparacaoOrigemSection: React.FC<ComparacaoOrigemSectionProps> = ({
+export const ComparacaoOrigemSection = React.memo(function ComparacaoOrigemSection({
     dadosComparacao,
     semanasSelecionadas,
     viewMode,
     onViewModeChange,
     origensDisponiveis,
-}) => {
+}: ComparacaoOrigemSectionProps) {
     if (origensDisponiveis.length === 0) return null;
 
     return (
@@ -51,4 +51,6 @@ export const ComparacaoOrigemSection: React.FC<ComparacaoOrigemSectionProps> = (
             )}
         </SaasPanel>
     );
-};
+});
+
+ComparacaoOrigemSection.displayName = 'ComparacaoOrigemSection';

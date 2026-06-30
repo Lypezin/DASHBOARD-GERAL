@@ -9,9 +9,9 @@ interface ComparacaoMetricsProps {
     dadosComparacao: DashboardResumoData[];
 }
 
-export const ComparacaoMetrics: React.FC<ComparacaoMetricsProps> = ({
+export const ComparacaoMetrics = React.memo(function ComparacaoMetrics({
     dadosComparacao,
-}) => {
+}: ComparacaoMetricsProps) {
     const {
         aderenciaMedia,
         totalCorridas,
@@ -61,7 +61,9 @@ export const ComparacaoMetrics: React.FC<ComparacaoMetricsProps> = ({
             />
         </div>
     );
-};
+});
+
+ComparacaoMetrics.displayName = 'ComparacaoMetrics';
 
 function MetricCard({
     label,

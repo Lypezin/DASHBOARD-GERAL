@@ -23,6 +23,32 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
 }: ComparacaoLayoutProps) {
     const shouldReduceMotion = useReducedMotion();
     const hasComparisonData = data.dadosComparacao.length > 0 || data.utrComparacao.length > 0;
+    const contentState = React.useMemo(() => ({
+        secoesVisiveis: state.secoesVisiveis,
+        semanasSelecionadas: state.semanasSelecionadas,
+        viewModeDetalhada: state.viewModeDetalhada,
+        viewModeDia: state.viewModeDia,
+        viewModeSubPraca: state.viewModeSubPraca,
+        viewModeOrigem: state.viewModeOrigem,
+    }), [
+        state.secoesVisiveis,
+        state.semanasSelecionadas,
+        state.viewModeDetalhada,
+        state.viewModeDia,
+        state.viewModeSubPraca,
+        state.viewModeOrigem,
+    ]);
+    const contentActions = React.useMemo(() => ({
+        setViewModeDetalhada: actions.setViewModeDetalhada,
+        setViewModeDia: actions.setViewModeDia,
+        setViewModeSubPraca: actions.setViewModeSubPraca,
+        setViewModeOrigem: actions.setViewModeOrigem,
+    }), [
+        actions.setViewModeDetalhada,
+        actions.setViewModeDia,
+        actions.setViewModeSubPraca,
+        actions.setViewModeOrigem,
+    ]);
     const motionProps = {
         initial: shouldReduceMotion ? false : { opacity: 0, y: 4 },
         animate: shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 },
@@ -116,8 +142,8 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                         ) : null}
                         <ComparacaoContent
                             data={data}
-                            state={state}
-                            actions={actions}
+                            state={contentState}
+                            actions={contentActions}
                         />
                     </motion.div>
                 )}

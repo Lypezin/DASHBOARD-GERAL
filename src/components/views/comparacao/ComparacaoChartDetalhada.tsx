@@ -9,10 +9,10 @@ interface ComparacaoChartDetalhadaProps {
     semanasSelecionadas: string[];
 }
 
-export const ComparacaoChartDetalhada: React.FC<ComparacaoChartDetalhadaProps> = ({
+export const ComparacaoChartDetalhada = React.memo(function ComparacaoChartDetalhada({
     dadosComparacao,
     semanasSelecionadas,
-}) => {
+}: ComparacaoChartDetalhadaProps) {
     const options = useMemo(() => createComparacaoChartOptions(), []);
 
     const data = useMemo(() => ({
@@ -72,4 +72,6 @@ export const ComparacaoChartDetalhada: React.FC<ComparacaoChartDetalhadaProps> =
             <Bar data={data as any} options={options} />
         </div>
     );
-};
+});
+
+ComparacaoChartDetalhada.displayName = 'ComparacaoChartDetalhada';

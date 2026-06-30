@@ -7,6 +7,17 @@ export function useComparacaoChartOrigem(
     semanasSelecionadas: string[],
     origensDisponiveis: string[]
 ) {
+    const origemMaps = useMemo(() => (
+        dadosComparacao.map((dadosSemana) => {
+            const map = new Map<string, NonNullable<DashboardResumoData['aderencia_origem']>[number]>();
+            dadosSemana.aderencia_origem?.forEach((origemData) => {
+                const origem = (origemData.origem || '').trim();
+                if (origem) map.set(origem, origemData);
+            });
+            return map;
+        })
+    ), [dadosComparacao]);
+
     const origemChartData = useMemo(() => {
         if (origensDisponiveis.length === 0) return null;
 
@@ -19,8 +30,7 @@ export function useComparacaoChartOrigem(
                 type: 'bar' as const,
                 label: `Numero de Pedidos S${semana}`,
                 data: origensDisponiveis.map((origem) => {
-                    const dadosSemana = dadosComparacao[idx];
-                    const origemData = dadosSemana?.aderencia_origem?.find((o) => (o.origem || '').trim() === origem);
+                    const origemData = origemMaps[idx]?.get(origem);
                     return getPedidosAceitosConcluidosBreakdown(origemData);
                 }),
                 backgroundColor: barColors[idx % barColors.length],
@@ -32,10 +42,9 @@ export function useComparacaoChartOrigem(
 
             datasets.push({
                 type: 'line' as const,
-                label: `Aderência S${semana}`,
+                label: `AderÃªncia S${semana}`,
                 data: origensDisponiveis.map((origem) => {
-                    const dadosSemana = dadosComparacao[idx];
-                    const origemData = dadosSemana?.aderencia_origem?.find((o) => (o.origem || '').trim() === origem);
+                    const origemData = origemMaps[idx]?.get(origem);
                     return origemData?.aderencia_percentual ?? 0;
                 }),
                 borderColor: lineColors[idx % lineColors.length],
@@ -51,7 +60,7 @@ export function useComparacaoChartOrigem(
         });
 
         return { labels: origensDisponiveis, datasets };
-    }, [origensDisponiveis, dadosComparacao, semanasSelecionadas]);
+    }, [origensDisponiveis, origemMaps, semanasSelecionadas]);
 
     const origemChartOptions = useMemo(() => ({
         responsive: true,
@@ -80,7 +89,7 @@ export function useComparacaoChartOrigem(
             y1: {
                 beginAtZero: true, position: 'right' as const, min: 0, max: 100,
                 grid: { drawOnChartArea: false }, ticks: { callback: (value: any) => `${value}%` },
-                title: { display: true, text: 'Aderência (%)', color: '#64748b' },
+                title: { display: true, text: 'AderÃªncia (%)', color: '#64748b' },
             },
             x: { grid: { display: false } }
         },

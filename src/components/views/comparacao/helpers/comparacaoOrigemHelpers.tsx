@@ -2,7 +2,21 @@ import React from 'react';
 import { DashboardResumoData } from '@/types';
 import { getPedidosAceitosConcluidosBreakdown } from '@/utils/comparisonDemandMetrics';
 
-type OrigemMetricField = 'corridas_ofertadas' | 'corridas_aceitas' | 'corridas_rejeitadas' | 'corridas_completadas' | 'pedidos_aceitos_concluidos' | 'taxa_aceitacao' | 'aderencia_percentual';
+export type OrigemMetricField = 'corridas_ofertadas' | 'corridas_aceitas' | 'corridas_rejeitadas' | 'corridas_completadas' | 'pedidos_aceitos_concluidos' | 'taxa_aceitacao' | 'aderencia_percentual';
+export type OrigemMetricItem = NonNullable<DashboardResumoData['aderencia_origem']>[number];
+
+export function getValorOrigemItem(
+    origemData: OrigemMetricItem | undefined,
+    campo: OrigemMetricField
+): number {
+    if (!origemData) return 0;
+
+    if (campo === 'pedidos_aceitos_concluidos') {
+        return getPedidosAceitosConcluidosBreakdown(origemData);
+    }
+
+    return origemData[campo] ?? 0;
+}
 
 export function getValorOrigem(
     dadosComparacao: DashboardResumoData[],
@@ -13,13 +27,7 @@ export function getValorOrigem(
     const dado = dadosComparacao[idx];
     if (!dado) return 0;
     const origemData = dado.aderencia_origem?.find((o) => o.origem === origem);
-    if (!origemData) return 0;
-
-    if (campo === 'pedidos_aceitos_concluidos') {
-        return getPedidosAceitosConcluidosBreakdown(origemData);
-    }
-
-    return origemData[campo] ?? 0;
+    return getValorOrigemItem(origemData, campo);
 }
 
 export function formatVariation(a: number, b: number, isPercent = false): React.ReactNode {

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useCallback, useMemo, ReactNode } from 'react';
 
 export interface SlideOverride {
     title?: string;
@@ -31,6 +31,7 @@ export const PresentationEditorProvider: React.FC<{ children: ReactNode; initial
     // Sync state with prop changes (e.g. new slides added via hook)
     React.useEffect(() => {
         setSlideOrder((prev) => {
+            const initialOrderSet = new Set(initialOrder);
             // Find keys that are in initialOrder but not in prev (new slides)
             const newKeys = initialOrder.filter(key => !prev.includes(key));
 
@@ -50,9 +51,9 @@ export const PresentationEditorProvider: React.FC<{ children: ReactNode; initial
             // We also need to handle the case where a slide is removed (toggled off)
             // But if we want to support toggling, we should remove keys that are no longer in initialOrder?
             // Wait, if we remove keys, we lose their custom order if they are toggled back on. But that's fine.
-            const removedKeys = prev.filter(key => !initialOrder.includes(key));
-            if (removedKeys.length > 0) {
-                return prev.filter(key => initialOrder.includes(key));
+            const hasRemovedKeys = prev.some(key => !initialOrderSet.has(key));
+            if (hasRemovedKeys) {
+                return prev.filter(key => initialOrderSet.has(key));
             }
 
             return prev;
@@ -79,18 +80,28 @@ export const PresentationEditorProvider: React.FC<{ children: ReactNode; initial
         setIsEditing(prev => !prev);
     }, []);
 
+    const value = useMemo(() => ({
+        slideOrder,
+        setSlideOrder,
+        moveSlide,
+        overrides,
+        setOverride,
+        isEditing,
+        toggleEditing,
+        selectedElementId,
+        setSelectedElementId
+    }), [
+        slideOrder,
+        moveSlide,
+        overrides,
+        setOverride,
+        isEditing,
+        toggleEditing,
+        selectedElementId
+    ]);
+
     return (
-        <PresentationEditorContext.Provider value={{
-            slideOrder,
-            setSlideOrder,
-            moveSlide,
-            overrides,
-            setOverride,
-            isEditing,
-            toggleEditing,
-            selectedElementId,
-            setSelectedElementId
-        }}>
+        <PresentationEditorContext.Provider value={value}>
             {children}
         </PresentationEditorContext.Provider>
     );

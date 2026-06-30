@@ -12,12 +12,12 @@ interface ComparacaoDetailedCardProps {
     onViewModeChange: (mode: 'table' | 'chart') => void;
 }
 
-export const ComparacaoDetailedCard: React.FC<ComparacaoDetailedCardProps> = ({
+export const ComparacaoDetailedCard = React.memo(function ComparacaoDetailedCard({
     dadosComparacao,
     semanasSelecionadas,
     viewMode,
     onViewModeChange
-}) => {
+}: ComparacaoDetailedCardProps) {
     return (
         <SaasPanel>
             <SaasPanelHeader
@@ -44,4 +44,6 @@ export const ComparacaoDetailedCard: React.FC<ComparacaoDetailedCardProps> = ({
             )}
         </SaasPanel>
     );
-};
+});
+
+ComparacaoDetailedCard.displayName = 'ComparacaoDetailedCard';
