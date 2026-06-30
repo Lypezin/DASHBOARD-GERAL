@@ -72,6 +72,13 @@ export function useTabData(
   const stableFilterPayload = stableFilterPayloadRef.current.payload;
   hasCurrentDataRef.current = hasLoadedData(data);
 
+  const resetTabState = useCallback(() => {
+    fetchIdRef.current++;
+    retryAttemptsRef.current.clear();
+    setData((previousData) => (previousData === null ? previousData : null));
+    setLoading((previousLoading) => (previousLoading ? false : previousLoading));
+  }, []);
+
   const fetchData = useCallback(async (tab: string, payload: FilterPayload, filterPayloadKey: string, fetchId: number) => {
     const tabScope = getTabScope(tab);
     const requestTab = getRequestTab(tab);
@@ -164,9 +171,7 @@ export function useTabData(
     }
 
     if (!enabled) {
-      fetchIdRef.current++;
-      setData(null);
-      setLoading(false);
+      resetTabState();
       return;
     }
 
@@ -176,16 +181,12 @@ export function useTabData(
     const hasOrganizationContext = typeof payload.p_organization_id === 'string' && payload.p_organization_id.trim().length > 0;
 
     if (SELF_MANAGED_TABS.includes(activeTab)) {
-      fetchIdRef.current++;
-      setData(null);
-      setLoading(false);
+      resetTabState();
       return;
     }
 
     if (!hasOrganizationContext) {
-      fetchIdRef.current++;
-      setData(null);
-      setLoading(false);
+      resetTabState();
       return;
     }
 
@@ -209,7 +210,7 @@ export function useTabData(
       if (debounceRef.current) clearTimeout(debounceRef.current);
       if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
     };
-  }, [activeTab, enabled, fetchData, filterPayloadStr, getCached, isOrgLoading, stableFilterPayload]);
+  }, [activeTab, enabled, fetchData, filterPayloadStr, getCached, isOrgLoading, resetTabState, stableFilterPayload]);
 
   return { data, loading };
 }

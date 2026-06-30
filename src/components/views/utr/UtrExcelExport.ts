@@ -1,27 +1,8 @@
-import { UtrData, UtrGeral } from '@/types';
+import { UtrData } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
-import { formatarHorasParaHMS } from '@/utils/formatters';
 import { IS_DEV } from '@/constants/environment';
 import { appendStyledJsonSheet, applyWorkbookMetadata } from '@/utils/excel/workbookStyle';
-
-
-// Helper local para formatação
-const formatarPorcentagem = (valor: number | undefined) => {
-    return ((valor || 0) / 100).toLocaleString('pt-BR', { style: 'percent', minimumFractionDigits: 1 });
-};
-
-const formatarMoeda = (valor: number | undefined) => {
-    return (valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-};
-
-const formatarNumero = (valor: number | undefined) => {
-    return (valor || 0).toLocaleString('pt-BR');
-};
-
-const formatarDecimal = (valor: number | undefined) => {
-    return (valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-};
 
 export async function exportarUtrParaExcel(utrData: UtrData): Promise<void> {
     try {
@@ -29,57 +10,46 @@ export async function exportarUtrParaExcel(utrData: UtrData): Promise<void> {
         const wb = XLSX.utils.book_new();
         applyWorkbookMetadata(wb, 'UTR dashboard');
 
-        // 1. Aba: Resumo Geral
         if (utrData.geral) {
             const g = utrData.geral;
-            const resumoData = [{
-                'Tempo Total (h)': formatarDecimal(g.tempo_horas),
-                'Corridas': formatarNumero(g.corridas),
-                'UTR Score': formatarDecimal(g.utr)
-            }];
-            appendStyledJsonSheet(XLSX, wb, resumoData, 'Resumo Geral', {
+            appendStyledJsonSheet(XLSX, wb, [{
+                'Tempo Total (h)': g.tempo_horas || 0,
+                Corridas: g.corridas || 0,
+                'UTR Score': g.utr || 0,
+            }], 'Resumo Geral', {
                 title: 'Resumo geral UTR',
                 theme: 'purple',
+                highlightFirstColumn: true,
             });
         }
 
-        // Helper para gerar abas detalhadas
         const exportarSecao = (dados: any[], nomeAba: string, campoChave: string, labelChave: string) => {
-            const dadosFormatados = (dados || []).map(item => ({
+            const dadosFormatados = (dados || []).map((item) => ({
                 [labelChave]: item[campoChave] || 'N/A',
-                'Tempo Total (h)': formatarDecimal(item.tempo_horas),
-                'Corridas': formatarNumero(item.corridas),
-                'UTR Score': formatarDecimal(item.utr)
+                'Tempo Total (h)': item.tempo_horas || 0,
+                Corridas: item.corridas || 0,
+                'UTR Score': item.utr || 0,
             }));
+
             appendStyledJsonSheet(XLSX, wb, dadosFormatados, nomeAba, {
                 title: nomeAba,
                 theme: 'purple',
+                highlightFirstColumn: true,
             });
         };
 
-        // 2. Aba: Por Praça
-        exportarSecao(utrData.praca || utrData.por_praca || [], 'Por Praça', 'praca', 'Praça');
-
-        // 3. Aba: Por Sub-Praça
-        exportarSecao(utrData.sub_praca || utrData.por_sub_praca || [], 'Por Sub-Praça', 'sub_praca', 'Sub-Praça');
-
-        // 4. Aba: Por Origem
+        exportarSecao(utrData.praca || utrData.por_praca || [], 'Por Praca', 'praca', 'Praca');
+        exportarSecao(utrData.sub_praca || utrData.por_sub_praca || [], 'Por Sub-Praca', 'sub_praca', 'Sub-Praca');
         exportarSecao(utrData.origem || utrData.por_origem || [], 'Por Origem', 'origem', 'Origem');
-
-        // 5. Aba: Por Turno
         exportarSecao(utrData.turno || utrData.por_turno || [], 'Por Turno', 'turno', 'Turno');
 
-
-        // Gerar Nome do Arquivo
         const agora = new Date();
         const dataHora = agora.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
         const nomeArquivo = `utr_dashboard_${dataHora}.xlsx`;
 
-        // Download
         XLSX.writeFile(wb, nomeArquivo);
 
         if (IS_DEV) safeLog.info(`UTR exportada: ${nomeArquivo}`);
-
     } catch (error) {
         safeLog.error('Erro ao exportar UTR:', error);
         throw new Error('Falha ao gerar arquivo Excel da UTR.');

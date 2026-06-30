@@ -47,6 +47,7 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
             title: 'Fluxo semanal de entregadores',
             subtitle: praca ? `Praça: ${praca}` : 'Todas as praças',
             theme: 'blue',
+            highlightFirstColumn: true,
         });
 
         const dateStr = new Date().toISOString().split('T')[0];

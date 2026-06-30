@@ -84,6 +84,7 @@ export function useMarketingExcelExport({ semanaIso, organizationId, activeTab, 
         title: `Detalhes ${activeTab}`,
         subtitle: `${semanaIso || 'Semana não informada'} - ${praca || 'Todas as praças'}`,
         theme: activeTab === 'operacional' ? 'amber' : 'emerald',
+        highlightFirstColumn: true,
       });
       XLSX.writeFile(wb, `Detalhes_${activeTab}_${semanaIso}.xlsx`);
     } catch (err) {

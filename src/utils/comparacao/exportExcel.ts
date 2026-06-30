@@ -18,6 +18,21 @@ const THEME_COLORS: Record<WorksheetTheme, string> = {
     slate: '334155',
 };
 
+function getExcelNumberFormat(header: string, value: unknown) {
+    if (typeof value !== 'number') return undefined;
+
+    const normalizedHeader = header.toLocaleLowerCase('pt-BR');
+    if (normalizedHeader.includes('%') || normalizedHeader.includes('taxa') || normalizedHeader.includes('aderencia') || normalizedHeader.includes('aderência')) {
+        return '0.0"%"';
+    }
+
+    if (!Number.isInteger(value)) {
+        return '#,##0.00';
+    }
+
+    return '#,##0';
+}
+
 function getVariation(val1: number, val2: number) {
     if (val1 === 0 && val2 === 0) return 0;
     if (val1 === 0) return 100;
@@ -91,6 +106,9 @@ function styleWorksheet(
             font: { bold: true, color: { rgb: 'FFFFFF' } },
             fill: { fgColor: { rgb: themeColor } },
             alignment: { horizontal: 'center', vertical: 'center', wrapText: true },
+            border: {
+                bottom: { style: 'medium', color: { rgb: themeColor } },
+            },
         };
     });
 
@@ -115,18 +133,21 @@ function styleWorksheet(
 
             const isTotal = totalRowIndex !== undefined && rowIndex === totalRowIndex;
             const isEven = (rowIndex - headerRowIndex) % 2 === 0;
+            const header = headers[colIndex] || '';
             cell.s = {
-                font: { bold: isTotal },
+                font: { bold: isTotal || colIndex === 0, color: { rgb: colIndex === 0 ? '0F172A' : '111827' } },
                 fill: isTotal ? { fgColor: { rgb: 'E0F2FE' } } : isEven ? { fgColor: { rgb: 'F8FAFC' } } : undefined,
                 alignment: {
-                    horizontal: colIndex === 0 ? 'left' : 'center',
+                    horizontal: colIndex === 0 ? 'left' : typeof cell.v === 'number' ? 'right' : 'center',
                     vertical: 'center',
                     wrapText: true,
                 },
                 border: {
                     bottom: { style: 'thin', color: { rgb: 'E2E8F0' } },
+                    right: { style: 'thin', color: { rgb: 'CBD5E1' } },
                 },
             };
+            cell.z = getExcelNumberFormat(header, cell.v);
         }
     }
 }

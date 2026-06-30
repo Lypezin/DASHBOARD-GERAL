@@ -20,12 +20,35 @@ export interface DashboardEvolucaoDataResult {
     utrData: UtrSemanal[];
 }
 
+function hasValues(value: unknown) {
+    return Array.isArray(value) ? value.length > 0 : Boolean(value);
+}
+
+function canUseOrgYearFastPath(filterPayload: FilterPayload) {
+    return !hasValues(filterPayload.p_praca)
+        && !hasValues(filterPayload.p_sub_praca)
+        && !hasValues(filterPayload.p_origem)
+        && !hasValues(filterPayload.p_turno)
+        && !hasValues(filterPayload.p_sub_pracas)
+        && !hasValues(filterPayload.p_origens)
+        && !hasValues(filterPayload.p_turnos)
+        && !hasValues(filterPayload.p_data_inicial)
+        && !hasValues(filterPayload.p_data_final)
+        && !hasValues(filterPayload.p_semana)
+        && !hasValues(filterPayload.p_semanas)
+        && Boolean(filterPayload.p_organization_id);
+}
+
 export async function fetchDashboardEvolucaoData(
     filterPayload: FilterPayload,
     anoEvolucao: number,
     _activeTab: string
 ): Promise<DashboardEvolucaoDataResult> {
-    const params = {
+    const useFastPath = canUseOrgYearFastPath(filterPayload);
+    const params = useFastPath ? {
+        p_ano: anoEvolucao,
+        p_organization_id: filterPayload.p_organization_id,
+    } : {
         p_ano: anoEvolucao,
         p_organization_id: filterPayload.p_organization_id,
         p_praca: filterPayload.p_praca,
@@ -36,13 +59,14 @@ export async function fetchDashboardEvolucaoData(
         p_origens: filterPayload.p_origens,
         p_turnos: filterPayload.p_turnos,
     };
+    const functionName = useFastPath ? 'dashboard_evolucao_bundle_org_year_fast' : 'dashboard_evolucao_bundle';
 
     if (IS_DEV) {
         safeLog.info('[useDashboardEvolucao] Buscando dados de evolucao:', params);
     }
 
     const { data: bundleData, error: bundleError } = await safeRpc<DashboardEvolucaoBundle>(
-        'dashboard_evolucao_bundle',
+        functionName,
         params,
         { validateParams: false }
     );

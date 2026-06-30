@@ -24,12 +24,12 @@ export async function exportarPrioridadeParaExcel(
                 Nome: entregador.nome_entregador,
                 Ofertadas: entregador.corridas_ofertadas,
                 Aceitas: entregador.corridas_aceitas,
-                '% Aceitas': `${percentualAceitas.toFixed(2)}%`,
+                '% Aceitas': percentualAceitas,
                 Completadas: entregador.corridas_completadas,
-                '% Completadas': `${percentualCompletadas.toFixed(2)}%`,
+                '% Completadas': percentualCompletadas,
                 Rejeitadas: entregador.corridas_rejeitadas,
-                '% Aderência': `${entregador.aderencia_percentual.toFixed(2)}%`,
-                '% Rejeição': `${entregador.rejeicao_percentual.toFixed(2)}%`,
+                '% Aderencia': entregador.aderencia_percentual,
+                '% Rejeicao': entregador.rejeicao_percentual,
             };
         });
 
@@ -38,6 +38,7 @@ export async function exportarPrioridadeParaExcel(
         appendStyledJsonSheet(XLSX, wb, dadosExportacao, 'Prioridade', {
             title: 'Prioridade promo',
             theme: 'amber',
+            highlightFirstColumn: true,
         });
 
         const agora = new Date();

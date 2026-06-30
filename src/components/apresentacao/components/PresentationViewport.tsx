@@ -25,7 +25,7 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = React.m
     const renderedSlide = useMemo(() => {
         if (!activeSlide) return null;
         return activeSlide.render(true);
-    }, [activeSlide?.key, activeSlide?.render]);
+    }, [activeSlide]);
 
     useEffect(() => {
         const container = containerRef.current;

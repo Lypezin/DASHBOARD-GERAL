@@ -3,10 +3,9 @@ import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { calcularTaxas } from '@/hooks/analise/useAnaliseTaxas';
-import { formatarPorcentagem, formatarNumero, gerarDadosFormatados } from './excel/AnaliseExcelHelpers';
+import { formatarNumero, gerarDadosFormatados } from './excel/AnaliseExcelHelpers';
 import { IS_DEV } from '@/constants/environment';
 import { appendStyledJsonSheet, applyWorkbookMetadata } from '@/utils/excel/workbookStyle';
-
 
 export async function exportarAnaliseParaExcel(
   totals: Totals,
@@ -19,7 +18,7 @@ export async function exportarAnaliseParaExcel(
   try {
     const XLSX = await loadXLSX();
     const wb = XLSX.utils.book_new();
-    applyWorkbookMetadata(wb, 'Análise de taxas');
+    applyWorkbookMetadata(wb, 'Analise de taxas');
 
     if (totals) {
       const { taxaAceitacao, taxaCompletude, taxaRejeicao } = calcularTaxas({
@@ -33,19 +32,21 @@ export async function exportarAnaliseParaExcel(
       const horasFormatadas = formatarHorasParaHMS(segundosTotais / 3600);
 
       const resumoData = [{
-        Métrica: 'Resumo Geral',
+        Metrica: 'Resumo Geral',
         Ofertadas: formatarNumero(totals.ofertadas),
         Aceitas: formatarNumero(totals.aceitas),
         Rejeitadas: formatarNumero(totals.rejeitadas),
         Completadas: formatarNumero(totals.completadas),
-        'Taxa Aceitação': formatarPorcentagem(taxaAceitacao),
-        'Taxa Rejeição': formatarPorcentagem(taxaRejeicao),
-        'Taxa Completude': formatarPorcentagem(taxaCompletude),
+        'Taxa Aceitacao': taxaAceitacao,
+        'Taxa Rejeicao': taxaRejeicao,
+        'Taxa Completude': taxaCompletude,
         'Horas Entregues': horasFormatadas,
       }];
+
       appendStyledJsonSheet(XLSX, wb, resumoData, 'Resumo Geral', {
         title: 'Resumo geral',
         theme: 'blue',
+        highlightFirstColumn: true,
       });
     }
 
@@ -54,12 +55,13 @@ export async function exportarAnaliseParaExcel(
       appendStyledJsonSheet(XLSX, wb, dadosFormatados, nomePlanilha, {
         title: nomePlanilha,
         theme: 'slate',
+        highlightFirstColumn: true,
       });
     };
 
     appendPlanilha(aderenciaDia, 'Por Dia', 'data', 'Dia');
     appendPlanilha(aderenciaTurno, 'Por Turno', 'turno', 'Turno');
-    appendPlanilha(aderenciaSubPraca, 'Por Sub-Praça', 'sub_praca', 'Sub-Praça');
+    appendPlanilha(aderenciaSubPraca, 'Por Sub-Praca', 'sub_praca', 'Sub-Praca');
     appendPlanilha(aderenciaOrigem, 'Por Origem', 'origem', 'Origem');
     appendPlanilha(aderenciaDiaOrigem, 'Dia x Origem', 'origem', 'Origem');
 
@@ -69,9 +71,9 @@ export async function exportarAnaliseParaExcel(
 
     XLSX.writeFile(wb, nomeArquivo);
 
-    if (IS_DEV) safeLog.info(`Análise exportada: ${nomeArquivo}`);
+    if (IS_DEV) safeLog.info(`Analise exportada: ${nomeArquivo}`);
   } catch (error) {
-    safeLog.error('Erro ao exportar análise:', error);
-    throw new Error('Falha ao gerar arquivo Excel de Análise.');
+    safeLog.error('Erro ao exportar analise:', error);
+    throw new Error('Falha ao gerar arquivo Excel de Analise.');
   }
 }

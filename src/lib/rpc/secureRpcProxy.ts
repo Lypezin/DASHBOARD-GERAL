@@ -4,6 +4,7 @@ import { INTERNAL_FETCH_OPTIONS, JSON_HEADERS } from '@/utils/app/internalFetchO
 
 const SECURE_RPC_FUNCTIONS = new Set([
   'dashboard_evolucao_bundle',
+  'dashboard_evolucao_bundle_org_year_fast',
   'dashboard_resumo',
   'get_available_weeks',
   'get_city_last_updates',

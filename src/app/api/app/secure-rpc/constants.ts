@@ -2,6 +2,7 @@ export const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f
 
 export const ALLOWED_RPC = new Set([
   'dashboard_evolucao_bundle',
+  'dashboard_evolucao_bundle_org_year_fast',
   'dashboard_resumo',
   'get_available_weeks',
   'get_city_last_updates',
@@ -25,6 +26,7 @@ export const ALLOWED_RPC = new Set([
 
 export const ORG_PARAM_BY_RPC: Record<string, string> = {
   dashboard_evolucao_bundle: 'p_organization_id',
+  dashboard_evolucao_bundle_org_year_fast: 'p_organization_id',
   dashboard_resumo: 'p_organization_id',
   get_available_weeks: 'p_organization_id',
   get_city_last_updates: 'p_organization_id',

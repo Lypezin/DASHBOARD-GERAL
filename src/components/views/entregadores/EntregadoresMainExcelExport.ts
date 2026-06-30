@@ -7,11 +7,6 @@ import { fetchEntregadoresFirstSeen, formatFirstSeenDate } from './fetchEntregad
 import { IS_DEV } from '@/constants/environment';
 import { appendStyledJsonSheet, applyWorkbookMetadata } from '@/utils/excel/workbookStyle';
 
-
-const formatarPorcentagem = (valor: number) => {
-    return (valor / 100).toLocaleString('pt-BR', { style: 'percent', minimumFractionDigits: 1 });
-};
-
 export async function exportarEntregadoresMainParaExcel(
     entregadores: Entregador[],
     options: { organizationId?: string | null } = {}
@@ -34,29 +29,31 @@ export async function exportarEntregadoresMainParaExcel(
                 throw new Error('Nao foi possivel buscar a primeira aparicao dos entregadores para o Excel.');
             }
 
-            const dadosExportacao = entregadores.map(e => ({
+            const dadosExportacao = entregadores.map((e) => ({
                 'ID Entregador': e.id_entregador,
                 Nome: e.nome_entregador,
-                'Primeira aparição': formatFirstSeenDate(firstSeenById.get(e.id_entregador) ?? e.primeira_data_aparicao),
+                'Primeira aparicao': formatFirstSeenDate(firstSeenById.get(e.id_entregador) ?? e.primeira_data_aparicao),
                 Horas: formatarHorasParaHMS((e.total_segundos || 0) / 3600),
                 Ofertadas: e.corridas_ofertadas,
                 Aceitas: e.corridas_aceitas,
                 Rejeitadas: e.corridas_rejeitadas,
                 Completadas: e.corridas_completadas,
-                '% Aceita\u00e7\u00e3o': formatarPorcentagem(calcularPercentualAceitas(e)),
-                '% Completude': formatarPorcentagem(calcularPercentualCompletadas(e)),
-                '% Ader\u00eancia': formatarPorcentagem(e.aderencia_percentual),
-                '% Rejei\u00e7\u00e3o': formatarPorcentagem(e.rejeicao_percentual)
+                '% Aceitacao': calcularPercentualAceitas(e),
+                '% Completude': calcularPercentualCompletadas(e),
+                '% Aderencia': e.aderencia_percentual,
+                '% Rejeicao': e.rejeicao_percentual,
             }));
 
             appendStyledJsonSheet(XLSX, wb, dadosExportacao, 'Entregadores Operacional', {
                 title: 'Entregadores operacional',
                 theme: 'green',
+                highlightFirstColumn: true,
             });
         } else {
             appendStyledJsonSheet(XLSX, wb, [], 'Entregadores Operacional', {
                 title: 'Entregadores operacional',
                 theme: 'green',
+                highlightFirstColumn: true,
             });
         }
 

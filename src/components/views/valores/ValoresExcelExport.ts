@@ -4,28 +4,24 @@ import { loadXLSX } from '@/lib/xlsxClient';
 import { IS_DEV } from '@/constants/environment';
 import { appendStyledJsonSheet, applyWorkbookMetadata } from '@/utils/excel/workbookStyle';
 
-
-const formatarMoeda = (valor: number | undefined) => {
-    return (valor || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-};
-
 export async function exportarValoresParaExcel(valoresData: ValoresEntregador[]): Promise<void> {
     try {
         const XLSX = await loadXLSX();
         const wb = XLSX.utils.book_new();
         applyWorkbookMetadata(wb, 'Valores por entregador');
 
-        const dadosExportacao = (valoresData || []).map(v => ({
+        const dadosExportacao = (valoresData || []).map((v) => ({
             'ID Entregador': v.id_entregador,
             Nome: v.nome_entregador,
-            'Valor Total': formatarMoeda(v.total_taxas),
+            'Valor Total': v.total_taxas || 0,
             Corridas: v.numero_corridas_aceitas,
-            'Média': formatarMoeda(v.taxa_media)
+            'Taxa Media': v.taxa_media || 0,
         }));
 
         appendStyledJsonSheet(XLSX, wb, dadosExportacao, 'Valores', {
             title: 'Valores por entregador',
             theme: 'emerald',
+            highlightFirstColumn: true,
         });
 
         const agora = new Date();
