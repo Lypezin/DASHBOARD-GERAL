@@ -35,15 +35,15 @@ export const ComparacaoWeekSelector: React.FC<ComparacaoWeekSelectorProps> = ({
         : 'Adicionar semanas';
 
     return (
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+        <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button
                         variant="outline"
-                        className="h-11 min-w-[280px] justify-between rounded-xl border-slate-200/80 bg-white/90 px-5 shadow-sm transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-sky-300 hover:bg-white dark:border-slate-800/80 dark:bg-slate-950 dark:hover:border-sky-500/40 dark:hover:bg-slate-900"
+                        className="h-11 w-full min-w-0 justify-between rounded-xl border-slate-200/80 bg-white/90 px-4 shadow-sm transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-sky-300 hover:bg-white dark:border-slate-800/80 dark:bg-slate-950 dark:hover:border-sky-500/40 dark:hover:bg-slate-900 sm:min-w-[280px] sm:px-5 lg:w-auto"
                     >
                         <span
-                            className="whitespace-nowrap font-mono text-[13px] font-bold uppercase tracking-[0.12em] text-slate-500 tabular-nums dark:text-slate-400"
+                            className="min-w-0 truncate whitespace-nowrap font-mono text-[13px] font-bold uppercase tracking-[0.12em] text-slate-500 tabular-nums dark:text-slate-400"
                             title={selectedWeekLabels.length > 0 ? selectedWeekLabels.join(', ') : undefined}
                         >
                             {triggerLabel}

@@ -38,7 +38,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = React.m
     onExportExcel
 }) => {
     return (
-        <div className="sticky top-0 z-10 flex min-w-0 flex-col gap-3 border-b border-slate-200 bg-white p-3 dark:border-slate-800 dark:bg-slate-900 md:flex-row md:items-center md:p-4">
+        <div className="sticky top-0 z-10 flex min-w-0 flex-col gap-2 border-b border-slate-200 bg-white/96 p-2.5 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/96 md:flex-row md:items-center md:gap-3 md:p-3">
             <div className="flex min-w-0 shrink-0 items-center gap-3">
                 <PresentationSectionToggle
                     visibleSections={visibleSections}
@@ -49,7 +49,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = React.m
             {/* Spacer to push controls to the right on desktop */}
             <div className="hidden md:block flex-grow" />
 
-            <div className="subtle-scrollbar flex min-w-0 max-w-full flex-wrap items-center gap-2 overflow-x-auto pb-1 md:gap-3 md:overflow-visible md:pb-0">
+            <div className="subtle-scrollbar flex min-w-0 max-w-full items-center gap-2 overflow-x-auto pb-1 md:flex-wrap md:gap-2.5 md:overflow-visible md:pb-0">
 
                 <PresentationNavigation
                     currentSlide={currentSlide}
@@ -63,7 +63,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = React.m
                 {onManageMedia && (
                     <Button
                         variant="outline"
-                        className="shrink-0 border-slate-200 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                        className="h-9 shrink-0 border-slate-200 px-3 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
                         onClick={onManageMedia}
                     >
                         <FilePlus className="h-4 w-4 sm:mr-2" />
@@ -76,7 +76,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = React.m
                 {onManageClick && (
                     <Button
                         variant="outline"
-                        className="shrink-0 border-slate-200 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                        className="h-9 shrink-0 border-slate-200 px-3 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
                         onClick={onManageClick}
                         title="Minhas Apresentações"
                     >
@@ -88,7 +88,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = React.m
                 {onSaveClick && (
                     <Button
                         variant="outline"
-                        className="shrink-0 border-slate-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700"
+                        className="h-9 shrink-0 border-slate-200 px-3 text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:border-slate-700"
                         onClick={onSaveClick}
                         title="Salvar Apresentação"
                     >
@@ -102,7 +102,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = React.m
                 {onExportExcel && (
                     <Button
                         variant="outline"
-                        className="shrink-0 border-slate-200 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                        className="h-9 shrink-0 border-slate-200 px-3 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
                         onClick={onExportExcel}
                         title="Exportar Planilha Excel"
                     >
@@ -113,7 +113,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = React.m
 
                 <Button
                     variant="outline"
-                    className="shrink-0 border-slate-200 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                    className="h-9 shrink-0 border-slate-200 px-3 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
                     onClick={onGeneratePDF}
                     disabled={isGenerating}
                     title="Exportar PDF"
@@ -126,7 +126,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = React.m
 
                 <Button
                     onClick={onStartPresentation}
-                    className="shrink-0 bg-emerald-600 text-white hover:bg-emerald-700"
+                    className="h-9 shrink-0 bg-emerald-600 px-3 text-white hover:bg-emerald-700"
                 >
                     <Check className="mr-2 h-4 w-4" />
                     Iniciar
@@ -135,7 +135,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = React.m
                 <Button
                     variant="outline"
                     onClick={onClose}
-                    className="shrink-0 border-slate-200 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
+                    className="h-9 shrink-0 border-slate-200 px-3 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
                     title="Fechar"
                 >
                     <X className="h-4 w-4 sm:mr-2" />

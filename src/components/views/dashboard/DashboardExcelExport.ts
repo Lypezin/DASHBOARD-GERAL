@@ -5,8 +5,6 @@ import { formatarHorasParaHMS } from '@/utils/formatters';
 import { IS_DEV } from '@/constants/environment';
 import { appendStyledJsonSheet, applyWorkbookMetadata } from '@/utils/excel/workbookStyle';
 
-const formatarPorcentagem = (valor: number) => (valor / 100).toLocaleString('pt-BR', { style: 'percent', minimumFractionDigits: 1 });
-
 export async function exportarDashboardParaExcel(
   aderenciaGeral: AderenciaSemanal | undefined,
   aderenciaDia: AderenciaDia[],
@@ -31,13 +29,14 @@ export async function exportarDashboardParaExcel(
       }
 
       appendStyledJsonSheet(XLSX, wb, [{
-        Métrica: 'Horas',
+        Metrica: 'Horas',
         Realizado: horasRealizadas,
         Planejado: horasPlanejadas,
-        Aderência: formatarPorcentagem(aderenciaGeral.aderencia_percentual || 0),
+        Aderencia: aderenciaGeral.aderencia_percentual || 0,
       }], 'Resumo Geral', {
         title: 'Resumo geral',
         theme: 'blue',
+        highlightFirstColumn: true,
       });
     }
 
@@ -46,33 +45,33 @@ export async function exportarDashboardParaExcel(
       Data: d.data || '-',
       'Horas Realizadas': formatarHorasParaHMS((d.segundos_realizados || 0) / 3600),
       'Horas Planejadas': formatarHorasParaHMS((d.segundos_planejados || 0) / 3600),
-      Aderência: formatarPorcentagem(d.aderencia_percentual || 0),
+      Aderencia: d.aderencia_percentual || 0,
       'Corridas Completadas': d.corridas_completadas || 0,
-    })), 'Por Dia', { title: 'Por dia', theme: 'green' });
+    })), 'Por Dia', { title: 'Por dia', theme: 'green', highlightFirstColumn: true });
 
     appendStyledJsonSheet(XLSX, wb, (aderenciaTurno || []).map((t) => ({
       Turno: t.turno,
       'Horas Realizadas': formatarHorasParaHMS((t.segundos_realizados || 0) / 3600),
       'Horas Planejadas': formatarHorasParaHMS((t.segundos_planejados || 0) / 3600),
-      Aderência: formatarPorcentagem(t.aderencia_percentual || 0),
+      Aderencia: t.aderencia_percentual || 0,
       'Corridas Completadas': t.corridas_completadas || 0,
-    })), 'Por Turno', { title: 'Por turno', theme: 'amber' });
+    })), 'Por Turno', { title: 'Por turno', theme: 'amber', highlightFirstColumn: true });
 
     appendStyledJsonSheet(XLSX, wb, (aderenciaSubPraca || []).map((s) => ({
-      'Sub-Praça': s.sub_praca,
+      'Sub-Praca': s.sub_praca,
       'Horas Realizadas': formatarHorasParaHMS((s.segundos_realizados || 0) / 3600),
       'Horas Planejadas': formatarHorasParaHMS((s.segundos_planejados || 0) / 3600),
-      Aderência: formatarPorcentagem(s.aderencia_percentual || 0),
+      Aderencia: s.aderencia_percentual || 0,
       'Corridas Completadas': s.corridas_completadas || 0,
-    })), 'Por Sub-Praça', { title: 'Por sub-praça', theme: 'purple' });
+    })), 'Por Sub-Praca', { title: 'Por sub-praca', theme: 'purple', highlightFirstColumn: true });
 
     appendStyledJsonSheet(XLSX, wb, (aderenciaOrigem || []).map((o) => ({
       Origem: o.origem,
       'Horas Realizadas': formatarHorasParaHMS((o.segundos_realizados || 0) / 3600),
       'Horas Planejadas': formatarHorasParaHMS((o.segundos_planejados || 0) / 3600),
-      Aderência: formatarPorcentagem(o.aderencia_percentual || 0),
+      Aderencia: o.aderencia_percentual || 0,
       'Corridas Completadas': o.corridas_completadas || 0,
-    })), 'Por Origem', { title: 'Por origem', theme: 'slate' });
+    })), 'Por Origem', { title: 'Por origem', theme: 'slate', highlightFirstColumn: true });
 
     const agora = new Date();
     const dataHora = agora.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');

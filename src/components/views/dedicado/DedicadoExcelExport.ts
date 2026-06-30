@@ -8,8 +8,6 @@ import {
   calculateAcceptanceRate,
   calculateCompletionRate,
   calculateHourlyAderencia,
-  formatMetricPercent,
-  formatMetricPercentOrDash,
   normalizeMetricNumber,
 } from './metrics';
 import type { Entregador } from '@/types';
@@ -54,13 +52,13 @@ function buildRankingRows(entregadores: Entregador[]) {
       ['Posi\u00e7\u00e3o']: index + 1,
       'ID Entregador': entregador.id_entregador,
       Nome: entregador.nome_entregador,
-      ['Ader\u00eancia']: formatMetricPercent(entregador.aderencia_percentual),
+      ['Ader\u00eancia']: normalizeMetricNumber(entregador.aderencia_percentual),
       Horas: formatarHorasParaHMS((entregador.total_segundos || 0) / 3600),
       Ofertadas: entregador.corridas_ofertadas || 0,
       Aceitas: entregador.corridas_aceitas || 0,
       Rejeitadas: entregador.corridas_rejeitadas || 0,
       Completadas: entregador.corridas_completadas || 0,
-      ['Taxa Rejei\u00e7\u00e3o']: formatMetricPercent(entregador.rejeicao_percentual),
+      ['Taxa Rejei\u00e7\u00e3o']: normalizeMetricNumber(entregador.rejeicao_percentual),
       ['Observa\u00e7\u00e3o']: normalizeMetricNumber(entregador.corridas_ofertadas) < 20 ? 'Baixo volume' : '',
     }));
 }
@@ -82,6 +80,7 @@ function appendSheet(XLSX: typeof import('xlsx'), workbook: import('xlsx').WorkB
   appendStyledJsonSheet(XLSX, workbook, data, sheetName, {
     title: `DEDICADO - ${sheetName}`,
     theme: sheetName === 'Ranking' ? 'amber' : sheetName === 'Filtros' ? 'slate' : 'blue',
+    highlightFirstColumn: true,
   });
 }
 
@@ -117,7 +116,7 @@ export async function exportarDedicadoParaExcel(filterPayload: FilterPayload): P
       { Indicador: 'Completadas', Valor: normalizeMetricNumber(totals.corridas_completadas) },
       { Indicador: 'Horas', Valor: formatarHorasParaHMS(normalizeMetricNumber(totals.segundos_realizados) / 3600) },
       { Indicador: 'Horas Planejadas', Valor: formatarHorasParaHMS(normalizeMetricNumber(totals.segundos_planejados) / 3600) },
-      { Indicador: 'Ader\u00eancia Horas', Valor: formatMetricPercentOrDash(calculateHourlyAderencia(totals.segundos_realizados, totals.segundos_planejados), normalizeMetricNumber(totals.segundos_planejados) > 0) },
+      { Indicador: 'Ader\u00eancia Horas', Valor: normalizeMetricNumber(totals.segundos_planejados) > 0 ? calculateHourlyAderencia(totals.segundos_realizados, totals.segundos_planejados) : 0 },
     ], 'Resumo');
 
     appendSheet(XLSX, workbook, origemRows.map((row) => ({
@@ -125,12 +124,12 @@ export async function exportarDedicadoParaExcel(filterPayload: FilterPayload): P
       Horas: formatarHorasParaHMS(normalizeMetricNumber(row.segundos_realizados) / 3600),
       Ofertadas: normalizeMetricNumber(row.corridas_ofertadas),
       Aceitas: normalizeMetricNumber(row.corridas_aceitas),
-      '% Aceitas': formatMetricPercent(calculateAcceptanceRate(row.corridas_aceitas, row.corridas_ofertadas)),
+      '% Aceitas': calculateAcceptanceRate(row.corridas_aceitas, row.corridas_ofertadas),
       Rejeitadas: normalizeMetricNumber(row.corridas_rejeitadas),
       Completadas: normalizeMetricNumber(row.corridas_completadas),
-      '% Completadas': formatMetricPercent(calculateCompletionRate(row.corridas_completadas, row.corridas_aceitas)),
+      '% Completadas': calculateCompletionRate(row.corridas_completadas, row.corridas_aceitas),
       'Horas Planejadas': formatarHorasParaHMS(normalizeMetricNumber(row.segundos_planejados) / 3600),
-      ['Ader\u00eancia']: formatMetricPercentOrDash(calculateHourlyAderencia(row.segundos_realizados, row.segundos_planejados), normalizeMetricNumber(row.segundos_planejados) > 0),
+      ['Ader\u00eancia']: normalizeMetricNumber(row.segundos_planejados) > 0 ? calculateHourlyAderencia(row.segundos_realizados, row.segundos_planejados) : 0,
     })), 'Origens');
 
     appendSheet(XLSX, workbook, entregadores.map((entregador) => ({
@@ -139,12 +138,12 @@ export async function exportarDedicadoParaExcel(filterPayload: FilterPayload): P
       Horas: formatarHorasParaHMS((entregador.total_segundos || 0) / 3600),
       Ofertadas: entregador.corridas_ofertadas || 0,
       Aceitas: entregador.corridas_aceitas || 0,
-      '% Aceitas': formatMetricPercent(calculateAcceptanceRate(entregador.corridas_aceitas, entregador.corridas_ofertadas)),
+      '% Aceitas': calculateAcceptanceRate(entregador.corridas_aceitas, entregador.corridas_ofertadas),
       Rejeitadas: entregador.corridas_rejeitadas || 0,
       Completadas: entregador.corridas_completadas || 0,
-      '% Completadas': formatMetricPercent(calculateCompletionRate(entregador.corridas_completadas, entregador.corridas_aceitas)),
-      ['Ader\u00eancia']: formatMetricPercent(entregador.aderencia_percentual),
-      ['Rejei\u00e7\u00e3o']: formatMetricPercent(entregador.rejeicao_percentual),
+      '% Completadas': calculateCompletionRate(entregador.corridas_completadas, entregador.corridas_aceitas),
+      ['Ader\u00eancia']: normalizeMetricNumber(entregador.aderencia_percentual),
+      ['Rejei\u00e7\u00e3o']: normalizeMetricNumber(entregador.rejeicao_percentual),
     })), 'Entregadores');
 
     appendSheet(XLSX, workbook, buildRankingRows(entregadores), 'Ranking');
@@ -156,12 +155,12 @@ export async function exportarDedicadoParaExcel(filterPayload: FilterPayload): P
       Horas: formatarHorasParaHMS(normalizeMetricNumber(row.segundos_realizados) / 3600),
       Ofertadas: normalizeMetricNumber(row.corridas_ofertadas),
       Aceitas: normalizeMetricNumber(row.corridas_aceitas),
-      '% Aceitas': formatMetricPercent(calculateAcceptanceRate(row.corridas_aceitas, row.corridas_ofertadas)),
+      '% Aceitas': calculateAcceptanceRate(row.corridas_aceitas, row.corridas_ofertadas),
       Rejeitadas: normalizeMetricNumber(row.corridas_rejeitadas),
       Completadas: normalizeMetricNumber(row.corridas_completadas),
-      '% Completadas': formatMetricPercent(calculateCompletionRate(row.corridas_completadas, row.corridas_aceitas)),
+      '% Completadas': calculateCompletionRate(row.corridas_completadas, row.corridas_aceitas),
       'Horas Planejadas': formatarHorasParaHMS(normalizeMetricNumber(row.segundos_planejados) / 3600),
-      ['Ader\u00eancia']: formatMetricPercentOrDash(calculateHourlyAderencia(row.segundos_realizados, row.segundos_planejados), normalizeMetricNumber(row.segundos_planejados) > 0),
+      ['Ader\u00eancia']: normalizeMetricNumber(row.segundos_planejados) > 0 ? calculateHourlyAderencia(row.segundos_realizados, row.segundos_planejados) : 0,
     })), 'Dia x Origem');
 
     appendSheet(XLSX, workbook, formatFilters(rpcPayload), 'Filtros');

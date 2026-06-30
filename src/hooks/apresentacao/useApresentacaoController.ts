@@ -26,7 +26,7 @@ const DEFAULT_VISIBLE_SECTIONS = {
     'resumo-demanda-origem': true,
     'demanda-origem': true,
     demanda: true,
-    entregadores: true,
+    entregadores: false,
     'capa-final': true,
 };
 
@@ -37,7 +37,7 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
     const router = useRouter();
     const pathname = usePathname();
 
-    const SECTIONS_VERSION = 'v3';
+    const SECTIONS_VERSION = 'v4';
     const getStorageKey = (type: 'slides' | 'sections') => {
         const pracaKey = praca ? praca.replace(/\s+/g, '_').toLowerCase() : 'geral';
         const sortedWeeks = [...semanas].sort((a, b) => a.localeCompare(b));

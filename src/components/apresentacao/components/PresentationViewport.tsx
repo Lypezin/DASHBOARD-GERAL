@@ -1,6 +1,6 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { SLIDE_HEIGHT, SLIDE_WIDTH, slideDimensionsStyle } from '../constants';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 
 interface PresentationViewportProps {
     slides: Array<{ key: string; render: (visible: boolean) => React.ReactNode }>;
@@ -20,7 +20,10 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = React.m
     const activeSlide = slides[currentSlide] || null;
     const lastScrollTimeRef = useRef(0);
     const previousSlideRef = useRef(currentSlide);
+    const animationFrameRef = useRef<number | null>(null);
     const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
+    const [isCompactViewport, setIsCompactViewport] = useState(false);
+    const shouldReduceMotion = useReducedMotion();
 
     const renderedSlide = useMemo(() => {
         if (!activeSlide) return null;
@@ -69,20 +72,32 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = React.m
             const availableHeight = container.height;
 
             if (availableWidth === 0 || availableHeight === 0) return;
+            const nextIsCompactViewport = availableWidth < 640;
+            setIsCompactViewport((current) => current === nextIsCompactViewport ? current : nextIsCompactViewport);
 
             const scaleX = availableWidth / SLIDE_WIDTH;
             const scaleY = availableHeight / SLIDE_HEIGHT;
 
             const newScale = Math.min(scaleX, scaleY) * 0.98;
-            setScale(Math.max(0.1, Math.min(1.2, newScale)));
+            const nextScale = Math.max(0.1, Math.min(1.2, newScale));
+            setScale((currentScale) => Math.abs(currentScale - nextScale) < 0.005 ? currentScale : nextScale);
         }
     }, []);
+
+    const scheduleScaleCalculation = useCallback(() => {
+        if (animationFrameRef.current !== null) return;
+
+        animationFrameRef.current = window.requestAnimationFrame(() => {
+            animationFrameRef.current = null;
+            calculateScale();
+        });
+    }, [calculateScale]);
 
     useEffect(() => {
         calculateScale();
 
         const observer = typeof ResizeObserver !== 'undefined' && containerRef.current
-            ? new ResizeObserver(() => calculateScale())
+            ? new ResizeObserver(() => scheduleScaleCalculation())
             : null;
 
         if (observer && containerRef.current) {
@@ -92,10 +107,14 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = React.m
         window.addEventListener('resize', calculateScale);
 
         return () => {
+            if (animationFrameRef.current !== null) {
+                window.cancelAnimationFrame(animationFrameRef.current);
+                animationFrameRef.current = null;
+            }
             observer?.disconnect();
             window.removeEventListener('resize', calculateScale);
         };
-    }, [calculateScale]);
+    }, [calculateScale, scheduleScaleCalculation]);
 
     // Recalculate when slide changes
     useEffect(() => {
@@ -107,8 +126,8 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = React.m
     const slideVariants = {
         enter: (dir: 'forward' | 'backward') => ({
             opacity: 0,
-            x: dir === 'forward' ? 120 : -120,
-            scale: 0.98,
+            x: shouldReduceMotion ? 0 : dir === 'forward' ? 72 : -72,
+            scale: shouldReduceMotion ? 1 : 0.985,
         }),
         center: {
             opacity: 1,
@@ -117,25 +136,25 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = React.m
         },
         exit: (dir: 'forward' | 'backward') => ({
             opacity: 0,
-            x: dir === 'forward' ? -120 : 120,
-            scale: 0.98,
+            x: shouldReduceMotion ? 0 : dir === 'forward' ? -72 : 72,
+            scale: shouldReduceMotion ? 1 : 0.985,
         }),
     };
 
     return (
         <div
             ref={containerRef}
-            className="bg-slate-100 dark:bg-slate-950 flex-1 w-full h-full overflow-hidden relative flex items-center justify-center p-2"
+            className="bg-slate-100 dark:bg-slate-950 flex-1 w-full h-full overflow-hidden relative flex items-start justify-center p-2 pt-4 sm:items-center sm:p-3"
         >
             <div
                 className="relative shadow-2xl transition-transform duration-200 ease-out will-change-transform"
                 style={{
                     ...slideDimensionsStyle,
                     position: 'absolute',
-                    top: '50%',
+                    top: isCompactViewport ? 0 : '50%',
                     left: '50%',
-                    transform: `translate(-50%, -50%) scale(${scale})`,
-                    transformOrigin: 'center center',
+                    transform: `translate(-50%, ${isCompactViewport ? '0' : '-50%'}) scale(${scale})`,
+                    transformOrigin: isCompactViewport ? 'top center' : 'center center',
                     fontFamily: 'Inter, Arial, sans-serif',
                     WebkitFontSmoothing: 'antialiased',
                     MozOsxFontSmoothing: 'grayscale',
@@ -165,9 +184,9 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = React.m
                             animate="center"
                             exit="exit"
                             transition={{
-                                x: { type: 'spring', stiffness: 350, damping: 32 },
-                                opacity: { duration: 0.2 },
-                                scale: { duration: 0.2 }
+                                x: shouldReduceMotion ? { duration: 0.01 } : { type: 'spring', stiffness: 280, damping: 34, mass: 0.75 },
+                                opacity: { duration: shouldReduceMotion ? 0.01 : 0.16 },
+                                scale: { duration: shouldReduceMotion ? 0.01 : 0.16 }
                             }}
                             style={{
                                 ...slideDimensionsStyle,

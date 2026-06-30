@@ -34,6 +34,7 @@ export const handleExportExcelResultados = async (
         title: 'Resultados por atendente',
         subtitle: `Data de agregação: ${dataAgregacao || '-'}`,
         theme: 'green',
+        highlightFirstColumn: true,
     });
 
     const safeDate = dataAgregacao || new Date().toISOString().split('T')[0];

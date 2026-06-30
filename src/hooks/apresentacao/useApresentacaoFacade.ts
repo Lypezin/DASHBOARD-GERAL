@@ -40,8 +40,13 @@ export function useApresentacaoFacade(props: FacadeProps) {
     const { organizationId } = useOrganization();
     const [entregadoresComparativo, setEntregadoresComparativo] = useState<any[]>([]);
 
+    const shouldLoadEntregadores = state.visibleSections.entregadores === true;
+
     useEffect(() => {
-        if (semanasSelecionadas.length !== 2) return;
+        if (!shouldLoadEntregadores || semanasSelecionadas.length !== 2) {
+            setEntregadoresComparativo([]);
+            return;
+        }
         
         let active = true;
         const load = async () => {
@@ -113,7 +118,7 @@ export function useApresentacaoFacade(props: FacadeProps) {
         
         load();
         return () => { active = false; };
-    }, [semanasSelecionadas, pracaSelecionada, anoSelecionado, organizationId]);
+    }, [shouldLoadEntregadores, semanasSelecionadas, pracaSelecionada, anoSelecionado, organizationId]);
 
     const slides = useApresentacaoSlides(
         dadosProcessados, dadosComparacao, utrComparacao,

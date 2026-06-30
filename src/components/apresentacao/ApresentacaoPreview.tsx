@@ -8,7 +8,7 @@ import { PresentationCaptureLayer } from './components/PresentationCaptureLayer'
 import { SlideSidebar } from './slides/components/SlideSidebar';
 import { MediaToolbar } from './components/MediaToolbar';
 import { MediaSlideData } from '@/types/presentation';
-import { PresentationEditorProvider, usePresentationEditor } from './context/PresentationEditorContext';
+import { usePresentationEditor } from './context/PresentationEditorContext';
 import { usePreviewController } from './hooks/usePreviewController';
 import { useMediaActions } from './hooks/useMediaActions';
 
@@ -71,13 +71,13 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
         .slide-for-capture { font-family: Inter, Arial, sans-serif !important; }
       `}</style>
       <PresentationCaptureLayer ref={captureContainerRef} slides={orderedSlides} capturingIndex={capturingIndex} />
-      <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[99999] overflow-hidden p-2 sm:p-3 animate-in fade-in duration-200">
-        <Card className="flex h-[97vh] w-full max-w-[98vw] min-w-0 flex-col overflow-hidden border-slate-200 bg-slate-100 shadow-2xl dark:border-slate-800 dark:bg-black md:flex-row">
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center overflow-hidden bg-slate-950/82 p-1.5 backdrop-blur-md animate-in fade-in duration-200 sm:p-3">
+        <Card className="flex h-[98dvh] w-full max-w-[99vw] min-w-0 flex-col overflow-hidden rounded-2xl border-slate-200 bg-slate-100 shadow-2xl dark:border-slate-800 dark:bg-black md:h-[97vh] md:max-w-[98vw] md:flex-row">
           <SlideSidebar
             slides={slides} currentSlideIndex={currentSlide} onSlideSelect={onSlideChange}
             mediaSlides={mediaSlides || []} onUpdateMediaSlide={onUpdateMediaSlide} onAddMediaSlide={handleAddMediaSlideAndSelect} onDeleteMediaSlide={onDeleteMediaSlide}
           />
-          <div className="relative flex h-full min-w-0 flex-1 flex-col overflow-hidden bg-white dark:bg-slate-950">
+          <div className="relative flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-white dark:bg-slate-950">
             <ApresentacaoControls
               currentSlide={currentSlide} totalSlides={orderedSlides.length}
               onPrev={handlePrev} onNext={handleNext} onClose={onClose}
@@ -86,7 +86,7 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
               onSaveClick={onSaveClick} onManageClick={onManageClick}
               onExportExcel={onExportExcel}
             />
-            <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-slate-100/50">
+            <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-slate-100 dark:bg-slate-950">
               <PresentationViewport
                 slides={orderedSlides}
                 currentSlide={currentSlide}

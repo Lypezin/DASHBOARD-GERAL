@@ -86,7 +86,7 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
             </div>
 
             {/* Premium floating presentation controller on the left side vertically */}
-            <div className="fixed left-6 top-1/2 -translate-y-1/2 z-[100006] flex flex-col items-center gap-3 bg-white/70 dark:bg-slate-950/70 backdrop-blur-xl px-3 py-5 rounded-[24px] border border-white/20 dark:border-slate-800/40 shadow-[0_24px_50px_-16px_rgba(15,23,42,0.3)] dark:shadow-[0_24px_50px_-16px_rgba(0,0,0,0.5)] transition-all duration-300 opacity-30 hover:opacity-100 focus-within:opacity-100 hover:scale-[1.03] active:scale-[1.01] pointer-events-auto presentation-floating-bar">
+            <div className="fixed bottom-4 left-1/2 z-[100006] flex -translate-x-1/2 items-center gap-2 rounded-2xl border border-white/20 bg-white/82 px-3 py-2 shadow-[0_18px_44px_-20px_rgba(15,23,42,0.35)] backdrop-blur-xl transition-all duration-300 dark:border-slate-800/40 dark:bg-slate-950/82 dark:shadow-[0_24px_50px_-16px_rgba(0,0,0,0.5)] sm:left-6 sm:top-1/2 sm:bottom-auto sm:-translate-x-0 sm:-translate-y-1/2 sm:flex-col sm:gap-3 sm:rounded-[24px] sm:px-3 sm:py-5 sm:opacity-35 sm:hover:scale-[1.03] sm:hover:opacity-100 sm:focus-within:opacity-100 sm:active:scale-[1.01] pointer-events-auto presentation-floating-bar">
                 
                 {/* Exit Button */}
                 <button
@@ -97,7 +97,7 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
                     <X size={16} />
                 </button>
 
-                <div className="w-4 h-[1px] bg-slate-200 dark:bg-slate-800" />
+                <div className="hidden w-4 h-[1px] bg-slate-200 dark:bg-slate-800 sm:block" />
 
                 {/* Navigation Buttons */}
                 <button
@@ -109,8 +109,9 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
                     <ChevronLeft size={18} />
                 </button>
 
-                <span className="text-xs font-semibold font-mono text-slate-500 dark:text-slate-400 py-1 min-h-[1.5rem] text-center select-none">
-                    {slideAtualExibicao}<br/>/<br/>{totalSlides}
+                <span className="min-w-10 select-none py-1 text-center font-mono text-xs font-semibold text-slate-500 dark:text-slate-400 sm:min-h-[1.5rem] sm:min-w-0">
+                    <span className="sm:hidden">{slideAtualExibicao}/{totalSlides}</span>
+                    <span className="hidden sm:inline">{slideAtualExibicao}<br/>/<br/>{totalSlides}</span>
                 </span>
 
                 <button
@@ -122,10 +123,10 @@ export const ApresentacaoWebMode: React.FC<ApresentacaoWebModeProps> = ({
                     <ChevronRight size={18} />
                 </button>
 
-                <div className="w-4 h-[1px] bg-slate-200 dark:bg-slate-800" />
+                <div className="hidden w-4 h-[1px] bg-slate-200 dark:bg-slate-800 sm:block" />
 
                 {/* Toolbar Tools */}
-                <div className="flex flex-col items-center gap-1.5">
+                <div className="flex items-center gap-1.5 sm:flex-col">
                     {/* Laser Tool */}
                     <button
                         onClick={() => setTool('laser')}
