@@ -71,7 +71,7 @@ export const EvolucaoChart: React.FC<EvolucaoChartProps> = ({
         ) : null}
 
         {chartData.datasets.length > 0 && chartData.labels.length > 0 ? (
-          <div className="relative overflow-hidden rounded-[1.75rem] border border-slate-200/75 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.08),transparent_34%),linear-gradient(180deg,rgba(248,250,252,0.92),rgba(255,255,255,0.98))] p-3 shadow-inner dark:border-slate-800/75 dark:bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_36%),linear-gradient(180deg,rgba(15,23,42,0.86),rgba(2,6,23,0.92))] sm:p-5">
+          <div className="relative overflow-visible rounded-[1.75rem] border border-slate-200/75 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.08),transparent_34%),linear-gradient(180deg,rgba(248,250,252,0.92),rgba(255,255,255,0.98))] p-3 shadow-inner dark:border-slate-800/75 dark:bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_36%),linear-gradient(180deg,rgba(15,23,42,0.86),rgba(2,6,23,0.92))] sm:p-5">
             <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/40 to-transparent" />
             <div className="relative h-[420px] w-full sm:h-[500px]">
               <EvolucaoEmptyState
