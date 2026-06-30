@@ -56,7 +56,10 @@ export const PresentationSectionToggle: React.FC<PresentationSectionToggleProps>
                         key={key}
                         checked={visibleSections[key]}
                         onCheckedChange={() => onToggleSection(key)}
-                        onSelect={(event) => event.preventDefault()}
+                        onSelect={(event) => {
+                            event.preventDefault();
+                            onToggleSection(key);
+                        }}
                     >
                         {SECTION_LABELS[key] || key}
                     </DropdownMenuCheckboxItem>
