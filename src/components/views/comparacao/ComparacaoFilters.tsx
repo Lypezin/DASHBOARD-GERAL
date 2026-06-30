@@ -35,7 +35,6 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
     onClearSemanas,
     onMostrarApresentacao,
     dadosComparacao,
-    utrComparacao,
     secoesVisiveis,
     onToggleSecao
 }) => {
@@ -62,8 +61,6 @@ export const ComparacaoFilters: React.FC<ComparacaoFiltersProps> = ({
                                 Limpar
                             </button>
                         ) : null}
-
-
 
                         <button
                             onClick={onMostrarApresentacao}

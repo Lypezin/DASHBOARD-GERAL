@@ -106,12 +106,12 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                     >
                         {state.loading ? (
                             <div className="mb-4 rounded-2xl border border-sky-200/70 bg-sky-50/80 px-4 py-3 text-sm font-semibold text-sky-800 shadow-sm dark:border-sky-900/50 dark:bg-sky-950/25 dark:text-sky-200">
-                                Atualizando comparacao com os filtros atuais...
+                                Atualizando comparação com os filtros atuais...
                             </div>
                         ) : null}
                         {state.error ? (
                             <div className="mb-4 rounded-2xl border border-amber-200/70 bg-amber-50/85 px-4 py-3 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
-                                Nao foi possivel atualizar todos os dados da comparacao. Exibindo a ultima resposta valida.
+                                Não foi possível atualizar todos os dados da comparação. Exibindo a última resposta válida.
                             </div>
                         ) : null}
                         <ComparacaoContent

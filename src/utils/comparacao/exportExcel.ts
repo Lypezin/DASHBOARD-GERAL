@@ -18,6 +18,22 @@ const THEME_COLORS: Record<WorksheetTheme, string> = {
     slate: '334155',
 };
 
+const THEME_LIGHT_COLORS: Record<WorksheetTheme, string> = {
+    blue: 'EFF6FF',
+    green: 'ECFDF5',
+    purple: 'F5F3FF',
+    amber: 'FFFBEB',
+    slate: 'F8FAFC',
+};
+
+const THEME_DARK_COLORS: Record<WorksheetTheme, string> = {
+    blue: '1D4ED8',
+    green: '047857',
+    purple: '6D28D9',
+    amber: 'B45309',
+    slate: '1E293B',
+};
+
 function getExcelNumberFormat(header: string, value: unknown) {
     if (typeof value !== 'number') return undefined;
 
@@ -52,6 +68,16 @@ function formatSecondsToHMS(totalSeconds: number): string {
     return `${sign}${hours}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 }
 
+function sanitizeFileNamePart(value: string) {
+    return value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[\\/:*?"<>|]/g, '')
+        .replace(/\s+/g, '_')
+        .replace(/_+/g, '_')
+        .trim();
+}
+
 function getFormattedTimeMetric(item: any, metricKey: 'horas_planejadas' | 'horas_entregues') {
     const secondsKey = metricKey === 'horas_planejadas' ? 'segundos_planejados' : 'segundos_realizados';
 
@@ -79,6 +105,8 @@ function styleWorksheet(
 ) {
     const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:A1');
     const themeColor = THEME_COLORS[theme];
+    const lightThemeColor = THEME_LIGHT_COLORS[theme];
+    const darkThemeColor = THEME_DARK_COLORS[theme];
     const tableRange = {
         s: { r: headerRowIndex, c: 0 },
         e: range.e,
@@ -87,7 +115,7 @@ function styleWorksheet(
     ws['!autofilter'] = { ref: XLSX.utils.encode_range(tableRange) };
     ws['!freeze'] = { xSplit: 0, ySplit: headerRowIndex + 1 };
     ws['!rows'] = Array.from({ length: range.e.r + 1 }, (_, index) => ({
-        hpt: index === 0 ? 28 : index === headerRowIndex ? 24 : 20,
+        hpt: index === 0 ? 34 : index === 1 ? 22 : index === headerRowIndex ? 26 : 21,
     }));
     ws['!cols'] = headers.map((header, colIndex) => {
         const maxContentLength = Math.max(
@@ -95,7 +123,7 @@ function styleWorksheet(
             ...rows.map((row) => String(row[colIndex] ?? '').length)
         );
 
-        return { wch: Math.min(Math.max(maxContentLength + 3, colIndex === 0 ? 24 : 14), 44) };
+        return { wch: Math.min(Math.max(maxContentLength + 3, colIndex === 0 ? 24 : 14), 46) };
     });
 
     headers.forEach((_, colIndex) => {
@@ -118,13 +146,16 @@ function styleWorksheet(
             if (!cell) continue;
 
             if (rowIndex < headerRowIndex) {
+                const isTitle = rowIndex === 0;
                 cell.s = {
                     font: {
-                        bold: rowIndex === 0,
-                        sz: rowIndex === 0 ? 16 : 11,
-                        color: { rgb: rowIndex === 0 ? themeColor : '475569' },
+                        bold: isTitle,
+                        sz: isTitle ? 18 : 11,
+                        color: { rgb: isTitle ? 'FFFFFF' : '475569' },
                     },
-                    alignment: { horizontal: rowIndex === 0 ? 'center' : 'left', vertical: 'center' },
+                    fill: isTitle ? { fgColor: { rgb: darkThemeColor } } : rowIndex === 1 ? { fgColor: { rgb: lightThemeColor } } : undefined,
+                    alignment: { horizontal: isTitle ? 'center' : 'left', vertical: 'center' },
+                    border: rowIndex === 1 ? { bottom: { style: 'thin', color: { rgb: 'CBD5E1' } } } : undefined,
                 };
                 continue;
             }
@@ -134,8 +165,17 @@ function styleWorksheet(
             const isTotal = totalRowIndex !== undefined && rowIndex === totalRowIndex;
             const isEven = (rowIndex - headerRowIndex) % 2 === 0;
             const header = headers[colIndex] || '';
+            const stringValue = String(cell.v ?? '');
+            const normalizedHeader = header.toLocaleLowerCase('pt-BR');
+            const isVariationColumn = normalizedHeader.includes('varia') || normalizedHeader.includes('%');
+            const isPositiveVariation = isVariationColumn && stringValue.startsWith('+');
+            const isNegativeVariation = isVariationColumn && stringValue.startsWith('-');
+
             cell.s = {
-                font: { bold: isTotal || colIndex === 0, color: { rgb: colIndex === 0 ? '0F172A' : '111827' } },
+                font: {
+                    bold: isTotal || colIndex === 0,
+                    color: { rgb: isPositiveVariation ? '047857' : isNegativeVariation ? 'DC2626' : colIndex === 0 ? '0F172A' : '111827' },
+                },
                 fill: isTotal ? { fgColor: { rgb: 'E0F2FE' } } : isEven ? { fgColor: { rgb: 'F8FAFC' } } : undefined,
                 alignment: {
                     horizontal: colIndex === 0 ? 'left' : typeof cell.v === 'number' ? 'right' : 'center',
@@ -216,8 +256,8 @@ export function exportComparacaoToExcel(
     const ad2 = d2?.aderencia_semanal?.[0]?.aderencia_percentual ?? 0;
     rowsResumo.push([
         'Aderência Geral (%)',
-        `${ad1.toFixed(1)}%`,
-        `${ad2.toFixed(1)}%`,
+        Number(ad1.toFixed(1)),
+        Number(ad2.toFixed(1)),
         formatVariation(ad2 - ad1),
         formatVariation(getVariation(ad1, ad2)),
     ]);
@@ -229,11 +269,11 @@ export function exportComparacaoToExcel(
 
     const ta1 = d1.total_ofertadas > 0 ? (d1.total_aceitas / d1.total_ofertadas) * 100 : 0;
     const ta2 = d2.total_ofertadas > 0 ? (d2.total_aceitas / d2.total_ofertadas) * 100 : 0;
-    rowsResumo.push(['Taxa de Aceitação (%)', `${ta1.toFixed(1)}%`, `${ta2.toFixed(1)}%`, formatVariation(ta2 - ta1), formatVariation(getVariation(ta1, ta2))]);
+    rowsResumo.push(['Taxa de Aceitação (%)', Number(ta1.toFixed(1)), Number(ta2.toFixed(1)), formatVariation(ta2 - ta1), formatVariation(getVariation(ta1, ta2))]);
 
     const tc1 = d1.total_ofertadas > 0 ? (d1.total_completadas / d1.total_ofertadas) * 100 : 0;
     const tc2 = d2.total_ofertadas > 0 ? (d2.total_completadas / d2.total_ofertadas) * 100 : 0;
-    rowsResumo.push(['Taxa de Completude (%)', `${tc1.toFixed(1)}%`, `${tc2.toFixed(1)}%`, formatVariation(tc2 - tc1), formatVariation(getVariation(tc1, tc2))]);
+    rowsResumo.push(['Taxa de Completude (%)', Number(tc1.toFixed(1)), Number(tc2.toFixed(1)), formatVariation(tc2 - tc1), formatVariation(getVariation(tc1, tc2))]);
 
     const hr1 = getWeeklyHours(d1, 'horas_entregues');
     const hr2 = getWeeklyHours(d2, 'horas_entregues');
@@ -362,8 +402,8 @@ export function exportComparacaoToExcel(
         const diff = val2 - val1;
         rowsUtr.push([
             label,
-            formatAsPercent ? `${val1.toFixed(1)}%` : val1,
-            formatAsPercent ? `${val2.toFixed(1)}%` : val2,
+            formatAsPercent ? Number(val1.toFixed(1)) : val1,
+            formatAsPercent ? Number(val2.toFixed(1)) : val2,
             formatAsPercent ? formatVariation(diff) : diff,
             formatVariation(getVariation(val1, val2)),
         ]);
@@ -439,7 +479,7 @@ export function exportComparacaoToExcel(
         );
     }
 
-    const pracaLabel = pracaSelecionada ? `_${pracaSelecionada}` : '_TodasPracas';
+    const pracaLabel = pracaSelecionada ? `_${sanitizeFileNamePart(pracaSelecionada)}` : '_TodasPracas';
     const filename = `Comparativo_Semana${sem1}_vs_Semana${sem2}${pracaLabel}.xlsx`;
     XLSX.writeFile(wb, filename);
 }
