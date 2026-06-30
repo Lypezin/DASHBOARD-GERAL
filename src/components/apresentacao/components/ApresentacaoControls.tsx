@@ -46,11 +46,9 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = React.m
                 />
             </div>
 
-            {/* Spacer to push controls to the right on desktop */}
-            <div className="hidden md:block flex-grow" />
+            <div className="hidden flex-grow md:block" />
 
             <div className="subtle-scrollbar flex min-w-0 max-w-full items-center gap-2 overflow-x-auto pb-1 md:flex-wrap md:gap-2.5 md:overflow-visible md:pb-0">
-
                 <PresentationNavigation
                     currentSlide={currentSlide}
                     totalSlides={totalSlides}
@@ -106,7 +104,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = React.m
                         onClick={onExportExcel}
                         title="Exportar Planilha Excel"
                     >
-                        <FileSpreadsheet className="h-4 w-4 sm:mr-2 text-emerald-600" />
+                        <FileSpreadsheet className="h-4 w-4 text-emerald-600 sm:mr-2" />
                         <span className="hidden sm:inline">Excel</span>
                     </Button>
                 )}
@@ -118,7 +116,7 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = React.m
                     disabled={isGenerating}
                     title="Exportar PDF"
                 >
-                    <Download className="h-4 w-4 sm:mr-2 text-sky-600" />
+                    <Download className="h-4 w-4 text-sky-600 sm:mr-2" />
                     <span className="hidden sm:inline">PDF</span>
                 </Button>
 
