@@ -5,6 +5,7 @@ import { fetchUtrFallback } from '../fallbacks';
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
 import { fetchDashboardDataApi } from '@/utils/dashboard/fetchDashboardDataApi';
+import { buildFilterPayload } from './fetcherUtils';
 import { IS_DEV } from '@/constants/environment';
 
 interface FetchOptions {
@@ -19,13 +20,7 @@ export async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrDa
     const { filterPayload } = options;
 
     const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_turno', 'p_data_inicial', 'p_data_final', 'p_organization_id'];
-    const utrPayload: FilterPayload = {};
-
-    for (const key of allowedParams) {
-        if (filterPayload && key in filterPayload && filterPayload[key] !== null && filterPayload[key] !== undefined) {
-            utrPayload[key] = filterPayload[key];
-        }
-    }
+    const utrPayload = buildFilterPayload(filterPayload, allowedParams);
 
     const result = await fetchDashboardDataApi<any>('utr', utrPayload);
 

@@ -4,7 +4,7 @@ import { EntregadoresData, Entregador } from '@/types';
 import { fetchEntregadoresFallback } from '../fallbacks';
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
-import { expandImplicitSingleYearToDateRange } from '@/utils/filters/allYearsRange';
+import { buildFilterPayload } from './fetcherUtils';
 import { fetchDedicadoApi } from '@/utils/dedicado/fetchDedicadoApi';
 import { fetchDashboardDataApi } from '@/utils/dashboard/fetchDashboardDataApi';
 
@@ -160,15 +160,8 @@ async function fetchEntregadoresByRpc(
     filterPayload: FilterPayload,
     options: { fallbackOnError: boolean }
 ): Promise<{ data: EntregadoresData | null; error: RpcError | null }> {
-    const normalizedPayload = expandImplicitSingleYearToDateRange(filterPayload);
     const allowedParams = ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_only_dedicados', 'p_search'];
-    const listarEntregadoresPayload: FilterPayload = {};
-
-    for (const key of allowedParams) {
-        if (normalizedPayload && key in normalizedPayload && normalizedPayload[key] !== null && normalizedPayload[key] !== undefined) {
-            listarEntregadoresPayload[key] = normalizedPayload[key];
-        }
-    }
+    const listarEntregadoresPayload = buildFilterPayload(filterPayload, allowedParams);
 
     const result = await fetchDashboardDataApi<any>('entregadores', listarEntregadoresPayload);
 
@@ -268,13 +261,7 @@ export async function fetchEntregadoresData(options: FetchOptions): Promise<{ da
  */
 export async function fetchDedicadoEntregadoresData(options: FetchOptions): Promise<{ data: EntregadoresData | null; error: RpcError | null }> {
     const allowedParams = ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_data_inicial', 'p_data_final', 'p_organization_id'];
-    const payload: FilterPayload = {};
-
-    for (const key of allowedParams) {
-        if (key in options.filterPayload && options.filterPayload[key] !== null && options.filterPayload[key] !== undefined) {
-            payload[key] = options.filterPayload[key];
-        }
-    }
+    const payload = buildFilterPayload(options.filterPayload, allowedParams);
 
     const result = await fetchDedicadoApi<unknown>('entregadores', payload);
     const parsedData = parseEntregadoresResponse(result.data);
