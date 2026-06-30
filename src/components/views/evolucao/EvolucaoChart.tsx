@@ -85,8 +85,6 @@ export const EvolucaoChart: React.FC<EvolucaoChartProps> = ({
                 <Line
                   data={chartData}
                   options={chartOptions}
-                  redraw={true}
-                  updateMode="default"
                 />
               ) : null}
             </div>

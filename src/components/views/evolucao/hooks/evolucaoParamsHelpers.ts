@@ -9,5 +9,5 @@ export const getInitialMetrics = (searchParams: URLSearchParams | { get: (k: str
         const metrics = metricsParam.split(',').filter(Boolean) as Array<'ofertadas' | 'aceitas' | 'completadas' | 'horas'>;
         if (metrics.length > 0) return new Set(metrics);
     }
-    return new Set<'ofertadas' | 'aceitas' | 'completadas' | 'horas'>(['completadas']);
+    return new Set<'ofertadas' | 'aceitas' | 'completadas' | 'horas'>(['ofertadas', 'aceitas', 'completadas', 'horas']);
 };

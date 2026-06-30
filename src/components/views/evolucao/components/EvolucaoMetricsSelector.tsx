@@ -54,7 +54,7 @@ export const EvolucaoMetricsSelector: React.FC<EvolucaoMetricsSelectorProps> = (
                                 const newSet = new Set(selectedMetrics);
                                 if (isSelected) {
                                     newSet.delete(metric);
-                                    if (newSet.size === 0) newSet.add('completadas');
+                                    if (newSet.size === 0) { newSet.add('ofertadas'); newSet.add('aceitas'); newSet.add('completadas'); newSet.add('horas'); }
                                 } else {
                                     newSet.add(metric);
                                 }

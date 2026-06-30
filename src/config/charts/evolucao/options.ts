@@ -20,7 +20,12 @@ export const createEvolucaoChartOptions = (
     },
     interaction: { mode: 'index' as const, intersect: false, axis: 'x' as const },
     onHover: (event: any, activeElements: any[]) => {
-        event.native.target.style.cursor = activeElements && activeElements.length > 0 ? 'pointer' : 'default';
+        try {
+            const target = event?.native?.target;
+            if (target) {
+                target.style.cursor = activeElements && activeElements.length > 0 ? 'pointer' : 'default';
+            }
+        } catch (_) { /* prevent crash */ }
     },
     plugins: {
         legend: {
