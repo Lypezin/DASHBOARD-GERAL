@@ -108,6 +108,7 @@
 .city-updates-marquee {
   animation: city-updates-marquee 20s linear infinite !important;
   transform: translate3d(0, 0, 0);
+  will-change: transform;
 }
 
 .city-updates-marquee:hover {
