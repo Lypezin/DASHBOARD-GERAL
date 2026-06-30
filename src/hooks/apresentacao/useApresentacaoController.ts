@@ -15,16 +15,16 @@ const DEFAULT_VISIBLE_SECTIONS = {
     'aderencia-geral': true,
     ranking: false,
     'resumo-sub-pracas': true,
-    'sub-pracas': true,
+    'sub-pracas': false,
     'aderencia-diaria': true,
     utr: true,
     'resumo-turnos': true,
-    turnos: true,
+    turnos: false,
     'media-origens': true,
     'resumo-origens': true,
-    origens: true,
+    origens: false,
     'resumo-demanda-origem': true,
-    'demanda-origem': true,
+    'demanda-origem': false,
     demanda: true,
     entregadores: false,
     'capa-final': true,
@@ -37,7 +37,7 @@ export function useApresentacaoController({ praca, ano, semanas }: UseApresentac
     const router = useRouter();
     const pathname = usePathname();
 
-    const SECTIONS_VERSION = 'v4';
+    const SECTIONS_VERSION = 'v5';
     const getStorageKey = (type: 'slides' | 'sections') => {
         const pracaKey = praca ? praca.replace(/\s+/g, '_').toLowerCase() : 'geral';
         const sortedWeeks = [...semanas].sort((a, b) => a.localeCompare(b));

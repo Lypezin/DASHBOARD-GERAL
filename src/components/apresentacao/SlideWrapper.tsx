@@ -22,7 +22,7 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
 
   return (
     <div
-      className={`slide transition-colors duration-500 ${isDark ? 'text-slate-100 bg-slate-900' : 'text-slate-900 bg-white'} ${className}`.trim()}
+      className={`slide transition-colors duration-500 ${isDark ? 'text-slate-100 bg-slate-900' : 'text-slate-900 bg-white'} ${isVisible ? 'slide-animate' : ''} ${className}`.trim()}
       style={{
         ...slideDimensionsStyle,
         position: 'absolute',

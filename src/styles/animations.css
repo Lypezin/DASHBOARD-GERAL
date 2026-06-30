@@ -138,6 +138,76 @@
   animation-delay: 4s;
 }
 
+/* ============================================
+   Slide Content Animations (Presentation Mode)
+   Staggered entry animations for slide inner content.
+   Uses GPU-composited transforms for smooth 60fps.
+   ============================================ */
+
+@keyframes slide-content-fade-rise {
+  from { opacity: 0; transform: translate3d(0, 18px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes slide-content-scale-fade {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slide-header-enter {
+  from { opacity: 0; transform: translate3d(0, -12px, 0); }
+  to   { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes slide-bar-expand {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+/* Apply to a visible slide container to cascade animations on children */
+.slide-animate > header,
+.slide-animate > .slide-anim-header {
+  opacity: 0;
+  animation: slide-header-enter 0.38s cubic-bezier(0.22, 0.61, 0.36, 1) 0.06s forwards;
+  will-change: opacity, transform;
+}
+
+.slide-animate > header .h-1\.5,
+.slide-animate > header [class*="bg-gradient"],
+.slide-animate .slide-anim-bar {
+  transform-origin: left center;
+  animation: slide-bar-expand 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) 0.22s forwards;
+  transform: scaleX(0);
+  will-change: transform;
+}
+
+/* Primary content blocks — tables, cards grids, main content */
+.slide-animate > div:not(header),
+.slide-animate > .slide-anim-content {
+  opacity: 0;
+  animation: slide-content-fade-rise 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) 0.15s forwards;
+  will-change: opacity, transform;
+}
+
+/* Second-level children get staggered delays */
+.slide-animate > div:nth-child(3) {
+  animation-delay: 0.22s;
+}
+
+.slide-animate > div:nth-child(4) {
+  animation-delay: 0.28s;
+}
+
+.slide-animate > div:nth-child(5) {
+  animation-delay: 0.34s;
+}
+
+.slide-animate > p {
+  opacity: 0;
+  animation: slide-content-fade-rise 0.36s cubic-bezier(0.22, 0.61, 0.36, 1) 0.12s forwards;
+  will-change: opacity, transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .city-updates-marquee,
   .animate-city-updates-spin,
@@ -151,7 +221,17 @@
   .animate-slide-in-right,
   .animate-float-up,
   .animate-glow-pulse,
-  .animate-count-in {
+  .animate-count-in,
+  .slide-animate > header,
+  .slide-animate > .slide-anim-header,
+  .slide-animate > header .h-1\.5,
+  .slide-animate > header [class*="bg-gradient"],
+  .slide-animate .slide-anim-bar,
+  .slide-animate > div:not(header),
+  .slide-animate > .slide-anim-content,
+  .slide-animate > p {
     animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 }
