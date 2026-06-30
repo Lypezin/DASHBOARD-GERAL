@@ -25,7 +25,7 @@ const DEFAULT_VISIBLE_SECTIONS = {
     origens: false,
     'resumo-demanda-origem': true,
     'demanda-origem': false,
-    demanda: true,
+    demanda: false,
     entregadores: false,
     'capa-final': true,
 };

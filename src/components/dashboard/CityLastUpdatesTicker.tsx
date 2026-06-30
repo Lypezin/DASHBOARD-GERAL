@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { RefreshCw } from 'lucide-react';
-import { motion } from 'framer-motion';
+
 import { useCityLastUpdates } from '@/hooks/data/useCityLastUpdates';
 
 export function CityLastUpdatesTicker() {
@@ -48,11 +48,7 @@ export function CityLastUpdatesTicker() {
         <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-card to-transparent" />
 
         <div className="absolute inset-y-0 left-0 flex items-center overflow-visible">
-          <motion.div 
-            className="flex items-center gap-4 w-max"
-            animate={{ x: [0, "-50%"] }}
-            transition={{ repeat: Infinity, ease: "linear", duration: 30 }}
-          >
+          <div className="flex items-center gap-4 w-max animate-marquee hover:[animation-play-state:paused]">
             {marqueeItems.map((item, index) => (
               <div
                 key={`${item.city}-${index}`}
@@ -69,7 +65,7 @@ export function CityLastUpdatesTicker() {
                 </div>
               </div>
             ))}
-          </motion.div>
+          </div>
         </div>
       </div>
 
