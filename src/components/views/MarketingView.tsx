@@ -8,16 +8,6 @@ import TabButton from '@/components/TabButton';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { ViewContainer } from '@/components/layout/ViewContainer';
 
-const MarketingDashboardView = dynamic(() => import('./MarketingDashboardView'), {
-  ssr: false,
-  loading: () => <DashboardSkeleton contentOnly />,
-});
-
-const ResultadosView = dynamic(() => import('./ResultadosView'), {
-  ssr: false,
-  loading: () => <DashboardSkeleton contentOnly />,
-});
-
 const ValoresCidadeView = dynamic(() => import('./ValoresCidadeView'), {
   ssr: false,
   loading: () => <DashboardSkeleton contentOnly />,
@@ -34,8 +24,6 @@ const MarketingPresentationView = dynamic(() => import('./marketing/MarketingPre
 });
 
 const marketingSubTabLoaders: Record<string, () => Promise<unknown>> = {
-  dashboard: () => import('./MarketingDashboardView'),
-  resultados: () => import('./ResultadosView'),
   'valores-cidade': () => import('./ValoresCidadeView'),
   'entrada-saida': () => import('./marketing/MarketingEntradaSaidaView'),
   apresentacao: () => import('./marketing/MarketingPresentationView'),
@@ -59,7 +47,7 @@ const MarketingView = React.memo(function MarketingView() {
   const pathname = usePathname();
   const shouldReduceMotion = useReducedMotion();
 
-  const activeSubTab = searchParams.get('mkt_tab') || 'dashboard';
+  const activeSubTab = searchParams.get('mkt_tab') || 'valores-cidade';
 
   const handleTabChange = (tab: string) => {
     preloadMarketingSubTab(tab);
@@ -72,16 +60,13 @@ const MarketingView = React.memo(function MarketingView() {
 
   const content = (() => {
     switch (activeSubTab) {
-      case 'resultados':
-        return <ResultadosView />;
-      case 'valores-cidade':
-        return <ValoresCidadeView />;
       case 'entrada-saida':
         return <MarketingEntradaSaidaView />;
       case 'apresentacao':
         return <MarketingPresentationView />;
+      case 'valores-cidade':
       default:
-        return <MarketingDashboardView />;
+        return <ValoresCidadeView />;
     }
   })();
 
@@ -100,20 +85,6 @@ const MarketingView = React.memo(function MarketingView() {
           </div>
 
           <div className="flex flex-wrap gap-1.5 rounded-2xl border border-slate-200/70 bg-slate-100/80 p-1.5 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/60 md:justify-end">
-            <TabButton
-              label="Dashboard"
-              active={activeSubTab === 'dashboard'}
-              onClick={() => handleTabChange('dashboard')}
-              onMouseEnter={() => preloadMarketingSubTab('dashboard')}
-              onFocus={() => preloadMarketingSubTab('dashboard')}
-            />
-            <TabButton
-              label="Resultados"
-              active={activeSubTab === 'resultados'}
-              onClick={() => handleTabChange('resultados')}
-              onMouseEnter={() => preloadMarketingSubTab('resultados')}
-              onFocus={() => preloadMarketingSubTab('resultados')}
-            />
             <TabButton
               label="Valores por Cidade"
               active={activeSubTab === 'valores-cidade'}
