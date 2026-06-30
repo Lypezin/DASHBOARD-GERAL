@@ -207,3 +207,41 @@
     }
   }
 }
+
+/* Force marquee animations at root level to avoid any tailwind/reset collisions */
+@keyframes city-updates-marquee {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.city-updates-marquee {
+  display: flex !important;
+  flex-direction: row !important;
+  flex-wrap: nowrap !important;
+  width: max-content !important;
+  min-width: max-content !important;
+  flex-shrink: 0 !important;
+  animation: city-updates-marquee 30s linear infinite !important;
+  will-change: transform !important;
+}
+
+.city-updates-marquee:hover {
+  animation-play-state: paused !important;
+}
+
+@keyframes city-updates-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-city-updates-spin {
+  animation: city-updates-spin 6s linear infinite !important;
+}
