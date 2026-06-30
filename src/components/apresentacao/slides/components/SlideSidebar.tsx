@@ -30,16 +30,21 @@ export const SlideSidebar: React.FC<SlideSidebarProps> = React.memo(({
     const dragItem = useRef<number | null>(null);
     const dragOverItem = useRef<number | null>(null);
 
-    // Create a map for quick lookup
-    const slidesMap = useMemo(() => slides.reduce((acc, slide) => {
-        acc[slide.key] = slide;
-        return acc;
-    }, {} as Record<string, { key: string }>), [slides]);
+    const slidesMap = useMemo(() => new Map(slides.map((slide) => [slide.key, slide])), [slides]);
+    const mediaSlidesById = useMemo(() => new Map(mediaSlides.map((slide) => [slide.id, slide])), [mediaSlides]);
 
     const displaySlides = useMemo(() => {
-        const orderedMiddleware = slideOrder.filter(key => slidesMap[key]).map(key => slidesMap[key]);
-        const unorderedSlides = slides.filter(s => !slideOrder.includes(s.key));
-        return [...orderedMiddleware, ...unorderedSlides];
+        const orderedKeys = new Set<string>();
+        const orderedSlides = slideOrder.reduce<typeof slides>((acc, key) => {
+            const slide = slidesMap.get(key);
+            if (slide) {
+                acc.push(slide);
+                orderedKeys.add(key);
+            }
+            return acc;
+        }, []);
+        const unorderedSlides = slides.filter(s => !orderedKeys.has(s.key));
+        return [...orderedSlides, ...unorderedSlides];
     }, [slideOrder, slides, slidesMap]);
 
     const onDragStart = useCallback((e: React.DragEvent<HTMLDivElement>, position: number) => {
@@ -79,7 +84,7 @@ export const SlideSidebar: React.FC<SlideSidebarProps> = React.memo(({
                 <SlideSidebarList
                     displaySlides={displaySlides}
                     currentSlideIndex={currentSlideIndex}
-                    mediaSlides={mediaSlides}
+                    mediaSlidesById={mediaSlidesById}
                     onSlideSelect={onSlideSelect}
                     onDragStart={onDragStart}
                     onDragEnter={onDragEnter}

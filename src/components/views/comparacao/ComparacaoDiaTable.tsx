@@ -13,6 +13,11 @@ export const ComparacaoDiaTable = React.memo<ComparacaoDiaTableProps>(({
     dadosComparacao,
     semanasSelecionadas,
 }) => {
+    const semanasSelecionadasText = React.useMemo(
+        () => semanasSelecionadas.map((semana) => String(semana)),
+        [semanasSelecionadas]
+    );
+
     return (
         <SaasPanel>
             <SaasPanelHeader
@@ -22,7 +27,7 @@ export const ComparacaoDiaTable = React.memo<ComparacaoDiaTableProps>(({
                 icon={Calendar}
             />
             <ComparacaoDiaTableContent
-                semanasSelecionadas={semanasSelecionadas.map((semana) => String(semana))}
+                semanasSelecionadas={semanasSelecionadasText}
                 dadosComparacao={dadosComparacao}
             />
         </SaasPanel>

@@ -34,7 +34,12 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
   const { orderedSlides, handleNext, handlePrev, isGenerating, generatingProgress, capturingIndex, generatePDF } = usePreviewController({ slides, currentSlide, onSlideChange, numeroSemana1, numeroSemana2, contentRef, captureContainerRef });
 
   const activeSlideKey = orderedSlides[currentSlide]?.key;
-  const activeMediaSlide = activeSlideKey && activeSlideKey.startsWith('media-') && mediaSlides ? mediaSlides.find(m => `media-${m.id}` === activeSlideKey) : null;
+  const mediaSlidesByKey = useMemo(() => (
+    new Map((mediaSlides || []).map((slide) => [`media-${slide.id}`, slide]))
+  ), [mediaSlides]);
+  const activeMediaSlide = activeSlideKey && activeSlideKey.startsWith('media-')
+    ? mediaSlidesByKey.get(activeSlideKey) ?? null
+    : null;
 
   const { handleUpdateElement, handleAddText, handleAddImage, handleDeleteSelection } = useMediaActions({ activeMediaSlide, onUpdateMediaSlide: onUpdateMediaSlide as any, selectedElementId, setSelectedElementId });
 
@@ -121,7 +126,6 @@ export const ApresentacaoPreview: React.FC<ApresentacaoPreviewProps> = (props) =
     document.body.style.overflow = 'hidden';
     return () => { document.body.style.overflow = 'unset'; };
   }, []);
-  const initialOrder = useMemo(() => props.slides.map(s => s.key), [props.slides]);
   if (!mounted) return null;
   return createPortal(<ApresentacaoPreviewContent {...props} />, document.body);
 };

@@ -104,7 +104,7 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = React.m
             observer.observe(containerRef.current);
         }
 
-        window.addEventListener('resize', calculateScale);
+        window.addEventListener('resize', scheduleScaleCalculation);
 
         return () => {
             if (animationFrameRef.current !== null) {
@@ -112,7 +112,7 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = React.m
                 animationFrameRef.current = null;
             }
             observer?.disconnect();
-            window.removeEventListener('resize', calculateScale);
+            window.removeEventListener('resize', scheduleScaleCalculation);
         };
     }, [calculateScale, scheduleScaleCalculation]);
 
@@ -123,7 +123,7 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = React.m
 
     const totalSlides = slides.length;
 
-    const slideVariants = {
+    const slideVariants = useMemo(() => ({
         enter: (dir: 'forward' | 'backward') => ({
             opacity: 0,
             x: shouldReduceMotion ? 0 : dir === 'forward' ? 72 : -72,
@@ -139,7 +139,7 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = React.m
             x: shouldReduceMotion ? 0 : dir === 'forward' ? -72 : 72,
             scale: shouldReduceMotion ? 1 : 0.985,
         }),
-    };
+    }), [shouldReduceMotion]);
 
     return (
         <div

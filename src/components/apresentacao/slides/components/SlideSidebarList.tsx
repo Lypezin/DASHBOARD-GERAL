@@ -5,7 +5,7 @@ import { MediaSlideData } from '@/types/presentation';
 interface SlideSidebarListProps {
     displaySlides: Array<{ key: string }>;
     currentSlideIndex: number;
-    mediaSlides: MediaSlideData[];
+    mediaSlidesById: Map<string, MediaSlideData>;
     onSlideSelect: (index: number) => void;
     onDragStart: (e: React.DragEvent<HTMLDivElement>, position: number) => void;
     onDragEnter: (e: React.DragEvent<HTMLDivElement>, position: number) => void;
@@ -17,7 +17,7 @@ interface SlideSidebarListProps {
 export const SlideSidebarList: React.FC<SlideSidebarListProps> = React.memo(({
     displaySlides,
     currentSlideIndex,
-    mediaSlides,
+    mediaSlidesById,
     onSlideSelect,
     onDragStart,
     onDragEnter,
@@ -30,7 +30,7 @@ export const SlideSidebarList: React.FC<SlideSidebarListProps> = React.memo(({
             {displaySlides.map((slide, index) => {
                 const isMediaSlide = slide.key.startsWith('media-');
                 const mediaId = isMediaSlide ? slide.key.replace('media-', '') : null;
-                const mediaData = mediaId ? mediaSlides.find(m => m.id === mediaId) : null;
+                const mediaData = mediaId ? mediaSlidesById.get(mediaId) : null;
                 const displayName = mediaData?.title || formatSlideLabel(slide.key);
 
                 return (

@@ -1,4 +1,4 @@
-import { useState, useRef, RefObject } from 'react';
+import { useCallback, useState, RefObject } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { SLIDE_HEIGHT, SLIDE_WIDTH } from '../constants';
 
@@ -13,7 +13,7 @@ export const usePresentationPDF = ({ slides, numeroSemana1, numeroSemana2, conte
     const [generatingProgress, setGeneratingProgress] = useState({ current: 0, total: 0 });
     const [capturingIndex, setCapturingIndex] = useState<number | null>(null);
 
-    const generatePDF = async () => {
+    const generatePDF = useCallback(async () => {
         if (slides.length === 0) return;
 
         setIsGenerating(true);
@@ -88,7 +88,7 @@ export const usePresentationPDF = ({ slides, numeroSemana1, numeroSemana2, conte
             setGeneratingProgress({ current: 0, total: 0 });
             setCapturingIndex(null);
         }
-    };
+    }, [captureContainerRef, numeroSemana1, numeroSemana2, slides]);
 
     return { isGenerating, generatingProgress, capturingIndex, generatePDF };
 };

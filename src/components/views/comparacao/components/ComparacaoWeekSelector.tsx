@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { ChevronDown } from 'lucide-react';
 import {
@@ -16,23 +16,24 @@ interface ComparacaoWeekSelectorProps {
     onToggleSemana: (semana: number | string) => void;
 }
 
-export const ComparacaoWeekSelector: React.FC<ComparacaoWeekSelectorProps> = ({
+export const ComparacaoWeekSelector = React.memo(function ComparacaoWeekSelector({
     todasSemanas,
     semanasSelecionadas,
     onToggleSemana
-}) => {
-    const selectedWeekLabels = semanasSelecionadas.map((semana) => {
+}: ComparacaoWeekSelectorProps) {
+    const selectedWeeksSet = useMemo(() => new Set(semanasSelecionadas), [semanasSelecionadas]);
+    const selectedWeekLabels = useMemo(() => semanasSelecionadas.map((semana) => {
         const semanaStr = String(semana);
         return semanaStr.includes('W')
             ? (semanaStr.match(/W(\d+)/)?.[1] || semanaStr)
             : semanaStr;
-    });
+    }), [semanasSelecionadas]);
 
-    const triggerLabel = selectedWeekLabels.length > 0
+    const triggerLabel = useMemo(() => selectedWeekLabels.length > 0
         ? selectedWeekLabels.length <= 2
             ? `Sem ${selectedWeekLabels.join(', ')}`
             : `Sem ${selectedWeekLabels.slice(0, 2).join(', ')} +${selectedWeekLabels.length - 2}`
-        : 'Adicionar semanas';
+        : 'Adicionar semanas', [selectedWeekLabels]);
 
     return (
         <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center">
@@ -61,7 +62,7 @@ export const ComparacaoWeekSelector: React.FC<ComparacaoWeekSelectorProps> = ({
                         const semanaNumLabel = semanaStr.includes('W')
                             ? (semanaStr.match(/W(\d+)/)?.[1] || semanaStr)
                             : semanaStr;
-                        const isSelected = semanasSelecionadas.includes(semanaStr);
+                        const isSelected = selectedWeeksSet.has(semanaStr);
 
                         return (
                             <DropdownMenuCheckboxItem
@@ -102,4 +103,6 @@ export const ComparacaoWeekSelector: React.FC<ComparacaoWeekSelectorProps> = ({
             </div>
         </div>
     );
-};
+});
+
+ComparacaoWeekSelector.displayName = 'ComparacaoWeekSelector';
