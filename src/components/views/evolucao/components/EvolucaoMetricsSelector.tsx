@@ -21,7 +21,7 @@ const metricConfig: Record<MetricType, { label: string; icon: React.ReactNode; a
         activeClass: 'border-emerald-200 bg-emerald-50 text-emerald-700 shadow-emerald-500/10 dark:border-emerald-900/60 dark:bg-emerald-950/25 dark:text-emerald-300'
     },
     completadas: {
-        label: 'Completadas',
+        label: 'Pedidos',
         icon: <Target className="h-3.5 w-3.5" />,
         activeClass: 'border-blue-200 bg-blue-50 text-blue-700 shadow-blue-500/10 dark:border-blue-900/60 dark:bg-blue-950/25 dark:text-blue-300'
     },

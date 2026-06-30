@@ -1,6 +1,29 @@
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { formatTooltipValue, formatVariation, calculateVariationPercent } from '@/utils/charts';
 
+const getRawValue = (context: any): number => {
+    const dataIndex = context.dataIndex;
+    const originalDataset = context.chart?.data?.datasets?.[context.datasetIndex];
+    if (originalDataset && originalDataset.rawValues && originalDataset.rawValues[dataIndex] !== undefined) {
+        const val = originalDataset.rawValues[dataIndex];
+        return val !== null && val !== undefined ? Number(val) : 0;
+    }
+    const val = context.raw ?? context.parsed?.y ?? 0;
+    return val !== null && val !== undefined ? Number(val) : 0;
+};
+
+const getPreviousRawValue = (context: any): number | null => {
+    const dataIndex = context.dataIndex;
+    if (dataIndex <= 0) return null;
+    const originalDataset = context.chart?.data?.datasets?.[context.datasetIndex];
+    if (originalDataset && originalDataset.rawValues && originalDataset.rawValues[dataIndex - 1] !== undefined) {
+        const val = originalDataset.rawValues[dataIndex - 1];
+        return val !== null && val !== undefined ? Number(val) : null;
+    }
+    const val = originalDataset?.data?.[dataIndex - 1];
+    return val !== null && val !== undefined ? Number(val) : null;
+};
+
 export const evolucaoTooltip = (isSemanal: boolean, isDarkMode: boolean) => ({
     enabled: true,
     backgroundColor: 'rgba(15, 23, 42, 0.97)',
@@ -26,23 +49,16 @@ export const evolucaoTooltip = (isSemanal: boolean, isDarkMode: boolean) => ({
             return `${icon} ${prefix} ${cleanLabel}`;
         },
         label: function (context: any) {
-            const datasetLabel = context.dataset.label || '';
-            const dataIndex = context.dataIndex;
-            const rawValue = context.dataset.rawValues && context.dataset.rawValues[dataIndex] !== undefined
-                ? context.dataset.rawValues[dataIndex]
-                : context.parsed.y;
+            const datasetLabel = context.dataset?.label || '';
+            const rawValue = getRawValue(context);
             const formattedValue = formatTooltipValue(rawValue, datasetLabel, formatarHorasParaHMS);
             return datasetLabel ? `${datasetLabel}: ${formattedValue}` : formattedValue;
         },
         afterLabel: function (context: any) {
             const dataIndex = context.dataIndex;
             if (dataIndex > 0) {
-                const currentValue = context.dataset.rawValues && context.dataset.rawValues[dataIndex] !== undefined
-                    ? context.dataset.rawValues[dataIndex]
-                    : context.parsed.y;
-                const previousValue = context.dataset.rawValues && context.dataset.rawValues[dataIndex - 1] !== undefined
-                    ? context.dataset.rawValues[dataIndex - 1]
-                    : context.dataset.data[dataIndex - 1];
+                const currentValue = getRawValue(context);
+                const previousValue = getPreviousRawValue(context);
                 const variation = calculateVariationPercent(currentValue, previousValue);
                 return variation != null ? formatVariation(variation) : '';
             }

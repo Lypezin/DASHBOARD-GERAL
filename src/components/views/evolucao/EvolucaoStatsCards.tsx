@@ -27,7 +27,7 @@ export const EvolucaoStatsCards = React.memo<EvolucaoStatsCardsProps>(({ dadosAt
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       <SaasMetric
-        label="Total de corridas"
+        label="Total de pedidos"
         value={totalCorridas.toLocaleString('pt-BR')}
         meta={`${dadosAtivos.length} ${viewMode === 'mensal' ? 'meses' : 'semanas'} analisadas`}
         icon={Car}
@@ -48,7 +48,7 @@ export const EvolucaoStatsCards = React.memo<EvolucaoStatsCardsProps>(({ dadosAt
       <SaasMetric
         label={`Média ${viewMode === 'mensal' ? 'mensal' : 'semanal'}`}
         value={mediaCorridas.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
-        meta="Corridas por período"
+        meta="Pedidos por período"
         icon={BarChart2}
         tone="emerald"
         size="lg"

@@ -56,7 +56,7 @@ export const getMetricConfig = (
         default:
             return {
                 ...common,
-                label: 'Corridas completadas',
+                label: 'Pedidos',
                 data: mapData(d => d.corridas_completadas ?? d.completadas ?? d.total_corridas),
                 borderColor: 'rgba(37, 99, 235, 1)',
                 pointColor: 'rgb(37, 99, 235)',

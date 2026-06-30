@@ -25,7 +25,7 @@ function getMetricTitle(selectedMetrics: EvolucaoChartProps['selectedMetrics']) 
   if (selectedMetrics.has('horas')) return 'horas trabalhadas';
   if (selectedMetrics.has('ofertadas')) return 'corridas ofertadas';
   if (selectedMetrics.has('aceitas')) return 'corridas aceitas';
-  return 'corridas completadas';
+  return 'pedidos';
 }
 
 export const EvolucaoChart: React.FC<EvolucaoChartProps> = ({
