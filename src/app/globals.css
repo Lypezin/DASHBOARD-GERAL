@@ -208,31 +208,7 @@
   }
 }
 
-/* Force marquee animations at root level to avoid any tailwind/reset collisions */
-@keyframes cityTickerMarquee {
-  0% {
-    transform: translate3d(0, 0, 0);
-  }
-  100% {
-    transform: translate3d(-50%, 0, 0);
-  }
-}
-
-.city-ticker-track {
-  display: flex !important;
-  flex-direction: row !important;
-  flex-wrap: nowrap !important;
-  width: max-content !important;
-  min-width: max-content !important;
-  flex-shrink: 0 !important;
-  animation: cityTickerMarquee 28s linear infinite !important;
-  will-change: transform !important;
-}
-
-.city-ticker-track:hover {
-  animation-play-state: paused !important;
-}
-
+/* Spin animation for ticker */
 @keyframes city-updates-spin {
   from {
     transform: rotate(0deg);
