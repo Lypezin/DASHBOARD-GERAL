@@ -29,6 +29,8 @@ export const createChartData = (
         while (data.length < baseLabels.length) data.push(null);
         data = data.slice(0, baseLabels.length);
 
+        const rawValues = [...data];
+
         // Apply visual offset
         if (data.some(Boolean) && config.yAxisID === 'y' && globalMaxValue > 0 && !config.label.includes('Horas')) {
             const offset = [0, globalMaxValue * 0.025, globalMaxValue * 0.05][index] || 0;
@@ -43,6 +45,7 @@ export const createChartData = (
         return {
             ...config,
             data,
+            rawValues,
             borderColor: color,
             pointBackgroundColor: pointColor,
             borderWidth: Math.max(2.5, width - 1),

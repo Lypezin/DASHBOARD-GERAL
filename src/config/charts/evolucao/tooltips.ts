@@ -27,15 +27,22 @@ export const evolucaoTooltip = (isSemanal: boolean, isDarkMode: boolean) => ({
         },
         label: function (context: any) {
             const datasetLabel = context.dataset.label || '';
-            const value = context.parsed.y;
-            const formattedValue = formatTooltipValue(value, datasetLabel, formatarHorasParaHMS);
+            const dataIndex = context.dataIndex;
+            const rawValue = context.dataset.rawValues && context.dataset.rawValues[dataIndex] !== undefined
+                ? context.dataset.rawValues[dataIndex]
+                : context.parsed.y;
+            const formattedValue = formatTooltipValue(rawValue, datasetLabel, formatarHorasParaHMS);
             return datasetLabel ? `${datasetLabel}: ${formattedValue}` : formattedValue;
         },
         afterLabel: function (context: any) {
             const dataIndex = context.dataIndex;
             if (dataIndex > 0) {
-                const currentValue = context.parsed.y;
-                const previousValue = context.dataset.data[dataIndex - 1];
+                const currentValue = context.dataset.rawValues && context.dataset.rawValues[dataIndex] !== undefined
+                    ? context.dataset.rawValues[dataIndex]
+                    : context.parsed.y;
+                const previousValue = context.dataset.rawValues && context.dataset.rawValues[dataIndex - 1] !== undefined
+                    ? context.dataset.rawValues[dataIndex - 1]
+                    : context.dataset.data[dataIndex - 1];
                 const variation = calculateVariationPercent(currentValue, previousValue);
                 return variation != null ? formatVariation(variation) : '';
             }
