@@ -67,12 +67,26 @@ export const getMetricConfig = (
 
 const createGradient = (baseRgbaPrefix: string, startColor: string, endColor: string) => {
     return (context: any) => {
-        const { ctx, chartArea } = context.chart;
-        if (!chartArea) return `${baseRgbaPrefix} 0.2)`;
-        const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
-        gradient.addColorStop(0, `rgba(${startColor}, 0.30)`);
-        gradient.addColorStop(0.45, `${baseRgbaPrefix} 0.14)`);
-        gradient.addColorStop(1, `rgba(${endColor}, 0.00)`);
-        return gradient;
+        const chart = context.chart;
+        if (!chart) return `${baseRgbaPrefix} 0.2)`;
+        const ctx = chart.ctx;
+        const chartArea = chart.chartArea;
+        
+        if (!ctx || !chartArea || chartArea.top == null || chartArea.bottom == null || 
+            isNaN(chartArea.top) || isNaN(chartArea.bottom) || 
+            !isFinite(chartArea.top) || !isFinite(chartArea.bottom)) {
+            return `${baseRgbaPrefix} 0.2)`;
+        }
+        
+        try {
+            const gradient = ctx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            gradient.addColorStop(0, `rgba(${startColor}, 0.30)`);
+            gradient.addColorStop(0.45, `${baseRgbaPrefix} 0.14)`);
+            gradient.addColorStop(1, `rgba(${endColor}, 0.00)`);
+            return gradient;
+        } catch (e) {
+            console.error('Error creating linear gradient in chart:', e);
+            return `${baseRgbaPrefix} 0.2)`;
+        }
     };
 };
