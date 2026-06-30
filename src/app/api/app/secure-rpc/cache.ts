@@ -124,3 +124,5 @@ export async function resolveSecureRpcWithCache(
     inFlightSecureRpc.delete(cacheKey);
   }
 }
+// Cache invalidation comment to trigger hot reload: 2026-06-30T14:27:00Z
+
