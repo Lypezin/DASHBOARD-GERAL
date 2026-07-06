@@ -196,15 +196,13 @@
     background-color: hsl(var(--muted-foreground) / 0.4);
   }
 
+  /* 
+   * Removido o bloqueio forçado de animações via prefers-reduced-motion
+   * pois estava travando animações essenciais de UI como o Marquee (Ticker de cidades)
+   * em máquinas Windows que tem animação desativada por padrão.
+   */
   @media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      scroll-behavior: auto !important;
-      transition-duration: 0.01ms !important;
-    }
+    /* Permitimos que animações rodem normalmente no dashboard */
   }
 }
 

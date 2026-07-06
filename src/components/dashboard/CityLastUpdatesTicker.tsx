@@ -26,7 +26,8 @@ export function CityLastUpdatesTicker() {
 
   if (loading || visibleItems.length === 0) return null;
 
-  const marqueeItems = [...visibleItems, ...visibleItems];
+  // Repete os itens 4 vezes para garantir que preencha toda a tela mesmo em monitores ultrawide
+  const marqueeItems = [...visibleItems, ...visibleItems, ...visibleItems, ...visibleItems];
 
   return (
     <div className="w-full flex items-center gap-3 overflow-hidden select-none pl-1">
