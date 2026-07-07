@@ -37,15 +37,6 @@ function pickDemandMetric(primaryValues: unknown[], fallbackValues: unknown[]) {
     return toMetricNumber(positivePrimaryValue);
   }
 
-  const availableFallbackValues = fallbackValues.filter(
-    (value) => value !== null && value !== undefined && value !== ''
-  );
-  const positiveFallbackValue = availableFallbackValues.find((value) => toMetricNumber(value) > 0);
-
-  if (positiveFallbackValue !== undefined) {
-    return toMetricNumber(positiveFallbackValue);
-  }
-
   if (availablePrimaryValues.length > 0) {
     return toMetricNumber(availablePrimaryValues[0]);
   }
@@ -65,7 +56,7 @@ export function getPedidosAceitosConcluidosTotal(data?: DemandTotals | null) {
       data.totais?.pedidos_aceitos_e_concluidos,
       data.totais?.total_pedidos_aceitos_e_concluidos,
     ],
-    [data.total_completadas, data.totais?.corridas_completadas]
+    []
   );
 }
 
@@ -78,6 +69,6 @@ export function getPedidosAceitosConcluidosBreakdown(data?: DemandBreakdown | nu
       data.pedidos_aceitos_e_concluidos,
       data.total_pedidos_aceitos_e_concluidos,
     ],
-    [data.corridas_completadas]
+    []
   );
 }

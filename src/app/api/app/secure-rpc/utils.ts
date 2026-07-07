@@ -102,9 +102,8 @@ export function recomputeDashboardMetricRow(row: Record<string, unknown>) {
   const ped1 = toFiniteNumber(row.numero_de_pedidos_aceitos_e_concluidos);
   const ped2 = toFiniteNumber(row.pedidos_aceitos_e_concluidos);
   const ped3 = toFiniteNumber(row.total_pedidos_aceitos_e_concluidos);
-  const comp = toFiniteNumber(row.corridas_completadas);
   
-  const completadas = ped1 > 0 ? ped1 : ped2 > 0 ? ped2 : ped3 > 0 ? ped3 : comp;
+  const completadas = ped1 > 0 ? ped1 : ped2 > 0 ? ped2 : ped3;
 
   row.aderencia_percentual = percentage(segundosRealizados, segundosPlanejados);
   row.taxa_aceitacao = percentage(aceitas, ofertadas);
