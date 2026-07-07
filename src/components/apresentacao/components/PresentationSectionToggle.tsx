@@ -58,7 +58,6 @@ export const PresentationSectionToggle: React.FC<PresentationSectionToggleProps>
                         onCheckedChange={() => onToggleSection(key)}
                         onSelect={(event) => {
                             event.preventDefault();
-                            onToggleSection(key);
                         }}
                     >
                         {SECTION_LABELS[key] || key}
