@@ -158,7 +158,7 @@ export function usePresence(
         };
 
         void updatePresence();
-    }, [avatarUrl, buildPresencePayload, currentTab, currentUser?.id, customStatus, enabled, isIdle, userId]);
+    }, [authUser?.id, avatarUrl, buildPresencePayload, currentTab, currentUser?.id, customStatus, enabled, isIdle, userId]);
 
     const setTypingTo = async (targetUserId: string | null) => {
         if (!enabled || !channelRef.current || !userId) return;

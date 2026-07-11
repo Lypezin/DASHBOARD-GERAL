@@ -40,7 +40,7 @@ export const MessageItem = memo(function MessageItem({
         isMe ? 'right-2' : 'left-2'
       )}>
         <button
-          onClick={(e) => { e.stopPropagation(); onReact(msg.id, '👍'); }}
+          onClick={(e) => { e.stopPropagation(); onReact(msg.id, '\u{1F44D}'); }}
           type="button"
           className="rounded-lg p-1.5 text-slate-500 transition-colors hover:bg-slate-100 hover:text-blue-600 dark:text-slate-400 dark:hover:bg-slate-900"
           title="Curtir"
