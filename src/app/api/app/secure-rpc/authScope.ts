@@ -77,7 +77,14 @@ export function ensurePracaScope(
       return { params: nextParams };
     }
 
-    if (functionName === 'dashboard_resumo' && scoped.length > 1) {
+    if (supportsScopedPracaFanout(functionName) && scoped.length > 1) {
+      nextParams[INTERNAL_SCOPED_PRACAS_PARAM] = scoped;
+      delete nextParams.p_praca;
+      delete nextParams.p_pracas;
+      return { params: nextParams };
+    }
+
+    if (functionName === 'dashboard_evolucao_bundle_org_year_fast' && scoped.length === 1) {
       nextParams[INTERNAL_SCOPED_PRACAS_PARAM] = scoped;
       delete nextParams.p_praca;
       delete nextParams.p_pracas;
@@ -99,7 +106,14 @@ export function ensurePracaScope(
     return { params: nextParams };
   }
 
-  if (functionName === 'dashboard_resumo' && assigned.length > 1) {
+  if (supportsScopedPracaFanout(functionName) && assigned.length > 1) {
+    nextParams[INTERNAL_SCOPED_PRACAS_PARAM] = assigned;
+    delete nextParams.p_praca;
+    delete nextParams.p_pracas;
+    return { params: nextParams };
+  }
+
+  if (functionName === 'dashboard_evolucao_bundle_org_year_fast' && assigned.length === 1) {
     nextParams[INTERNAL_SCOPED_PRACAS_PARAM] = assigned;
     delete nextParams.p_praca;
     delete nextParams.p_pracas;
@@ -132,4 +146,10 @@ export function filterPracasResult(data: unknown, profile: CurrentUserProfile) {
 
     return allowed.has(normalizePracaKey(praca));
   });
+}
+
+function supportsScopedPracaFanout(functionName: string) {
+  return functionName === 'dashboard_resumo'
+    || functionName === 'dashboard_evolucao_bundle'
+    || functionName === 'dashboard_evolucao_bundle_org_year_fast';
 }

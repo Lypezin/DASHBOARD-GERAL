@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { loadCurrentUserProfile, hasElevatedRole } from '@/app/api/_shared/currentUserProfile';
 import { createServiceRoleClient, getServiceRoleConfigErrorPayload, isServiceRoleConfigError } from '@/utils/supabase/admin';
 import { ALLOWED_RPC, FULL_CITY_ACCESS_ONLY } from './constants';
-import { asParams, clampPagination, getInternalScopedPracas, stripInternalParams, mergeDashboardResumoResults } from './utils';
+import { asParams, clampPagination, getInternalScopedPracas, stripInternalParams, mergeDashboardResumoResults, mergeDashboardEvolucaoBundleResults } from './utils';
 import { resolveSecureRpcWithCache } from './cache';
 import { ensureAuthorizedOrganization, ensurePracaScope, filterPracasResult } from './authScope';
 import { hasFullCityAccess } from './utils';
@@ -60,7 +60,10 @@ export async function POST(request: Request) {
 
     const admin = createServiceRoleClient();
     const { data, cached, stale } = await resolveSecureRpcWithCache(functionName, params, auth.profile, async () => {
-      const scopedPracas = functionName === 'dashboard_resumo' ? getInternalScopedPracas(params) : [];
+      const supportsScopedPracas = functionName === 'dashboard_resumo'
+        || functionName === 'dashboard_evolucao_bundle'
+        || functionName === 'dashboard_evolucao_bundle_org_year_fast';
+      const scopedPracas = supportsScopedPracas ? getInternalScopedPracas(params) : [];
 
       if (functionName === 'dashboard_resumo' && scopedPracas.length > 1) {
         const baseParams = stripInternalParams(params);
@@ -81,6 +84,27 @@ export async function POST(request: Request) {
         }));
 
         return mergeDashboardResumoResults(results);
+      }
+
+      if (
+        (functionName === 'dashboard_evolucao_bundle' || functionName === 'dashboard_evolucao_bundle_org_year_fast')
+        && scopedPracas.length > 0
+      ) {
+        const baseParams = stripInternalParams(params);
+        const results = await Promise.all(scopedPracas.map(async (praca) => {
+          const { data: rpcData, error } = await admin.rpc('dashboard_evolucao_bundle', {
+            ...baseParams,
+            p_praca: praca,
+          });
+
+          if (error) {
+            throw new Error(`Erro em ${praca}: ${error.message}`);
+          }
+
+          return rpcData ?? null;
+        }));
+
+        return mergeDashboardEvolucaoBundleResults(results);
       }
 
       const rpcParams = stripInternalParams(params);

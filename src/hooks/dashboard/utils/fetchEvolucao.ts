@@ -51,6 +51,8 @@ export async function fetchDashboardEvolucaoData(
     } : {
         p_ano: anoEvolucao,
         p_organization_id: filterPayload.p_organization_id,
+        p_semana: filterPayload.p_semana,
+        p_semanas: filterPayload.p_semanas,
         p_praca: filterPayload.p_praca,
         p_sub_praca: filterPayload.p_sub_praca,
         p_origem: filterPayload.p_origem,
@@ -58,6 +60,9 @@ export async function fetchDashboardEvolucaoData(
         p_sub_pracas: filterPayload.p_sub_pracas,
         p_origens: filterPayload.p_origens,
         p_turnos: filterPayload.p_turnos,
+        p_filtro_modo: filterPayload.p_filtro_modo,
+        p_data_inicial: filterPayload.p_data_inicial,
+        p_data_final: filterPayload.p_data_final,
     };
     const functionName = useFastPath ? 'dashboard_evolucao_bundle_org_year_fast' : 'dashboard_evolucao_bundle';
 

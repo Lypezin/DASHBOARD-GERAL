@@ -232,6 +232,128 @@ export function mergeDashboardResumoResults(results: unknown[]) {
   return merged;
 }
 
+function asRecordArray(value: unknown): Record<string, unknown>[] {
+  return Array.isArray(value)
+    ? value.filter((item): item is Record<string, unknown> => Boolean(item) && typeof item === 'object')
+    : [];
+}
+
+function mergeEvolutionRows(
+  rows: Record<string, unknown>[],
+  keyFields: string[],
+  labelFields: string[],
+) {
+  const grouped = new Map<string, Record<string, unknown>>();
+  const numericFields = [
+    'total_corridas',
+    'corridas_completadas',
+    'corridas_ofertadas',
+    'corridas_aceitas',
+    'corridas_rejeitadas',
+    'total_segundos',
+  ];
+
+  for (const row of rows) {
+    const key = getDashboardRowKey(row, keyFields);
+    const current = grouped.get(key);
+
+    if (!current) {
+      const nextRow = { ...row };
+      for (const field of numericFields) {
+        if (field in nextRow) nextRow[field] = toFiniteNumber(nextRow[field]);
+      }
+      grouped.set(key, nextRow);
+      continue;
+    }
+
+    for (const field of keyFields) {
+      if (!(field in current) && field in row) current[field] = row[field];
+    }
+
+    for (const field of labelFields) {
+      if (!current[field] && row[field]) current[field] = row[field];
+    }
+
+    for (const field of numericFields) {
+      if (field in row || field in current) {
+        current[field] = toFiniteNumber(current[field]) + toFiniteNumber(row[field]);
+      }
+    }
+  }
+
+  return Array.from(grouped.values()).sort((a, b) => {
+    const anoA = toFiniteNumber(a.ano);
+    const anoB = toFiniteNumber(b.ano);
+    if (anoA !== anoB) return anoA - anoB;
+
+    const periodField = keyFields.includes('mes') ? 'mes' : 'semana';
+    return toFiniteNumber(a[periodField]) - toFiniteNumber(b[periodField]);
+  });
+}
+
+function mergeEvolutionUtrRows(rows: Record<string, unknown>[]) {
+  const grouped = new Map<string, Record<string, unknown>>();
+
+  for (const row of rows) {
+    const key = getDashboardRowKey(row, ['ano', 'semana']);
+    const current = grouped.get(key);
+
+    if (!current) {
+      grouped.set(key, {
+        ...row,
+        tempo_horas: toFiniteNumber(row.tempo_horas),
+        total_corridas: toFiniteNumber(row.total_corridas),
+      });
+      continue;
+    }
+
+    if (!current.semana_label && row.semana_label) current.semana_label = row.semana_label;
+    current.tempo_horas = toFiniteNumber(current.tempo_horas) + toFiniteNumber(row.tempo_horas);
+    current.total_corridas = toFiniteNumber(current.total_corridas) + toFiniteNumber(row.total_corridas);
+  }
+
+  return Array.from(grouped.values())
+    .map((row): Record<string, unknown> => {
+      const tempoHoras = toFiniteNumber(row.tempo_horas);
+      const totalCorridas = toFiniteNumber(row.total_corridas);
+
+      return {
+        ...row,
+        tempo_horas: tempoHoras,
+        total_corridas: totalCorridas,
+        utr: tempoHoras > 0 ? totalCorridas / tempoHoras : 0,
+      };
+    })
+    .sort((a, b) => {
+      const anoA = toFiniteNumber(a.ano);
+      const anoB = toFiniteNumber(b.ano);
+      if (anoA !== anoB) return anoA - anoB;
+      return toFiniteNumber(a.semana) - toFiniteNumber(b.semana);
+    });
+}
+
+export function mergeDashboardEvolucaoBundleResults(results: unknown[]) {
+  const bundles = results
+    .map(asDashboardRecord)
+    .filter((record) => Object.keys(record).length > 0);
+
+  return {
+    mensal: mergeEvolutionRows(
+      bundles.flatMap((bundle) => asRecordArray(bundle.mensal)),
+      ['ano', 'mes'],
+      ['mes_nome'],
+    ),
+    semanal: mergeEvolutionRows(
+      bundles.flatMap((bundle) => asRecordArray(bundle.semanal)),
+      ['ano', 'semana'],
+      ['semana_label'],
+    ),
+    utr: mergeEvolutionUtrRows(
+      bundles.flatMap((bundle) => asRecordArray(bundle.utr)),
+    ),
+  };
+}
+
 export function getInternalScopedPracas(params: Record<string, unknown>) {
   const value = params[INTERNAL_SCOPED_PRACAS_PARAM];
   return Array.isArray(value)
