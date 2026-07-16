@@ -2,6 +2,7 @@
 
 import React from 'react';
 import SlideComparativoSemanalMarketing from '@/components/apresentacao/slides/marketing/SlideComparativoSemanalMarketing';
+import { MarketingSlideFrame } from './MarketingSlideFrame';
 
 interface WeeklySlidesSectionProps {
     weeklyData: Array<{ semana: string; criado: number; enviado: number; liberado: number; rodando: number; conversas?: number }>;
@@ -15,8 +16,8 @@ export const WeeklySlidesSection: React.FC<WeeklySlidesSectionProps> = ({
     return (
         <>
             {/* Slide: Comparativo Semanal - GERAL */}
-            <div
-                className="page animate-slide-up"
+            <MarketingSlideFrame
+                className="animate-slide-up"
                 key="weekly-general" 
                 id="slide-weekly-general"
             >
@@ -26,12 +27,12 @@ export const WeeklySlidesSection: React.FC<WeeklySlidesSectionProps> = ({
                     subtitulo="VISÃO GERAL DO PROJETO"
                     weeklyData={weeklyData}
                 />
-            </div>
+            </MarketingSlideFrame>
 
             {/* Slides: Comparativo Semanal por CIDADES */}
             {weeklyDataByCity.map((cityInfo, idx) => (
-                <div
-                    className="page animate-fade-in"
+                <MarketingSlideFrame
+                    className="animate-fade-in"
                     key={`weekly-city-${idx}`} 
                     id={`slide-weekly-${cityInfo.cidade}`}
                 >
@@ -41,7 +42,7 @@ export const WeeklySlidesSection: React.FC<WeeklySlidesSectionProps> = ({
                         subtitulo={cityInfo.cidade.toUpperCase()}
                         weeklyData={cityInfo.data}
                     />
-                </div>
+                </MarketingSlideFrame>
             ))}
         </>
     );

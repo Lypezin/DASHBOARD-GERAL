@@ -1,13 +1,12 @@
 import { useEffect } from 'react';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 
 export function useEvolucaoUrlSync(viewMode: string, selectedMetrics: Set<string>) {
     const searchParams = useSearchParams();
-    const router = useRouter();
     const pathname = usePathname();
 
     useEffect(() => {
-        const params = new URLSearchParams(searchParams.toString());
+        const params = new URLSearchParams(window.location.search);
         let changed = false;
 
         if (viewMode !== 'mensal') {
@@ -25,7 +24,9 @@ export function useEvolucaoUrlSync(viewMode: string, selectedMetrics: Set<string
         }
 
         if (changed) {
-            router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+            const queryString = params.toString();
+            const url = queryString ? `${pathname}?${queryString}` : pathname;
+            window.history.replaceState(null, '', url);
         }
-    }, [viewMode, selectedMetrics, pathname, router, searchParams]);
+    }, [viewMode, selectedMetrics, pathname, searchParams]);
 }

@@ -37,9 +37,7 @@ function getEvolutionRange(filters: MarketingFilters) {
     const minDate = filters.filtroEnviados.dataInicial || filters.filtroLiberacao.dataInicial || filters.filtroRodouDia.dataInicial || filters.filtroDataInicio.dataInicial;
     const maxDate = filters.filtroEnviados.dataFinal || filters.filtroLiberacao.dataFinal || filters.filtroRodouDia.dataFinal || filters.filtroDataInicio.dataFinal;
     if (!minDate) return { minDate: null, maxDate: null };
-    const dStart = new Date(minDate + 'T12:00:00'); dStart.setDate(1);
-    const dEnd = new Date((maxDate || new Date().toISOString()) + 'T12:00:00'); dEnd.setMonth(dEnd.getMonth() + 1); dEnd.setDate(0);
-    return { minDate: dStart.toISOString().split('T')[0], maxDate: dEnd.toISOString().split('T')[0] };
+    return { minDate, maxDate: maxDate || minDate };
 }
 
 function processDailyData(data: any[], min: string | null, max: string | null) {

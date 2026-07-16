@@ -1,13 +1,14 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useSearchParams, usePathname } from 'next/navigation';
 import { Filters } from '@/types';
-import { useGamification } from '@/contexts/GamificationContext';
+import { useOptionalGamification } from '@/contexts/GamificationContext';
 import { getInitialFiltersFromUrl, buildFilterQueryParams, handleProtectedUpdate } from './dashboardFilterHelpers';
 
 export function useDashboardFilters() {
     const pathname = usePathname();
     const searchParams = useSearchParams();
-    const { registerInteraction } = useGamification();
+    const gamification = useOptionalGamification();
+    const registerInteraction = gamification?.registerInteraction;
 
     const [filters, setFilters] = useState<Filters>(() => getInitialFiltersFromUrl(searchParams));
 
@@ -16,6 +17,17 @@ export function useDashboardFilters() {
     const lastQueryRef = useRef('');
     const urlSyncTimeoutRef = useRef<number | null>(null);
 
+    const syncFiltersFromUrl = useCallback(() => {
+        const currentParams = new URLSearchParams(window.location.search);
+        const nextFilters = getInitialFiltersFromUrl(currentParams);
+
+        setFilters((currentFilters) => {
+            const currentQuery = buildFilterQueryParams(currentFilters, currentParams);
+            const nextQuery = buildFilterQueryParams(nextFilters, currentParams);
+            return currentQuery === nextQuery ? currentFilters : nextFilters;
+        });
+    }, []);
+
     useEffect(() => {
         if (!filtersInitializedRef.current) {
             filtersInitializedRef.current = true;
@@ -23,7 +35,8 @@ export function useDashboardFilters() {
             return;
         }
 
-        const queryString = buildFilterQueryParams(filters, searchParams);
+        const currentParams = new URLSearchParams(window.location.search);
+        const queryString = buildFilterQueryParams(filters, currentParams);
         if (queryString === lastQueryRef.current) {
             return;
         }
@@ -39,10 +52,19 @@ export function useDashboardFilters() {
             lastQueryRef.current = queryString;
             const url = queryString ? `${pathname}?${queryString}` : pathname;
             window.history.replaceState(null, '', url);
-            void registerInteraction('filter_change');
+            void registerInteraction?.('filter_change');
         }, 80);
 
     }, [filters, pathname, searchParams, registerInteraction]);
+
+    useEffect(() => {
+        syncFiltersFromUrl();
+    }, [searchParams, syncFiltersFromUrl]);
+
+    useEffect(() => {
+        window.addEventListener('popstate', syncFiltersFromUrl);
+        return () => window.removeEventListener('popstate', syncFiltersFromUrl);
+    }, [syncFiltersFromUrl]);
 
     useEffect(() => {
         return () => {

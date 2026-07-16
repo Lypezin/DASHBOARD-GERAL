@@ -4,7 +4,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { MarketingCityData } from '@/types';
 import { useTheme } from '@/contexts/ThemeContext';
-import { Sparkline } from '@/components/ui/Sparkline';
 import { CountUp } from '@/components/ui/CountUp';
 import { TiltCard } from '@/components/ui/TiltCard';
 
@@ -47,15 +46,7 @@ export const EvolucaoSlideCityGrid: React.FC<EvolucaoSlideCityGridProps> = React
                             }`} title={data.cidade}>
                                 <div className="flex flex-col flex-1 min-w-0 pr-2">
                                     <span className="text-[17px] leading-tight tracking-tight group-hover:text-blue-500 transition-colors line-clamp-2">{data.cidade}</span>
-                                    <div className="mt-2 opacity-60 group-hover:opacity-100 transition-opacity">
-                                        <Sparkline 
-                                            data={[data.criado * 0.8, data.criado * 1.1, data.criado * 0.9, data.criado]} 
-                                            width={80} 
-                                            height={15} 
-                                            color={isDark ? '#3b82f6' : '#2563eb'} 
-                                            strokeWidth={2}
-                                        />
-                                    </div>
+                                    <span className="mt-2 text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400">Volume no período</span>
                                 </div>
                                 <div className="h-4 w-4 shrink-0 rounded-full bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.8)] animate-glow-pulse" />
                             </h4>

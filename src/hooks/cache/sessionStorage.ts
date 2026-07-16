@@ -4,7 +4,8 @@ import { IS_DEV } from '@/constants/environment';
 import { safeLog } from '@/lib/errorHandler';
 
 const SESSION_STORAGE_PREFIX = 'dashboard_cache_v2_';
-const MAX_SESSION_STORAGE_SIZE = 5 * 1024 * 1024; // 5MB
+const MAX_PERSISTED_ENTRY_SIZE = 512 * 1024;
+const MAX_PERSISTED_ENTRIES = 12;
 
 /** Obtém dados do sessionStorage se válidos */
 export function getFromSessionStorage<T>(key: string, ttl: number): T | null {
@@ -34,6 +35,7 @@ export function cleanupSessionStorage(): void {
 
     try {
         const keysToRemove: string[] = [];
+        const validEntries: Array<{ key: string; timestamp: number }> = [];
         for (let i = 0; i < sessionStorage.length; i++) {
             const key = sessionStorage.key(i);
             if (key && key.startsWith(SESSION_STORAGE_PREFIX)) {
@@ -43,6 +45,8 @@ export function cleanupSessionStorage(): void {
                         const entry = JSON.parse(stored);
                         if (!isCacheValid(entry, CACHE.TAB_DATA_TTL)) {
                             keysToRemove.push(key);
+                        } else {
+                            validEntries.push({ key, timestamp: Number(entry.timestamp) || 0 });
                         }
                     }
                 } catch {
@@ -50,6 +54,11 @@ export function cleanupSessionStorage(): void {
                 }
             }
         }
+
+        validEntries
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .slice(MAX_PERSISTED_ENTRIES)
+            .forEach(({ key }) => keysToRemove.push(key));
 
         keysToRemove.forEach(key => sessionStorage.removeItem(key));
     } catch (error) {
@@ -68,8 +77,10 @@ export function setToSessionStorage<T>(key: string, data: T, ttl: number): void 
         const serialized = JSON.stringify(entry);
 
         // Verificar tamanho antes de salvar
-        const currentSize = new Blob([serialized]).size;
-        if (currentSize > MAX_SESSION_STORAGE_SIZE) {
+        // JSON grande deve permanecer apenas no cache em memÃ³ria. Persisti-lo
+        // bloquearia a thread principal em filtros com milhares de linhas.
+        const estimatedUtf16Size = serialized.length * 2;
+        if (estimatedUtf16Size > MAX_PERSISTED_ENTRY_SIZE) {
             if (IS_DEV) {
                 safeLog.warn('[useCache] Dados muito grandes para sessionStorage, usando apenas memória');
             }

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { motion, useSpring, useMotionValue } from 'framer-motion';
+import { motion, useMotionTemplate, useReducedMotion, useSpring, useMotionValue } from 'framer-motion';
 
 export const PresentationSpotlight: React.FC = () => {
     const mouseX = useMotionValue(0);
@@ -11,9 +11,11 @@ export const PresentationSpotlight: React.FC = () => {
     const springConfig = { damping: 25, stiffness: 200 };
     const springX = useSpring(mouseX, springConfig);
     const springY = useSpring(mouseY, springConfig);
+    const shouldReduceMotion = useReducedMotion();
+    const background = useMotionTemplate`radial-gradient(600px circle at ${springX}px ${springY}px, rgba(59, 130, 246, 0.04), transparent 80%)`;
 
     useEffect(() => {
-        if (!window.matchMedia('(min-width: 1024px) and (pointer: fine)').matches) {
+        if (shouldReduceMotion || !window.matchMedia('(min-width: 1024px) and (pointer: fine)').matches) {
             return;
         }
 
@@ -43,7 +45,9 @@ export const PresentationSpotlight: React.FC = () => {
                 window.cancelAnimationFrame(frameId);
             }
         };
-    }, [mouseX, mouseY]);
+    }, [mouseX, mouseY, shouldReduceMotion]);
+
+    if (shouldReduceMotion) return null;
 
     return (
         <motion.div
@@ -55,13 +59,9 @@ export const PresentationSpotlight: React.FC = () => {
                 height: '100vh',
                 pointerEvents: 'none',
                 zIndex: 9999,
-                background: `radial-gradient(600px circle at var(--x) var(--y), rgba(59, 130, 246, 0.04), transparent 80%)`,
+                background,
             }}
-            className="hidden lg:block"
-            animate={{
-                '--x': springX.get() + 'px',
-                '--y': springY.get() + 'px',
-            } as any}
+            className="presentation-spotlight hidden lg:block print:hidden"
         >
             <motion.div
                 style={{

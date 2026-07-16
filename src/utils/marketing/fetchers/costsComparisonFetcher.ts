@@ -4,6 +4,17 @@ import { buildCityQuery } from '@/utils/marketingQueries';
 import { MarketingFilters, MarketingCostsComparison, MarketingCostData } from '@/types';
 import { SLIDE_CITIES, DISPLAY_CITY_TO_DB_CITY, PRIORITY_CITIES, ABERTO_STATUSES } from '../constants';
 import { ATENDENTE_TO_ID, REGIAO_TO_CIDADE_VALORES } from '../../atendenteMappers';
+import { safeRpc } from '@/lib/rpcWrapper';
+
+interface MarketingCostsRpcRow {
+    periodo: 'atual' | 'passada';
+    regiao: string;
+    valor_usado: number | string;
+    rodando: number | string;
+    liberado: number | string;
+    aberto: number | string;
+    conversas: number | string;
+}
 
 export async function fetchMarketingCostsComparison(
     filters: MarketingFilters,
@@ -47,6 +58,38 @@ export async function fetchMarketingCostsComparison(
 
     const eAtualISO = targetWednesday.toISOString().split('T')[0];
     const ePassadaISO = previousWednesday.toISOString().split('T')[0];
+
+    const { data: groupedData, error: groupedError } = await safeRpc<MarketingCostsRpcRow[]>(
+        'get_marketing_costs_comparison',
+        {
+            p_start_date: sISO,
+            p_current_end: eAtualISO,
+            p_previous_end: ePassadaISO,
+            p_organization_id: organizationId,
+        },
+        { validateParams: false, client }
+    );
+
+    if (!groupedError && Array.isArray(groupedData) && groupedData.length > 0) {
+        const toCostData = (row: MarketingCostsRpcRow): MarketingCostData => {
+            const valorUsado = Number(row.valor_usado) || 0;
+            const rodando = Number(row.rodando) || 0;
+            return {
+                regiao: row.regiao,
+                valorUsado,
+                rodando,
+                liberado: Number(row.liberado) || 0,
+                aberto: Number(row.aberto) || 0,
+                conversas: Number(row.conversas) || 0,
+                cpa: rodando > 0 ? valorUsado / rodando : 0,
+            };
+        };
+
+        return {
+            atual: groupedData.filter((row) => row.periodo === 'atual').map(toCostData),
+            passada: groupedData.filter((row) => row.periodo === 'passada').map(toCostData),
+        };
+    }
 
     const [atual, passada] = await Promise.all([
         fetchRange(sISO, eAtualISO, organizationId, client),

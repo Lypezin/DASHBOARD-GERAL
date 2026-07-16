@@ -38,3 +38,7 @@ export function useGamification() {
     if (!context) throw new Error('useGamification must be used within GamificationProvider');
     return context;
 }
+
+export function useOptionalGamification() {
+    return useContext(GamificationContext);
+}

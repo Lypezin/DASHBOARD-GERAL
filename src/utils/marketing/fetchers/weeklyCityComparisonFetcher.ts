@@ -19,8 +19,9 @@ export async function fetchMarketingWeeklyComparisonByCity(
     const endOfLastWeek = getMondayOfIsoWeek(end);
     
     const minStart = (d => { d.setDate(d.getDate() - 56); return d; })(new Date(endOfLastWeek));
-    const finalStart = startOfFirstWeek > minStart ? minStart : startOfFirstWeek;
+    const finalStart = startDate ? startOfFirstWeek : minStart;
     const startStr = finalStart.toISOString().split('T')[0];
+    const endStr = end.toISOString().split('T')[0];
 
     // Busca robusta: pega tudo que teve atividade no período em qualquer campo de data relevante
     const dateFilters = [
@@ -31,9 +32,17 @@ export async function fetchMarketingWeeklyComparisonByCity(
         `rodou_dia.gte.${startStr}`
     ].join(',');
 
-    let q = client.from('dados_marketing').select('*');
+    const endDateFilters = [
+        `data_envio.lte.${endStr}`,
+        `data_liberacao.lte.${endStr}`,
+        `created_at.lte.${endStr}`,
+        `Criado.lte.${endStr}`,
+        `rodou_dia.lte.${endStr}`
+    ].join(',');
+
+    let q = client.from('dados_marketing').select('regiao_atuacao, sub_praca_abc, status, data_envio, data_liberacao, created_at, Criado, rodou_dia');
     if (organizationId) q = q.eq('organization_id', organizationId);
-    q = q.or(dateFilters);
+    q = q.or(dateFilters).or(endDateFilters);
 
     const { data: marketingData } = await q;
 

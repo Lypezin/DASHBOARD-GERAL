@@ -10,6 +10,7 @@ import { useEvolucaoViewController } from './evolucao/hooks/useEvolucaoViewContr
 import { useDashboardEvolucao } from '@/hooks/dashboard/useDashboardEvolucao';
 import type { FilterPayload } from '@/types/filters';
 import { ViewContainer } from '@/components/layout/ViewContainer';
+import { RefreshCw } from 'lucide-react';
 
 const EvolucaoView = React.memo(function EvolucaoView({
   filterPayload,
@@ -20,7 +21,7 @@ const EvolucaoView = React.memo(function EvolucaoView({
   anoSelecionado: number;
   onAnoChange?: (ano: number) => void;
 }) {
-  const { evolucaoMensal, evolucaoSemanal, loading } = useDashboardEvolucao({
+  const { evolucaoMensal, evolucaoSemanal, loading, error, refetch } = useDashboardEvolucao({
     filterPayload,
     anoEvolucao: anoSelecionado,
     activeTab: 'evolucao'
@@ -57,6 +58,24 @@ const EvolucaoView = React.memo(function EvolucaoView({
             {state.loading ? (
               <div className="rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/25 dark:text-blue-200">
                 Atualizando evolucao com os filtros atuais...
+              </div>
+            ) : null}
+
+            {error ? (
+              <div className="flex flex-col gap-3 rounded-2xl border border-rose-200/80 bg-rose-50/85 px-4 py-3 text-sm text-rose-900 shadow-sm dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-100 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                  <p className="font-semibold">Não foi possível atualizar a Evolução.</p>
+                  <p className="mt-0.5 text-rose-700 dark:text-rose-200">{error.message}</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={refetch}
+                  disabled={loading}
+                  className="inline-flex shrink-0 items-center justify-center gap-2 rounded-xl border border-rose-300/80 bg-white px-3 py-2 font-semibold text-rose-800 transition-colors hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-rose-800 dark:bg-rose-950/70 dark:text-rose-100 dark:hover:bg-rose-900/60"
+                >
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                  Tentar novamente
+                </button>
               </div>
             ) : null}
 

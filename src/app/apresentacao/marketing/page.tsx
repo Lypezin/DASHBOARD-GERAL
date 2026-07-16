@@ -1,7 +1,6 @@
 import React from 'react';
 import { Metadata } from 'next';
 import {
-    fetchMarketingTotalsData,
     fetchMarketingCitiesData,
     fetchMarketingDailyEvolution,
     fetchMarketingWeeklyComparison,
@@ -69,9 +68,15 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
         return renderAccessRestricted('Voce nao tem permissao para acessar esta apresentacao.');
     }
 
+    const today = new Date();
+    const toIsoDate = (date: Date) => [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, '0'),
+        String(date.getDate()).padStart(2, '0'),
+    ].join('-');
     const unifiedDateFilter = {
-        dataInicial: searchParams.dataInicial || null,
-        dataFinal: searchParams.dataFinal || null,
+        dataInicial: searchParams.dataInicial || toIsoDate(new Date(today.getFullYear(), today.getMonth(), 1)),
+        dataFinal: searchParams.dataFinal || toIsoDate(today),
     };
 
     const filters = {
@@ -87,21 +92,19 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
     const orgId = profile.organization_id || null;
     const supabase = createClient();
 
-    const [totals, citiesData, evolutionData, generalWeeklyData, costsComparison] = await Promise.all([
-        fetchMarketingTotalsData(filters as any, orgId, supabase),
+    const [citiesData, evolutionData, generalWeeklyData, costsComparison, weeklyDataByCity] = await Promise.all([
         fetchMarketingCitiesData(filters as any, orgId, supabase, true),
         fetchMarketingDailyEvolution(filters as any, orgId, supabase),
         fetchMarketingWeeklyComparison(orgId, null, dateInicial, dateFinal, supabase),
         fetchMarketingCostsComparison(filters as any, orgId, supabase),
+        fetchMarketingWeeklyComparisonByCity(
+            orgId,
+            MARKETING_PRESENTATION_WEEKLY_CITIES as unknown as string[],
+            dateInicial,
+            dateFinal,
+            supabase
+        ),
     ]);
-
-    const weeklyDataByCity = await fetchMarketingWeeklyComparisonByCity(
-        orgId,
-        MARKETING_PRESENTATION_WEEKLY_CITIES as unknown as string[],
-        dateInicial,
-        dateFinal,
-        supabase
-    );
 
     const pageStyle = generatePrintStyles();
     const formatarData = (date?: string) => {
@@ -115,15 +118,12 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
         }
         return new Date(date).toLocaleDateString('pt-BR', { month: 'long', day: 'numeric' });
     };
-    const periodoFormatado = filters.filtroEnviados.dataInicial
-        ? `${formatarData(filters.filtroEnviados.dataInicial)} a ${formatarData(filters.filtroEnviados.dataFinal || undefined)}`
-        : 'Periodo Geral';
+    const periodoFormatado = `${formatarData(filters.filtroEnviados.dataInicial)} a ${formatarData(filters.filtroEnviados.dataFinal || undefined)}`;
 
     return (
-        <div data-print-ready="true">
+        <div>
             <style dangerouslySetInnerHTML={{ __html: pageStyle }} />
             <MarketingReportSlides
-                totals={totals}
                 citiesData={citiesData}
                 evolutionData={evolutionData}
                 weeklyData={generalWeeklyData as any}

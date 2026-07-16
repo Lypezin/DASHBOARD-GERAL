@@ -16,7 +16,7 @@ export async function fetchMarketingWeeklyComparison(
     const startOfFirstWeek = getMondayOfIsoWeek(rawStart);
     const endOfLastWeek = getMondayOfIsoWeek(end);
     const minStart = (d => { d.setDate(d.getDate() - 56); return d; })(new Date(endOfLastWeek));
-    const finalStart = startOfFirstWeek > minStart ? minStart : startOfFirstWeek;
+    const finalStart = startDate ? startOfFirstWeek : minStart;
 
     const { weekMap, order } = initializeWeekMap(finalStart, endOfLastWeek);
     const sISO = finalStart.toISOString().split('T')[0];

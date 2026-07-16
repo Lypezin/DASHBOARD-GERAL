@@ -23,10 +23,11 @@ interface UseDashboardMainDataOptions {
   filterPayload: FilterPayload;
   filterPayloadKey?: string;
   onError?: (error: Error | RpcError) => void;
+  enabled?: boolean;
 }
 
 export function useDashboardMainData(options: UseDashboardMainDataOptions) {
-  const { filterPayload, filterPayloadKey, onError } = options;
+  const { filterPayload, filterPayloadKey, onError, enabled = true } = options;
   const { isLoading: isOrgLoading } = useOrganization();
 
   const payloadKey = useMemo(
@@ -83,7 +84,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     isFirstExecutionRef,
     pendingPayloadKeyRef,
     setters,
-    shouldFetch: !isOrgLoading && hasOrganizationContext
+    shouldFetch: enabled && !isOrgLoading && hasOrganizationContext
   }, payloadKey);
 
   return {
@@ -95,7 +96,7 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     aderenciaOrigem,
     aderenciaDiaOrigem,
     dimensoes,
-    loading: loading || isOrgLoading || !hasOrganizationContext,
-    error
+    loading: enabled && (loading || isOrgLoading || !hasOrganizationContext),
+    error: enabled ? error : null
   };
 }

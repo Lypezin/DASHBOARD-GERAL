@@ -3,6 +3,7 @@
 import React from 'react';
 import SlideComparativoCustosMarketing from '@/components/apresentacao/slides/marketing/SlideComparativoCustosMarketing';
 import { MarketingCostsComparison } from '@/types';
+import { MarketingSlideFrame } from './MarketingSlideFrame';
 
 interface CostsSlidesSectionProps {
     costsComparison: MarketingCostsComparison;
@@ -14,8 +15,8 @@ export const CostsSlidesSection: React.FC<CostsSlidesSectionProps> = ({
     return (
         <>
             {/* Slide: Comparativo de Custos - ATUAL */}
-            <div
-                className="page animate-slide-in-right"
+            <MarketingSlideFrame
+                className="animate-slide-in-right"
                 key="costs-atual" 
                 id="slide-costs-atual"
             >
@@ -24,11 +25,11 @@ export const CostsSlidesSection: React.FC<CostsSlidesSectionProps> = ({
                     titulo="ATUAL"
                     data={costsComparison.atual}
                 />
-            </div>
+            </MarketingSlideFrame>
 
             {/* Slide: Comparativo de Custos - PASSADA */}
-            <div
-                className="page animate-slide-in-right"
+            <MarketingSlideFrame
+                className="animate-slide-in-right"
                 key="costs-passada" 
                 id="slide-costs-passada"
             >
@@ -37,7 +38,7 @@ export const CostsSlidesSection: React.FC<CostsSlidesSectionProps> = ({
                     titulo="ANTERIOR"
                     data={costsComparison.passada}
                 />
-            </div>
+            </MarketingSlideFrame>
         </>
     );
 };

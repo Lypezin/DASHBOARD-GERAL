@@ -1,12 +1,17 @@
 import React from 'react';
+import dynamic from 'next/dynamic';
 import { AlertCircle, Calendar } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
-import ApresentacaoView from '@/components/ApresentacaoView';
 import { ComparacaoFilters } from './ComparacaoFilters';
 import { ComparacaoContent } from './ComparacaoContent';
 import { FilterOption } from '@/types';
 import { ViewContainer } from '@/components/layout/ViewContainer';
+
+const ApresentacaoView = dynamic(() => import('@/components/ApresentacaoView'), {
+    ssr: false,
+    loading: () => <DashboardSkeleton contentOnly />,
+});
 
 interface ComparacaoLayoutProps {
     pracas: FilterOption[];

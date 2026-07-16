@@ -1,14 +1,14 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import SlideCapaMarketing from '@/components/apresentacao/slides/marketing/SlideCapaMarketing';
 import SlideEvolucaoResumoMarketing from '@/components/apresentacao/slides/marketing/SlideEvolucaoResumoMarketing';
-import { MarketingTotals, MarketingCityData, MarketingCostsComparison } from '@/types';
+import { MarketingCityData, MarketingCostsComparison } from '@/types';
 import { useRouter } from 'next/navigation';
 import { useTheme } from '@/contexts/ThemeContext';
 
 interface MarketingReportSlidesProps {
-    totals: MarketingTotals;
     citiesData: MarketingCityData[];
     evolutionData: Array<{ data: string; liberado: number; enviado: number }>;
     weeklyData: Array<{ semana: string; criado: number; enviado: number; liberado: number; rodando: number; conversas?: number }>;
@@ -21,11 +21,19 @@ interface MarketingReportSlidesProps {
 import { MarketingExitButton } from './MarketingExitButton';
 import { WeeklySlidesSection } from './WeeklySlidesSection';
 import { CostsSlidesSection } from './CostsSlidesSection';
-import { PresentationSpotlight } from '@/components/apresentacao/components/PresentationSpotlight';
-import { MarketingFloatingNav } from '@/components/apresentacao/components/MarketingFloatingNav';
+import { MarketingSlideFrame } from './MarketingSlideFrame';
+import { SLIDE_HEIGHT, SLIDE_WIDTH } from '@/components/apresentacao/constants';
+
+const PresentationSpotlight = dynamic(
+    () => import('@/components/apresentacao/components/PresentationSpotlight').then((mod) => mod.PresentationSpotlight),
+    { ssr: false }
+);
+const MarketingFloatingNav = dynamic(
+    () => import('@/components/apresentacao/components/MarketingFloatingNav').then((mod) => mod.MarketingFloatingNav),
+    { ssr: false }
+);
 
 export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
-    totals: _totals,
     citiesData,
     evolutionData,
     weeklyData,
@@ -36,25 +44,72 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
 }) => {
     const router = useRouter();
     const { theme } = useTheme();
+    const [scale, setScale] = useState(1);
+    const [isPrintReady, setIsPrintReady] = useState(false);
+
+    useEffect(() => {
+        let frameId: number | null = null;
+        const updateScale = () => {
+            frameId = null;
+            const availableWidth = Math.max(240, window.innerWidth - 32);
+            setScale(Math.min(1, availableWidth / SLIDE_WIDTH));
+        };
+        const scheduleUpdate = () => {
+            if (frameId !== null) return;
+            frameId = window.requestAnimationFrame(updateScale);
+        };
+
+        updateScale();
+        window.addEventListener('resize', scheduleUpdate, { passive: true });
+        return () => {
+            window.removeEventListener('resize', scheduleUpdate);
+            if (frameId !== null) window.cancelAnimationFrame(frameId);
+        };
+    }, []);
+
+    useEffect(() => {
+        let cancelled = false;
+        const markReady = async () => {
+            if (document.fonts?.ready) await document.fonts.ready;
+            await new Promise<void>((resolve) => {
+                const fallbackId = window.setTimeout(resolve, 1200);
+                window.addEventListener('marketing-chart-ready', () => {
+                    window.clearTimeout(fallbackId);
+                    resolve();
+                }, { once: true });
+            });
+            await new Promise<void>((resolve) => window.requestAnimationFrame(() => window.requestAnimationFrame(() => resolve())));
+            if (!cancelled) setIsPrintReady(true);
+        };
+        void markReady();
+        return () => { cancelled = true; };
+    }, []);
     
     const onExit = () => router.push('/?tab=marketing');
 
     return (
-        <div className={`relative min-h-screen overflow-x-hidden transition-colors duration-500 animate-blur-in ${
-            theme === 'dark' ? 'bg-[#020617]' : 'bg-slate-50'
-        }`}>
-            <div className="mesh-gradient" />
+        <div
+            data-print-ready={isPrintReady ? 'true' : 'false'}
+            className={`relative min-h-screen overflow-x-hidden transition-colors duration-300 animate-fade-in ${
+                theme === 'dark' ? 'bg-[#020617]' : 'bg-slate-50'
+            }`}
+            style={{
+                '--marketing-slide-scale': scale,
+                '--marketing-slide-width': `${SLIDE_WIDTH * scale}px`,
+                '--marketing-slide-height': `${SLIDE_HEIGHT * scale}px`,
+            } as React.CSSProperties}
+        >
             <PresentationSpotlight />
             <MarketingFloatingNav />
             <MarketingExitButton onExit={onExit} theme={theme} />
 
-            <div id="top" className="page animate-slide-up">
+            <MarketingSlideFrame id="top" className="animate-slide-up">
                 <SlideCapaMarketing isVisible titulo="Cadastros Marketing" periodo={periodoFormatado} subtitulo="Relatório de Resultados" />
-            </div>
+            </MarketingSlideFrame>
 
-            <div id="unidades" className="page animate-slide-up">
+            <MarketingSlideFrame id="unidades" className="animate-slide-up">
                 <SlideEvolucaoResumoMarketing isVisible={true} evolutionData={evolutionData} citiesData={citiesData} />
-            </div>
+            </MarketingSlideFrame>
 
             <div id="semanal">
                 <WeeklySlidesSection weeklyData={weeklyData} weeklyDataByCity={weeklyDataByCity} />

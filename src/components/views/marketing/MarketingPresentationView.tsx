@@ -17,9 +17,18 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
     const [presentationFilters, setPresentationFilters] = useState<{
         dataInicial: string | null;
         dataFinal: string | null;
-    }>({
-        dataInicial: null,
-        dataFinal: null,
+    }>(() => {
+        const today = new Date();
+        const toIsoDate = (date: Date) => [
+            date.getFullYear(),
+            String(date.getMonth() + 1).padStart(2, '0'),
+            String(date.getDate()).padStart(2, '0'),
+        ].join('-');
+
+        return {
+            dataInicial: toIsoDate(new Date(today.getFullYear(), today.getMonth(), 1)),
+            dataFinal: toIsoDate(today),
+        };
     });
     const [isGenerating, setIsGenerating] = useState(false);
     const isMarketing = !!(

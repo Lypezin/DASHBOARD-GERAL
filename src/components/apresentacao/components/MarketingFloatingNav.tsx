@@ -29,7 +29,7 @@ export const MarketingFloatingNav: React.FC = () => {
     };
 
     return (
-        <div className="fixed top-24 left-0 right-0 flex justify-center z-[10000] pointer-events-none">
+        <div className="marketing-floating-nav fixed top-24 left-0 right-0 flex justify-center z-[10000] pointer-events-none print:hidden">
             <motion.div 
                 initial={{ y: -50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}

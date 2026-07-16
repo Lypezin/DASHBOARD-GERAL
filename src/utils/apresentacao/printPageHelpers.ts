@@ -94,5 +94,40 @@ export function generatePrintStyles(): string {
       width: 100% !important;
       height: 100% !important;
     }
+    @media screen {
+      .marketing-slide-frame {
+        width: var(--marketing-slide-width, ${SLIDE_WIDTH}px);
+        height: var(--marketing-slide-height, ${SLIDE_HEIGHT}px);
+        content-visibility: auto;
+        contain: layout paint style;
+        contain-intrinsic-size: ${SLIDE_WIDTH}px ${SLIDE_HEIGHT}px;
+      }
+      .marketing-slide-canvas {
+        width: ${SLIDE_WIDTH}px;
+        height: ${SLIDE_HEIGHT}px;
+        transform: scale(var(--marketing-slide-scale, 1));
+        transform-origin: top left;
+      }
+    }
+    @media print {
+      .marketing-floating-nav,
+      .presentation-spotlight {
+        display: none !important;
+      }
+      .marketing-slide-frame {
+        width: ${SLIDE_WIDTH}px !important;
+        height: ${SLIDE_HEIGHT}px !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        content-visibility: visible !important;
+        contain: none !important;
+      }
+      .marketing-slide-canvas {
+        width: ${SLIDE_WIDTH}px !important;
+        height: ${SLIDE_HEIGHT}px !important;
+        transform: none !important;
+      }
+    }
   `;
 }

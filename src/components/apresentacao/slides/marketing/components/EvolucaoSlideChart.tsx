@@ -34,12 +34,14 @@ const customDataLabels = {
     id: 'customDataLabels',
     afterDatasetsDraw(chart: any) {
         const { ctx, data } = chart;
+        const pointCount = data.labels?.length || 0;
+        const labelStride = Math.max(1, Math.ceil(pointCount / 16));
         ctx.save();
         data.datasets.forEach((dataset: any, i: number) => {
             const meta = chart.getDatasetMeta(i);
             meta.data.forEach((element: any, index: number) => {
                 const value = dataset.data[index];
-                if (value > 0) {
+                if (value > 0 && (index % labelStride === 0 || index === pointCount - 1)) {
                     ctx.fillStyle = dataset.borderColor;
                     ctx.font = 'bold 12px Inter, sans-serif';
                     ctx.textAlign = 'center';
@@ -68,7 +70,7 @@ export const EvolucaoSlideChart: React.FC<EvolucaoSlideChartProps> = ({ evolutio
                 borderColor: '#10b981',
                 backgroundColor: 'rgba(16, 185, 129, 0.1)',
                 tension: 0.4,
-                pointRadius: 5,
+                pointRadius: 3,
                 pointBackgroundColor: '#10b981',
                 pointBorderColor: isDark ? '#020617' : '#fff',
                 pointBorderWidth: 2,
@@ -81,7 +83,7 @@ export const EvolucaoSlideChart: React.FC<EvolucaoSlideChartProps> = ({ evolutio
                 borderColor: '#3b82f6',
                 backgroundColor: 'rgba(59, 130, 246, 0.1)',
                 tension: 0.4,
-                pointRadius: 5,
+                pointRadius: 3,
                 pointBackgroundColor: '#3b82f6',
                 pointBorderColor: isDark ? '#020617' : '#fff',
                 pointBorderWidth: 2,
@@ -95,8 +97,9 @@ export const EvolucaoSlideChart: React.FC<EvolucaoSlideChartProps> = ({ evolutio
         responsive: true,
         maintainAspectRatio: false,
         animation: {
-            duration: 800,
-            easing: 'easeOutQuart' as const
+            duration: 350,
+            easing: 'easeOutQuart' as const,
+            onComplete: () => window.dispatchEvent(new Event('marketing-chart-ready')),
         },
         plugins: {
             legend: {

@@ -19,7 +19,7 @@ import type { DashboardViewRenderProps } from '@/components/dashboard/DashboardV
 
 // Helper to determine if a chart is needed
 export const needsChartReady = (tab: TabType) => {
-    return ['evolucao', 'comparacao', 'marketing_comparacao'].includes(tab);
+    return ['evolucao', 'comparacao'].includes(tab);
 };
 
 export const renderActiveView = (activeTab: TabType, props: DashboardViewRenderProps) => {

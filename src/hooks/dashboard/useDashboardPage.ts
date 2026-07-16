@@ -11,15 +11,16 @@ import { useDashboardMainData } from './useDashboardMainData';
 export function useDashboardPage() {
   const { isCheckingAuth, isAuthenticated, hasSessionWithoutProfile, hasMissingOrganization, error: authError, refresh: refreshAuth, currentUser } = useDashboardAuthWrapper();
   const { activeTab, handleTabChange } = useDashboardTabs();
-  const needsChartRuntime = ['evolucao', 'comparacao', 'marketing_comparacao'].includes(activeTab);
+  const needsChartRuntime = ['evolucao', 'comparacao'].includes(activeTab);
   const chartReady = useChartRegistration(needsChartRuntime);
 
   const [anoEvolucao, setAnoEvolucao] = useState<number>(new Date().getFullYear());
   const { filters, setFilters } = useDashboardFilters();
 
   const { filterPayload, filterPayloadKey } = useDashboardKeys(filters, currentUser);
-  const { anosDisponiveis, semanasDisponiveis, dimensoes } = useDashboardDimensions({ fetchRemote: false });
-  const mainData = useDashboardMainData({ filterPayload, filterPayloadKey });
+  const needsMainDashboardData = activeTab === 'dashboard' || activeTab === 'analise';
+  const { anosDisponiveis, semanasDisponiveis, dimensoes } = useDashboardDimensions({ fetchRemote: !needsMainDashboardData });
+  const mainData = useDashboardMainData({ filterPayload, filterPayloadKey, enabled: needsMainDashboardData });
 
   useEffect(() => {
     if (typeof filters.ano === 'number' && filters.ano !== anoEvolucao) {

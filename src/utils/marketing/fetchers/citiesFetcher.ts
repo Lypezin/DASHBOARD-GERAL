@@ -4,18 +4,8 @@ import { safeRpc } from '@/lib/rpcWrapper';
 import { safeLog } from '@/lib/errorHandler';
 import { CIDADES } from '@/constants/marketing';
 import { buildDateFilterQuery, buildCityQuery } from '@/utils/marketingQueries';
-import { MarketingFilters, MarketingCityData, MarketingDateFilter } from '@/types';
-import { IS_DEV, ABERTO_STATUSES, VOLTOU_STATUSES, EXCLUDED_ENVIADOS } from '../constants';
-
-const getMonthFilter = (filters: MarketingFilters): MarketingDateFilter | null => {
-    const anyDate = filters.filtroEnviados.dataInicial || filters.filtroLiberacao.dataInicial || filters.filtroRodouDia.dataInicial || filters.filtroDataInicio.dataInicial;
-    if (!anyDate) return null;
-    const d = new Date(anyDate + 'T12:00:00');
-    return {
-        dataInicial: new Date(d.getFullYear(), d.getMonth(), 1).toISOString().split('T')[0],
-        dataFinal: new Date(d.getFullYear(), d.getMonth() + 1, 0).toISOString().split('T')[0]
-    };
-};
+import { MarketingFilters, MarketingCityData } from '@/types';
+import { IS_DEV, EXCLUDED_ENVIADOS } from '../constants';
 
 export async function fetchMarketingCitiesData(
     filters: MarketingFilters, 
@@ -38,31 +28,35 @@ export async function fetchMarketingCitiesData(
 
     const cidadesToProcess = allCities || !filters.praca ? CIDADES : [filters.praca];
     
-    if (!rpcError && rpcData && Array.isArray(rpcData) && !allCities) {
+    if (!rpcError && rpcData && Array.isArray(rpcData)) {
         const rpcMap = new Map(rpcData.map(item => [item.cidade, item]));
         return cidadesToProcess.map(cidade => ({ 
-            cidade, criado: 0, enviado: rpcMap.get(cidade)?.enviado || 0, 
+            cidade, criado: rpcMap.get(cidade)?.criado || 0, enviado: rpcMap.get(cidade)?.enviado || 0,
             liberado: rpcMap.get(cidade)?.liberado || 0, 
             rodandoInicio: rpcMap.get(cidade)?.rodando_inicio || 0,
-            aberto: 0, voltou: 0, conversas: 0
+            aberto: rpcMap.get(cidade)?.aberto || 0,
+            voltou: rpcMap.get(cidade)?.voltou || 0,
+            conversas: 0
         }));
     }
 
     if (IS_DEV) safeLog.info('Using manual fetch for cities data');
     const results: MarketingCityData[] = [];
-    const monthFilter = getMonthFilter(filters);
 
     for (const cidade of cidadesToProcess) {
         const base = (sel = '*') => buildCityQuery(client.from('dados_marketing').select(sel, { count: 'exact', head: true }), cidade)
             .match(organizationId ? { organization_id: organizationId } : {});
 
+        let enviadosQuery = base().not('data_envio', 'is', null);
+        EXCLUDED_ENVIADOS.forEach((status) => { enviadosQuery = enviadosQuery.neq('status', status); });
+
         const [e, l, r, a, v, c] = await Promise.all([
-            monthFilter ? buildDateFilterQuery(base().neq('status', 'Confirmar').neq('status', 'Cancelado').neq('status', 'Abrindo MEI').not('data_envio', 'is', null), 'data_envio', monthFilter) : base(),
-            monthFilter ? buildDateFilterQuery(base().eq('status', 'Liberado').not('data_envio', 'is', null), 'data_envio', monthFilter) : base(),
-            monthFilter ? buildDateFilterQuery(base().not('rodou_dia', 'is', null), 'data_envio', monthFilter) : base(),
-            monthFilter ? buildDateFilterQuery(base().in('status', ABERTO_STATUSES).not('data_envio', 'is', null), 'data_envio', monthFilter) : base(),
-            monthFilter ? buildDateFilterQuery(base().in('status', VOLTOU_STATUSES).not('data_envio', 'is', null), 'data_envio', monthFilter) : base(),
-            monthFilter ? base().gte('Criado', monthFilter.dataInicial).lte('Criado', monthFilter.dataFinal) : base()
+            buildDateFilterQuery(enviadosQuery, 'data_envio', filters.filtroEnviados),
+            buildDateFilterQuery(base().eq('status', 'Liberado').not('data_liberacao', 'is', null), 'data_liberacao', filters.filtroLiberacao),
+            buildDateFilterQuery(base().not('rodou_dia', 'is', null), 'rodou_dia', filters.filtroRodouDia),
+            buildDateFilterQuery(base().or('status.ilike.Aberto%,status.ilike.%aguardando liberaÃ§Ã£o%,status.ilike.%Retorno%,status.ilike.%A enviar%').not('data_envio', 'is', null), 'data_envio', filters.filtroEnviados),
+            buildDateFilterQuery(base().or('status.ilike.Voltou%,status.ilike.%desistiu%,status.ilike.%bug%').not('data_envio', 'is', null), 'data_envio', filters.filtroEnviados),
+            buildDateFilterQuery(base().not('Criado', 'is', null), 'Criado', filters.filtroDataInicio)
         ]);
 
         results.push({ 

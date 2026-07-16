@@ -8,6 +8,7 @@ import { useCallback, useRef } from 'react';
 import { CacheEntry, isCacheValid, createCacheEntry } from '@/types/cache';
 import { CACHE } from '@/constants/config';
 import { getFromSessionStorage, setToSessionStorage } from '@/hooks/cache/sessionStorage';
+import { scheduleIdleTask } from '@/utils/scheduling/idleTask';
 
 interface UseCacheOptions<T> {
   ttl?: number;
@@ -58,7 +59,10 @@ export function readSharedCacheEntry<T>(key: string, ttl: number = DEFAULT_TAB_D
 export function writeSharedCacheEntry<T>(key: string, data: T, ttl: number = DEFAULT_TAB_DATA_TTL_MS): void {
   touchGlobalCacheEntry(key, createCacheEntry(data, ttl) as CacheEntry<unknown>);
   pruneGlobalCache(ttl);
-  setToSessionStorage(key, data, ttl);
+  scheduleIdleTask(() => setToSessionStorage(key, data, ttl), {
+    timeoutMs: 1500,
+    fallbackDelayMs: 250,
+  });
 }
 
 export function useCache<T>(options: UseCacheOptions<T>) {

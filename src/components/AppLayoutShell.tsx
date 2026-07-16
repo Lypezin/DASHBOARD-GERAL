@@ -21,7 +21,9 @@ const PUBLIC_LAYOUT_ROUTES = new Set([
 
 export function AppLayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const usePublicLayout = pathname ? PUBLIC_LAYOUT_ROUTES.has(pathname) : false;
+  const usePublicLayout = pathname
+    ? PUBLIC_LAYOUT_ROUTES.has(pathname) || pathname.startsWith('/visual-smoke/')
+    : false;
   const shouldMountActivityTracker = useDeferredMount({ timeoutMs: 1400 });
 
   // Layout para rotas públicas (Login, Registro, etc.)

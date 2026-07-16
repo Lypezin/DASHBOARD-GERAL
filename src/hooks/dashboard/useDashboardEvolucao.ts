@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { CACHE, DELAYS } from '@/constants/config';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -56,6 +56,7 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
   const [utrSemanal, setUtrSemanal] = useState<UtrSemanal[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [refreshVersion, setRefreshVersion] = useState(0);
 
   const { isLoading: isOrgLoading } = useOrganization();
   const lastFetchSignature = useRef<string | null>(null);
@@ -139,13 +140,21 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
       mounted = false;
       clearTimeout(timeoutId);
     };
-  }, [activeTab, anoEvolucao, filterPayloadKey, isOrgLoading, stableFilterPayload, evolucaoMensal.length, evolucaoSemanal.length, utrSemanal.length]);
+  }, [activeTab, anoEvolucao, filterPayloadKey, isOrgLoading, refreshVersion, stableFilterPayload, evolucaoMensal.length, evolucaoSemanal.length, utrSemanal.length]);
+
+  const refetch = useCallback(() => {
+    const signature = createRequestKey({ filterPayload: stableFilterPayloadRef.current?.payload || filterPayload, anoEvolucao });
+    evolucaoCache.delete(signature);
+    lastFetchSignature.current = null;
+    setRefreshVersion((version) => version + 1);
+  }, [anoEvolucao, filterPayload]);
 
   return {
     evolucaoMensal,
     evolucaoSemanal,
     utrSemanal,
     loading,
-    error
+    error,
+    refetch
   };
 }
