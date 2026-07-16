@@ -28,14 +28,13 @@ export const EvolucaoSlideCityGrid: React.FC<EvolucaoSlideCityGridProps> = React
                     <TiltCard key={idx} className="relative group perspective-1000">
                         <motion.div 
                             initial={shouldReduceMotion ? false : { opacity: 0, y: 30, filter: 'blur(10px)' }}
-                            whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                            animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                             transition={shouldReduceMotion ? { duration: 0.01 } : {
                                 type: 'spring', 
                                 stiffness: 50, 
                                 damping: 20, 
                                 delay: idx * 0.1 
                             }}
-                            viewport={{ once: true }}
                             className={`rounded-2xl p-6 transition-all duration-500 glass-card border border-white/10 ${
                                 isDark 
                                 ? 'shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-slate-900/40' 

@@ -18,8 +18,7 @@ export const CostsTableRow: React.FC<CostsTableRowProps> = ({ row, idx, isDark }
     return (
         <motion.tr 
             initial={{ opacity: 0, x: -10 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true }}
+            animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 + (idx * 0.05) }}
             className={`border-b last:border-0 ${isDark ? 'border-slate-800' : 'border-slate-100'} hover:bg-blue-500/5 transition-colors`}
         >
