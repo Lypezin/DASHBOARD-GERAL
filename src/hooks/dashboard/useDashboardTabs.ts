@@ -15,6 +15,10 @@ export function useDashboardTabs() {
 
     const [activeTab, setActiveTabState] = useState<TabType>(getInitialTab());
 
+    useEffect(() => {
+        prefetchDashboardTabResources(activeTab);
+    }, [activeTab]);
+
     const setActiveTab = useCallback((newTab: TabType) => {
         prefetchDashboardTabResources(newTab);
         // Envolvemos a atualização de estado (que reflete na interface) 

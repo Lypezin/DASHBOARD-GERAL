@@ -11,6 +11,40 @@ revoke select on public.vw_dashboard_resumo_current from public, anon, authentic
 grant select on public.mv_dashboard_resumo to service_role;
 grant select on public.vw_dashboard_resumo_current to service_role;
 
+-- Operational maintenance wrapper can process refresh queues and unschedule a
+-- cron job. It must never be callable from browser roles.
+revoke execute on function public.process_incremental_refresh_impacts_job()
+from public, anon, authenticated;
+grant execute on function public.process_incremental_refresh_impacts_job()
+to service_role;
+
+-- Dashboard data is served through authenticated server routes. Keep both
+-- overloads unavailable to browser roles, especially the SECURITY DEFINER one.
+revoke execute on function public.dashboard_resumo(
+  integer, integer, integer[], text, text, text, text,
+  text[], text[], text[], text, date, date, text, boolean
+) from public, anon, authenticated;
+grant execute on function public.dashboard_resumo(
+  integer, integer, integer[], text, text, text, text,
+  text[], text[], text[], text, date, date, text, boolean
+) to service_role;
+
+revoke execute on function public.dashboard_resumo(
+  integer, text, text[], text, text, text[], text,
+  text[], text, text[], date, date, text
+) from public, anon, authenticated;
+grant execute on function public.dashboard_resumo(
+  integer, text, text[], text, text, text[], text,
+  text[], text, text[], date, date, text
+) to service_role;
+
+-- Both detailed-values overloads delegated to the same core. The 11-argument
+-- version also defaulted its last argument, making normal 10-argument calls
+-- ambiguous in PostgREST (PGRST203).
+drop function if exists public.listar_valores_entregadores_detalhado(
+  integer, integer, text, text, text, date, date, text, integer, integer, boolean
+) restrict;
+
 -- One grouped request replaces the per-city fallback and uses each metric's real date.
 drop function if exists public.get_marketing_cities_data(text, text, text, text, text, text);
 

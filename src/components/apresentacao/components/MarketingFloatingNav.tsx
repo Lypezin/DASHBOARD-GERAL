@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { LayoutGrid, MapPin, DollarSign, TrendingUp, Home } from 'lucide-react';
 
 interface NavItem {
@@ -19,6 +19,7 @@ const navItems: NavItem[] = [
 ];
 
 export const MarketingFloatingNav: React.FC = () => {
+    const shouldReduceMotion = useReducedMotion();
     const scrollToSection = (id: string) => {
         const element = document.getElementById(id);
         if (element) {
@@ -29,11 +30,11 @@ export const MarketingFloatingNav: React.FC = () => {
     };
 
     return (
-        <div className="marketing-floating-nav fixed top-24 left-0 right-0 flex justify-center z-[10000] pointer-events-none print:hidden">
+        <div className="marketing-floating-nav pointer-events-none fixed left-0 right-0 top-24 z-[10000] hidden justify-center print:hidden md:flex">
             <motion.div 
-                initial={{ y: -50, opacity: 0 }}
+                initial={shouldReduceMotion ? false : { y: -50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+                transition={shouldReduceMotion ? { duration: 0.01 } : { type: 'spring', damping: 20, stiffness: 100 }}
                 className="glass-card flex items-center gap-1.5 p-1.5 rounded-2xl shadow-2xl border border-white/10 bg-slate-900/60 backdrop-blur-2xl pointer-events-auto"
             >
                 {navItems.map((item) => (

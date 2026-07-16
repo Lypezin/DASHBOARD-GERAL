@@ -89,10 +89,15 @@ function DashboardShellContent() {
 
       <div className="relative z-10 px-4 py-6 sm:px-6 lg:px-8">
         {showInitialLoading && <DashboardLoadingState />}
-        {ui.error && <DashboardErrorState error={ui.error} />}
+        {ui.error && !hasMainData && <DashboardErrorState error={ui.error} />}
 
-        {!showInitialLoading && !ui.error && (
+        {!showInitialLoading && (!ui.error || hasMainData) && (
           <div className="space-y-6 motion-safe:animate-fade-in">
+            {ui.error && hasMainData ? (
+              <div role="alert" className="rounded-2xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm font-semibold text-amber-900 shadow-sm dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-100">
+                Nao foi possivel atualizar os indicadores agora. Mantendo a ultima resposta valida na tela.
+              </div>
+            ) : null}
             <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
               <div className="min-w-0 flex-1">
                 <DashboardFiltersContainer

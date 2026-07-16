@@ -43,7 +43,7 @@ function initializeWeekMap(start: Date, end: Date) {
 }
 
 async function fetchMarketingRecords(client: SupabaseClient, orgId: string | null, city: string | null, s: string, e: string) {
-    let q = client.from('dados_marketing').select('*, status, conversas');
+    let q = client.from('dados_marketing').select('Criado, created_at, data_envio, data_liberacao, rodou_dia, status, conversas, regiao_atuacao, sub_praca_abc');
     
     // Filtro unificado de data: pega registros que tiveram atividade no período em QUALQUER um dos campos relevantes
     const dateFilters = [

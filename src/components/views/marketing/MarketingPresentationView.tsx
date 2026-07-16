@@ -8,6 +8,20 @@ import { toast } from 'sonner';
 import { PresentationHeader } from './components/PresentationHeader';
 import { PresentationConfigCard } from './components/PresentationConfigCard';
 
+function getCurrentMonthPeriod() {
+    const today = new Date();
+    const toIsoDate = (date: Date) => [
+        date.getFullYear(),
+        String(date.getMonth() + 1).padStart(2, '0'),
+        String(date.getDate()).padStart(2, '0'),
+    ].join('-');
+
+    return {
+        dataInicial: toIsoDate(new Date(today.getFullYear(), today.getMonth(), 1)),
+        dataFinal: toIsoDate(today),
+    };
+}
+
 const MarketingPresentationView = React.memo(function MarketingPresentationView() {
     const { user, isLoading } = useHeaderAuth();
     const router = useRouter();
@@ -17,19 +31,7 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
     const [presentationFilters, setPresentationFilters] = useState<{
         dataInicial: string | null;
         dataFinal: string | null;
-    }>(() => {
-        const today = new Date();
-        const toIsoDate = (date: Date) => [
-            date.getFullYear(),
-            String(date.getMonth() + 1).padStart(2, '0'),
-            String(date.getDate()).padStart(2, '0'),
-        ].join('-');
-
-        return {
-            dataInicial: toIsoDate(new Date(today.getFullYear(), today.getMonth(), 1)),
-            dataFinal: toIsoDate(today),
-        };
-    });
+    }>(() => getCurrentMonthPeriod());
     const [isGenerating, setIsGenerating] = useState(false);
     const isMarketing = !!(
         user?.role === 'marketing' ||
@@ -53,10 +55,10 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
         }
     };
 
-    const periodLabel =
-        presentationFilters.dataInicial || presentationFilters.dataFinal
-            ? `${formatDate(presentationFilters.dataInicial) || '...'} - ${formatDate(presentationFilters.dataFinal) || '...'} `
-            : 'Todo o per\u00edodo';
+    const effectivePeriod = presentationFilters.dataInicial || presentationFilters.dataFinal
+        ? presentationFilters
+        : getCurrentMonthPeriod();
+    const periodLabel = `${formatDate(effectivePeriod.dataInicial) || '...'} - ${formatDate(effectivePeriod.dataFinal) || '...'}`;
 
     const handleOpenPresentation = () => {
         if (!isMarketing) {
@@ -66,9 +68,12 @@ const MarketingPresentationView = React.memo(function MarketingPresentationView(
             return;
         }
         setIsGenerating(true);
+        if (!presentationFilters.dataInicial && !presentationFilters.dataFinal) {
+            setPresentationFilters(effectivePeriod);
+        }
         const params = new URLSearchParams();
-        if (presentationFilters.dataInicial) params.set('dataInicial', presentationFilters.dataInicial);
-        if (presentationFilters.dataFinal) params.set('dataFinal', presentationFilters.dataFinal);
+        if (effectivePeriod.dataInicial) params.set('dataInicial', effectivePeriod.dataInicial);
+        if (effectivePeriod.dataFinal) params.set('dataFinal', effectivePeriod.dataFinal);
         router.push(`/apresentacao/marketing?${params.toString()}`);
     };
 

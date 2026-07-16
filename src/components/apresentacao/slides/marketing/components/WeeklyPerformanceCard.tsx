@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 interface WeeklyData {
     semana: string;
@@ -23,12 +23,13 @@ export const WeeklyPerformanceCard: React.FC<WeeklyPerformanceCardProps> = ({
     idx,
     isDark
 }) => {
+    const shouldReduceMotion = useReducedMotion();
     return (
         <motion.div 
-            whileHover={{ y: -4, scale: 1.01 }}
-            initial={{ opacity: 0, y: 15 }}
+            whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.01 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: idx * 0.04 }}
+            transition={{ duration: shouldReduceMotion ? 0.01 : 0.2, delay: shouldReduceMotion ? 0 : idx * 0.04 }}
             className={`rounded-2xl p-5 border flex flex-col transition-all duration-300 ${
                 isDark 
                 ? 'bg-slate-900/40 border-slate-800 shadow-[0_12px_40px_rgb(0,0,0,0.3)] hover:bg-slate-900/60' 

@@ -12,7 +12,9 @@ export function MarketingSlideFrame({
     return (
         <div id={id} className={`page marketing-slide-frame ${className}`.trim()}>
             <div className="marketing-slide-canvas">
-                {children}
+                <div className="marketing-slide-content">
+                    {children}
+                </div>
             </div>
         </div>
     );

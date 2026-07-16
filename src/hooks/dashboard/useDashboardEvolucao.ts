@@ -134,7 +134,8 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
       }
     };
 
-    const timeoutId = setTimeout(fetchEvolucao, DELAYS.DEBOUNCE);
+    const hasVisibleData = evolucaoMensal.length > 0 || evolucaoSemanal.length > 0 || utrSemanal.length > 0;
+    const timeoutId = setTimeout(fetchEvolucao, hasVisibleData ? DELAYS.DEBOUNCE : 0);
 
     return () => {
       mounted = false;

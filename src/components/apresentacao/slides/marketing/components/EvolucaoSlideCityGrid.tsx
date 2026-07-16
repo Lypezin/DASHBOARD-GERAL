@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { MarketingCityData } from '@/types';
 import { useTheme } from '@/contexts/ThemeContext';
 import { CountUp } from '@/components/ui/CountUp';
@@ -14,6 +14,7 @@ interface EvolucaoSlideCityGridProps {
 export const EvolucaoSlideCityGrid: React.FC<EvolucaoSlideCityGridProps> = React.memo(({ citiesData }) => {
     const { theme } = useTheme();
     const isDark = theme === 'dark';
+    const shouldReduceMotion = useReducedMotion();
 
     return (
         <div className="mt-auto">
@@ -26,9 +27,9 @@ export const EvolucaoSlideCityGrid: React.FC<EvolucaoSlideCityGridProps> = React
                 {citiesData.map((data, idx) => (
                     <TiltCard key={idx} className="relative group perspective-1000">
                         <motion.div 
-                            initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
+                            initial={shouldReduceMotion ? false : { opacity: 0, y: 30, filter: 'blur(10px)' }}
                             whileInView={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                            transition={{ 
+                            transition={shouldReduceMotion ? { duration: 0.01 } : {
                                 type: 'spring', 
                                 stiffness: 50, 
                                 damping: 20, 

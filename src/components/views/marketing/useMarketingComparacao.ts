@@ -75,6 +75,8 @@ export function useMarketingComparacao(dataInicial: string, dataFinal: string, o
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const requestIdRef = useRef(0);
+  const hasVisibleDataRef = useRef(false);
+  hasVisibleDataRef.current = data.length > 0;
 
   const fetchData = useCallback(async () => {
     if (!dataInicial || !dataFinal || !organizationId) return;
@@ -90,7 +92,7 @@ export function useMarketingComparacao(dataInicial: string, dataFinal: string, o
       return;
     }
 
-    const hasVisibleData = data.length > 0;
+    const hasVisibleData = hasVisibleDataRef.current;
 
     try {
       setLoading(true);
@@ -130,7 +132,7 @@ export function useMarketingComparacao(dataInicial: string, dataFinal: string, o
         setLoading(false);
       }
     }
-  }, [data.length, dataFinal, dataInicial, organizationId, praca]);
+  }, [dataFinal, dataInicial, organizationId, praca]);
 
   useEffect(() => {
     void fetchData();

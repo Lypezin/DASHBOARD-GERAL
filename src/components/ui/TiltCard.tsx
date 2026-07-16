@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useRef } from 'react';
-import { motion, useMotionValue, useSpring, useTransform } from 'framer-motion';
+import { motion, useMotionValue, useReducedMotion, useSpring, useTransform } from 'framer-motion';
 
 interface TiltCardProps {
     children: React.ReactNode;
@@ -9,6 +9,7 @@ interface TiltCardProps {
 }
 
 export const TiltCard: React.FC<TiltCardProps> = ({ children, className }) => {
+    const shouldReduceMotion = useReducedMotion();
     const x = useMotionValue(0);
     const y = useMotionValue(0);
 
@@ -19,6 +20,7 @@ export const TiltCard: React.FC<TiltCardProps> = ({ children, className }) => {
     const rotateY = useTransform(mouseX, [-0.5, 0.5], [-10, 10]);
 
     const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+        if (shouldReduceMotion) return;
         const rect = e.currentTarget.getBoundingClientRect();
         const width = rect.width;
         const height = rect.height;
@@ -40,14 +42,14 @@ export const TiltCard: React.FC<TiltCardProps> = ({ children, className }) => {
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
             style={{
-                rotateX,
-                rotateY,
+                rotateX: shouldReduceMotion ? 0 : rotateX,
+                rotateY: shouldReduceMotion ? 0 : rotateY,
                 transformStyle: 'preserve-3d',
-                willChange: 'transform'
+                willChange: shouldReduceMotion ? 'auto' : 'transform'
             }}
             className={className}
         >
-            <div style={{ transform: 'translateZ(50px)', transformStyle: 'preserve-3d' }}>
+            <div style={{ transform: shouldReduceMotion ? 'none' : 'translateZ(50px)', transformStyle: 'preserve-3d' }}>
                 {children}
             </div>
         </motion.div>
