@@ -30,7 +30,7 @@ export const WeeklyPerformanceCard: React.FC<WeeklyPerformanceCardProps> = ({
             initial={shouldReduceMotion ? false : { opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: shouldReduceMotion ? 0.01 : 0.2, delay: shouldReduceMotion ? 0 : idx * 0.04 }}
-            className={`rounded-2xl p-5 border flex flex-col transition-all duration-300 ${
+            className={`rounded-2xl p-6 border flex flex-col transition-all duration-300 ${
                 isDark 
                 ? 'bg-slate-900/40 border-slate-800 shadow-[0_12px_40px_rgb(0,0,0,0.3)] hover:bg-slate-900/60' 
                 : 'bg-white border-slate-100 shadow-md hover:shadow-2xl hover:bg-slate-50'
@@ -45,7 +45,7 @@ export const WeeklyPerformanceCard: React.FC<WeeklyPerformanceCardProps> = ({
                 </h3>
             </div>
             
-            <div className="space-y-3 flex-1 flex flex-col justify-center">
+            <div className="mt-5 space-y-4">
                 <div className="flex justify-between items-center text-slate-400">
                     <span className="text-[10px] font-bold uppercase tracking-widest">Criados</span>
                     <span className={`text-xl font-black ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{week.criado}</span>

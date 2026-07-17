@@ -31,6 +31,15 @@ const SlideComparativoSemanalMarketing: React.FC<SlideComparativoSemanalMarketin
 }) => {
     const { theme } = useTheme();
     const isDark = theme === 'dark';
+    const visibleWeeks = weeklyData.slice(-8);
+    const columnsClass =
+        visibleWeeks.length <= 1
+            ? 'grid-cols-1 max-w-md mx-auto'
+            : visibleWeeks.length === 2
+                ? 'grid-cols-2 max-w-4xl mx-auto'
+                : visibleWeeks.length === 3
+                    ? 'grid-cols-3'
+                    : 'grid-cols-4';
 
     if (!isVisible) return null;
 
@@ -40,8 +49,8 @@ const SlideComparativoSemanalMarketing: React.FC<SlideComparativoSemanalMarketin
         }`}>
             <WeeklyPerformanceHeader titulo={titulo} subtitulo={subtitulo} isDark={isDark} />
 
-            <div className="flex-1 grid grid-cols-4 gap-4 pb-12">
-                {weeklyData.slice(-8).map((week, idx) => (
+            <div className={`grid flex-1 items-center gap-5 pb-12 ${columnsClass}`}>
+                {visibleWeeks.map((week, idx) => (
                     <WeeklyPerformanceCard key={idx} week={week} idx={idx} isDark={isDark} />
                 ))}
             </div>

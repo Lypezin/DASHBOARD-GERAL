@@ -55,7 +55,8 @@ function temporarilyDisableThemeTransitions() {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(getInitialTheme);
+  const [theme, setThemeState] = useState<Theme>('light');
+  const [hasHydrated, setHasHydrated] = useState(false);
 
   const setTheme = useCallback((newTheme: Theme) => {
     temporarilyDisableThemeTransitions();
@@ -73,8 +74,21 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [theme, setTheme]);
 
   useEffect(() => {
+    const hydratedTheme = getInitialTheme();
+    setThemeState((currentTheme) =>
+      currentTheme === hydratedTheme ? currentTheme : hydratedTheme
+    );
+    applyThemeToDocument(hydratedTheme);
+    setHasHydrated(true);
+  }, []);
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+
     applyThemeToDocument(theme);
-  }, [theme]);
+  }, [hasHydrated, theme]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {

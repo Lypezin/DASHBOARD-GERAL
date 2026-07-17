@@ -22,7 +22,9 @@ const PUBLIC_LAYOUT_ROUTES = new Set([
 export function AppLayoutShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const usePublicLayout = pathname
-    ? PUBLIC_LAYOUT_ROUTES.has(pathname) || pathname.startsWith('/visual-smoke/')
+    ? PUBLIC_LAYOUT_ROUTES.has(pathname) ||
+      pathname.startsWith('/visual-smoke/') ||
+      pathname.startsWith('/apresentacao/')
     : false;
   const shouldMountActivityTracker = useDeferredMount({ timeoutMs: 1400 });
 

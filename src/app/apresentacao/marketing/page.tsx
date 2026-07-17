@@ -9,9 +9,9 @@ import {
 } from '@/utils/marketingDataFetcher';
 import { generatePrintStyles } from '@/utils/apresentacao/printPageHelpers';
 import { MarketingReportSlides } from './components/MarketingReportSlides';
-import { createClient } from '@/utils/supabase/server';
 import { MARKETING_PRESENTATION_WEEKLY_CITIES } from '@/constants/marketing';
 import { loadCurrentUserProfile } from '@/app/api/_shared/currentUserProfile';
+import { createServiceRoleClient } from '@/utils/supabase/admin';
 
 interface PageProps {
     searchParams: {
@@ -68,6 +68,15 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
         return renderAccessRestricted('Voce nao tem permissao para acessar esta apresentacao.');
     }
 
+    const canAccessAllOrganizations =
+        profile.role === 'admin' ||
+        profile.role === 'master' ||
+        Boolean(profile.is_admin);
+
+    if (!profile.organization_id && !canAccessAllOrganizations) {
+        return renderAccessRestricted('Seu perfil de Marketing nao esta vinculado a uma organizacao.');
+    }
+
     const today = new Date();
     const toIsoDate = (date: Date) => [
         date.getFullYear(),
@@ -90,7 +99,10 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
     const dateInicial = unifiedDateFilter.dataInicial || null;
     const dateFinal = unifiedDateFilter.dataFinal || null;
     const orgId = profile.organization_id || null;
-    const supabase = createClient();
+    // O acesso e a organização já foram validados acima. Usar o cliente
+    // server-only evita que políticas RLS inconsistentes deixem slides vazios,
+    // mantendo todas as consultas explicitamente limitadas à organização.
+    const supabase = createServiceRoleClient();
 
     const [citiesData, evolutionData, generalWeeklyData, costsComparison, weeklyDataByCity] = await Promise.all([
         fetchMarketingCitiesData(filters as any, orgId, supabase, true),

@@ -98,6 +98,7 @@ export function generatePrintStyles(): string {
       .marketing-slide-frame {
         width: var(--marketing-slide-width, ${SLIDE_WIDTH}px);
         height: var(--marketing-slide-height, ${SLIDE_HEIGHT}px);
+        margin: max(16px, calc((100vh - var(--marketing-slide-height, ${SLIDE_HEIGHT}px)) / 2)) auto;
         content-visibility: auto;
         contain: layout paint style;
         contain-intrinsic-size: ${SLIDE_WIDTH}px ${SLIDE_HEIGHT}px;

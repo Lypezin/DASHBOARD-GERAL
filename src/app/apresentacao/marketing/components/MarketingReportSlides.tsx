@@ -52,7 +52,12 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
         const updateScale = () => {
             frameId = null;
             const availableWidth = Math.max(240, window.innerWidth - 32);
-            setScale(Math.min(1, availableWidth / SLIDE_WIDTH));
+            const availableHeight = Math.max(240, window.innerHeight - 32);
+            setScale(Math.min(
+                1,
+                availableWidth / SLIDE_WIDTH,
+                availableHeight / SLIDE_HEIGHT
+            ));
         };
         const scheduleUpdate = () => {
             if (frameId !== null) return;
