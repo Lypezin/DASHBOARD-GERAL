@@ -30,16 +30,17 @@ const ValoresView = React.memo(function ValoresView({
   currentUser: CurrentUser | null; 
 }) {
   const valoresPayload = React.useMemo(() => ({ ...filterPayload, detailed: false }), [filterPayload]);
-  const { data: tabData, loading } = useTabData('valores', valoresPayload, currentUser);
+  const { data: tabData, loading, error: loadError } = useTabData('valores', valoresPayload, currentUser);
   const { valoresData } = useTabDataMapper({ activeTab: 'valores', tabData });
   const [isExporting, setIsExporting] = useState(false);
   const filtrosSemDetalhamento = React.useMemo(() => ({ ...filters, detailed: false }), [filters]);
 
   const {
-    sortedValores, paginatedValores, sortField, sortDirection, searchTerm, isSearching, error,
+    sortedValores, paginatedValores, sortField, sortDirection, searchTerm, isSearching, error: localError,
     totalGeral, totalCorridas, taxaMediaGeral, totalEntregadores, loadMore, hasMore, isLoadingMore,
     setSearchTerm, handleSort, formatarReal
   } = useValoresData(valoresData, loading, filtrosSemDetalhamento);
+  const error = loadError || localError;
 
   const hasValoresData = Array.isArray(valoresData) && valoresData.length > 0;
 
@@ -61,6 +62,14 @@ const ValoresView = React.memo(function ValoresView({
     return (
       <ViewTransition stateKey="valores-error">
         <ValoresError error={error} />
+      </ViewTransition>
+    );
+  }
+
+  if (!loading && Array.isArray(valoresData) && valoresData.length === 0) {
+    return (
+      <ViewTransition stateKey="valores-empty">
+        <ValoresEmpty />
       </ViewTransition>
     );
   }

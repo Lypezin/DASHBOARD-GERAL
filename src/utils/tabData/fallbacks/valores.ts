@@ -23,15 +23,18 @@ export async function fetchValoresFallback(payload: FilterPayload): Promise<Valo
 
         const valoresItems = processValoresData(data);
 
-        return valoresItems.map(item => ({
-            id_entregador: item.id_entregador,
-            nome_entregador: item.nome_entregador,
-            total_taxas: item.total_taxas,
-            numero_corridas_aceitas: item.numero_corridas_aceitas,
-            taxa_media: item.numero_corridas_aceitas > 0
-                ? item.total_taxas / item.numero_corridas_aceitas
-                : 0,
-        }));
+        return valoresItems.map(item => {
+            const totalTaxasReais = item.total_taxas / 100;
+            return {
+                id_entregador: item.id_entregador,
+                nome_entregador: item.nome_entregador,
+                total_taxas: totalTaxasReais,
+                numero_corridas_aceitas: item.numero_corridas_aceitas,
+                taxa_media: item.numero_corridas_aceitas > 0
+                    ? totalTaxasReais / item.numero_corridas_aceitas
+                    : 0,
+            };
+        });
     } catch (error) {
         safeLog.error('Erro no fallback fetchValoresFallback:', error);
         throw error;

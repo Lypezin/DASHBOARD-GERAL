@@ -51,6 +51,7 @@ export function useTabData(
 ) {
   const [data, setData] = useState<TabData>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const fetchIdRef = useRef(0);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -77,6 +78,7 @@ export function useTabData(
     retryAttemptsRef.current.clear();
     setData((previousData) => (previousData === null ? previousData : null));
     setLoading((previousLoading) => (previousLoading ? false : previousLoading));
+    setError(null);
   }, []);
 
   const fetchData = useCallback(async (tab: string, payload: FilterPayload, filterPayloadKey: string, fetchId: number) => {
@@ -89,11 +91,13 @@ export function useTabData(
       if (fetchIdRef.current === fetchId) {
         setData(tab === 'valores' ? (Array.isArray(cached) ? cached : []) : cached);
         setLoading(false);
+        setError(null);
       }
       return;
     }
 
     setLoading(true);
+    setError(null);
 
     try {
       const requestKey = `${tabScope}-${filterPayloadKey}`;
@@ -121,6 +125,7 @@ export function useTabData(
       setData(processedData);
       setCached(cacheParams, processedData);
       setLoading(false);
+      setError(null);
     } catch (error) {
       if (fetchIdRef.current !== fetchId) return;
 
@@ -135,6 +140,7 @@ export function useTabData(
             return getTabFallbackData(tab);
           });
           setLoading(false);
+          setError('Nao foi possivel carregar os dados depois de uma nova tentativa.');
           return;
         }
 
@@ -156,6 +162,7 @@ export function useTabData(
         return getTabFallbackData(tab);
       });
       setLoading(false);
+      setError(error instanceof Error ? error.message : 'Erro ao carregar dados.');
     }
   }, [getCached, setCached]);
 
@@ -197,10 +204,12 @@ export function useTabData(
     if (cached !== null) {
       setData(activeTab === 'valores' ? (Array.isArray(cached) ? cached : []) : cached);
       setLoading(false);
+      setError(null);
       return;
     }
 
     setLoading(true);
+    setError(null);
     const networkDelay = hasCurrentDataRef.current ? DELAYS.DEBOUNCE : 0;
     debounceRef.current = setTimeout(() => {
       void fetchData(activeTab, payload, filterPayloadStr, currentFetchId);
@@ -212,5 +221,5 @@ export function useTabData(
     };
   }, [activeTab, enabled, fetchData, filterPayloadStr, getCached, isOrgLoading, resetTabState, stableFilterPayload]);
 
-  return { data, loading };
+  return { data, loading, error };
 }

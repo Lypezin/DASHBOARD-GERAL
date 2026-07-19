@@ -1,12 +1,12 @@
 import { safeLog } from '@/lib/errorHandler';
 import { is500Error, isRateLimitError, isTimeoutError } from '@/lib/rpcErrorHandler';
 import { ValoresEntregador } from '@/types';
-import { fetchValoresFallback } from '../fallbacks';
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
 import { buildFilterPayload } from './fetcherUtils';
 import { fetchValoresDetalhados } from './valoresDetalhadosFetcher';
 import { fetchDashboardDataApi } from '@/utils/dashboard/fetchDashboardDataApi';
+import { normalizeValoresEntregadores } from '@/utils/valores/normalizeValoresEntregadores';
 
 // Re-export specific fetchers
 export { fetchValoresDetalhados } from './valoresDetalhadosFetcher';
@@ -28,7 +28,11 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
     }
 
     const allowedParams = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id'];
-    const listarValoresPayload = buildFilterPayload(filterPayload, allowedParams);
+    // Preservar p_ano ativa o caminho agregado rapido do RPC. Expandir o ano
+    // para datas fazia a consulta cair no caminho legado e atingir o timeout.
+    const listarValoresPayload = buildFilterPayload(filterPayload, allowedParams, {
+        expandImplicitSingleYear: false,
+    });
 
     const result = await fetchDashboardDataApi<any>('valores', listarValoresPayload);
 
@@ -38,15 +42,6 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
         const isTimeout = isTimeoutError(result.error);
 
         if (is500 || isTimeout) {
-            try {
-                const fallbackData = await fetchValoresFallback(filterPayload);
-                if (fallbackData) return { data: fallbackData, error: null };
-            } catch (fallbackError) { safeLog.error('Erro no fallback ao buscar valores:', fallbackError); }
-
-            if (isTimeout) {
-                return { data: [], error: result.error };
-            }
-
             throw new Error('RETRY_500');
         }
 
@@ -56,10 +51,6 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
         const errorMessage = result.error?.message || '';
 
         if (errorCode === '42883' || errorCode === 'PGRST116' || errorMessage.includes('does not exist')) {
-            try {
-                const fallbackData = await fetchValoresFallback(listarValoresPayload);
-                if (fallbackData) return { data: fallbackData, error: null };
-            } catch (fallbackError) { safeLog.error('Erro no fallback ao buscar valores:', fallbackError); }
             return { data: [], error: { message: 'A função não está disponível.', code: 'FUNCTION_NOT_FOUND' } };
         }
 
@@ -93,5 +84,5 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
         }
     }
 
-    return { data: processedData, error: null };
+    return { data: normalizeValoresEntregadores(processedData), error: null };
 }

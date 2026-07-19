@@ -57,15 +57,30 @@ const ValoresSortableHeader = React.memo(function ValoresSortableHeader({
     align = 'left',
     className = ''
 }: ValoresSortableHeaderProps) {
+    const ariaSort = sortField === field
+        ? (sortDirection === 'asc' ? 'ascending' : 'descending')
+        : 'none';
+
     return (
         <TableHead
-            className={`cursor-pointer transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 ${className}`}
-            onClick={() => onSort(field)}
+            aria-sort={ariaSort}
+            className={`p-0 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 ${className}`}
         >
-            <div className={`flex items-center gap-2 ${align === 'right' ? 'justify-end' : ''}`}>
+            <button
+                type="button"
+                onClick={() => onSort(field)}
+                className={`flex min-h-12 w-full items-center gap-2 px-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 ${
+                    align === 'right' ? 'justify-end text-right' : ''
+                }`}
+                aria-label={`Ordenar por ${label}, ${
+                    sortField === field
+                        ? (sortDirection === 'asc' ? 'crescente' : 'decrescente')
+                        : 'sem ordenacao ativa'
+                }`}
+            >
                 {label}
                 <ValoresSortIcon field={field} sortField={sortField} sortDirection={sortDirection} />
-            </div>
+            </button>
         </TableHead>
     );
 });
@@ -91,7 +106,7 @@ export const ValoresTable = React.memo(function ValoresTable({
                 <Table className={isDetailed ? "min-w-[920px]" : "min-w-[720px]"}>
                     <TableHeader>
                         <TableRow className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/80">
-                            <ValoresSortableHeader field="nome_entregador" label="Entregador" sortField={sortField} sortDirection={sortDirection} onSort={onSort} className="w-[300px] pl-6" />
+                            <ValoresSortableHeader field="nome_entregador" label="Entregador" sortField={sortField} sortDirection={sortDirection} onSort={onSort} className="w-[300px]" />
                             {isDetailed ? (
                                 <>
                                     <ValoresSortableHeader field="turno" label="Turno" sortField={sortField} sortDirection={sortDirection} onSort={onSort} />

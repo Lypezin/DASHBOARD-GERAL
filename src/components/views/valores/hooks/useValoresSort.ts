@@ -1,57 +1,37 @@
-import { useCallback, useDeferredValue, useEffect, useMemo, useState, useTransition } from 'react';
+import { useCallback, useDeferredValue, useMemo, useTransition } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { ValoresEntregador } from '@/types';
 
 const stringCollator = new Intl.Collator('pt-BR', { sensitivity: 'base', numeric: true });
+const DEFAULT_SORT_FIELD: keyof ValoresEntregador = 'total_taxas';
+const DEFAULT_SORT_DIRECTION = 'desc' as const;
+const SORTABLE_FIELDS = new Set<keyof ValoresEntregador>([
+    'nome_entregador',
+    'id_entregador',
+    'total_taxas',
+    'numero_corridas_aceitas',
+    'taxa_media',
+    'turno',
+    'sub_praca',
+]);
 
 export function useValoresSort(dataToDisplay: ValoresEntregador[]) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
-    const searchParamsKey = searchParams.toString();
     const deferredDataToDisplay = useDeferredValue(dataToDisplay);
     const [isPending, startTransition] = useTransition();
 
-    const getInitialSortField = useCallback(() => {
-        return (searchParams.get('val_sort') as keyof ValoresEntregador) || 'total_taxas';
+    const sortField = useMemo<keyof ValoresEntregador>(() => {
+        const requestedField = searchParams.get('val_sort') as keyof ValoresEntregador | null;
+        return requestedField && SORTABLE_FIELDS.has(requestedField)
+            ? requestedField
+            : DEFAULT_SORT_FIELD;
     }, [searchParams]);
-    const getInitialSortDirection = useCallback(() => {
-        return (searchParams.get('val_dir') as 'asc' | 'desc') || 'desc';
+
+    const sortDirection = useMemo<'asc' | 'desc'>(() => {
+        return searchParams.get('val_dir') === 'asc' ? 'asc' : DEFAULT_SORT_DIRECTION;
     }, [searchParams]);
-
-    const [sortField, setSortFieldState] = useState<keyof ValoresEntregador>(getInitialSortField);
-    const [sortDirection, setSortDirectionState] = useState<'asc' | 'desc'>(getInitialSortDirection);
-
-    useEffect(() => {
-        const params = new URLSearchParams(searchParams.toString());
-        let changed = false;
-
-        if (sortField !== 'total_taxas') {
-            if (params.get('val_sort') !== sortField) { params.set('val_sort', sortField); changed = true; }
-        } else if (params.has('val_sort')) { params.delete('val_sort'); changed = true; }
-
-        if (sortDirection !== 'desc') {
-            if (params.get('val_dir') !== sortDirection) { params.set('val_dir', sortDirection); changed = true; }
-        } else if (params.has('val_dir')) { params.delete('val_dir'); changed = true; }
-
-        if (changed) {
-            const nextQuery = params.toString();
-            const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
-            const currentQuery = searchParams.toString();
-            const currentUrl = currentQuery ? `${pathname}?${currentQuery}` : pathname;
-
-            if (nextUrl !== currentUrl) {
-                router.replace(nextUrl, { scroll: false });
-            }
-        }
-    }, [sortField, sortDirection, pathname, router, searchParams]);
-
-    useEffect(() => {
-        const urlSort = getInitialSortField();
-        const urlDir = getInitialSortDirection();
-        if (urlSort !== sortField) setSortFieldState(urlSort);
-        if (urlDir !== sortDirection) setSortDirectionState(urlDir);
-    }, [getInitialSortDirection, getInitialSortField, searchParamsKey, sortDirection, sortField]);
 
     const sortedValores = useMemo(() => {
         if (!Array.isArray(deferredDataToDisplay) || deferredDataToDisplay.length === 0) return [];
@@ -69,7 +49,12 @@ export function useValoresSort(dataToDisplay: ValoresEntregador[]) {
             if (aValue == null) return 1;
             if (bValue == null) return -1;
 
-            if (sortField === 'nome_entregador' || sortField === 'id_entregador') {
+            if (
+                sortField === 'nome_entregador' ||
+                sortField === 'id_entregador' ||
+                sortField === 'turno' ||
+                sortField === 'sub_praca'
+            ) {
                 const aStr = String(aValue).toLowerCase().trim();
                 const bStr = String(bValue).toLowerCase().trim();
                 const comparison = stringCollator.compare(aStr, bStr);
@@ -90,15 +75,26 @@ export function useValoresSort(dataToDisplay: ValoresEntregador[]) {
     }, [deferredDataToDisplay, sortField, sortDirection]);
 
     const handleSort = useCallback((field: keyof ValoresEntregador) => {
+        if (!SORTABLE_FIELDS.has(field)) return;
+
+        const nextDirection = sortField === field && sortDirection === 'desc'
+            ? 'asc'
+            : 'desc';
+        const params = new URLSearchParams(searchParams.toString());
+
+        if (field === DEFAULT_SORT_FIELD) params.delete('val_sort');
+        else params.set('val_sort', field);
+
+        if (nextDirection === DEFAULT_SORT_DIRECTION) params.delete('val_dir');
+        else params.set('val_dir', nextDirection);
+
+        const nextQuery = params.toString();
+        const nextUrl = nextQuery ? `${pathname}?${nextQuery}` : pathname;
+
         startTransition(() => {
-            if (sortField === field) {
-                setSortDirectionState(sortDirection === 'asc' ? 'desc' : 'asc');
-            } else {
-                setSortFieldState(field);
-                setSortDirectionState('desc');
-            }
+            router.replace(nextUrl, { scroll: false });
         });
-    }, [sortDirection, sortField]);
+    }, [pathname, router, searchParams, sortDirection, sortField]);
 
     return {
         sortedValores,
