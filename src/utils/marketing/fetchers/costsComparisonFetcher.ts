@@ -14,51 +14,27 @@ export async function fetchMarketingCostsComparison(
     const currentEnd = filters.filtroEnviados.dataFinal;
     if (!currentStart || !currentEnd) return { atual: [], passada: [] };
 
-    const start = new Date(`${currentStart}T12:00:00`);
-    const end = new Date(`${currentEnd}T12:00:00`);
+    const [ySelect, mSelect] = currentStart.split('-');
+    
+    // O início para ambos os períodos é sempre o primeiro dia do mês selecionado
+    const sISO = `${ySelect}-${mSelect}-01`;
 
-    let sPassadaISO: string;
-    let ePassadaISO: string;
-
-    const isMonthToDate = start.getDate() === 1;
-
-    if (isMonthToDate) {
-        // Comparação MTD: mesmo intervalo no mês anterior (ex: 01/07 a 21/07 vs 01/06 a 21/06)
-        const prevMonthStart = new Date(start);
-        prevMonthStart.setMonth(start.getMonth() - 1);
-        
-        const prevMonthEnd = new Date(end);
-        prevMonthEnd.setMonth(end.getMonth() - 1);
-        
-        // Ajuste caso o mês anterior tenha menos dias (ex: 31 de Março -> 28 de Fevereiro)
-        if (prevMonthEnd.getMonth() === end.getMonth()) {
-            prevMonthEnd.setDate(0);
-        }
-        
-        sPassadaISO = prevMonthStart.toISOString().split('T')[0];
-        ePassadaISO = prevMonthEnd.toISOString().split('T')[0];
-    } else {
-        // Comparação semanal/customizada: retrocede pelo número exato de dias do intervalo
-        const durationMs = end.getTime() - start.getTime();
-        const durationDays = Math.round(durationMs / (1000 * 60 * 60 * 24)) + 1;
-
-        const prevStart = new Date(start);
-        prevStart.setDate(start.getDate() - durationDays);
-        sPassadaISO = prevStart.toISOString().split('T')[0];
-
-        const prevEnd = new Date(end);
-        prevEnd.setDate(end.getDate() - durationDays);
-        ePassadaISO = prevEnd.toISOString().split('T')[0];
-    }
-
-    const sISO = currentStart;
+    // O fim do período atual é a dataFinal do filtro (total acumulado do mês até essa data)
     const eAtualISO = currentEnd;
+
+    // O fim do período passado é a segunda-feira da semana da dataFinal do filtro
+    const end = new Date(`${currentEnd}T12:00:00`);
+    const day = end.getDay(); // 0 is Sunday, 1 is Monday, ..., 6 is Saturday
+    const diffToMonday = (day === 0) ? 6 : day - 1;
+    const targetMonday = new Date(end);
+    targetMonday.setDate(end.getDate() - diffToMonday);
+    const ePassadaISO = targetMonday.toISOString().split('T')[0];
 
     // Sempre executa o processamento local em JavaScript para garantir consistência
     // com os atendentes cadastrados no mappers do frontend (incluindo o id 6517)
     const [atual, passada] = await Promise.all([
         fetchRange(sISO, eAtualISO, organizationId, client),
-        fetchRange(sPassadaISO, ePassadaISO, organizationId, client)
+        fetchRange(sISO, ePassadaISO, organizationId, client)
     ]);
 
     return { atual, passada };
