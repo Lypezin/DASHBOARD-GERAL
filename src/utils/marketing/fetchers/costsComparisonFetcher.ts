@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabaseClient';
 import { buildCityQuery } from '@/utils/marketingQueries';
 import { MarketingFilters, MarketingCostsComparison, MarketingCostData } from '@/types';
 import { SLIDE_CITIES, DISPLAY_CITY_TO_DB_CITY, PRIORITY_CITIES, ABERTO_STATUSES } from '../constants';
-import { ATENDENTE_TO_ID, REGIAO_TO_CIDADE_VALORES } from '../../atendenteMappers';
+import { REGIAO_TO_CIDADE_VALORES } from '../../atendenteMappers';
 
 export async function fetchMarketingCostsComparison(
     filters: MarketingFilters,
@@ -34,7 +34,7 @@ export async function fetchMarketingCostsComparison(
     const ePassadaISO = targetMonday.toISOString().split('T')[0];
 
     // Sempre executa o processamento local em JavaScript para garantir consistência
-    // com os atendentes cadastrados no mappers do frontend (incluindo o id 6517)
+    // e somar todos os custos da planilha independentemente do ID de atendente
     const [atual, passada] = await Promise.all([
         fetchRange(sISO, eAtualISO, organizationId, client),
         fetchRange(sISO, ePassadaISO, organizationId, client)
@@ -45,10 +45,9 @@ export async function fetchMarketingCostsComparison(
 
 async function fetchRange(sISO: string, eISO: string, orgId: string | null, client: SupabaseClient): Promise<MarketingCostData[]> {
     const cityMap = new Map<string, any>();
-    const allMarketingIds = Object.values(ATENDENTE_TO_ID).flat();
 
     let costQ = client.from('dados_valores_cidade').select('valor, cidade, id_atendente, organization_id, conversas')
-        .gte('data', sISO).lte('data', eISO).in('id_atendente', allMarketingIds);
+        .gte('data', sISO).lte('data', eISO);
     if (orgId) costQ = costQ.eq('organization_id', orgId);
     const { data: allCosts } = await costQ;
 
