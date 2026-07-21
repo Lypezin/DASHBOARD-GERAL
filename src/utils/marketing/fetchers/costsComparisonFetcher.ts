@@ -14,21 +14,51 @@ export async function fetchMarketingCostsComparison(
     const currentEnd = filters.filtroEnviados.dataFinal;
     if (!currentStart || !currentEnd) return { atual: [], passada: [] };
 
-    // Usar diretamente o intervalo de datas selecionado pelo usuário nos filtros
+    const start = new Date(`${currentStart}T12:00:00`);
+    const end = new Date(`${currentEnd}T12:00:00`);
+
+    let sPassadaISO: string;
+    let ePassadaISO: string;
+
+    const isMonthToDate = start.getDate() === 1;
+
+    if (isMonthToDate) {
+        // Comparação MTD: mesmo intervalo no mês anterior (ex: 01/07 a 21/07 vs 01/06 a 21/06)
+        const prevMonthStart = new Date(start);
+        prevMonthStart.setMonth(start.getMonth() - 1);
+        
+        const prevMonthEnd = new Date(end);
+        prevMonthEnd.setMonth(end.getMonth() - 1);
+        
+        // Ajuste caso o mês anterior tenha menos dias (ex: 31 de Março -> 28 de Fevereiro)
+        if (prevMonthEnd.getMonth() === end.getMonth()) {
+            prevMonthEnd.setDate(0);
+        }
+        
+        sPassadaISO = prevMonthStart.toISOString().split('T')[0];
+        ePassadaISO = prevMonthEnd.toISOString().split('T')[0];
+    } else {
+        // Comparação semanal/customizada: retrocede pelo número exato de dias do intervalo
+        const durationMs = end.getTime() - start.getTime();
+        const durationDays = Math.round(durationMs / (1000 * 60 * 60 * 24)) + 1;
+
+        const prevStart = new Date(start);
+        prevStart.setDate(start.getDate() - durationDays);
+        sPassadaISO = prevStart.toISOString().split('T')[0];
+
+        const prevEnd = new Date(end);
+        prevEnd.setDate(end.getDate() - durationDays);
+        ePassadaISO = prevEnd.toISOString().split('T')[0];
+    }
+
     const sISO = currentStart;
     const eAtualISO = currentEnd;
-
-    // Período passado se encerra 7 dias antes do período atual
-    const currentEndDate = new Date(`${currentEnd}T12:00:00`);
-    const prevEndDate = new Date(currentEndDate);
-    prevEndDate.setDate(currentEndDate.getDate() - 7);
-    const ePassadaISO = prevEndDate.toISOString().split('T')[0];
 
     // Sempre executa o processamento local em JavaScript para garantir consistência
     // com os atendentes cadastrados no mappers do frontend (incluindo o id 6517)
     const [atual, passada] = await Promise.all([
         fetchRange(sISO, eAtualISO, organizationId, client),
-        fetchRange(sISO, ePassadaISO, organizationId, client)
+        fetchRange(sPassadaISO, ePassadaISO, organizationId, client)
     ]);
 
     return { atual, passada };
