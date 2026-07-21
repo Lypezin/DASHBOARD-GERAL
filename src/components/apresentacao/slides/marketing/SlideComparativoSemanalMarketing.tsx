@@ -39,15 +39,9 @@ const SlideComparativoSemanalMarketing: React.FC<SlideComparativoSemanalMarketin
                 ? 'grid-cols-2 max-w-4xl mx-auto'
                 : visibleWeeks.length === 3
                     ? 'grid-cols-3'
-                    : visibleWeeks.length === 4
-                        ? 'grid-cols-4'
-                        : visibleWeeks.length === 5
-                            ? 'grid-cols-5'
-                            : visibleWeeks.length === 6
-                                ? 'grid-cols-6'
-                                : visibleWeeks.length === 7
-                                    ? 'grid-cols-7'
-                                    : 'grid-cols-8';
+                    : visibleWeeks.length === 6
+                        ? 'grid-cols-3'
+                        : 'grid-cols-4';
 
     if (!isVisible) return null;
 
