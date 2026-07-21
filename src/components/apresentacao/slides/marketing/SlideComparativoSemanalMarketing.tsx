@@ -39,7 +39,15 @@ const SlideComparativoSemanalMarketing: React.FC<SlideComparativoSemanalMarketin
                 ? 'grid-cols-2 max-w-4xl mx-auto'
                 : visibleWeeks.length === 3
                     ? 'grid-cols-3'
-                    : 'grid-cols-4';
+                    : visibleWeeks.length === 4
+                        ? 'grid-cols-4'
+                        : visibleWeeks.length === 5
+                            ? 'grid-cols-5'
+                            : visibleWeeks.length === 6
+                                ? 'grid-cols-6'
+                                : visibleWeeks.length === 7
+                                    ? 'grid-cols-7'
+                                    : 'grid-cols-8';
 
     if (!isVisible) return null;
 
@@ -49,12 +57,17 @@ const SlideComparativoSemanalMarketing: React.FC<SlideComparativoSemanalMarketin
         }`}>
             <WeeklyPerformanceHeader titulo={titulo} subtitulo={subtitulo} isDark={isDark} />
 
-            <div className={`grid flex-1 items-center gap-5 pb-12 ${columnsClass}`}>
+            <div className={`grid flex-1 items-center gap-3.5 pb-12 ${columnsClass}`}>
                 {visibleWeeks.map((week, idx) => (
-                    <WeeklyPerformanceCard key={idx} week={week} idx={idx} isDark={isDark} />
+                    <WeeklyPerformanceCard 
+                        key={idx} 
+                        week={week} 
+                        idx={idx} 
+                        isDark={isDark} 
+                        compact={visibleWeeks.length > 4}
+                    />
                 ))}
             </div>
-
             <div className="absolute bottom-6 left-10 flex items-center gap-4 opacity-30">
                 <div className={`h-[1px] w-10 ${isDark ? 'bg-slate-600' : 'bg-slate-400'}`} />
                 <span className={`text-[8px] font-bold uppercase tracking-[0.4em] transition-colors duration-500 ${

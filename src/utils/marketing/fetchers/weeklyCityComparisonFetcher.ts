@@ -44,12 +44,23 @@ export async function fetchMarketingWeeklyComparisonByCity(
     if (organizationId) q = q.eq('organization_id', organizationId);
     q = q.or(dateFilters).or(endDateFilters);
 
-    const { data: marketingData } = await q;
+    let costQ = client.from('dados_valores_cidade').select('data, conversas, cidade');
+    if (organizationId) costQ = costQ.eq('organization_id', organizationId);
+    costQ = costQ.gte('data', startStr).lte('data', endStr);
+
+    const [ { data: marketingData }, { data: costData } ] = await Promise.all([
+        q,
+        costQ
+    ]);
 
     return cities.map(cidade => {
         const cityMap = initializeCityWeekMap(finalStart, endOfLastWeek);
         const filteredData = marketingData?.filter(i => isItemFromCity(i, cidade)) || [];
         processCityRecords(filteredData, cityMap);
+        
+        const filteredCostData = costData?.filter(i => isCostFromCity(i, cidade)) || [];
+        processCityCostRecords(filteredCostData, cityMap);
+
         return { cidade, data: Array.from(cityMap.values()).map(v => ({ ...v, semana: getWeekLabel(v.key) })) };
     });
 }
@@ -58,7 +69,7 @@ function initializeCityWeekMap(start: Date, end: Date) {
     const map = new Map<string, any>();
     for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 7)) {
         const key = getWeekKey(d);
-        if (!map.has(key)) map.set(key, { key, criado: 0, enviado: 0, liberado: 0, rodando: 0 });
+        if (!map.has(key)) map.set(key, { key, criado: 0, enviado: 0, liberado: 0, rodando: 0, conversas: 0 });
     }
     return map;
 }
@@ -85,13 +96,25 @@ function isItemFromCity(item: any, city: string) {
     }
 
     if (city === 'ABC 2.0') {
-        const isABC = itemRegion === 'ABC 2.0' || itemCity === 'ABC 2.0';
-        return isABC && [...SANTO_ANDRE_SUB_PRACAS, ...SAO_BERNARDO_SUB_PRACAS].includes(subPracaAbc as any);
+        // Inclui tudo que for ABC 2.0 ou ABC
+        return itemRegion.includes('ABC') || itemCity.includes('ABC');
     }
 
     // Fallback genérico para as outras cidades
     const targetBase = target.replace(' 2.0', '');
     return itemRegion.includes(targetBase) || itemCity.includes(targetBase);
+}
+
+function isCostFromCity(item: any, city: string) {
+    const itemCity = normalize(item.cidade || '');
+    const target = normalize(city);
+
+    if (city === 'ABC 2.0') {
+        return ['ABC', 'ABC 2.0', 'SANTO ANDRÉ', 'SÃO BERNARDO', 'SANTO ANDRE', 'SAO BERNARDO'].includes(itemCity);
+    }
+
+    const targetBase = target.replace(' 2.0', '');
+    return itemCity.includes(targetBase);
 }
 
 function processCityRecords(data: any[], map: Map<string, any>) {
@@ -104,5 +127,14 @@ function processCityRecords(data: any[], map: Map<string, any>) {
         if (i.data_envio && !EXCLUDED_ENVIADOS.includes(i.status)) add(i.data_envio, 'enviado');
         if (i.data_liberacao && i.status === 'Liberado') add(i.data_liberacao, 'liberado');
         add(i.rodou_dia, 'rodando');
+    });
+}
+
+function processCityCostRecords(data: any[], map: Map<string, any>) {
+    data.forEach(i => {
+        if (i.conversas) {
+            const k = getWeekKey(new Date(`${i.data}T12:00:00`));
+            if (map.has(k)) map.get(k)!.conversas += Number(i.conversas) || 0;
+        }
     });
 }

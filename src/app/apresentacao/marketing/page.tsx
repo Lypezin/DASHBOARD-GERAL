@@ -107,12 +107,12 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
     const [citiesData, evolutionData, generalWeeklyData, costsComparison, weeklyDataByCity] = await Promise.all([
         fetchMarketingCitiesData(filters as any, orgId, supabase, true),
         fetchMarketingDailyEvolution(filters as any, orgId, supabase),
-        fetchMarketingWeeklyComparison(orgId, null, dateInicial, dateFinal, supabase),
+        fetchMarketingWeeklyComparison(orgId, null, null, dateFinal, supabase),
         fetchMarketingCostsComparison(filters as any, orgId, supabase),
         fetchMarketingWeeklyComparisonByCity(
             orgId,
             MARKETING_PRESENTATION_WEEKLY_CITIES as unknown as string[],
-            dateInicial,
+            null,
             dateFinal,
             supabase
         ),
