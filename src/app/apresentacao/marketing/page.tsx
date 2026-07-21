@@ -96,6 +96,38 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
         praca: searchParams.praca || null,
     };
 
+    // Filtros específicos para os painéis de evolução e distribuição por cidade na apresentação.
+    // Regra: Sempre do dia 1 do mês selecionado até ontem (caso seja o mês atual) ou o último dia do mês (caso seja mês passado).
+    const [ySelect, mSelect] = (unifiedDateFilter.dataInicial).split('-');
+    const selectYear = Number(ySelect);
+    const selectMonth = Number(mSelect);
+    
+    const panelStartStr = `${ySelect}-${mSelect}-01`;
+    let panelEndStr: string;
+    
+    const isCurrentMonth = selectYear === today.getFullYear() && selectMonth === (today.getMonth() + 1);
+    if (isCurrentMonth) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        panelEndStr = toIsoDate(yesterday);
+    } else {
+        const lastDay = new Date(selectYear, selectMonth, 0, 12, 0, 0);
+        panelEndStr = lastDay.toISOString().split('T')[0];
+    }
+
+    const panelDateFilter = {
+        dataInicial: panelStartStr,
+        dataFinal: panelEndStr,
+    };
+
+    const panelFilters = {
+        filtroLiberacao: panelDateFilter,
+        filtroEnviados: panelDateFilter,
+        filtroRodouDia: panelDateFilter,
+        filtroDataInicio: panelDateFilter,
+        praca: searchParams.praca || null,
+    };
+
     const dateInicial = unifiedDateFilter.dataInicial || null;
     const dateFinal = unifiedDateFilter.dataFinal || null;
     const orgId = profile.organization_id || null;
@@ -105,8 +137,8 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
     const supabase = createServiceRoleClient();
 
     const [citiesData, evolutionData, generalWeeklyData, costsComparison, weeklyDataByCity] = await Promise.all([
-        fetchMarketingCitiesData(filters as any, orgId, supabase, true),
-        fetchMarketingDailyEvolution(filters as any, orgId, supabase),
+        fetchMarketingCitiesData(panelFilters as any, orgId, supabase, true),
+        fetchMarketingDailyEvolution(panelFilters as any, orgId, supabase),
         fetchMarketingWeeklyComparison(orgId, null, null, dateFinal, supabase),
         fetchMarketingCostsComparison(filters as any, orgId, supabase),
         fetchMarketingWeeklyComparisonByCity(
