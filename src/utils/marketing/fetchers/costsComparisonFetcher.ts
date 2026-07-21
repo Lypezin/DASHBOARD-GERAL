@@ -4,17 +4,6 @@ import { buildCityQuery } from '@/utils/marketingQueries';
 import { MarketingFilters, MarketingCostsComparison, MarketingCostData } from '@/types';
 import { SLIDE_CITIES, DISPLAY_CITY_TO_DB_CITY, PRIORITY_CITIES, ABERTO_STATUSES } from '../constants';
 import { ATENDENTE_TO_ID, REGIAO_TO_CIDADE_VALORES } from '../../atendenteMappers';
-import { safeRpc } from '@/lib/rpcWrapper';
-
-interface MarketingCostsRpcRow {
-    periodo: 'atual' | 'passada';
-    regiao: string;
-    valor_usado: number | string;
-    rodando: number | string;
-    liberado: number | string;
-    aberto: number | string;
-    conversas: number | string;
-}
 
 export async function fetchMarketingCostsComparison(
     filters: MarketingFilters,
@@ -25,72 +14,18 @@ export async function fetchMarketingCostsComparison(
     const currentEnd = filters.filtroEnviados.dataFinal;
     if (!currentStart || !currentEnd) return { atual: [], passada: [] };
 
-    const now = new Date();
-    const [ySelect, mSelect] = currentStart.split('-');
-    
-    // Verifica se o mês filtrado é o mês atual (em que estamos hoje)
-    const filterYear = Number(ySelect);
-    const filterMonth = Number(mSelect); // 1-12
-    const isCurrentMonth = filterYear === now.getFullYear() && filterMonth === (now.getMonth() + 1);
+    // Usar diretamente o intervalo de datas selecionado pelo usuário nos filtros
+    const sISO = currentStart;
+    const eAtualISO = currentEnd;
 
-    // Âncora: Hoje se for o mês atual, senão o último dia do mês filtrado
-    let anchor: Date;
-    if (isCurrentMonth) {
-        anchor = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
-    } else {
-        // O dia 0 do mês seguinte é o último dia do mês atual (mSelect já é 1-12)
-        anchor = new Date(filterYear, filterMonth, 0, 12, 0, 0);
-    }
+    // Período passado se encerra 7 dias antes do período atual
+    const currentEndDate = new Date(`${currentEnd}T12:00:00`);
+    const prevEndDate = new Date(currentEndDate);
+    prevEndDate.setDate(currentEndDate.getDate() - 7);
+    const ePassadaISO = prevEndDate.toISOString().split('T')[0];
 
-    const day = anchor.getDay(); // 0 Sunday, ..., 3 Wednesday, ...
-    
-    // Calcula a quarta-feira mais recente em relação à Âncora (menor ou igual)
-    const diff = (day === 3) ? 0 : (day > 3 ? day - 3 : day + 4);
-    const targetWednesday = new Date(anchor); 
-    targetWednesday.setDate(anchor.getDate() - diff);
-
-    // Calcula a quarta-feira da semana anterior
-    const previousWednesday = new Date(targetWednesday);
-    previousWednesday.setDate(targetWednesday.getDate() - 7);
-
-    // Data de início fixada no dia 01 do mês filtrado (conforme solicitado)
-    const sISO = `${ySelect}-${mSelect}-01`;
-
-    const eAtualISO = targetWednesday.toISOString().split('T')[0];
-    const ePassadaISO = previousWednesday.toISOString().split('T')[0];
-
-    const { data: groupedData, error: groupedError } = await safeRpc<MarketingCostsRpcRow[]>(
-        'get_marketing_costs_comparison',
-        {
-            p_start_date: sISO,
-            p_current_end: eAtualISO,
-            p_previous_end: ePassadaISO,
-            p_organization_id: organizationId,
-        },
-        { validateParams: false, client }
-    );
-
-    if (!groupedError && Array.isArray(groupedData) && groupedData.length > 0) {
-        const toCostData = (row: MarketingCostsRpcRow): MarketingCostData => {
-            const valorUsado = Number(row.valor_usado) || 0;
-            const rodando = Number(row.rodando) || 0;
-            return {
-                regiao: row.regiao,
-                valorUsado,
-                rodando,
-                liberado: Number(row.liberado) || 0,
-                aberto: Number(row.aberto) || 0,
-                conversas: Number(row.conversas) || 0,
-                cpa: rodando > 0 ? valorUsado / rodando : 0,
-            };
-        };
-
-        return {
-            atual: groupedData.filter((row) => row.periodo === 'atual').map(toCostData),
-            passada: groupedData.filter((row) => row.periodo === 'passada').map(toCostData),
-        };
-    }
-
+    // Sempre executa o processamento local em JavaScript para garantir consistência
+    // com os atendentes cadastrados no mappers do frontend (incluindo o id 6517)
     const [atual, passada] = await Promise.all([
         fetchRange(sISO, eAtualISO, organizationId, client),
         fetchRange(sISO, ePassadaISO, organizationId, client)
@@ -144,8 +79,8 @@ async function fetchCityMetricsForRange(name: string, s: string, e: string, orgI
         return { l: l.count || 0, r: r.count || 0, a: a.count || 0 };
     };
     if (name === 'ABC 2.0') {
-        const [m1, m2] = await Promise.all([fetch('Santo André'), fetch('São Bernardo')]);
-        return { liberado: m1.l + m2.l, rodando: m1.r + m2.r, aberto: m1.a + m2.a };
+        const [m1, m2, m3] = await Promise.all([fetch('Santo André'), fetch('São Bernardo'), fetch('ABC 2.0')]);
+        return { liberado: m1.l + m2.l + m3.l, rodando: m1.r + m2.r + m3.r, aberto: m1.a + m2.a + m3.a };
     }
     const m = await fetch(name); return { liberado: m.l, rodando: m.r, aberto: m.a };
 }

@@ -19,6 +19,7 @@ export const ATENDENTE_TO_ID: { [key: string]: string | string[] } = {
   'Beatriz Angelo': ['6976', '2387'],
   'Fernanda Raphaelly': '4182',
   'Mariane Zocoli': '5447',
+  'Melissa Carvalho': '6517',
 };
 
 export const REGIAO_TO_CIDADE_VALORES: { [key: string]: string } = {
