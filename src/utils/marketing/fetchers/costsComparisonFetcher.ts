@@ -19,8 +19,11 @@ export async function fetchMarketingCostsComparison(
     // O início para ambos os períodos é sempre o primeiro dia do mês selecionado
     const sISO = `${ySelect}-${mSelect}-01`;
 
-    // O fim do período atual é a dataFinal do filtro (total acumulado do mês até essa data)
-    const eAtualISO = currentEnd;
+    // O fim do período atual é o último dia do mês selecionado (total mensal do mês completo)
+    const year = Number(ySelect);
+    const month = Number(mSelect); // 1-12
+    const lastDay = new Date(year, month, 0, 12, 0, 0);
+    const eAtualISO = lastDay.toISOString().split('T')[0];
 
     // O fim do período passado é a segunda-feira da semana da dataFinal do filtro
     const end = new Date(`${currentEnd}T12:00:00`);
