@@ -12,12 +12,12 @@ export const createEvolucaoChartOptions = (
     layout: {
         padding: { top: 12, right: 14, bottom: 12, left: 8 },
     },
-    animation: {
-        duration: 300,
-        easing: 'easeOutCubic' as const,
-        delay: 0,
-        ...(typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches ? { duration: 0 } : {}),
-    },
+    // Some datasets use indexable point options and canvas gradients. Chart.js can
+    // try to interpolate those non-scalar values during a data refresh, producing
+    // `this._fn is not a function` and leaving the canvas blank until a reload.
+    // Rendering this chart atomically keeps filter changes immediate and reliable;
+    // the surrounding view still provides the page transition/loading feedback.
+    animation: false,
     interaction: { mode: 'index' as const, intersect: false, axis: 'x' as const },
     onHover: (event: any, activeElements: any[]) => {
         try {

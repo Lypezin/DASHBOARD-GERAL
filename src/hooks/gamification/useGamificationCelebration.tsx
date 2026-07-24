@@ -7,13 +7,27 @@ import { useCallback } from 'react';
 
 export const useGamificationCelebration = () => {
     const triggerCelebration = useCallback((badge: Badge) => {
-        // 1. Confetti
-        import('canvas-confetti').then(({ default: confetti }) => confetti({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 },
-            colors: ['#FFD700', '#FFA500', '#FF4500'] // Gold colors
-        }));
+        // Use a main-thread instance because the global canvas-confetti helper creates
+        // a blob Worker by default. Our CSP intentionally blocks blob workers, and the
+        // resulting uncaught error could interrupt Chart.js while dashboard views mount.
+        void import('canvas-confetti')
+            .then(({ default: confetti }) => {
+                const fireConfetti = confetti.create(undefined, {
+                    resize: true,
+                    useWorker: false,
+                    disableForReducedMotion: true,
+                });
+
+                return fireConfetti({
+                    particleCount: 100,
+                    spread: 70,
+                    origin: { y: 0.6 },
+                    colors: ['#FFD700', '#FFA500', '#FF4500']
+                });
+            })
+            .catch(() => {
+                // A celebração é opcional e nunca deve afetar gráficos ou filtros.
+            });
 
         // 2. Toast
         toast.custom((t) => (
