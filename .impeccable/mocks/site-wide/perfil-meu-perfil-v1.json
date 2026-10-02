@@ -1,0 +1,9 @@
+{
+  "referenceFiles": [
+    "public/logo.png",
+    ".impeccable/mocks/decision/assigned-folhas-operacao-v2.png"
+  ],
+  "demoData": "Nome, email e datas são ilustrativos.",
+  "prompt": "High-fidelity desktop screenshot mockup, 1600x1000, standalone GO Itaim “Meu perfil” page in Folhas de Operação visual design: warm paper, forest green ink and accents, sage panels, disciplined editorial grid, clean controls, no gradients or glassmorphism and no dashboard sidebar. At top an editorial header card with small eyebrow “Conta”, title “Meu perfil”, description “Gerencie suas informações pessoais, foto e preferências de interface.”, and outlined button “Voltar ao Dashboard”. Below split into left narrow column and right wide content. Left: profile card with quiet forest-green header strip and circular editable avatar/profile photo area with small camera/upload affordance; name “Rafael Silva”; email “rafael.silva@goitaim.com.br”; badges “Admin” and “Membro”. Below it a card eyebrow “Aparência”, title “Preferências visuais”, helper “Ajuste o tema usado no dashboard.”, theme row “Modo escuro” state “Desativado” and outline button “Alternar”. Right: large panel eyebrow “Perfil”, title “Detalhes da conta”, helper “Gerencie suas informações pessoais.” Show editable field “Nome completo” value Rafael Silva with action “Salvar nome”; read-only field “E-mail” value rafael.silva@goitaim.com.br with lock/read-only hint; field tile “Membro desde” value 12 de março de 2023; include small admin indicator “Acesso administrativo”. Clear hierarchy and practical form style, preserving account edit, avatar upload and theme toggle capabilities. Sample personal details are illustrative. Use Portuguese labels, no watermark.",
+  "title": "Meu perfil"
+}

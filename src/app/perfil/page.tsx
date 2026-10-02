@@ -20,7 +20,7 @@ export default function PerfilPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.08),transparent_32%),linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] p-6 dark:bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_34%),linear-gradient(180deg,#020617_0%,#0f172a_100%)] md:p-8">
+      <div className="min-h-screen bg-background p-4 sm:p-6 md:p-8">
         <div className="mx-auto max-w-5xl space-y-6">
           <Skeleton className="h-24 w-full rounded-[1.65rem]" />
           <div className="grid gap-6 md:grid-cols-[300px_1fr]">
@@ -36,7 +36,7 @@ export default function PerfilPage() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.08),transparent_32%),linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] px-4 py-8 dark:bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_34%),linear-gradient(180deg,#020617_0%,#0f172a_100%)] sm:px-6 lg:px-8">
+      <div className="min-h-screen bg-background px-4 py-8 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-5xl space-y-6 animate-slide-up">
           <SaasPanel className="overflow-visible">
             <SaasPanelHeader

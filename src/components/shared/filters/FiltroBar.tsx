@@ -62,20 +62,15 @@ const FiltroBar = React.memo(function FiltroBar({
   const { anosOptions, semanasOptions } = useFiltroBarOptions(anos, semanas, filters);
 
   return (
-    <div className="relative z-10 w-full">
-      <div className="flex w-full flex-col gap-3 xl:flex-row xl:items-end">
-        <div className="w-full shrink-0 sm:w-auto">
+    <div className="relative z-10 w-full space-y-3">
+      <div className="grid w-full grid-cols-1 items-end gap-3 xl:grid-cols-[220px_minmax(0,1fr)]">
+        <div className="w-full shrink-0">
           <FilterModeSwitch
             isModoIntervalo={showDateRangeFilters}
             onToggle={handleModeToggle}
           />
         </div>
-
-        <div className="hidden h-10 w-px shrink-0 self-end bg-slate-200/80 dark:bg-slate-800/80 xl:block" />
-
-        <div className={`grid min-w-0 flex-1 grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 ${
-          showDateRangeFilters ? "xl:grid-cols-7" : "xl:grid-cols-6"
-        }`}>
+        <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-2">
           <FilterPrimarySection
             isModoIntervalo={showDateRangeFilters}
             filters={filters}
@@ -84,24 +79,20 @@ const FiltroBar = React.memo(function FiltroBar({
             semanasOptions={semanasOptions}
             handleChange={handleChange}
           />
-
-          <FilterSecondarySection
-            filters={filters}
-            setFilters={setFilters}
-            pracas={pracas}
-            subPracas={subPracas}
-            origens={origens}
-            turnos={turnos}
-            handleChange={handleChange}
-            shouldDisablePracaFilter={shouldDisablePracaFilter}
-          />
         </div>
-
-        {hasActiveFilters && (
-          <div className="w-full shrink-0 sm:w-auto">
-            <FilterClearButton onClear={handleClearFiltersClick} />
-          </div>
-        )}
+      </div>
+      <div className="grid grid-cols-2 items-end gap-2 md:grid-cols-4 xl:grid-cols-[repeat(4,minmax(0,1fr))_auto]">
+        <FilterSecondarySection
+          filters={filters}
+          setFilters={setFilters}
+          pracas={pracas}
+          subPracas={subPracas}
+          origens={origens}
+          turnos={turnos}
+          handleChange={handleChange}
+          shouldDisablePracaFilter={shouldDisablePracaFilter}
+        />
+        <FilterClearButton onClear={handleClearFiltersClick} disabled={!hasActiveFilters} />
       </div>
     </div>
   );

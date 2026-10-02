@@ -24,8 +24,8 @@ export const AdminContent: React.FC<AdminContentProps> = ({
     organizations, orgsLoading, orgsError, createOrganization, updateOrganization
 }) => {
     return (
-        <div className="min-h-screen bg-slate-50/50 dark:bg-slate-950/50 p-6 md:p-8">
-            <div className="max-w-7xl mx-auto space-y-8 animate-slide-up">
+        <div className="min-h-screen bg-background px-4 py-6 sm:px-6 md:px-8">
+            <div className="mx-auto max-w-[1500px] space-y-6 animate-slide-up">
                 <AdminHeader />
 
                 <div className="relative">
@@ -36,7 +36,7 @@ export const AdminContent: React.FC<AdminContentProps> = ({
                     />
                 </div>
 
-                <div className="bg-white/50 dark:bg-slate-900/50 backdrop-blur-md rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+                <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
                     <AdminTabs
                         currentUser={currentUser}
                         users={users}

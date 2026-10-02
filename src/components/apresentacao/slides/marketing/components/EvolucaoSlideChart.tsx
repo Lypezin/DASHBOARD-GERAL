@@ -67,12 +67,12 @@ export const EvolucaoSlideChart: React.FC<EvolucaoSlideChartProps> = ({ evolutio
             {
                 label: 'Total de Driver (Liberado)',
                 data: evolutionData.map(d => d.liberado),
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderColor: '#173b2f',
+                backgroundColor: 'rgba(23, 59, 47, 0.08)',
                 tension: 0.4,
                 pointRadius: 3,
-                pointBackgroundColor: '#10b981',
-                pointBorderColor: isDark ? '#020617' : '#fff',
+                pointBackgroundColor: '#173b2f',
+                pointBorderColor: isDark ? '#0d1f18' : '#f7f5ee',
                 pointBorderWidth: 2,
                 borderWidth: 4,
                 fill: true,
@@ -80,12 +80,12 @@ export const EvolucaoSlideChart: React.FC<EvolucaoSlideChartProps> = ({ evolutio
             {
                 label: 'Total de Driver (Enviado)',
                 data: evolutionData.map(d => d.enviado),
-                borderColor: '#3b82f6',
-                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                borderColor: '#8a9a80',
+                backgroundColor: 'rgba(138, 154, 128, 0.08)',
                 tension: 0.4,
                 pointRadius: 3,
-                pointBackgroundColor: '#3b82f6',
-                pointBorderColor: isDark ? '#020617' : '#fff',
+                pointBackgroundColor: '#8a9a80',
+                pointBorderColor: isDark ? '#0d1f18' : '#f7f5ee',
                 pointBorderWidth: 2,
                 borderWidth: 4,
                 fill: true,
@@ -109,14 +109,14 @@ export const EvolucaoSlideChart: React.FC<EvolucaoSlideChartProps> = ({ evolutio
                     usePointStyle: true,
                     font: { size: 12, weight: '600' as any, family: 'Inter' },
                     padding: 16,
-                    color: isDark ? '#94a3b8' : '#64748B'
+                    color: isDark ? '#bcc7bc' : '#525c52'
                 }
             },
             tooltip: {
-                backgroundColor: isDark ? 'rgba(15, 23, 42, 0.95)' : 'rgba(255, 255, 255, 0.95)',
-                titleColor: isDark ? '#f8fafc' : '#0f172a',
-                bodyColor: isDark ? '#94a3b8' : '#64748B',
-                borderColor: isDark ? '#1e293b' : '#f1f5f9',
+                backgroundColor: isDark ? 'rgba(13, 31, 24, 0.96)' : 'rgba(251, 250, 245, 0.97)',
+                titleColor: isDark ? '#f1f3ea' : '#17261e',
+                bodyColor: isDark ? '#bcc7bc' : '#525c52',
+                borderColor: isDark ? '#33443a' : '#d6d4ca',
                 borderWidth: 1,
                 padding: 12,
                 displayColors: true,
@@ -130,14 +130,14 @@ export const EvolucaoSlideChart: React.FC<EvolucaoSlideChartProps> = ({ evolutio
         scales: {
             y: {
                 beginAtZero: true,
-                grid: { color: isDark ? 'rgba(51, 65, 85, 0.1)' : '#f1f5f9' },
-                ticks: { font: { size: 11, family: 'Inter' }, color: '#94a3b8' }
+                grid: { color: isDark ? 'rgba(188, 199, 188, 0.12)' : '#dfded5' },
+                ticks: { font: { size: 11, family: 'Inter' }, color: isDark ? '#bcc7bc' : '#667066' }
             },
             x: {
                 grid: { display: false },
                 ticks: {
                     font: { size: 10, family: 'Inter' },
-                    color: '#94a3b8',
+                    color: isDark ? '#bcc7bc' : '#667066',
                     autoSkip: true,
                     maxTicksLimit: 15,
                     maxRotation: 0,
@@ -149,9 +149,7 @@ export const EvolucaoSlideChart: React.FC<EvolucaoSlideChartProps> = ({ evolutio
     };
 
     return (
-        <div className={`flex-[1.5] min-h-[250px] mb-6 rounded-3xl p-6 border transition-all duration-500 ${
-            isDark ? 'bg-slate-900/20 border-slate-800' : 'bg-white border-slate-100 shadow-sm'
-        }`}>
+        <div className="mb-6 min-h-[250px] flex-[1.5] rounded-lg border border-border bg-card p-6">
             <Line data={chartData} options={chartOptions} plugins={[customDataLabels]} />
         </div>
     );

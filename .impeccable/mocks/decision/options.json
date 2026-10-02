@@ -1,0 +1,219 @@
+{
+  "title": "Escolha a direção visual do Dashboard Geral",
+  "question": "Qual linguagem visual deve orientar o site inteiro, mantendo o GO Itaim, o logo, as funções e os termos atuais? Cada proposta mostra a Visão Geral com o filtro completo — Ano/Semana ou Intervalo, ano, semanas, praça, sub praça, origem e turno — e o ticker horizontal de cidades com datas no cabeçalho. Métricas e pares cidade/data são demonstrativos; as demais páginas seguirão a linguagem escolhida.",
+  "options": [
+    {
+      "id": "assigned",
+      "label": "Folhas de Operação",
+      "kicker": "THE ROLL",
+      "lineage": "Manuais técnicos com divisórias coloridas e folhas de acetato",
+      "thesis": "Um caderno de turno digital: divisórias identificam áreas e uma folha clara organiza a leitura da operação.",
+      "palette": [
+        "#F3EBD9",
+        "#24262A",
+        "#F2CC45",
+        "#2E5BC7",
+        "#C94C37"
+      ],
+      "materials": [
+        "divisórias tabuladas",
+        "folhas de acetato",
+        "tinta de impressão"
+      ],
+      "viewport": "Cabeçalho com breadcrumb e ticker horizontal Sincronizado de cidades e datas; filtro completo em duas linhas, com modo Ano/Semana ou Intervalo, ano, semanas, praça, sub praça, origem, turno e Limpar; Resumo Operacional, Corridas, Aderência, Praças, tabela e evolução diária.",
+      "risk": "Camadas e cores podem transformar a rotina em uma metáfora de papel se competirem com os dados.",
+      "raised": [
+        {
+          "from": "Microfiche Reader",
+          "raise": "Um material visual contínuo rege navegação, tabelas, filtros e estados."
+        },
+        {
+          "from": "Mapa de trânsito",
+          "raise": "Comparações mantêm o contexto da praça e do período ao mudar de análise."
+        },
+        {
+          "from": "Feed vertical",
+          "raise": "Uma informação operacional lidera a primeira tela; séries secundárias vêm depois."
+        }
+      ],
+      "comp": ".impeccable/mocks/decision/assigned-folhas-operacao-v2.png"
+    },
+    {
+      "id": "model-pick",
+      "label": "Mesa de Passagem",
+      "kicker": "IMPECCABLE’S PICK",
+      "lineage": "Folha de passagem de turno de uma central de operação",
+      "thesis": "A entrada do painel funciona como passagem de turno: estado atual, diferenças e praças aparecem em uma leitura única.",
+      "palette": [
+        "#F6F4EC",
+        "#242B35",
+        "#315CC7",
+        "#B68A20",
+        "#B74839"
+      ],
+      "materials": [
+        "folha de passagem",
+        "grade de ocorrências",
+        "marcadores de turno"
+      ],
+      "viewport": "Cabeçalho com ticker horizontal de cidades e datas; filtro completo com modo de período, ano e semanas ou intervalo, praça, sub praça, origem, turno e Limpar; quadro de passagem com Corridas, Aderência, Praças, tabela por praça e evolução diária.",
+      "risk": "A leitura de turno é familiar e eficiente, mas pode aproximar-se do dashboard operacional convencional.",
+      "comp": ".impeccable/mocks/decision/pick-mesa-passagem-v2.png"
+    },
+    {
+      "id": "challenger-japanese-density",
+      "label": "Mosaico Modular",
+      "verdict": "competitive",
+      "lineage": "Web informativa japonesa de alta densidade",
+      "thesis": "O painel vira um mosaico compacto em que análises e estados ficam visíveis em módulos alinhados.",
+      "palette": [
+        "#FFFFFF",
+        "#15191F",
+        "#D02E2E",
+        "#2E5BC7",
+        "#E9EDF1"
+      ],
+      "materials": [
+        "módulos compactos",
+        "regras finas",
+        "abas utilitárias"
+      ],
+      "viewport": "Cabeçalho com ticker horizontal de cidades e datas; filtro completo em duas linhas com modo, ano, semanas, praça, sub praça, origem, turno e Limpar; grade modular com Corridas, Aderência, Praças, evolução diária e tabela por praça.",
+      "case": "Ganha clareza para localizar as 11 áreas e comparar módulos; perde identificação com rotinas locais se a densidade virar estética.",
+      "risk": "Texto pequeno e excesso de módulos podem tornar a primeira tela cansativa.",
+      "comp": ".impeccable/mocks/decision/challenger-mosaico-modular-v2.png",
+      "hero": "https://impeccable.style/worlds/cards/japanese-high-density-web-hero.webp"
+    },
+    {
+      "id": "challenger-gate-board",
+      "label": "Quadro ao Vivo",
+      "verdict": "competitive",
+      "lineage": "Tabela operacional alinhada por período",
+      "thesis": "Uma grade por praça deixa os totais e as diferenças do período fáceis de comparar.",
+      "palette": [
+        "#F6F6F3",
+        "#151A20",
+        "#2E5BC7",
+        "#D9A928",
+        "#C64437"
+      ],
+      "materials": [
+        "grade por praça",
+        "linhas alinhadas ao período",
+        "destaque de seleção"
+      ],
+      "viewport": "Cabeçalho com ticker horizontal de cidades e datas; filtro completo com modo de período, ano e semanas ou intervalo, praça, sub praça, origem, turno e Limpar; tabela por praça como elemento principal, junto de Corridas, Aderência, Praças e evolução diária.",
+      "case": "Facilita a comparação entre períodos e praças com destaque visual para a linha selecionada.",
+      "risk": "O destaque da linha selecionada pode competir com os totais se usar contraste excessivo.",
+      "comp": ".impeccable/mocks/decision/challenger-quadro-ao-vivo-v2.png",
+      "hero": "https://impeccable.style/worlds/cards/vernacular-ephemera-boarding-pass-and-gate-board-hero.webp"
+    },
+    {
+      "id": "challenger-teletext",
+      "label": "Índice de Teletexto",
+      "verdict": "competitive",
+      "lineage": "Índices e páginas de teletexto de televisão",
+      "thesis": "Cada área do painel tem posição e destino explícitos, com navegação rápida e estados de alto contraste.",
+      "palette": [
+        "#101010",
+        "#F4E800",
+        "#05D7E7",
+        "#232BE3",
+        "#FFFFFF"
+      ],
+      "materials": [
+        "grade de blocos",
+        "tipografia monoespaçada",
+        "acentos fosforescentes"
+      ],
+      "viewport": "Cabeçalho com ticker horizontal de cidades e datas; filtro completo com modo, ano, semanas, praça, sub praça, origem, turno e Limpar; navegação por índice, resumo, Corridas, Aderência, Praças, tabela e evolução diária em tema escuro.",
+      "case": "Organiza o acesso entre muitas análises; perde vínculo com a cultura visual das equipes e exige disciplina para manter legibilidade.",
+      "risk": "O contraste fosforescente pode cansar e parecer nostálgico.",
+      "comp": ".impeccable/mocks/decision/challenger-indice-teletexto-v2.png",
+      "hero": "https://impeccable.style/worlds/cards/broadcast-programming-teletext-service-hero.webp"
+    },
+    {
+      "id": "declined-transit-map",
+      "label": "Mapa de trânsito",
+      "verdict": "declined",
+      "lineage": "Diagramas de linhas de transporte urbano",
+      "palette": [
+        "#101B35",
+        "#F7F4EB",
+        "#D7453E",
+        "#2E5BC7",
+        "#E2A829"
+      ],
+      "materials": [
+        "linhas angulares",
+        "marcadores de conexão",
+        "legendas fixas"
+      ],
+      "case": "A praça funciona como dimensão de leitura nos dados existentes; as rotas e conexões de trânsito não aparecem como tarefa confirmada.",
+      "kept": "Manter relações e contexto ao comparar praças, períodos e métricas."
+    },
+    {
+      "id": "declined-microfiche",
+      "label": "Leitor de microficha",
+      "verdict": "declined",
+      "lineage": "Estações de consulta de arquivos em microficha",
+      "palette": [
+        "#101418",
+        "#9FB4C0",
+        "#FFFFFF"
+      ],
+      "materials": [
+        "filme",
+        "vidro retroiluminado"
+      ],
+      "case": "A metáfora de consulta arquivística não corresponde à frequência da leitura operacional.",
+      "kept": "Uma identidade contínua que se reconheça em todas as áreas."
+    },
+    {
+      "id": "declined-video-feed",
+      "label": "Feed vertical",
+      "verdict": "declined",
+      "lineage": "Feed de mídia em tela cheia",
+      "palette": [
+        "#101010",
+        "#FFFFFF"
+      ],
+      "materials": [
+        "conteúdo em tela cheia",
+        "trilho de ações"
+      ],
+      "case": "A navegação por um item de cada vez conflita com comparação, tabelas e múltiplos filtros.",
+      "kept": "Uma informação operacional deve liderar a primeira tela."
+    }
+  ],
+  "reroll": {
+    "registers": [
+      "safer",
+      "bolder"
+    ]
+  },
+  "buildPath": {
+    "value": "comp",
+    "toggle": true
+  },
+  "canon": true,
+  "canonCard": {
+    "label": "Dashboard padrão do mercado",
+    "thesis": "Uma grade de indicadores, gráficos e filtros executada com hierarquia e acabamento consistentes.",
+    "palette": [
+      "#FFFFFF",
+      "#111827",
+      "#2E5BC7",
+      "#E8EDF3"
+    ],
+    "materials": [
+      "grade limpa",
+      "cartões brancos",
+      "gráficos"
+    ],
+    "viewport": "Cabeçalho com ticker horizontal de cidades e datas; formulário completo com modo Ano/Semana ou Intervalo, ano, semanas, praça, sub praça, origem, turno e Limpar; cartões de Corridas, Aderência e Praças, gráfico e tabela resumida.",
+    "risk": "É esperado e familiar, mas diferencia pouco a identidade do Dashboard Geral.",
+    "comp": ".impeccable/mocks/decision/canon-dashboard-v2.png"
+  },
+  "steer": true
+}

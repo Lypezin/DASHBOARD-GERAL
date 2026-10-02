@@ -1,0 +1,9 @@
+{
+  "title": "Apresentação — Marketing",
+  "demoData": "Período, cidades e métricas são ilustrativos.",
+  "prompt": "Create a two-slide presentation mockup board, 1600x1000, for GO Itaim's full-screen Marketing report in the selected “Folhas de Operação” visual direction. No browser chrome or app sidebar. Show two portrait slide canvases side by side on ivory paper, ruled grid, forest green and sage palette, graphite text, subtle botanical etching in small corner, consistent GO Itaim wordmark, refined editorial layout, data-oriented. Slide one cover should read exact title “Cadastros Marketing”, subtitle “Relatório de Resultados”, and date period “1 a 30 de setembro de 2025”, with small company text GO Itaim and discreet elegant index “01”. Compose cover with a strong but quiet hierarchy and generous negative space. Slide two heading “EVOLUÇÃO DE MIGRAÇÕES” with subheading “Análise de Volume Diário”; show a clear two-series line chart over 01/09–30/09 for “Liberado” and “Enviado”, preserving legible legend, labels and grid. Under chart show “Resumo por Unidade” with a tidy city comparison grid for Guarulhos, Manaus, São Paulo 2.0, Sorocaba, with metrics Liberados, Enviados and Taxa; include modest green chart emphasis and source note. At bottom add a clear deck sequence navigator/folio hint “Evolução · Comparativo semanal · Custos”. Present concise opening and analytical slide, no overdecorated visuals. Numbers are sample data, not live. Use Portuguese labels, no watermark.",
+  "referenceFiles": [
+    "public/logo.png",
+    ".impeccable/mocks/decision/assigned-folhas-operacao-v2.png"
+  ]
+}

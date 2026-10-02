@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useRef } from 'react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { RefreshCw } from 'lucide-react';
+import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
 
 import { useCityLastUpdates } from '@/hooks/data/useCityLastUpdates';
 
@@ -24,53 +24,55 @@ export function CityLastUpdatesTicker() {
       }));
   }, [data]);
 
-  if (loading || visibleItems.length === 0) return null;
-
-  // Repete os itens 4 vezes para garantir que preencha toda a tela mesmo em monitores ultrawide
-  const marqueeItems = [...visibleItems, ...visibleItems, ...visibleItems, ...visibleItems];
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const scrollCities = useCallback((direction: -1 | 1) => {
+    scrollerRef.current?.scrollBy({ left: direction * 260, behavior: 'smooth' });
+  }, []);
 
   return (
-    <div className="w-full flex items-center gap-3 overflow-hidden select-none pl-1">
-      {/* Indicador de Status / Refresh sutil */}
-      <div className="flex items-center gap-1.5 shrink-0">
-        <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/10 dark:bg-emerald-500/15">
-          <RefreshCw className="h-3 w-3 text-emerald-500 animate-city-updates-spin" />
-        </div>
-        <span className="hidden xl:inline text-[9px] font-bold uppercase tracking-wider text-muted-foreground/75 whitespace-nowrap">
-          Sincronizado
-        </span>
+    <div className="flex min-w-0 w-full items-center gap-2" aria-label="Última atualização por cidade">
+      <div className="hidden shrink-0 items-center gap-1.5 xl:flex">
+        <RefreshCw className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
+        <span className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Sincronizado</span>
       </div>
-
-      <div className="h-4 w-px bg-border shrink-0" />
-
-      {/* Marquee de Cidades e Datas */}
-      <div className="relative flex-1 overflow-hidden h-6">
-        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-card to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-card to-transparent" />
-
-        <div className="absolute inset-y-0 left-0 flex items-center overflow-visible">
-          <div className="flex items-center gap-4 w-max animate-marquee hover:[animation-play-state:paused]">
-            {marqueeItems.map((item, index) => (
-              <div
-                key={`${item.city}-${index}`}
-                className="flex items-center gap-2 shrink-0"
-              >
-                <div className="h-1 w-1 rounded-full bg-emerald-500/80 shrink-0" />
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                  <span className="text-foreground/90 font-bold whitespace-nowrap font-outfit">
-                    {item.city}
-                  </span>
-                  <span className="text-[10px] font-mono font-extrabold text-emerald-600 dark:text-emerald-400 opacity-100 whitespace-nowrap bg-emerald-500/10 dark:bg-emerald-500/15 px-1.5 py-0.5 rounded shadow-sm">
-                    {item.formattedDate}
-                  </span>
-                </div>
+      <button
+        type="button"
+        onClick={() => scrollCities(-1)}
+        aria-label="Rolar cidades para a esquerda"
+        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-background text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <ChevronLeft className="h-4 w-4" />
+      </button>
+      <div
+        ref={scrollerRef}
+        role="region"
+        aria-label="Cidades e datas de atualização"
+        tabIndex={0}
+        className="subtle-scrollbar min-w-0 flex-1 overflow-x-auto overscroll-x-contain pb-1"
+      >
+        {visibleItems.length > 0 ? (
+          <div className="flex w-max min-w-full items-center gap-1.5">
+            {visibleItems.map((item) => (
+              <div key={`${item.city}-${item.last_update_date}`} className="flex shrink-0 items-center gap-2 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs">
+                <span className="max-w-[10rem] truncate font-semibold text-foreground">{item.city}</span>
+                <span className="tabular-nums text-muted-foreground">{item.formattedDate}</span>
               </div>
             ))}
           </div>
-        </div>
+        ) : (
+          <div className="flex min-h-8 min-w-full items-center rounded-md border border-dashed border-border px-3 text-xs text-muted-foreground" aria-live="polite">
+            {loading ? 'Carregando datas de atualização…' : 'Datas de atualização indisponíveis'}
+          </div>
+        )}
       </div>
-
-      
+      <button
+        type="button"
+        onClick={() => scrollCities(1)}
+        aria-label="Rolar cidades para a direita"
+        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-background text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <ChevronRight className="h-4 w-4" />
+      </button>
     </div>
   );
 }

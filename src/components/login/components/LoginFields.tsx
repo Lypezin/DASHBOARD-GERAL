@@ -29,16 +29,15 @@ export const LoginFields = React.memo(function LoginFields({
             <div className="space-y-2">
                 <Label htmlFor="email" className="text-slate-600 font-medium">Email</Label>
                 <div className="group relative min-w-0">
-                    <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 transition duration-300 group-hover:opacity-20 blur"></div>
                     <div className="relative min-w-0">
-                        <Mail className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                        <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-[#0754d8]" />
                         <Input
                             id="email"
                             type="email"
                             value={email}
                             onChange={onEmailChange}
                             required
-                            className="pl-9 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 shadow-sm"
+                            className="border-input bg-background pl-9 text-foreground shadow-none placeholder:text-muted-foreground focus:border-[#0754d8] focus:ring-[#0754d8]/20"
                             placeholder="seu@email.com"
                             disabled={loading}
                         />
@@ -50,23 +49,22 @@ export const LoginFields = React.memo(function LoginFields({
             <div className="space-y-2">
                 <Label htmlFor="password" className="text-slate-600 font-medium">Senha</Label>
                 <div className="group relative min-w-0">
-                    <div className="absolute -inset-0.5 rounded-lg bg-gradient-to-r from-blue-400 to-indigo-400 opacity-0 transition duration-300 group-hover:opacity-20 blur"></div>
                     <div className="relative min-w-0">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" />
+                        <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground transition-colors group-focus-within:text-[#0754d8]" />
                         <Input
                             id="password"
                             type={showPassword ? 'text' : 'password'}
                             value={password}
                             onChange={onPasswordChange}
                             required
-                            className="pl-9 pr-10 bg-white border-slate-200 text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:ring-blue-500/20 shadow-sm"
+                            className="border-input bg-background pl-9 pr-10 text-foreground shadow-none placeholder:text-muted-foreground focus:border-[#0754d8] focus:ring-[#0754d8]/20"
                             placeholder="••••••••"
                             disabled={loading}
                         />
                         <button
                             type="button"
                             onClick={onTogglePassword}
-                            className="absolute right-3 top-3 text-slate-400 hover:text-slate-600 transition-colors"
+                            className="absolute right-3 top-3 text-muted-foreground transition-colors hover:text-foreground"
                         >
                             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                         </button>
@@ -74,7 +72,7 @@ export const LoginFields = React.memo(function LoginFields({
                     <div className="flex justify-end pt-1 relative z-10">
                         <Link
                             href="/esqueci-senha"
-                            className="text-xs font-medium text-blue-600 hover:text-blue-700 transition-colors"
+                            className="text-xs font-medium text-[#0754d8] transition-colors hover:text-[#0647b7]"
                         >
                             Esqueci minha senha
                         </Link>

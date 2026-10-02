@@ -72,19 +72,19 @@ const MarketingView = React.memo(function MarketingView() {
 
   return (
     <ViewContainer className="space-y-5 py-6 sm:py-7">
-      <div className="rounded-3xl border border-slate-200/70 bg-white/90 p-4 shadow-[0_18px_48px_-42px_rgba(15,23,42,0.7)] dark:border-slate-800/70 dark:bg-slate-950/80 sm:p-5">
+      <div className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-5">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div className="min-w-0">
-            <div className="mb-2 inline-flex rounded-full bg-blue-50 px-3 py-1 text-[11px] font-black uppercase tracking-[0.22em] text-blue-700 dark:bg-blue-950/40 dark:text-blue-300">
+            <div className="mb-2 inline-flex rounded-full bg-accent px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-primary">
               Marketing
             </div>
-            <h1 className="text-2xl font-black tracking-tight text-slate-950 dark:text-white">Marketing</h1>
-            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground">Marketing</h1>
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">
               Gerencie campanhas e acompanhe os resultados da operação.
             </p>
           </div>
 
-          <div className="flex flex-wrap gap-1.5 rounded-2xl border border-slate-200/70 bg-slate-100/80 p-1.5 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/60 md:justify-end">
+          <div className="flex flex-wrap gap-1 rounded-lg border border-border bg-background p-1 md:justify-end">
             <TabButton
               label="Valores por Cidade"
               active={activeSubTab === 'valores-cidade'}

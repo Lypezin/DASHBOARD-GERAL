@@ -38,7 +38,7 @@ export const LoginForm = React.memo(function LoginForm({ loading, error, onSubmi
         <LoginFields email={email} onEmailChange={handleEmailChange} password={password} onPasswordChange={handlePasswordChange} showPassword={showPassword} onTogglePassword={toggleShowPassword} loading={loading} />
 
         {/* Submit Button */}
-        <Button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white h-11 px-8 shadow-lg shadow-blue-500/25 border-0">
+        <Button type="submit" disabled={loading} className="h-11 w-full border-0 bg-[#0754d8] px-8 text-white shadow-sm hover:bg-[#0647b7]">
           {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Entrando...</> : <>Entrar <ArrowRight className="ml-2 h-4 w-4" /></>}
         </Button>
       </form>
@@ -49,7 +49,7 @@ export const LoginForm = React.memo(function LoginForm({ loading, error, onSubmi
           <span className="w-full border-t border-slate-200" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-transparent px-2 text-slate-400 font-medium">
+          <span className="bg-card px-2 font-medium text-muted-foreground">
             ou
           </span>
         </div>
@@ -57,8 +57,8 @@ export const LoginForm = React.memo(function LoginForm({ loading, error, onSubmi
 
       {/* Register Link */}
       <div className="text-center">
-        <p className="text-sm text-slate-400">
-          Não tem uma conta?{' '}<Link href="/registro" className="font-bold text-blue-600 hover:text-blue-700 hover:underline transition-colors">Criar conta</Link>
+        <p className="text-sm text-muted-foreground">
+          Não tem uma conta?{' '}<Link href="/registro" className="font-bold text-[#0754d8] transition-colors hover:text-[#0647b7] hover:underline">Criar conta</Link>
         </p>
       </div>
     </>

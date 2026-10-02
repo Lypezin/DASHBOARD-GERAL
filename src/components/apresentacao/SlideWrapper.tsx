@@ -35,7 +35,7 @@ const SlideWrapper: React.FC<SlideWrapperProps> = ({
         overflow: 'hidden',
         zIndex: isVisible ? 10 : 0,
         transformOrigin: 'top left',
-        backgroundColor: isDark ? '#020617' : '#ffffff',
+        backgroundColor: isDark ? '#0d1f18' : 'hsl(var(--background))',
         ...slideTransitionStyle,
         ...style,
       }}

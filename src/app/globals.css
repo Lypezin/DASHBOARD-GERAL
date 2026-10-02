@@ -5,67 +5,70 @@
 
 @layer base {
   :root {
-    /* Refined Light Mode Palette (Modern Flat Neutral) */
-    --background: 240 5% 98%; /* Soft cool grey #FAF9F6 */
-    --foreground: 240 10% 3.9%;
+    /* Folhas de Operação: papel quente, tinta escura e verde de navegação. */
+    --background: 45 30% 96%;
+    --foreground: 154 24% 12%;
 
-    --card: 0 0% 100%; /* Pure white solid card */
-    --card-foreground: 240 10% 3.9%;
+    --card: 45 32% 99%;
+    --card-foreground: 154 24% 12%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover: 45 32% 99%;
+    --popover-foreground: 154 24% 12%;
 
-    --primary: 221.2 83.2% 53.3%; /* Premium Electric Cobalt */
-    --primary-foreground: 210 40% 98%;
+    --primary: 153 43% 22%;
+    --primary-foreground: 45 35% 98%;
 
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 10% 3.9%;
+    --secondary: 82 16% 91%;
+    --secondary-foreground: 154 24% 12%;
 
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --muted: 45 20% 92%;
+    --muted-foreground: 152 10% 38%;
 
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 10% 3.9%;
+    --accent: 82 20% 88%;
+    --accent-foreground: 154 24% 12%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 240 5.9% 90%; /* Crisp 1px borders */
-    --input: 240 5.9% 90%;
-    --ring: 221.2 83.2% 53.3%;
+    --border: 43 17% 82%;
+    --input: 43 17% 78%;
+    --ring: 153 43% 22%;
 
-    --radius: 0.75rem; /* Standard SaaS radius (12px) */
+    --radius: 0.8rem;
+    --sidebar: 154 37% 15%;
+    --sidebar-active: 153 32% 27%;
   }
 
   .dark {
-    /* Refined Dark Mode Palette (Linear/Vercel Zinc style) */
-    --background: 222 47% 4%; /* Deep navy surface */
-    --foreground: 0 0% 98%;
+    --background: 155 24% 8%;
+    --foreground: 45 27% 93%;
 
-    --card: 222 42% 7%;
-    --card-foreground: 0 0% 98%;
+    --card: 155 22% 11%;
+    --card-foreground: 45 27% 93%;
 
-    --popover: 222 42% 7%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 155 22% 11%;
+    --popover-foreground: 45 27% 93%;
 
-    --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 145 32% 58%;
+    --primary-foreground: 155 24% 8%;
 
-    --secondary: 217 33% 17%;
-    --secondary-foreground: 0 0% 98%;
+    --secondary: 154 18% 17%;
+    --secondary-foreground: 45 27% 93%;
 
-    --muted: 217 33% 17%;
-    --muted-foreground: 215 20% 69%;
+    --muted: 154 18% 17%;
+    --muted-foreground: 145 12% 69%;
 
-    --accent: 217 33% 17%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 154 20% 21%;
+    --accent-foreground: 45 27% 93%;
 
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 215 28% 17%;
-    --input: 215 28% 17%;
-    --ring: 224.3 76.3% 48%;
+    --border: 154 14% 25%;
+    --input: 154 14% 29%;
+    --ring: 145 32% 58%;
+    --sidebar: 154 34% 9%;
+    --sidebar-active: 154 25% 22%;
   }
 }
 
@@ -126,7 +129,7 @@
     @apply bg-background text-foreground;
     min-height: 100%;
     overflow-x: clip;
-    font-family: var(--font-outfit), var(--font-inter), sans-serif;
+    font-family: var(--font-inter), var(--font-outfit), sans-serif;
     font-feature-settings: "cv02", "cv03", "cv04", "tnum";
     text-rendering: geometricPrecision;
     transition: background-color 0.25s cubic-bezier(0.16, 1, 0.3, 1), 
@@ -139,7 +142,7 @@
   }
 
   ::selection {
-    background: rgba(37, 99, 235, 0.12);
+    background: hsl(var(--primary) / 0.18);
     color: hsl(var(--foreground));
   }
 
@@ -232,3 +235,63 @@
 .animate-marquee {
   animation: marquee 30s linear infinite;
 }
+
+/* Harmoniza os utilitários antigos com os tokens do mundo aprovado. */
+.folhas-world [class~="bg-white"],
+.folhas-world [class*="bg-white/"] { background-color: hsl(var(--card)); }
+.folhas-world [class*="bg-slate-50"] { background-color: hsl(var(--background)); }
+.folhas-world [class*="bg-slate-100"] { background-color: hsl(var(--muted)); }
+.folhas-world [class*="bg-slate-900"],
+.folhas-world [class*="bg-slate-950"] { background-color: hsl(var(--card)); }
+.folhas-world [class~="bg-slate-50"],
+.folhas-world [class*="bg-slate-50/"] { background-color: hsl(var(--background)); }
+.folhas-world [class*="bg-slate-100/"] { background-color: hsl(var(--muted)); }
+
+.folhas-world [class*="text-slate-950"],
+.folhas-world [class*="text-slate-900"],
+.folhas-world [class*="text-slate-800"] { color: hsl(var(--foreground)); }
+.folhas-world [class*="text-slate-700"],
+.folhas-world [class*="text-slate-600"],
+.folhas-world [class*="text-slate-500"],
+.folhas-world [class*="text-slate-400"] { color: hsl(var(--muted-foreground)); }
+
+.folhas-world [class~="border-slate-100"],
+.folhas-world [class~="border-slate-200"],
+.folhas-world [class~="border-slate-300"],
+.folhas-world [class*="border-slate-200/"],
+.folhas-world [class*="border-slate-100/"] { border-color: hsl(var(--border)); }
+
+.folhas-world [class*="text-blue-"],
+.folhas-world [class*="text-indigo-"] { color: hsl(var(--primary)); }
+.folhas-world [class*="bg-blue-600"],
+.folhas-world [class*="bg-blue-700"],
+.folhas-world [class*="bg-indigo-600"] { background-color: hsl(var(--primary)); }
+.folhas-world [class*="bg-blue-50"],
+.folhas-world [class*="bg-blue-100"],
+.folhas-world [class*="bg-indigo-50"],
+.folhas-world [class*="bg-blue-900"],
+.folhas-world [class*="bg-indigo-900"] { background-color: hsl(var(--accent)); }
+.folhas-world [class*="border-blue-"],
+.folhas-world [class*="border-indigo-"] { border-color: hsl(var(--border)); }
+.folhas-world [class*="ring-blue-"] { --tw-ring-color: hsl(var(--ring) / 0.24); }
+.folhas-world [class*="bg-gradient-to-"] {
+  background-image: none;
+  background-color: hsl(var(--card));
+}
+.folhas-world [class*="bg-gradient-to-"][class~="text-white"] {
+  background-color: hsl(var(--primary));
+}
+.folhas-world [class~="text-transparent"][class~="bg-clip-text"] {
+  background-image: none;
+  background-clip: border-box;
+  color: hsl(var(--foreground));
+}
+.folhas-world [class*="backdrop-blur"] { backdrop-filter: none; }
+.folhas-world [class*="pointer-events-none"][class*="blur"] { display: none; }
+.folhas-world :is(h1, h2) { font-family: Georgia, "Times New Roman", serif; }
+.folhas-world input,
+.folhas-world select,
+.folhas-world textarea { caret-color: hsl(var(--primary)); }
+.folhas-world :focus-visible { outline-color: hsl(var(--ring)); }
+
+.folhas-world ::selection { background: hsl(var(--primary) / 0.2); }

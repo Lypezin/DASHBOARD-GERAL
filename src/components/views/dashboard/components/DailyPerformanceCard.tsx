@@ -51,7 +51,7 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
           key={`dia-${index}`}
           className={cn(
             "group relative flex min-h-[208px] min-w-0 cursor-help select-none flex-col justify-between overflow-hidden border-r border-slate-200/70 bg-white/80 p-3.5 transition-[background-color,box-shadow,transform] duration-300 last:border-r-0 hover:-translate-y-0.5 hover:bg-white hover:shadow-[0_18px_48px_-34px_rgba(15,23,42,0.55)] dark:border-slate-800/80 dark:bg-slate-950/30 dark:hover:bg-slate-900/70",
-            isToday ? "bg-blue-50/80 ring-1 ring-inset ring-blue-200/80 dark:bg-blue-950/20 dark:ring-blue-900/50" : ""
+                     isToday ? "bg-primary/5 ring-1 ring-inset ring-primary/20" : ""
           )}
           style={{ animationDelay: `${Math.min(index * 35, 180)}ms` }}
         >
@@ -64,7 +64,7 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
                   className={cn(
                     "inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-semibold",
                     isToday
-                      ? "bg-blue-600 text-white shadow-sm shadow-blue-600/20 dark:bg-blue-400 dark:text-slate-950"
+                       ? "bg-primary text-primary-foreground shadow-sm shadow-primary/20"
                       : "bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300"
                   )}
                 >

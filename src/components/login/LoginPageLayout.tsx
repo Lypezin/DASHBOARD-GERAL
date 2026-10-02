@@ -1,9 +1,5 @@
-/**
- * Layout compartilhado para página de login
- * Extraído de src/app/login/page.tsx
- */
-
 import React from 'react';
+import Image from 'next/image';
 
 interface LoginPageLayoutProps {
   children: React.ReactNode;
@@ -13,49 +9,33 @@ export const LoginPageLayout = React.memo(function LoginPageLayout({
   children,
 }: LoginPageLayoutProps) {
   return (
-    <div className="relative flex min-h-screen w-screen max-w-full items-center justify-center overflow-hidden bg-gradient-to-br from-blue-50 via-white to-indigo-50 px-3 selection:bg-blue-500/30 sm:px-4">
-      {/* Background Context */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-0 -left-4 w-96 h-96 bg-blue-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob"></div>
-        <div className="absolute top-0 -right-4 w-96 h-96 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-2000"></div>
-        <div className="absolute -bottom-32 left-20 w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-blob animation-delay-4000"></div>
-        <div className="absolute inset-0 bg-[url('/grid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))] opacity-60"></div>
-      </div>
-
-      <div className="relative z-10 w-full max-w-[min(420px,calc(100vw-24px))]">
-        {/* Logo Section */}
-        <div className="mb-8 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 shadow-xl shadow-blue-500/20 ring-1 ring-black/5">
-            <span className="text-3xl">📊</span>
+    <div className="folhas-world flex min-h-screen w-full items-center justify-center bg-background px-4 py-6 sm:px-6 lg:px-10">
+      <div className="grid min-h-[min(760px,calc(100vh-3rem))] w-full max-w-6xl overflow-hidden rounded-xl border border-border bg-card shadow-sm md:grid-cols-[minmax(250px,0.78fr)_minmax(0,1.22fr)]">
+        <aside className="flex min-h-36 flex-col items-center justify-center bg-[#0754d8] px-6 py-6 text-center text-white md:min-h-full md:px-8">
+          <Image
+            src="/logo.png"
+            alt="GO Itaim"
+            width={176}
+            height={176}
+            priority
+            className="h-28 w-28 object-contain sm:h-36 sm:w-36"
+          />
+          <div className="mt-3 hidden w-full max-w-[190px] border-t border-white/50 pt-4 md:block">
+            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-white/95">
+              Dashboard Geral
+            </p>
           </div>
-          <h1 className="bg-gradient-to-br from-slate-900 to-slate-600 bg-clip-text text-3xl font-bold tracking-tight text-transparent">
-            Dashboard
-          </h1>
-          <p className="mt-2 text-sm text-slate-500 font-medium">Entre para gerenciar suas operações</p>
-        </div>
-
-        {/* Login Card */}
-        <div className="relative group">
-          <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-blue-400 via-indigo-400 to-cyan-400 opacity-40 blur transition duration-500 group-hover:opacity-60"></div>
-          <div className="relative min-w-0 rounded-2xl border border-white/60 bg-white/70 p-5 shadow-2xl ring-1 ring-black/5 backdrop-blur-xl sm:p-8">
-            {children}
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-xs text-slate-500 hover:text-slate-400 transition-colors cursor-default">
-            © 2025 Dashboard System. Secure Access.
+          <p className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/90 md:hidden">
+            Dashboard Geral
           </p>
-        </div>
+        </aside>
+
+        <section className="flex min-w-0 items-center justify-center px-5 py-8 sm:px-10 md:px-12 lg:px-16">
+          <div className="w-full max-w-[470px]">{children}</div>
+        </section>
       </div>
-
-      
-
-
     </div>
   );
 });
 
 LoginPageLayout.displayName = 'LoginPageLayout';
-

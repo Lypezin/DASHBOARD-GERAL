@@ -19,7 +19,7 @@ export const ResetPasswordSuccess = React.memo(function ResetPasswordSuccess() {
             </div>
             <Link
                 href="/login"
-                className="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 rounded-lg shadow-lg transition-all"
+                className="inline-flex w-full items-center justify-center rounded-md bg-[#0754d8] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-colors hover:bg-[#0647b7]"
             >
                 Ir para o Login
             </Link>

@@ -1,0 +1,9 @@
+{
+  "demoData": "Semanas, cidade e métricas são ilustrativas.",
+  "prompt": "Design a two-slide visual board of a full-screen print presentation for GO Itaim, 1600x1000 landscape. Show two portrait-proportioned report slide canvases side-by-side on a warm neutral paper background with subtle spacing and shadows; no browser chrome, no app sidebar. Selected Folhas de Operação identity: ivory paper, deep forest green, sage, graphite, selective muted amber, refined editorial serif titles, clean charts/tables, thin ruled separators, discreet folio page numbers, minimal botanical etching only in a corner. Slide 1 cover: GO Itaim wordmark small at top, large exact title “COMPARATIVO SEMANAL”, plaza label and sample “Guarulhos”, two side-by-side blocks “Semana 05” and “Semana 06” separated by small VS; include sample dates 02/02—08/02 and 09/02—15/02, clearly mark one selected/most recent. Strong composed cover with usable contrast and ample whitespace. Slide 2 summary page with heading “ADERÊNCIA GERAL”, subheading “Comparativo Semanas 05 vs 06”; compare two structured metric panels showing “Horas planejadas”, “Horas entregues”, “Aderência” with plausible values; middle variation card “Variação” -42h / -3,8%, calm orange/green indication. A small horizontal comparison chart at bottom supports the weekly summary. At bottom add subtle next-section marker “Aderência diária · Turnos · Sub-praças · Origem”. Avoid fabricated logo details: use simple GO Itaim wordmark typography. Numbers and periods are illustrative, not live. Portuguese labels exact, no watermark.",
+  "title": "Apresentação — Comparativo Semanal",
+  "referenceFiles": [
+    "public/logo.png",
+    ".impeccable/mocks/decision/assigned-folhas-operacao-v2.png"
+  ]
+}

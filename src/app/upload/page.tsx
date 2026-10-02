@@ -41,8 +41,8 @@ export default function UploadPage() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-[linear-gradient(180deg,#f8fbff_0%,#f1f5f9_100%)] p-4 sm:p-6 md:p-10 dark:bg-[linear-gradient(180deg,#020617_0%,#0f172a_100%)]">
-        <div className="mx-auto max-w-[1600px] space-y-8 animate-fade-in">
+      <div className="min-h-screen bg-background p-4 sm:p-6 md:p-8">
+        <div className="mx-auto max-w-[1600px] space-y-6 animate-fade-in">
           <div className="animate-slide-up">
             <UploadHeader
               isAuthorized={isAuthorized} user={user}

@@ -36,7 +36,7 @@ export function AppSidebar() {
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -10 }}
               transition={{ duration: 0.15 }}
-              className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60"
+              className="px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/55"
             >
               {group.name}
             </motion.p>
@@ -71,15 +71,15 @@ export function AppSidebar() {
     <>
       {/* SIDEBAR DESKTOP */}
       <motion.aside
-        animate={{ width: collapsed ? 64 : 256 }}
+        animate={{ width: collapsed ? 68 : 248 }}
         transition={{ type: 'spring', stiffness: 380, damping: 35 }}
         className={cn(
-          'hidden md:flex h-screen flex-col border-r border-border bg-card shrink-0 select-none relative z-50 overflow-x-hidden'
+          'hidden md:flex h-screen flex-col border-r border-white/10 bg-[hsl(var(--sidebar))] text-white shrink-0 select-none relative z-50 overflow-x-hidden'
         )}
       >
         {/* Header da Sidebar */}
         <div className={cn(
-          "flex h-14 items-center border-b border-border shrink-0 transition-all duration-150",
+          "flex h-16 items-center border-b border-white/10 shrink-0 transition-all duration-150",
           collapsed ? "justify-center px-0 w-full" : "justify-between px-3"
         )}>
           <div className={cn("flex items-center min-w-0 transition-all duration-150", collapsed ? "justify-center gap-0 w-full" : "gap-3")}>
@@ -90,7 +90,7 @@ export function AppSidebar() {
               width={36}
               height={36}
               className={cn(
-                "h-9 w-9 shrink-0 rounded-lg object-contain border border-border/40 shadow-sm transition-all duration-150",
+                "h-10 w-10 shrink-0 rounded-lg bg-white object-contain p-1 transition-all duration-150",
                 collapsed ? "mx-auto" : ""
               )}
             />
@@ -102,10 +102,10 @@ export function AppSidebar() {
                 exit={{ opacity: 0 }}
                 className="flex flex-col min-w-0"
               >
-                <span className="truncate text-sm font-black tracking-tight text-foreground">
+                <span className="truncate text-sm font-semibold tracking-tight text-white">
                   Dashboard Geral
                 </span>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-primary">
+                <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/60">
                   OPERACIONAL
                 </span>
               </motion.div>
@@ -119,11 +119,11 @@ export function AppSidebar() {
         </div>
 
         {/* Rodapé da Sidebar */}
-        <div className="border-t border-border p-2 shrink-0 flex flex-col gap-2">
+        <div className="border-t border-white/10 p-2 shrink-0 flex flex-col gap-2">
           {/* Botão para colapsar */}
           <button
             onClick={toggleSidebar}
-            className="flex w-full items-center justify-center rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+            className="flex w-full items-center justify-center rounded-lg p-2 text-white/65 hover:bg-white/10 hover:text-white transition-colors"
             title={collapsed ? 'Expandir Menu' : 'Recolher Menu'}
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -150,26 +150,26 @@ export function AppSidebar() {
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
               transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
-              className="fixed bottom-0 top-0 left-0 z-50 flex w-72 flex-col bg-card border-r border-border shadow-2xl md:hidden"
+              className="fixed bottom-0 top-0 left-0 z-50 flex w-72 flex-col border-r border-white/10 bg-[hsl(var(--sidebar))] text-white shadow-2xl md:hidden"
             >
               {/* Header Mobile */}
-              <div className="flex h-14 items-center justify-between border-b border-border px-4">
+              <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
                 <div className="flex items-center gap-3">
                   <Image
                     src="/logo.png"
                     alt="GO Itaim Logo"
                     width={32}
                     height={32}
-                    className="h-8 w-8 shrink-0 rounded-lg object-contain border border-border/30"
+                    className="h-9 w-9 shrink-0 rounded-lg bg-white object-contain p-1"
                   />
                   <div className="flex flex-col">
-                    <span className="text-sm font-black text-foreground">Dashboard Geral</span>
-                    <span className="text-[8px] font-bold uppercase tracking-wider text-primary">OPERACIONAL</span>
+                    <span className="text-sm font-semibold text-white">Dashboard Geral</span>
+                    <span className="text-[9px] font-semibold uppercase tracking-[0.16em] text-white/60">OPERACIONAL</span>
                   </div>
                 </div>
                 <button
                   onClick={() => setMobileOpen(false)}
-                  className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  className="rounded-lg p-1.5 text-white/70 hover:bg-white/10 hover:text-white"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -180,7 +180,7 @@ export function AppSidebar() {
                 {/* Aqui os itens são sempre expandidos (collapsed = false) */}
                 {SIDEBAR_GROUPS.map((group) => (
                   <div key={`mobile-${group.name}`} className="space-y-1.5 pt-2">
-                    <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
+                    <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/55">
                       {group.name}
                     </p>
                     <div className="space-y-0.5">

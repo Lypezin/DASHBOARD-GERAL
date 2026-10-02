@@ -34,14 +34,14 @@ export const SidebarMenuItem = React.memo(function SidebarMenuItem({
       onMouseEnter={() => prefetchDashboardTabResources(item.value)}
       onFocus={() => prefetchDashboardTabResources(item.value)}
       className={cn(
-        'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-all duration-150',
-        'relative overflow-hidden group focus:outline-none',
+        'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150',
+        'relative overflow-hidden group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40',
         isActive
-          ? 'bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(59,130,246,0.15)]'
-          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+          ? 'bg-[hsl(var(--sidebar-active))] text-white shadow-sm'
+          : 'text-white/75 hover:bg-white/10 hover:text-white'
       )}
     >
-      <Icon className={cn('h-[18px] w-[18px] shrink-0', isActive ? 'text-current' : 'text-muted-foreground/80 group-hover:text-foreground')} />
+      <Icon className={cn('h-[18px] w-[18px] shrink-0', isActive ? 'text-current' : 'text-white/65 group-hover:text-white')} />
       
       {!collapsed && (
         <motion.span

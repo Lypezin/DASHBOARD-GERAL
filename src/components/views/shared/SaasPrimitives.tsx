@@ -9,9 +9,9 @@ const toneStyles: Record<Tone, {
   metric: string;
 }> = {
   blue: {
-    eyebrow: 'border-blue-100 bg-blue-50 text-blue-700 dark:border-blue-900/50 dark:bg-blue-950/40 dark:text-blue-300',
-    icon: 'bg-blue-50 text-blue-600 ring-blue-100 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900/50',
-    metric: 'text-blue-600 dark:text-blue-400',
+    eyebrow: 'border-border bg-accent text-primary',
+    icon: 'bg-accent text-primary ring-border',
+    metric: 'text-primary',
   },
   emerald: {
     eyebrow: 'border-emerald-100 bg-emerald-50 text-emerald-700 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-300',
@@ -45,7 +45,7 @@ export function SaasPanel({
   return (
     <div
       className={cn(
-        'min-w-0 overflow-hidden rounded-[1.65rem] border border-slate-200/80 bg-white/95 shadow-[0_24px_70px_-52px_rgba(15,23,42,0.45)] motion-safe:animate-fade-in dark:border-slate-800/80 dark:bg-slate-950/80',
+        'min-w-0 overflow-hidden rounded-xl border border-border bg-card shadow-sm motion-safe:animate-fade-in',
         className
       )}
     >
@@ -76,7 +76,7 @@ export function SaasPanelHeader({
   return (
     <div
       className={cn(
-        'flex min-w-0 flex-col gap-4 border-b border-slate-200/70 bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.10),transparent_34%),linear-gradient(135deg,rgba(248,250,252,0.98),rgba(255,255,255,0.90))] p-4 dark:border-slate-800/80 dark:bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.14),transparent_36%),linear-gradient(135deg,rgba(15,23,42,0.96),rgba(2,6,23,0.90))] sm:p-5 lg:flex-row lg:items-center lg:justify-between',
+        'flex min-w-0 flex-col gap-4 border-b border-border bg-muted/35 p-4 sm:p-5 lg:flex-row lg:items-center lg:justify-between',
         className
       )}
     >
@@ -124,7 +124,7 @@ export function SaasMetric({
   const title = typeof value === 'string' ? value : undefined;
 
   return (
-    <div className={cn('min-w-0 rounded-2xl border border-slate-200/70 bg-white/90 px-3 py-2.5 shadow-sm dark:border-slate-800/80 dark:bg-slate-950/50', className)}>
+    <div className={cn('min-w-0 rounded-lg border border-border bg-card px-3 py-2.5', className)}>
       <div className="mb-1 flex min-w-0 items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400">
         {Icon && (
           <span className={cn('flex h-5 w-5 shrink-0 items-center justify-center rounded-lg ring-1', styles.icon)}>
@@ -159,7 +159,7 @@ export function SaasSegmentedControl({
   return (
     <div
       className={cn(
-        'subtle-scrollbar flex max-w-full gap-1 overflow-x-auto rounded-2xl border border-slate-200/70 bg-slate-100/80 p-1 shadow-inner backdrop-blur dark:border-slate-800/70 dark:bg-slate-900/70',
+        'subtle-scrollbar flex max-w-full gap-1 overflow-x-auto rounded-lg border border-border bg-muted/50 p-1',
         className
       )}
     >

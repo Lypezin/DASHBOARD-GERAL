@@ -19,19 +19,19 @@ export function UploadRefreshMVs({ onAutoRefresh }: UploadRefreshMVsProps) {
   const isError = message?.includes('❌');
 
   return (
-    <div className="rounded-2xl border border-slate-200/70 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-950">
+    <div className="mx-auto w-full max-w-4xl rounded-xl border border-border bg-card p-5 shadow-sm sm:p-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="flex-1 space-y-3">
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-50 dark:bg-amber-950/30">
-              <RefreshCw className={`h-4 w-4 text-amber-600 dark:text-amber-400 ${refreshing ? 'animate-spin' : ''}`} />
+            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent">
+              <RefreshCw className={`h-4 w-4 text-primary ${refreshing ? 'animate-spin' : ''}`} />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-slate-900 dark:text-white">
-                Sincronizar Dados
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Atualize as visualizações após novos uploads.
+              <h2 className="text-lg font-semibold text-foreground">
+                Atualização dos dados
+              </h2>
+              <p className="text-sm text-muted-foreground">
+                Recalcule as visualizações após novos uploads.
               </p>
             </div>
           </div>
@@ -39,8 +39,8 @@ export function UploadRefreshMVs({ onAutoRefresh }: UploadRefreshMVsProps) {
           {/* Progress */}
           {refreshing && (
             <div className="space-y-2 pl-[52px]">
-              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden dark:bg-slate-800">
-                <div className="h-full bg-amber-500 transition-all duration-300 rounded-full" style={{ width: `${Math.max(5, progress)}%` }} />
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-muted">
+                <div className="h-full rounded-full bg-primary transition-all duration-300" style={{ width: `${Math.max(5, progress)}%` }} />
               </div>
               <div className="flex justify-between text-[11px] text-slate-500 font-medium">
                 <span>Processando...</span>
@@ -73,7 +73,7 @@ export function UploadRefreshMVs({ onAutoRefresh }: UploadRefreshMVsProps) {
         <button
           onClick={refreshAllMVs}
           disabled={refreshing}
-          className="flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 disabled:opacity-40 disabled:pointer-events-none dark:bg-amber-600 dark:hover:bg-amber-500"
+          className="flex items-center justify-center gap-2 rounded-md border border-primary px-5 py-3 text-sm font-semibold text-primary transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45"
         >
           {refreshing ? (
             <>
