@@ -2,12 +2,10 @@
 
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { motion, HTMLMotionProps, useReducedMotion } from 'framer-motion';
 
-export interface ViewContainerProps extends HTMLMotionProps<'div'> {
+export interface ViewContainerProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
-  disableAnimation?: boolean;
 }
 
 /**
@@ -19,25 +17,16 @@ export interface ViewContainerProps extends HTMLMotionProps<'div'> {
 export function ViewContainer({
   children,
   className,
-  disableAnimation = false,
   ...props
 }: ViewContainerProps) {
-  const shouldReduceMotion = useReducedMotion();
-  const shouldAnimate = !disableAnimation && !shouldReduceMotion;
   const containerClass = cn(
     'mx-auto w-full max-w-[1600px] min-w-0',
     className
   );
 
   return (
-    <motion.div
-      className={containerClass}
-      initial={shouldAnimate ? { opacity: 0, y: 10 } : undefined}
-      animate={shouldAnimate ? { opacity: 1, y: 0 } : undefined}
-      transition={shouldAnimate ? { duration: 0.25, ease: [0.22, 1, 0.36, 1] } : undefined}
-      {...props}
-    >
+    <div className={containerClass} {...props}>
       {children}
-    </motion.div>
+    </div>
   );
 }

@@ -1,4 +1,5 @@
 import React, { useCallback, useState } from 'react';
+import Link from 'next/link';
 import { useResetPassword } from '@/hooks/auth/useResetPassword';
 import { usePasswordStrength } from '@/hooks/registro/useRegistroValidation';
 import { Button } from '@/components/ui/button';
@@ -32,10 +33,10 @@ export const ResetPasswordForm = React.memo(function ResetPasswordForm() {
 
     return (
         <>
-            <div className="mb-8 text-center">
-                <h2 className="mb-2 text-2xl font-bold text-slate-800">Nova Senha</h2>
-                <p className="text-sm font-medium text-slate-500">
-                    {checkingRecovery ? 'Validando seu link de redefinicao...' : 'Crie uma senha forte para sua conta'}
+            <div className="mb-8 text-left">
+                <h1 className="mb-1 text-3xl font-bold tracking-tight text-foreground">Nova Senha</h1>
+                <p className="text-sm text-muted-foreground">
+                    {checkingRecovery ? 'Validando seu link de redefinição...' : 'Crie uma senha forte para sua conta'}
                 </p>
             </div>
 
@@ -82,6 +83,13 @@ export const ResetPasswordForm = React.memo(function ResetPasswordForm() {
                     )}
                 </Button>
             </form>
+            {!checkingRecovery && !canReset && (
+                <div className="mt-6 border-t border-border pt-5 text-center">
+                    <Link href="/esqueci-senha" className="text-sm font-semibold text-primary hover:underline">
+                        Solicitar novo link de redefinição
+                    </Link>
+                </div>
+            )}
         </>
     );
 });

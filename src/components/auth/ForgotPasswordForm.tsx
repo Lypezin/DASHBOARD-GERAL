@@ -36,9 +36,9 @@ export const ForgotPasswordForm = React.memo(function ForgotPasswordForm() {
 
     return (
         <>
-            <div className="mb-8 text-center">
-                <h2 className="mb-2 text-2xl font-bold text-slate-800">Recuperar Senha</h2>
-                <p className="text-sm font-medium text-slate-500">Digite seu email para receber o link de redefinição</p>
+            <div className="mb-8 text-left">
+                <h1 className="mb-1 text-3xl font-bold tracking-tight text-foreground">Recuperar Senha</h1>
+                <p className="text-sm text-muted-foreground">Digite seu email para receber o link de redefinição</p>
             </div>
 
             {error && (
@@ -64,7 +64,7 @@ export const ForgotPasswordForm = React.memo(function ForgotPasswordForm() {
                 </Button>
             </form>
 
-            <div className="text-center mt-6">
+            <div className="mt-7 border-t border-border pt-5 text-center">
                 <Link
                     href="/login"
                     className="text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"

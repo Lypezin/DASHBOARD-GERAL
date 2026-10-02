@@ -43,20 +43,8 @@ export const LoginForm = React.memo(function LoginForm({ loading, error, onSubmi
         </Button>
       </form>
 
-      {/* Divider */}
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-slate-200" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-card px-2 font-medium text-muted-foreground">
-            ou
-          </span>
-        </div>
-      </div>
-
       {/* Register Link */}
-      <div className="text-center">
+      <div className="mt-8 border-t border-border pt-6 text-center">
         <p className="text-sm text-muted-foreground">
           Não tem uma conta?{' '}<Link href="/registro" className="font-bold text-[#0754d8] transition-colors hover:text-[#0647b7] hover:underline">Criar conta</Link>
         </p>

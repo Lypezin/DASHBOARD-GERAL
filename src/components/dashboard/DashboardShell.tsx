@@ -2,6 +2,7 @@
 
 import React from 'react';
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
 import { DashboardAuthLoading } from '@/components/dashboard/DashboardAuthLoading';
 import { DashboardErrorState } from '@/components/dashboard/DashboardErrorState';
 import { DashboardFiltersContainer } from '@/components/dashboard/DashboardFiltersContainer';
@@ -33,7 +34,13 @@ export function DashboardShell() {
 }
 
 function DashboardShellContent() {
+  const router = useRouter();
   const { auth, ui, filters, anoEvolucao, data } = useDashboardPage();
+  React.useEffect(() => {
+    if (!auth.isCheckingAuth && !auth.isAuthenticated && !auth.hasSessionWithoutProfile && !auth.hasMissingOrganization) {
+      router.replace('/login');
+    }
+  }, [auth.isCheckingAuth, auth.isAuthenticated, auth.hasSessionWithoutProfile, auth.hasMissingOrganization, router]);
   const showActivityTracker = useDeferredMount({
     enabled: auth.isAuthenticated,
     timeoutMs: 700,
@@ -73,7 +80,7 @@ function DashboardShellContent() {
       />
     );
   }
-  if (!auth.isAuthenticated) return null;
+  if (!auth.isAuthenticated) return <DashboardAuthLoading />;
 
   return (
     <div className="relative min-h-screen">

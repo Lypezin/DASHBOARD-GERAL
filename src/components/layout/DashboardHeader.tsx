@@ -44,8 +44,8 @@ export function DashboardHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 flex h-16 w-full min-w-0 items-center justify-between border-b border-border bg-card px-3 sm:px-5 lg:px-6">
-        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+      <header className="sticky top-0 z-40 flex min-h-16 w-full min-w-0 flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b border-border bg-card px-3 py-2 sm:px-5 lg:flex-nowrap lg:px-6 lg:py-0">
+        <div className="order-1 flex min-w-0 items-center gap-2 sm:gap-3">
           <Button
             variant="ghost"
             size="icon"
@@ -75,7 +75,11 @@ export function DashboardHeader() {
           </nav>
         </div>
 
-        <div className="ml-auto flex shrink-0 items-center gap-1 pl-2 sm:gap-2">
+        <div className="order-3 w-full min-w-0 border-t border-border/70 pt-1 lg:order-2 lg:mx-4 lg:w-auto lg:flex-1 lg:border-0 lg:pt-0">
+          <CityLastUpdatesTicker />
+        </div>
+
+        <div className="order-2 ml-auto flex shrink-0 items-center gap-1 pl-2 sm:gap-2 lg:order-3">
           {user && (
             <Button
               variant="ghost"
@@ -109,11 +113,6 @@ export function DashboardHeader() {
         )}
       </header>
 
-      <div className="w-full min-w-0 border-b border-border bg-card px-2 py-2 sm:px-4 sm:py-2.5">
-        <div className="mx-auto w-full max-w-[1600px]">
-          <CityLastUpdatesTicker />
-        </div>
-      </div>
     </>
   );
 }

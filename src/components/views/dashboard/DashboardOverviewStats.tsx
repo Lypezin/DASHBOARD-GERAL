@@ -41,13 +41,13 @@ export const DashboardOverviewStats = React.memo(function DashboardOverviewStats
     <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       {metrics.map(({ label, value, detail, Icon }) => (
         <Card key={label} className="rounded-xl border-border bg-card shadow-none">
-          <CardContent className="flex min-h-[118px] items-center gap-4 p-4 sm:p-5">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-accent text-primary">
-              <Icon className="h-5 w-5" aria-hidden="true" />
+          <CardContent className="flex min-h-[148px] items-center gap-4 p-4 sm:p-5">
+            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-accent text-primary sm:h-20 sm:w-20">
+              <Icon className="h-8 w-8" strokeWidth={2.5} aria-hidden="true" />
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-medium text-muted-foreground">{label}</p>
-              <p className="mt-0.5 truncate font-serif text-3xl font-semibold leading-tight text-primary" title={value}>
+              <p className="text-sm font-semibold text-foreground">{label}</p>
+              <p className="mt-1 truncate text-4xl font-bold leading-tight tracking-tight text-primary" title={value}>
                 {value}
               </p>
               <p className="mt-1 truncate text-xs text-muted-foreground" title={detail}>{detail}</p>

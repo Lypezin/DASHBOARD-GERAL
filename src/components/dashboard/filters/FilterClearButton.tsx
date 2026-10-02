@@ -19,7 +19,7 @@ export const FilterClearButton: React.FC<FilterClearButtonProps> = ({ onClear, d
         type="button"
         disabled={disabled}
         className={cn(
-          "inline-flex h-10 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md border border-border bg-background px-3 text-xs font-semibold text-foreground transition-colors sm:w-auto",
+          "inline-flex h-11 w-full items-center justify-center gap-2 whitespace-nowrap rounded-md border border-border bg-background px-3 text-sm font-semibold text-primary transition-colors sm:w-auto",
           "hover:bg-muted disabled:cursor-not-allowed disabled:opacity-45",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           className

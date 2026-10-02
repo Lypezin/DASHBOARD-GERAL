@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { DashboardGeneralStats } from './dashboard/DashboardGeneralStats';
 import { DashboardOverviewStats } from './dashboard/DashboardOverviewStats';
+import { DashboardOverviewAnalysis } from './dashboard/DashboardOverviewAnalysis';
 import { DashboardDailyPerformance } from './dashboard/DashboardDailyPerformance';
 import { DashboardOperationalDetail } from './dashboard/DashboardOperationalDetail';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
@@ -42,11 +43,11 @@ const DashboardView = React.memo(function DashboardView({
   const aderenciaGeral = useMemo(() => calculateAderenciaGeral(aderenciaSemanal), [aderenciaSemanal]);
 
   return (
-    <ViewContainer className="space-y-9 pb-16 pt-5">
+    <ViewContainer className="space-y-8 pb-16 pt-3">
       <section className="space-y-4">
         <DashboardSectionHeader
           title="Resumo Operacional"
-          description="Indicadores consolidados de aderência e métricas críticas de entrega."
+          description="Corridas, aderência e praças no período selecionado."
         />
         <DashboardOverviewStats
           totals={totals}
@@ -55,6 +56,8 @@ const DashboardView = React.memo(function DashboardView({
           selectedPlaza={filters.praca}
         />
       </section>
+
+      <DashboardOverviewAnalysis days={aderenciaDia} subPlazas={aderenciaSubPraca} />
 
       <section className="space-y-4">
         <DashboardSectionHeader

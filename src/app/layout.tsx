@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Outfit } from "next/font/google";
+import { Inter, Outfit, Roboto_Condensed } from "next/font/google";
 import "../styles/animations.css";
 import "../styles/components.css";
 import "../styles/overrides.css";
@@ -19,6 +19,12 @@ const outfit = Outfit({
   subsets: ["latin"],
   display: 'swap',
   variable: '--font-outfit',
+});
+
+const robotoCondensed = Roboto_Condensed({
+  subsets: ["latin"],
+  display: 'swap',
+  variable: '--font-condensed',
 });
 
 export const metadata: Metadata = {
@@ -50,7 +56,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className="scroll-smooth" suppressHydrationWarning>
-      <body className={`${outfit.variable} ${inter.variable} antialiased`}>
+      <body className={`${outfit.variable} ${inter.variable} ${robotoCondensed.variable} antialiased`}>
         <ThemeProviderWrapper>
           <Toaster richColors position="top-right" />
           <TooltipProvider delayDuration={0}>

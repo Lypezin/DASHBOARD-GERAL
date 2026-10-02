@@ -35,7 +35,7 @@ export const DashboardFiltersContainer = React.memo(function DashboardFiltersCon
   return (
     <div
       className={cn(
-        "sticky top-16 z-30 mb-5 rounded-xl border border-border bg-card p-3 shadow-sm sm:p-4",
+        "relative z-30 mb-5 rounded-xl border border-border bg-card p-3 shadow-sm sm:p-4 lg:sticky lg:top-16",
         "transition-colors duration-200"
       )}
     >

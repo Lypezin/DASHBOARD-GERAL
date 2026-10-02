@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { readStorage, writeStorage } from '@/utils/storage/jsonStorage';
 
 type Theme = 'light' | 'dark';
@@ -26,7 +27,7 @@ function getInitialTheme(): Theme {
     return savedTheme;
   }
 
-  return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  return 'light';
 }
 
 function applyThemeToDocument(theme: Theme) {
@@ -55,6 +56,8 @@ function temporarilyDisableThemeTransitions() {
 }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const forceLight = pathname === '/login' || pathname === '/registro' || pathname === '/esqueci-senha' || pathname === '/redefinir-senha' || pathname?.startsWith('/visual-smoke');
   const [theme, setThemeState] = useState<Theme>('light');
   const [hasHydrated, setHasHydrated] = useState(false);
 
@@ -78,17 +81,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     setThemeState((currentTheme) =>
       currentTheme === hydratedTheme ? currentTheme : hydratedTheme
     );
-    applyThemeToDocument(hydratedTheme);
+    applyThemeToDocument(forceLight ? 'light' : hydratedTheme);
     setHasHydrated(true);
-  }, []);
+  }, [forceLight]);
 
   useEffect(() => {
     if (!hasHydrated) {
       return;
     }
 
-    applyThemeToDocument(theme);
-  }, [hasHydrated, theme]);
+    applyThemeToDocument(forceLight ? 'light' : theme);
+  }, [hasHydrated, theme, forceLight]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {

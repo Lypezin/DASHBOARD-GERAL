@@ -10,7 +10,7 @@ export const LoginPageLayout = React.memo(function LoginPageLayout({
 }: LoginPageLayoutProps) {
   return (
     <div className="folhas-world flex min-h-screen w-full items-center justify-center bg-background px-4 py-6 sm:px-6 lg:px-10">
-      <div className="grid min-h-[min(760px,calc(100vh-3rem))] w-full max-w-6xl overflow-hidden rounded-xl border border-border bg-card shadow-sm md:grid-cols-[minmax(250px,0.78fr)_minmax(0,1.22fr)]">
+      <div className="grid min-h-[min(640px,calc(100vh-3rem))] w-full max-w-6xl overflow-hidden rounded-xl border border-border bg-card shadow-sm md:grid-cols-[minmax(250px,0.78fr)_minmax(0,1.22fr)]">
         <aside className="flex min-h-36 flex-col items-center justify-center bg-[#0754d8] px-6 py-6 text-center text-white md:min-h-full md:px-8">
           <Image
             src="/logo.png"

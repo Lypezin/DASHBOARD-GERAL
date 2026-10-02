@@ -29,21 +29,13 @@ export function AppSidebar() {
     return SIDEBAR_GROUPS.map((group) => (
       <div key={group.name} className="space-y-1.5 pt-4">
         {/* Rótulo do Grupo */}
-        <AnimatePresence mode="wait">
-          {!collapsed ? (
-            <motion.p
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.15 }}
-              className="px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/55"
-            >
-              {group.name}
-            </motion.p>
-          ) : (
-            <div className="h-4 border-b border-border/20 my-1 mx-3" />
-          )}
-        </AnimatePresence>
+        {!collapsed ? (
+          <p className="px-3 text-[10px] font-semibold uppercase tracking-[0.15em] text-white/75">
+            {group.name}
+          </p>
+        ) : (
+          <div className="my-1 mx-3 h-4 border-b border-white/20" />
+        )}
 
         {/* Itens */}
         <div className="space-y-0.5">
@@ -70,45 +62,36 @@ export function AppSidebar() {
   return (
     <>
       {/* SIDEBAR DESKTOP */}
-      <motion.aside
-        animate={{ width: collapsed ? 68 : 248 }}
-        transition={{ type: 'spring', stiffness: 380, damping: 35 }}
+      <aside
+        style={{ width: collapsed ? 68 : 260 }}
         className={cn(
-          'hidden md:flex h-screen flex-col border-r border-white/10 bg-[hsl(var(--sidebar))] text-white shrink-0 select-none relative z-50 overflow-x-hidden'
+          'relative z-50 hidden h-screen shrink-0 select-none flex-col overflow-x-hidden border-r border-white/10 bg-[hsl(var(--sidebar))] text-white transition-[width] duration-200 md:flex'
         )}
       >
         {/* Header da Sidebar */}
         <div className={cn(
-          "flex h-16 items-center border-b border-white/10 shrink-0 transition-all duration-150",
-          collapsed ? "justify-center px-0 w-full" : "justify-between px-3"
+          "flex shrink-0 items-center border-b border-white/25 transition-all duration-150",
+          collapsed ? "h-16 justify-center px-0" : "h-56 justify-center px-6"
         )}>
-          <div className={cn("flex items-center min-w-0 transition-all duration-150", collapsed ? "justify-center gap-0 w-full" : "gap-3")}>
+          <div className={cn("flex min-w-0 items-center transition-all duration-150", collapsed ? "justify-center" : "w-full flex-col gap-3")}>
             {/* Logo GO Itaim */}
             <Image
               src="/logo.png"
               alt="GO Itaim Logo"
-              width={36}
-              height={36}
+              width={136}
+              height={136}
               className={cn(
-                "h-10 w-10 shrink-0 rounded-lg bg-white object-contain p-1 transition-all duration-150",
-                collapsed ? "mx-auto" : ""
+                "shrink-0 object-contain transition-all duration-150",
+                collapsed ? "h-10 w-10" : "h-32 w-32"
               )}
             />
             
             {!collapsed && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex flex-col min-w-0"
-              >
-                <span className="truncate text-sm font-semibold tracking-tight text-white">
+              <div className="w-full border-t border-white/35 pt-4 text-center">
+                <span className="block truncate text-xs font-semibold uppercase tracking-[0.15em] text-white">
                   Dashboard Geral
                 </span>
-                <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-white/60">
-                  OPERACIONAL
-                </span>
-              </motion.div>
+              </div>
             )}
           </div>
         </div>
@@ -129,7 +112,7 @@ export function AppSidebar() {
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
         </div>
-      </motion.aside>
+      </aside>
 
       {/* OVERLAY MOBILE SIDEBAR */}
       <AnimatePresence>

@@ -1,78 +1,78 @@
 'use client';
 
-import React, { useCallback, useMemo, useRef } from 'react';
-import { format, parseISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
-
+import React, { useMemo, useState } from 'react';
+import { format, isValid, parseISO } from 'date-fns';
+import { Pause, Play, RefreshCw } from 'lucide-react';
 import { useCityLastUpdates } from '@/hooks/data/useCityLastUpdates';
 
 export function CityLastUpdatesTicker() {
   const { data, loading } = useCityLastUpdates();
 
-  const visibleItems = useMemo(() => {
-    if (!data || data.length === 0) return [];
-
-    return [...data]
+  const items = useMemo(() => {
+    return [...(data || [])]
+      .filter((item) => item.city)
       .sort((a, b) => (b.last_update_date || '').localeCompare(a.last_update_date || ''))
-      .slice(0, 10)
-      .map((item) => ({
-        ...item,
-        formattedDate: item.last_update_date
-          ? format(parseISO(item.last_update_date), "dd/MM", { locale: ptBR })
-          : 'N/A',
-      }));
+      .map((item) => {
+        const date = item.last_update_date ? parseISO(item.last_update_date) : null;
+        return {
+          city: item.city,
+          date: date && isValid(date) ? format(date, 'dd/MM') : 'Data indisponível',
+        };
+      });
   }, [data]);
 
-  const scrollerRef = useRef<HTMLDivElement>(null);
-  const scrollCities = useCallback((direction: -1 | 1) => {
-    scrollerRef.current?.scrollBy({ left: direction * 260, behavior: 'smooth' });
-  }, []);
+  return <CityUpdatesMarquee items={items} loading={loading} />;
+}
+
+export function CityUpdatesMarquee({ items, loading = false }: {
+  items: { city: string; date: string }[];
+  loading?: boolean;
+}) {
+  const [paused, setPaused] = useState(false);
 
   return (
-    <div className="flex min-w-0 w-full items-center gap-2" aria-label="Última atualização por cidade">
-      <div className="hidden shrink-0 items-center gap-1.5 xl:flex">
-        <RefreshCw className="h-3.5 w-3.5 text-primary" aria-hidden="true" />
-        <span className="whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">Sincronizado</span>
+    <div className="flex min-w-0 w-full items-center gap-3" aria-label="Última atualização por cidade">
+      <div className="flex shrink-0 items-center gap-2 text-primary">
+        <RefreshCw className="animate-city-updates-spin h-4 w-4" aria-hidden="true" />
+        <span className="hidden text-xs font-semibold sm:inline">Sincronizado</span>
       </div>
-      <button
-        type="button"
-        onClick={() => scrollCities(-1)}
-        aria-label="Rolar cidades para a esquerda"
-        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-background text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        <ChevronLeft className="h-4 w-4" />
-      </button>
-      <div
-        ref={scrollerRef}
-        role="region"
-        aria-label="Cidades e datas de atualização"
-        tabIndex={0}
-        className="subtle-scrollbar min-w-0 flex-1 overflow-x-auto overscroll-x-contain pb-1"
-      >
-        {visibleItems.length > 0 ? (
-          <div className="flex w-max min-w-full items-center gap-1.5">
-            {visibleItems.map((item) => (
-              <div key={`${item.city}-${item.last_update_date}`} className="flex shrink-0 items-center gap-2 rounded-md border border-border bg-background px-2.5 py-1.5 text-xs">
-                <span className="max-w-[10rem] truncate font-semibold text-foreground">{item.city}</span>
-                <span className="tabular-nums text-muted-foreground">{item.formattedDate}</span>
-              </div>
-            ))}
+      <span className="h-5 w-px shrink-0 bg-border" aria-hidden="true" />
+
+      {items.length ? (
+        <>
+          <div className="city-ticker-window subtle-scrollbar min-w-0 flex-1 overflow-x-auto" role="region" aria-label="Cidades e datas de atualização" tabIndex={0}>
+            <div
+              className="city-ticker-track animate-marquee flex w-max items-center"
+              style={{ animationDuration: `${Math.max(24, items.length * 3.5)}s`, ...(paused ? { animationPlayState: 'paused' } : {}) }}
+            >
+              {[0, 1].map((copy) => (
+                <div key={copy} aria-hidden={copy === 1} className="flex shrink-0 items-center gap-5 pr-5">
+                  {items.map((item, index) => (
+                    <span key={`${copy}-${item.city}-${index}`} className="flex shrink-0 items-baseline gap-1.5 whitespace-nowrap text-xs text-foreground">
+                      <span className="font-semibold">{item.city}</span>
+                      <time className="tabular-nums text-muted-foreground">{item.date}</time>
+                      <span className="ml-3 text-muted-foreground" aria-hidden="true">·</span>
+                    </span>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
-        ) : (
-          <div className="flex min-h-8 min-w-full items-center rounded-md border border-dashed border-border px-3 text-xs text-muted-foreground" aria-live="polite">
-            {loading ? 'Carregando datas de atualização…' : 'Datas de atualização indisponíveis'}
-          </div>
-        )}
-      </div>
-      <button
-        type="button"
-        onClick={() => scrollCities(1)}
-        aria-label="Rolar cidades para a direita"
-        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md border border-border bg-background text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-      >
-        <ChevronRight className="h-4 w-4" />
-      </button>
+          <button
+            type="button"
+            onClick={() => setPaused((value) => !value)}
+            aria-label={paused ? 'Retomar rolagem das cidades' : 'Pausar rolagem das cidades'}
+            aria-pressed={paused}
+            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {paused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
+          </button>
+        </>
+      ) : (
+        <span className="min-w-0 truncate text-xs text-muted-foreground" aria-live="polite">
+          {loading ? 'Carregando datas das cidades…' : 'Datas das cidades indisponíveis'}
+        </span>
+      )}
     </div>
   );
 }

@@ -10,16 +10,16 @@ interface FilterModeSwitchProps {
 
 export const FilterModeSwitch: React.FC<FilterModeSwitchProps> = ({ isModoIntervalo, onToggle, className }) => {
   return (
-    <div className={cn("flex w-full flex-col gap-1.5", className)}>
-      <span className="select-none pl-0.5 text-[11px] font-semibold text-muted-foreground">Período</span>
-      <div className="flex h-10 w-full items-center rounded-md border border-input bg-background p-1 text-xs sm:w-auto">
-        <CalendarRange className="mx-2 h-4 w-4 shrink-0 text-primary" aria-hidden="true" />
+    <div className={cn("flex w-full flex-col gap-1.5 xl:flex-row xl:items-center xl:gap-3", className)}>
+      <span className="select-none pl-0.5 text-sm font-semibold text-foreground">Período</span>
+      <div className="flex h-11 w-full items-center rounded-md border border-input bg-background p-1 text-sm xl:flex-1">
+        <CalendarRange className="mx-2 h-4 w-4 shrink-0 text-primary xl:hidden" aria-hidden="true" />
         <button
           type="button"
           onClick={() => { if (isModoIntervalo) onToggle(); }}
           aria-pressed={!isModoIntervalo}
           className={cn(
-            "h-full flex-1 whitespace-nowrap rounded px-2 font-semibold transition-colors sm:flex-none",
+            "h-full flex-1 whitespace-nowrap rounded px-2 font-semibold transition-colors",
             !isModoIntervalo ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
           )}
         >
@@ -30,7 +30,7 @@ export const FilterModeSwitch: React.FC<FilterModeSwitchProps> = ({ isModoInterv
           onClick={() => { if (!isModoIntervalo) onToggle(); }}
           aria-pressed={isModoIntervalo}
           className={cn(
-            "h-full flex-1 whitespace-nowrap rounded px-2 font-semibold transition-colors sm:flex-none",
+            "h-full flex-1 whitespace-nowrap rounded px-2 font-semibold transition-colors",
             isModoIntervalo ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
           )}
         >

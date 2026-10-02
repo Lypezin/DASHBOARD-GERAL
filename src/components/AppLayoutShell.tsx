@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { usePathname } from 'next/navigation';
-import { AppBootstrapProvider } from '@/contexts/AppBootstrapContext';
+import { AppBootstrapProvider, useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { OrganizationProvider } from '@/contexts/OrganizationContext';
 import { GamificationProvider } from '@/contexts/GamificationContext';
 import { SidebarProvider } from '@/contexts/SidebarContext';
@@ -50,30 +50,33 @@ export function AppLayoutShell({ children }: { children: React.ReactNode }) {
           <SidebarProvider>
             {shouldMountActivityTracker ? <UserActivityTracker /> : null}
             
-            <div data-design-world="folhas" className="folhas-world flex min-h-screen w-full bg-background font-sans text-foreground antialiased transition-colors duration-200">
-              {!useStandaloneAppLayout ? (
-                <React.Suspense fallback={<div className="hidden h-screen w-16 shrink-0 border-r border-border bg-card md:block" />}>
-                  <AppSidebar />
-                </React.Suspense>
-              ) : null}
-
-              {/* Área de Conteúdo à direita */}
-              <div className="flex flex-1 flex-col min-w-0">
-                {!useStandaloneAppLayout ? (
-                  <React.Suspense fallback={<div className="h-16 w-full shrink-0 animate-pulse border-b border-border bg-card" />}>
-                    <DashboardHeader />
-                  </React.Suspense>
-                ) : null}
-
-                {/* Container principal */}
-                <main className="flex-1 min-w-0 overflow-y-auto">
-                  {children}
-                </main>
-              </div>
-            </div>
+            <PrivateAppChrome standalone={useStandaloneAppLayout}>{children}</PrivateAppChrome>
           </SidebarProvider>
         </GamificationProvider>
       </OrganizationProvider>
     </AppBootstrapProvider>
+  );
+}
+
+function PrivateAppChrome({ children, standalone }: { children: React.ReactNode; standalone: boolean }) {
+  const { hasResolved, isAuthenticated } = useAppBootstrap();
+  const showChrome = !standalone && hasResolved && isAuthenticated;
+
+  return (
+    <div data-design-world="folhas" className="folhas-world flex min-h-screen w-full bg-background font-sans text-foreground antialiased transition-colors duration-200">
+      {showChrome && (
+        <React.Suspense fallback={<div className="hidden h-screen w-16 shrink-0 border-r border-border bg-card md:block" />}>
+          <AppSidebar />
+        </React.Suspense>
+      )}
+      <div className="flex min-w-0 flex-1 flex-col">
+        {showChrome && (
+          <React.Suspense fallback={<div className="h-16 w-full shrink-0 animate-pulse border-b border-border bg-card" />}>
+            <DashboardHeader />
+          </React.Suspense>
+        )}
+        <main className="min-w-0 flex-1 overflow-y-auto">{children}</main>
+      </div>
+    </div>
   );
 }
