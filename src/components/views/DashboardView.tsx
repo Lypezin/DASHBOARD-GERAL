@@ -1,7 +1,5 @@
 import React, { useMemo } from 'react';
 import { DashboardGeneralStats } from './dashboard/DashboardGeneralStats';
-import { DashboardOverviewStats } from './dashboard/DashboardOverviewStats';
-import { DashboardOverviewAnalysis } from './dashboard/DashboardOverviewAnalysis';
 import { DashboardDailyPerformance } from './dashboard/DashboardDailyPerformance';
 import { DashboardOperationalDetail } from './dashboard/DashboardOperationalDetail';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
@@ -10,7 +8,6 @@ import type {
   DashboardFilters,
   CurrentUser,
   Totals,
-  FilterOption,
   AderenciaSemanal,
   AderenciaDia,
   AderenciaTurno,
@@ -25,15 +22,11 @@ const DashboardView = React.memo(function DashboardView({
   aderenciaTurno,
   aderenciaSubPraca,
   aderenciaOrigem,
-  totals,
-  filters,
-  pracas,
 }: {
   filters: DashboardFilters;
   filterPayload: FilterPayload;
   currentUser: CurrentUser | null;
   totals: Totals | null;
-  pracas: FilterOption[];
   aderenciaSemanal: AderenciaSemanal[];
   aderenciaDia: AderenciaDia[];
   aderenciaTurno: AderenciaTurno[];
@@ -43,26 +36,11 @@ const DashboardView = React.memo(function DashboardView({
   const aderenciaGeral = useMemo(() => calculateAderenciaGeral(aderenciaSemanal), [aderenciaSemanal]);
 
   return (
-    <ViewContainer className="space-y-8 pb-16 pt-3">
+    <ViewContainer className="space-y-9 pb-16 pt-5">
       <section className="space-y-4">
         <DashboardSectionHeader
           title="Resumo Operacional"
-          description="Corridas, aderência e praças no período selecionado."
-        />
-        <DashboardOverviewStats
-          totals={totals}
-          adherence={aderenciaGeral}
-          plazaCount={pracas.length}
-          selectedPlaza={filters.praca}
-        />
-      </section>
-
-      <DashboardOverviewAnalysis days={aderenciaDia} subPlazas={aderenciaSubPraca} />
-
-      <section className="space-y-4">
-        <DashboardSectionHeader
-          title="Horas planejadas e entregues"
-          description="Compare o volume programado com as horas efetivamente realizadas."
+          description="Indicadores consolidados de aderência e métricas críticas de entrega."
         />
         <DashboardGeneralStats aderenciaGeral={aderenciaGeral} aderenciaDia={aderenciaDia} />
       </section>
@@ -97,11 +75,11 @@ export default DashboardView;
 
 function DashboardSectionHeader({ title, description }: { title: string; description: string }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 border-b border-border pb-3 sm:flex-row sm:items-baseline sm:justify-between sm:gap-5">
-      <h2 className="text-2xl font-semibold leading-tight tracking-tight text-foreground sm:text-3xl">
+    <div className="flex min-w-0 flex-col gap-1 border-l-2 border-blue-500/70 pl-3">
+      <h2 className="text-xl font-semibold leading-tight text-slate-950 dark:text-slate-50">
         {title}
       </h2>
-      <p className="max-w-3xl text-sm text-muted-foreground sm:text-right">
+      <p className="max-w-3xl text-sm text-slate-500 dark:text-slate-400">
         {description}
       </p>
     </div>

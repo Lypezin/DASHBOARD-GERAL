@@ -10,7 +10,7 @@ export const RegistroSubmitButton: React.FC<RegistroSubmitButtonProps> = ({ load
     <Button
         type="submit"
         disabled={loading}
-        className="h-11 w-full border-0 bg-[#0754d8] px-8 text-white shadow-sm transition-colors hover:bg-[#0647b7] active:scale-[0.98]"
+        className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white h-11 px-8 shadow-lg shadow-blue-500/25 border-0 transition-all active:scale-[0.98]"
     >
         {loading ? (
             <>

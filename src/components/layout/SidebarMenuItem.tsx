@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { TabType } from '@/types';
@@ -33,19 +34,25 @@ export const SidebarMenuItem = React.memo(function SidebarMenuItem({
       onMouseEnter={() => prefetchDashboardTabResources(item.value)}
       onFocus={() => prefetchDashboardTabResources(item.value)}
       className={cn(
-        'flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150',
-        'relative overflow-hidden group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40',
+        'flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-semibold transition-all duration-150',
+        'relative overflow-hidden group focus:outline-none',
         isActive
-          ? 'bg-[hsl(var(--sidebar-active))] text-[#091634] shadow-sm'
-          : 'text-white/75 hover:bg-white/10 hover:text-white'
+          ? 'bg-primary text-primary-foreground shadow-[0_4px_12px_rgba(59,130,246,0.15)]'
+          : 'text-muted-foreground hover:bg-muted hover:text-foreground'
       )}
     >
-      <Icon className={cn('h-[18px] w-[18px] shrink-0', isActive ? 'text-current' : 'text-white/65 group-hover:text-white')} />
+      <Icon className={cn('h-[18px] w-[18px] shrink-0', isActive ? 'text-current' : 'text-muted-foreground/80 group-hover:text-foreground')} />
       
       {!collapsed && (
-        <span className="truncate">
+        <motion.span
+          initial={{ opacity: 0, width: 0 }}
+          animate={{ opacity: 1, width: 'auto' }}
+          exit={{ opacity: 0, width: 0 }}
+          transition={{ duration: 0.2 }}
+          className="truncate"
+        >
           {displayLabel}
-        </span>
+        </motion.span>
       )}
     </button>
   );

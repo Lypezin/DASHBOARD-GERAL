@@ -1,78 +1,76 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
-import { format, isValid, parseISO } from 'date-fns';
-import { Pause, Play, RefreshCw } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { format, parseISO } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
+import { RefreshCw } from 'lucide-react';
+
 import { useCityLastUpdates } from '@/hooks/data/useCityLastUpdates';
 
 export function CityLastUpdatesTicker() {
   const { data, loading } = useCityLastUpdates();
 
-  const items = useMemo(() => {
-    return [...(data || [])]
-      .filter((item) => item.city)
+  const visibleItems = useMemo(() => {
+    if (!data || data.length === 0) return [];
+
+    return [...data]
       .sort((a, b) => (b.last_update_date || '').localeCompare(a.last_update_date || ''))
-      .map((item) => {
-        const date = item.last_update_date ? parseISO(item.last_update_date) : null;
-        return {
-          city: item.city,
-          date: date && isValid(date) ? format(date, 'dd/MM') : 'Data indisponível',
-        };
-      });
+      .slice(0, 10)
+      .map((item) => ({
+        ...item,
+        formattedDate: item.last_update_date
+          ? format(parseISO(item.last_update_date), "dd/MM", { locale: ptBR })
+          : 'N/A',
+      }));
   }, [data]);
 
-  return <CityUpdatesMarquee items={items} loading={loading} />;
-}
+  if (loading || visibleItems.length === 0) return null;
 
-export function CityUpdatesMarquee({ items, loading = false }: {
-  items: { city: string; date: string }[];
-  loading?: boolean;
-}) {
-  const [paused, setPaused] = useState(false);
+  // Repete os itens 4 vezes para garantir que preencha toda a tela mesmo em monitores ultrawide
+  const marqueeItems = [...visibleItems, ...visibleItems, ...visibleItems, ...visibleItems];
 
   return (
-    <div className="flex min-w-0 w-full items-center gap-3" aria-label="Última atualização por cidade">
-      <div className="flex shrink-0 items-center gap-2 text-primary">
-        <RefreshCw className="animate-city-updates-spin h-4 w-4" aria-hidden="true" />
-        <span className="hidden text-xs font-semibold sm:inline">Sincronizado</span>
-      </div>
-      <span className="h-5 w-px shrink-0 bg-border" aria-hidden="true" />
-
-      {items.length ? (
-        <>
-          <div className="city-ticker-window subtle-scrollbar min-w-0 flex-1 overflow-x-auto" role="region" aria-label="Cidades e datas de atualização" tabIndex={0}>
-            <div
-              className="city-ticker-track animate-marquee flex w-max items-center"
-              style={{ animationDuration: `${Math.max(24, items.length * 3.5)}s`, ...(paused ? { animationPlayState: 'paused' } : {}) }}
-            >
-              {[0, 1].map((copy) => (
-                <div key={copy} aria-hidden={copy === 1} className="flex shrink-0 items-center gap-5 pr-5">
-                  {items.map((item, index) => (
-                    <span key={`${copy}-${item.city}-${index}`} className="flex shrink-0 items-baseline gap-1.5 whitespace-nowrap text-xs text-foreground">
-                      <span className="font-semibold">{item.city}</span>
-                      <time className="tabular-nums text-muted-foreground">{item.date}</time>
-                      <span className="ml-3 text-muted-foreground" aria-hidden="true">·</span>
-                    </span>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-          <button
-            type="button"
-            onClick={() => setPaused((value) => !value)}
-            aria-label={paused ? 'Retomar rolagem das cidades' : 'Pausar rolagem das cidades'}
-            aria-pressed={paused}
-            className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-          >
-            {paused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
-          </button>
-        </>
-      ) : (
-        <span className="min-w-0 truncate text-xs text-muted-foreground" aria-live="polite">
-          {loading ? 'Carregando datas das cidades…' : 'Datas das cidades indisponíveis'}
+    <div className="w-full flex items-center gap-3 overflow-hidden select-none pl-1">
+      {/* Indicador de Status / Refresh sutil */}
+      <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/10 dark:bg-emerald-500/15">
+          <RefreshCw className="h-3 w-3 text-emerald-500 animate-city-updates-spin" />
+        </div>
+        <span className="hidden xl:inline text-[9px] font-bold uppercase tracking-wider text-muted-foreground/75 whitespace-nowrap">
+          Sincronizado
         </span>
-      )}
+      </div>
+
+      <div className="h-4 w-px bg-border shrink-0" />
+
+      {/* Marquee de Cidades e Datas */}
+      <div className="relative flex-1 overflow-hidden h-6">
+        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-card to-transparent" />
+        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-card to-transparent" />
+
+        <div className="absolute inset-y-0 left-0 flex items-center overflow-visible">
+          <div className="flex items-center gap-4 w-max animate-marquee hover:[animation-play-state:paused]">
+            {marqueeItems.map((item, index) => (
+              <div
+                key={`${item.city}-${index}`}
+                className="flex items-center gap-2 shrink-0"
+              >
+                <div className="h-1 w-1 rounded-full bg-emerald-500/80 shrink-0" />
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                  <span className="text-foreground/90 font-bold whitespace-nowrap font-outfit">
+                    {item.city}
+                  </span>
+                  <span className="text-[10px] font-mono font-extrabold text-emerald-600 dark:text-emerald-400 opacity-100 whitespace-nowrap bg-emerald-500/10 dark:bg-emerald-500/15 px-1.5 py-0.5 rounded shadow-sm">
+                    {item.formattedDate}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      
     </div>
   );
 }

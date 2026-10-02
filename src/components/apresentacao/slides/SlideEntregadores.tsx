@@ -133,7 +133,7 @@ export const SlideEntregadores: React.FC<SlideEntregadoresProps> = ({
                     {/* Card 2: Quantidade de Entregadores */}
                     <div className="bg-slate-900 text-white dark:bg-white dark:text-slate-950 p-5 rounded-2xl flex flex-col gap-4 shadow-xl border border-slate-200 dark:border-slate-800">
                         <div className="flex items-center gap-3 border-b border-slate-800 dark:border-slate-200 pb-3">
-                             <Users className="h-6 w-6 text-emerald-400 dark:text-emerald-600 shrink-0" />
+                            <Users className="h-6 w-6 text-purple-400 dark:text-purple-600 shrink-0" />
                             <span className="text-sm font-black uppercase tracking-wider">Qtd. Entregadores</span>
                         </div>
                         <div className="grid grid-cols-3 gap-2 font-mono text-center">
@@ -143,7 +143,7 @@ export const SlideEntregadores: React.FC<SlideEntregadoresProps> = ({
                             </div>
                             <div className="border-l border-slate-800 dark:border-slate-200 pl-2">
                                 <span className="text-[10px] md:text-xs uppercase tracking-widest text-slate-400 block dark:text-slate-500 font-bold mb-1">Sem {numeroSemana2}</span>
-                                 <span className="text-lg md:text-2xl font-black text-emerald-400 dark:text-emerald-600 block truncate">{qtdSem2}</span>
+                                <span className="text-lg md:text-2xl font-black text-purple-400 dark:text-purple-600 block truncate">{qtdSem2}</span>
                             </div>
                             <div className="border-l border-slate-800 dark:border-slate-200 pl-2">
                                 <span className="text-[10px] md:text-xs uppercase tracking-widest text-slate-400 block dark:text-slate-500 font-bold mb-1">Total Únicos</span>

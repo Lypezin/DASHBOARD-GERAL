@@ -1,9 +1,0 @@
-{
-  "title": "Administração — Usuários",
-  "prompt": "Create a high-fidelity, browser-free desktop app screenshot mockup, 1600x1000, for the standalone GO Itaim administrator page. Use selected “Folhas de Operação” aesthetic: warm ivory paper, forest-green accents, graphite text, sage highlight, precise compact hierarchy, thin ruled dividers, no gradients, no glassmorphism. This page is outside the dashboard shell, so do not include a sidebar or city ticker. Show an editorial admin page with top header “Painel Administrativo”, subtitle “Gerenciamento de usuários, permissões e organizações.”, and top-right outlined button “Voltar ao Dashboard”. Beneath have four compact summary cards labeled “Total Usuários” with 128 and caption “Cadastrados no sistema”; “Pendentes” 6 and caption “Aguardando aprovação”; “Organizações” 8 and caption “Ativas na plataforma”; “Atividade” +5,2% caption “Desde o último mês”. Then show a large bordered table area with a two-tab switch “Usuários” active and “Organizações”. Inside the active Usuários state, clearly show section “Usuários (128)”, search field “Buscar usuários...”, and a visually distinct pending section “Usuários Pendentes” containing two rows with person name, email, requested organization and action “Aprovar”. Below, a full user table with headers “Usuário”, “Organização”, “Status”, “Praças”, “Ações”; show four sample rows with realistic names, organizations, active/pending status badges, city chips and discreet edit/revoke actions. Include small pagination “Página 1 de 13” and chevrons. Strong information hierarchy, readable controls and enough table density to convey real functionality. Keep existing terms accurate and accents. All data are illustrative. No watermark or invented app nav.",
-  "referenceFiles": [
-    "public/logo.png",
-    ".impeccable/mocks/decision/assigned-folhas-operacao-v2.png"
-  ],
-  "demoData": "Usuários, métricas e organizações são ilustrativos."
-}

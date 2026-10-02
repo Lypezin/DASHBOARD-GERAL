@@ -7,8 +7,7 @@ import { useSemanasComDados } from '@/hooks/data/useSemanasComDados';
 export function useFiltroBarOptions(
     anos: number[],
     semanas: string[],
-    filters: Filters,
-    disableWeekLookup = false
+    filters: Filters
 ) {
     const anosOptions = useMemo(() => {
         return anos.map((ano) => ({ value: String(ano), label: String(ano) }));
@@ -16,7 +15,7 @@ export function useFiltroBarOptions(
 
     // Busca semanas que realmente têm dados para o ano selecionado
     const selectedYear = filters?.ano ? parseInt(String(filters.ano), 10) : null;
-    const { semanasComDados } = useSemanasComDados(disableWeekLookup ? null : selectedYear);
+    const { semanasComDados } = useSemanasComDados(selectedYear);
 
     const semanasOptions = useMemo(() => {
         const today = new Date();

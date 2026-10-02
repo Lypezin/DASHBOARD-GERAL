@@ -31,7 +31,6 @@ export const renderActiveView = (activeTab: TabType, props: DashboardViewRenderP
                     filterPayload={props.filterPayload}
                     currentUser={props.currentUser}
                     totals={props.totals}
-                    pracas={props.pracas}
                     aderenciaSemanal={props.aderenciaSemanal}
                     aderenciaDia={props.aderenciaDia}
                     aderenciaTurno={props.aderenciaTurno}

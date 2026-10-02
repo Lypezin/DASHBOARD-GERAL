@@ -27,7 +27,9 @@ const SlideCapaMarketing: React.FC<SlideCapaMarketingProps> = ({
     if (!isVisible) return null;
 
     return (
-        <div className="relative flex h-full w-full flex-col items-center justify-center overflow-hidden bg-background p-16 font-sans text-foreground">
+        <div className={`relative w-full h-full overflow-hidden flex flex-col items-center justify-center p-20 font-sans transition-colors duration-500 ${
+            isDark ? 'bg-[#0A1D3A]' : 'bg-white'
+        }`}>
             <CapaBackground isDark={isDark} />
             
             <CapaTitle 

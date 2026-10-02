@@ -12,9 +12,9 @@ interface UploadActionsProps {
 }
 
 const variantButton = {
-    default: 'bg-primary hover:bg-primary/90 focus-visible:ring-ring',
-    marketing: 'bg-primary hover:bg-primary/90 focus-visible:ring-ring',
-    valores: 'bg-primary hover:bg-primary/90 focus-visible:ring-ring',
+    default: 'bg-blue-600 hover:bg-blue-700 focus-visible:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-500',
+    marketing: 'bg-purple-600 hover:bg-purple-700 focus-visible:ring-purple-300 dark:bg-purple-600 dark:hover:bg-purple-500',
+    valores: 'bg-emerald-600 hover:bg-emerald-700 focus-visible:ring-emerald-300 dark:bg-emerald-600 dark:hover:bg-emerald-500',
 };
 
 export const UploadActions: React.FC<UploadActionsProps> = ({
@@ -25,7 +25,7 @@ export const UploadActions: React.FC<UploadActionsProps> = ({
         <button
             onClick={onUpload}
             disabled={isDisabled}
-            className={`flex w-full items-center justify-center gap-2 rounded-md px-5 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-45 ${variantButton[variant]}`}
+            className={`w-full flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-40 disabled:pointer-events-none ${variantButton[variant]}`}
         >
             {uploading ? (
                 <>

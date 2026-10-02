@@ -45,7 +45,7 @@ export function ProfileDetails({ profile, loading }: ProfileDetailsProps) {
         ) : null}
 
         {loading ? (
-          <p className="rounded-md border border-border bg-muted/50 px-4 py-3 text-sm text-muted-foreground">
+          <p className="rounded-2xl border border-slate-200/70 bg-slate-50/80 px-4 py-3 text-sm font-medium text-slate-500 dark:border-slate-800/80 dark:bg-slate-900/55 dark:text-slate-400">
             Carregando informações adicionais do perfil...
           </p>
         ) : null}
@@ -66,12 +66,12 @@ function InfoTile({
   capitalize?: boolean;
 }) {
   return (
-    <div className="min-w-0 rounded-lg border border-border bg-card p-4">
-      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <Icon className="h-4 w-4 text-primary" />
+    <div className="min-w-0 rounded-2xl border border-slate-200/70 bg-white/80 p-4 shadow-sm dark:border-slate-800/80 dark:bg-slate-900/55">
+      <div className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-200">
+        <Icon className="h-4 w-4 text-blue-500" />
         {label}
       </div>
-      <p className={`mt-2 min-w-0 break-words text-sm text-foreground ${capitalize ? 'capitalize' : ''}`}>
+      <p className={`mt-2 min-w-0 break-words text-sm font-medium text-slate-600 dark:text-slate-300 ${capitalize ? 'capitalize' : ''}`}>
         {value}
       </p>
     </div>

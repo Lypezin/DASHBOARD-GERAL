@@ -1,9 +1,0 @@
-{
-  "referenceFiles": [
-    "public/logo.png",
-    ".impeccable/mocks/decision/assigned-folhas-operacao-v2.png"
-  ],
-  "title": "Administração — Organizações",
-  "prompt": "High-fidelity desktop screenshot mockup, 1600x1000, standalone GO Itaim admin page, “Folhas de Operação” visual design: warm paper white, deep evergreen ink, sage, calm amber, crisp serif headings, clean compact table, thin rules, no gradients/glassmorphism, no sidebar/ticker because real admin page is standalone. Top heading “Painel Administrativo”, subtitle “Gerenciamento de usuários, permissões e organizações.” and outlined “Voltar ao Dashboard”. Show four summary cards Total Usuários 128 / Cadastrados no sistema, Pendentes 6 / Aguardando aprovação, Organizações 8 / Ativas na plataforma, Atividade +5,2% / Desde o último mês. Main admin tabs show Usuários and Organizações active. Below section heading “Organizações (8)” at left and strong green button “+ Nova Organização” at right. Table with exact headers “Organização”, “Slug”, “Limite de Usuários”, “Status”, “Ações”. Rows: GO Itaim | go-itaim | 50 | Ativa | Editar · Desativar; Pimenta Construtora | pimenta-construtora | 30 | Ativa | Editar · Desativar; Urbana Desenvolvimento | urbana | 20 | Ativa | Editar · Desativar; Verde Metrópole | verde-metropole | 15 | Inativa | Editar · Ativar. Use small status badges, understated row separators. Show unobtrusive bottom note “Organizações ativas na plataforma” and an inline expanded new organization form to the right or below with labeled fields Nome, Slug, Limite de Usuários and actions “Cancelar”, “Criar Organização”, as a representative state of existing create flow. Keep table readable and make separate Editar/Ativar actions obvious. Portuguese text with accents, existing function labels. All records are demo. No watermark.",
-  "demoData": "Usuários, métricas e organizações são ilustrativos."
-}

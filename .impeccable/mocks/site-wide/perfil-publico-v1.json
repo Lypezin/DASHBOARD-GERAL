@@ -1,9 +1,0 @@
-{
-  "demoData": "Nome, atividade e datas são ilustrativos.",
-  "prompt": "Create a high fidelity standalone page screenshot mockup at 1600x1000 for GO Itaim Portuguese public team profile, continuing “Folhas de Operação”: paper ivory, forest green, pale sage, subtle botanical leaf etching limited to one corner, editorial serif display headings and crisp sans data labels, calm borders, no gradients/glassmorphism/sidebar/ticker. Header panel at top with eyebrow “Equipe”, title “Perfil público”, description “Informações públicas exibidas na equipe e no chat.” and outlined action “Voltar ao Dashboard”. Under it a left profile identity card and a larger right details card. Left card has a quiet forest header band with subtle leaf etching, large circular avatar, sample name “Carla Mendes”, line “Perfil público da equipe”, chips “Operações” and green dot “Online”, custom status message “Acompanhando operação de São Paulo”. Right card eyebrow “Detalhes”, title “Detalhes do perfil”, description “Informações públicas exibidas na equipe e no chat.”, then individual clear tiles: “Nome” Carla Mendes; “Cargo” Operações; “Atividade atual” Visão Geral; “Online desde” Hoje, 08:42; “Membro desde” 12/03/2023. Add small subtle online presence mark and elegant card dividers. No edit controls; this is a public-facing read-only teammate profile. Keep actual profile fields, Portuguese accents, realistic hierarchy. Name/dates/status are examples only. No watermark.",
-  "title": "Perfil público",
-  "referenceFiles": [
-    "public/logo.png",
-    ".impeccable/mocks/decision/assigned-folhas-operacao-v2.png"
-  ]
-}

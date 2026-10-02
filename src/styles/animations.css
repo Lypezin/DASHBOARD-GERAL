@@ -191,6 +191,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .city-ticker-track,
   .animate-city-updates-spin,
   .animate-blob,
   .animate-slide-up,

@@ -10,8 +10,7 @@ interface CountUpProps {
 
 export const CountUp: React.FC<CountUpProps> = ({ value, duration = 2 }) => {
     const shouldReduceMotion = useReducedMotion();
-    // Render the current value on both server and client; animate only later updates.
-    const motionValue = useMotionValue(value);
+    const motionValue = useMotionValue(0);
     const springValue = useSpring(motionValue, {
         stiffness: 100,
         damping: 30,

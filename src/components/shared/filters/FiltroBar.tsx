@@ -11,11 +11,11 @@ import { IS_DEV } from '@/constants/environment';
 
 
 const FiltroBar = React.memo(function FiltroBar({
-  filters, setFilters, anos, semanas, pracas, subPracas, origens, turnos, currentUser, disableWeekLookup = false,
+  filters, setFilters, anos, semanas, pracas, subPracas, origens, turnos, currentUser,
 }: {
   filters: Filters; setFilters: React.Dispatch<React.SetStateAction<Filters>>;
   anos: number[]; semanas: string[]; pracas: FilterOption[]; subPracas: FilterOption[];
-  origens: FilterOption[]; turnos: FilterOption[]; currentUser: CurrentUser | null; disableWeekLookup?: boolean;
+  origens: FilterOption[]; turnos: FilterOption[]; currentUser: CurrentUser | null;
 }) {
   const {
     handleChange,
@@ -59,18 +59,23 @@ const FiltroBar = React.memo(function FiltroBar({
     }
   }, [filters]);
 
-  const { anosOptions, semanasOptions } = useFiltroBarOptions(anos, semanas, filters, disableWeekLookup);
+  const { anosOptions, semanasOptions } = useFiltroBarOptions(anos, semanas, filters);
 
   return (
-    <div className="relative z-10 w-full space-y-3">
-      <div className="grid w-full grid-cols-1 items-end gap-3 xl:grid-cols-[minmax(340px,1.1fr)_minmax(0,1.9fr)]">
-        <div className="w-full shrink-0">
+    <div className="relative z-10 w-full">
+      <div className="flex w-full flex-col gap-3 xl:flex-row xl:items-end">
+        <div className="w-full shrink-0 sm:w-auto">
           <FilterModeSwitch
             isModoIntervalo={showDateRangeFilters}
             onToggle={handleModeToggle}
           />
         </div>
-        <div className="grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-[minmax(130px,0.75fr)_minmax(220px,1.25fr)]">
+
+        <div className="hidden h-10 w-px shrink-0 self-end bg-slate-200/80 dark:bg-slate-800/80 xl:block" />
+
+        <div className={`grid min-w-0 flex-1 grid-cols-1 gap-2 sm:grid-cols-2 md:grid-cols-3 ${
+          showDateRangeFilters ? "xl:grid-cols-7" : "xl:grid-cols-6"
+        }`}>
           <FilterPrimarySection
             isModoIntervalo={showDateRangeFilters}
             filters={filters}
@@ -79,20 +84,24 @@ const FiltroBar = React.memo(function FiltroBar({
             semanasOptions={semanasOptions}
             handleChange={handleChange}
           />
+
+          <FilterSecondarySection
+            filters={filters}
+            setFilters={setFilters}
+            pracas={pracas}
+            subPracas={subPracas}
+            origens={origens}
+            turnos={turnos}
+            handleChange={handleChange}
+            shouldDisablePracaFilter={shouldDisablePracaFilter}
+          />
         </div>
-      </div>
-      <div className="grid grid-cols-2 items-end gap-2 md:grid-cols-4 xl:grid-cols-[repeat(4,minmax(0,1fr))_auto]">
-        <FilterSecondarySection
-          filters={filters}
-          setFilters={setFilters}
-          pracas={pracas}
-          subPracas={subPracas}
-          origens={origens}
-          turnos={turnos}
-          handleChange={handleChange}
-          shouldDisablePracaFilter={shouldDisablePracaFilter}
-        />
-        <FilterClearButton onClear={handleClearFiltersClick} disabled={!hasActiveFilters} />
+
+        {hasActiveFilters && (
+          <div className="w-full shrink-0 sm:w-auto">
+            <FilterClearButton onClear={handleClearFiltersClick} />
+          </div>
+        )}
       </div>
     </div>
   );

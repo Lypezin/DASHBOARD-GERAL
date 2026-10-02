@@ -34,7 +34,7 @@ const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange,
 
   return (
     <div className="group relative flex min-w-0 flex-col gap-1" ref={wrapperRef}>
-      <span className="pl-1 text-xs font-semibold text-foreground">
+      <span className="pl-1 text-[11px] font-bold text-slate-600 dark:text-slate-300">
         {label}
       </span>
       <div className="relative">
@@ -42,13 +42,10 @@ const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange,
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           disabled={disabled}
-          aria-label={`${label}: ${selectedOption?.label || placeholder}`}
-          aria-expanded={isOpen}
-          aria-haspopup="listbox"
           className={cn(
-            "h-11 w-full appearance-none rounded-md border border-input text-left focus:outline-none",
-            "bg-card px-3 py-1 text-sm font-semibold text-foreground transition-[background-color,border-color,box-shadow] duration-200",
-            "hover:border-primary/50 hover:bg-card",
+            "h-[38px] w-full appearance-none rounded-lg border border-slate-200/80 text-left focus:outline-none dark:border-slate-800",
+            "bg-white px-3 py-1 text-xs font-semibold text-slate-900 shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-200 dark:bg-slate-900 dark:text-slate-100",
+            "hover:border-blue-300 hover:bg-white hover:shadow-md motion-safe:hover:-translate-y-0.5 dark:hover:border-blue-500/50 dark:hover:bg-slate-900",
             isOpen ? "border-blue-400 ring-2 ring-blue-500/20" : "",
             value ? "pr-16" : "pr-10",
             "disabled:cursor-not-allowed disabled:opacity-50"
@@ -57,9 +54,9 @@ const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange,
         >
           <span className="block min-w-0 pr-1 leading-snug truncate w-full">
             {selectedOption ? (
-              <span className="block truncate font-semibold text-primary">{selectedOption.label}</span>
+              <span className="block truncate font-semibold text-blue-700 dark:text-blue-300">{selectedOption.label}</span>
             ) : (
-              <span className="block truncate font-normal text-muted-foreground">{placeholder}</span>
+              <span className="block truncate font-normal text-slate-400">{placeholder}</span>
             )}
           </span>
         </button>

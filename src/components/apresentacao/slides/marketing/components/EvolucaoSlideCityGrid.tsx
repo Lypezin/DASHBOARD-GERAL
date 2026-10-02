@@ -23,7 +23,7 @@ export const EvolucaoSlideCityGrid: React.FC<EvolucaoSlideCityGridProps> = React
                 <div className={`h-[1px] flex-1 ${isDark ? 'bg-slate-800' : 'bg-slate-200'}`} />
             </div>
             
-            <div className="grid grid-cols-4 gap-4 px-1">
+            <div className="grid grid-cols-4 gap-6 px-1">
                 {citiesData.map((data, idx) => (
                     <TiltCard key={idx} className="relative group perspective-1000">
                         <motion.div 
@@ -35,16 +35,20 @@ export const EvolucaoSlideCityGrid: React.FC<EvolucaoSlideCityGridProps> = React
                                 damping: 20, 
                                 delay: idx * 0.1 
                             }}
-                            className="rounded-lg border border-border bg-card p-5"
+                            className={`rounded-2xl p-6 transition-all duration-500 glass-card border border-white/10 ${
+                                isDark 
+                                ? 'shadow-[0_20px_50px_rgba(0,0,0,0.5)] bg-slate-900/40' 
+                                : 'shadow-2xl shadow-slate-200/60 bg-white/70'
+                            }`}
                         >
-                            <h4 className={`mb-4 flex items-center justify-between border-b pb-3 text-lg font-semibold ${
-                                isDark ? 'text-foreground border-border' : 'text-foreground border-border'
+                            <h4 className={`font-black text-xl mb-4 flex justify-between items-center border-b pb-3 ${
+                                isDark ? 'text-white border-white/5' : 'text-slate-800 border-slate-100'
                             }`} title={data.cidade}>
                                 <div className="flex flex-col flex-1 min-w-0 pr-2">
-                                    <span className="line-clamp-2 text-[17px] leading-tight tracking-tight transition-colors group-hover:text-primary">{data.cidade}</span>
+                                    <span className="text-[17px] leading-tight tracking-tight group-hover:text-blue-500 transition-colors line-clamp-2">{data.cidade}</span>
                                     <span className="mt-2 text-[9px] font-bold uppercase tracking-[0.18em] text-slate-400">Volume no período</span>
                                 </div>
-                                <div className="h-2.5 w-2.5 shrink-0 rounded-full bg-primary" />
+                                <div className="h-4 w-4 shrink-0 rounded-full bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.8)] animate-glow-pulse" />
                             </h4>
                             <div className="grid grid-cols-2 gap-y-4 gap-x-6">
                                 <StatItem label="Criados" value={data.criado} color={isDark ? 'text-blue-400' : 'text-blue-600'} isDark={isDark} />

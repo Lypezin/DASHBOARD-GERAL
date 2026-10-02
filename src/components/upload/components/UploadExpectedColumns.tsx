@@ -11,15 +11,15 @@ export const UploadExpectedColumns: React.FC<UploadExpectedColumnsProps> = ({ co
     if (!columns || columns.length === 0) return null;
 
     return (
-        <details open className="group overflow-hidden rounded-lg border border-border bg-background">
-            <summary className="flex cursor-pointer items-center gap-1.5 px-3 py-2.5 text-[11px] font-medium text-foreground transition-colors hover:text-primary">
+        <details className="group rounded-xl border border-slate-100 dark:border-slate-800/50 bg-slate-50/60 dark:bg-slate-800/20 overflow-hidden">
+            <summary className="cursor-pointer text-[11px] font-medium text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 flex items-center gap-1.5 px-3.5 py-2.5 transition-colors">
                 <FileSpreadsheet className="h-3 w-3" />
                 <span>Colunas esperadas</span>
-                <span className="ml-auto text-[10px] text-muted-foreground">{columns.length}</span>
+                <span className="ml-auto text-[10px] text-slate-400 dark:text-slate-500">{columns.length}</span>
             </summary>
-            <div className="flex flex-wrap gap-1.5 border-t border-border px-3 py-3">
+            <div className="px-3.5 pb-3 flex flex-wrap gap-1 border-t border-slate-100 dark:border-slate-800/50 pt-2.5">
                 {columns.map((col) => (
-                    <Badge key={col} variant="secondary" className="border border-border bg-accent px-2 py-1 font-mono text-[10px] font-medium text-foreground">
+                    <Badge key={col} variant="secondary" className="text-[10px] font-mono px-1.5 py-0.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                         {col}
                     </Badge>
                 ))}

@@ -8,9 +8,15 @@ interface CapaFooterProps {
 
 export const CapaFooter: React.FC<CapaFooterProps> = ({ isDark }) => {
     return (
-        <div className="absolute bottom-12 flex w-full items-center justify-center px-20">
-            <div className={`border-t border-border pt-3 text-[10px] font-medium uppercase tracking-[0.22em] ${isDark ? 'text-muted-foreground' : 'text-muted-foreground'}`}>
-                GO Itaim · Dashboard Geral
+        <div className="absolute bottom-16 w-full flex justify-center items-center px-20">
+            <div className="flex items-center gap-10 opacity-30 group hover:opacity-60 transition-opacity duration-500">
+                <span className={`text-[11px] font-black uppercase tracking-[0.3em] whitespace-nowrap transition-colors duration-500 ${
+                    isDark ? 'text-white' : 'text-slate-900'
+                }`}>Metrics Intelligence</span>
+                <div className={`h-1 w-1 rounded-full ${isDark ? 'bg-white' : 'bg-slate-900'}`} />
+                <span className={`text-[11px] font-black uppercase tracking-[0.3em] whitespace-nowrap transition-colors duration-500 ${
+                    isDark ? 'text-white' : 'text-slate-900'
+                }`}>High Performance</span>
             </div>
         </div>
     );
