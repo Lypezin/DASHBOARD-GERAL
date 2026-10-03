@@ -20,9 +20,12 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
 
     // Helper para processar strings/arrays
     const processArrayOrString = (arr: string[] | undefined | null, str: string | undefined | null): string[] | null => {
-        if (arr && arr.length > 0) return arr.slice(0, MAX_ARRAY_SIZE);
-        if (str && str.length > 0) return [str.substring(0, 100)];
-        return null;
+        const values = arr && arr.length > 0 ? arr : (str ? [str] : []);
+        const normalized = values
+            .map((value) => value.trim().substring(0, 100))
+            .filter(Boolean)
+            .slice(0, MAX_ARRAY_SIZE);
+        return normalized.length > 0 ? normalized : null;
     };
 
     // Processar Inputs BÃ¡sicos
@@ -97,9 +100,12 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
 
     return {
         p_ano: ano, p_semana: semana, p_semanas, p_praca: praca, 
-        p_sub_praca: (p_sub_pracas && p_sub_pracas.length > 0) ? p_sub_pracas[0] : (filters.subPraca || null), 
-        p_origem: (p_origens && p_origens.length > 0) ? p_origens[0] : (filters.origem || null), 
-        p_turno: (p_turnos && p_turnos.length > 0) ? p_turnos[0] : (filters.turno || null),
+        // Most tab RPCs accept these as comma-separated text, while the main
+        // dashboard also receives the typed arrays below. Preserve every
+        // selected value for both paths.
+        p_sub_praca: p_sub_pracas?.join(',') || null,
+        p_origem: p_origens?.join(',') || null,
+        p_turno: p_turnos?.join(',') || null,
         p_sub_pracas, p_origens, p_turnos, p_filtro_modo: filters.filtroModo || 'ano_semana',
         p_data_inicial: dataInicial, p_data_final: dataFinal, p_organization_id: organizationId, detailed: filters.detailed,
     } as const;

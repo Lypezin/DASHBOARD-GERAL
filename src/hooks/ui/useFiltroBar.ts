@@ -106,11 +106,16 @@ export function useFiltroBar({
 
     const hasActiveFilters = useMemo(() => {
         if (!filters) return false;
+        const hasSecondaryFilters = Boolean(
+            filters.subPraca || filters.subPracas?.length ||
+            filters.origem || filters.origens?.length ||
+            filters.turno || filters.turnos?.length
+        );
         if (filters.filtroModo === 'intervalo') {
-            return filters.dataInicial !== null || filters.dataFinal !== null || filters.subPraca !== null || filters.origem !== null || filters.turno !== null || (filters.turnos && filters.turnos.length > 0) ||
+            return filters.dataInicial !== null || filters.dataFinal !== null || hasSecondaryFilters ||
                 (hasFullCityAccess(currentUser) && filters.praca !== null);
         } else {
-            return filters.ano !== null || filters.semana !== null || (filters.semanas && filters.semanas.length > 0) || filters.subPraca !== null || filters.origem !== null || filters.turno !== null || (filters.turnos && filters.turnos.length > 0) ||
+            return filters.ano !== null || filters.semana !== null || (filters.semanas && filters.semanas.length > 0) || hasSecondaryFilters ||
                 (hasFullCityAccess(currentUser) && filters.praca !== null);
         }
     }, [filters, currentUser]);

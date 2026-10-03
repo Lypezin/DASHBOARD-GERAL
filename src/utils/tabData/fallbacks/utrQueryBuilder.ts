@@ -67,6 +67,18 @@ export const buildUtrQuery = (safePayload: FilterPayload) => {
         }
     }
 
+    if (safePayload.p_turno) {
+        const turnos = String(safePayload.p_turno)
+            .split(',')
+            .map((turno) => turno.trim())
+            .filter(Boolean);
+        if (turnos.length === 1) {
+            query = query.eq('periodo', turnos[0]);
+        } else if (turnos.length > 1) {
+            query = query.in('periodo', turnos);
+        }
+    }
+
     query = query.limit(QUERY_LIMITS.AGGREGATION_MAX);
 
     return query;

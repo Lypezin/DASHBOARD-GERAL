@@ -40,16 +40,6 @@ export function useDimensionOptions(
     const assignedPracasKey = currentUser?.assigned_pracas.join('|') || '';
     const assignedPracas = useMemo(() => assignedPracasKey.split('|').filter(Boolean), [assignedPracasKey]);
     const userHasFullAccess = hasFullCityAccess(currentUser);
-    const hasScopedDimensions = useMemo(() => {
-        if (!dimensoes) return false;
-
-        return (
-            dimensoes.sub_pracas.length > 0 ||
-            dimensoes.origens.length > 0 ||
-            (dimensoes.turnos?.length || 0) > 0
-        );
-    }, [dimensoes]);
-
     const targetPracas = useMemo(() => {
         if (filters?.praca) {
             if (userHasFullAccess || assignedPracas.some((praca) => praca.toUpperCase() === filters.praca?.toUpperCase())) {
@@ -71,23 +61,12 @@ export function useDimensionOptions(
         [currentUser?.organization_id, organizationId, targetPracasKey]
     );
 
-    const baseOptions = useMemo(() => {
-        if (!dimensoes) return EMPTY_OPTIONS;
-
-        if (targetPracas.length === 0 || hasScopedDimensions) {
-            return {
-                subPracas: toUniqueOptions(dimensoes.sub_pracas),
-                origens: toUniqueOptions(dimensoes.origens),
-                turnos: toUniqueOptions(dimensoes.turnos || []),
-            };
-        }
-
-        return null;
-    }, [dimensoes, hasScopedDimensions, targetPracas.length]);
-
-    const shouldFetchRemote = Boolean(
-        dimensoes && stableTargetPracas.length > 0 && !hasScopedDimensions
-    );
+    // The dimensions returned with dashboard rows are narrowed by the active
+    // filters. Use the independent RPC for filter choices so selecting one
+    // value does not remove the other available choices. An empty plaza list
+    // means all plazas within this user's organization.
+    const baseOptions = dimensoes ? null : EMPTY_OPTIONS;
+    const shouldFetchRemote = Boolean(dimensoes);
 
     useEffect(() => {
         let cancelled = false;
