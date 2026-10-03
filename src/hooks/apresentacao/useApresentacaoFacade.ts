@@ -105,6 +105,18 @@ export function useApresentacaoFacade(props: FacadeProps) {
                 if (res1.error || res2.error || !res1.data || !res2.data) {
                     throw new Error('Não foi possível carregar os entregadores das duas semanas. Tente novamente.');
                 }
+
+                for (const [week, result] of [[parsedWeeks[0], res1], [parsedWeeks[1], res2]] as const) {
+                    const data = result.data;
+                    if (!data) {
+                        throw new Error(`A lista de entregadores da semana ${week.semanaNumero} não retornou dados. Tente novamente.`);
+                    }
+
+                    const total = Number(data.total);
+                    if (!Number.isSafeInteger(total) || total !== data.entregadores.length) {
+                        throw new Error(`A lista de entregadores da semana ${week.semanaNumero} está incompleta. Tente novamente.`);
+                    }
+                }
                 
                 if (!active) return;
                 

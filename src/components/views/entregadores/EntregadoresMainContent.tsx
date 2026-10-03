@@ -148,6 +148,20 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
       throw new Error('A busca completa não retornou dados para a exportação.');
     }
 
+    const reportedTotal = Number(result.data.total);
+    if (!Number.isSafeInteger(reportedTotal) || reportedTotal !== result.data.entregadores.length) {
+      throw new Error('A consulta retornou apenas parte dos entregadores. Atualize a lista antes de exportar.');
+    }
+
+    const exportedIds = new Set<string>();
+    for (const entregador of result.data.entregadores) {
+      const id = String(entregador.id_entregador || '').trim();
+      if (!id || exportedIds.has(id)) {
+        throw new Error('A consulta retornou identificadores ausentes ou repetidos. Atualize a lista antes de exportar.');
+      }
+      exportedIds.add(id);
+    }
+
     return filterAndSortEntregadores(
       result.data.entregadores,
       effectiveSearchTerm,

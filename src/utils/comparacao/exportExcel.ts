@@ -416,21 +416,21 @@ export async function exportComparacaoToExcel(
     const utrSem1 = utrComparacao.find((u) => String(u.semana) === String(sem1))?.utr;
     const utrSem2 = utrComparacao.find((u) => String(u.semana) === String(sem2))?.utr;
 
-    const addUtrRow = (label: string, metric: 'utr' | 'tempo_horas' | 'corridas', formatAsPercent = false) => {
+    const addUtrRow = (label: string, metric: 'utr' | 'tempo_horas' | 'corridas') => {
         const val1 = getUtrMetricValue(utrSem1, metric);
         const val2 = getUtrMetricValue(utrSem2, metric);
         const diff = val1 !== null && val2 !== null ? val2 - val1 : null;
         rowsUtr.push([
             label,
-            val1 === null ? 'N/D' : formatAsPercent ? Number(val1.toFixed(1)) : val1,
-            val2 === null ? 'N/D' : formatAsPercent ? Number(val2.toFixed(1)) : val2,
-            diff === null ? 'N/D' : formatAsPercent ? formatVariation(diff) : diff,
+            val1 === null ? 'N/D' : val1,
+            val2 === null ? 'N/D' : val2,
+            diff === null ? 'N/D' : metric === 'utr' ? Number(diff.toFixed(1)) : diff,
             val1 === null || val2 === null ? 'N/D' : formatVariation(getVariation(val1, val2)),
         ]);
     };
 
     if (utrSem1 || utrSem2) {
-        addUtrRow('UTR Geral', 'utr', true);
+        addUtrRow('UTR Geral', 'utr');
         addUtrRow('Tempo Total (h)', 'tempo_horas');
         addUtrRow('Corridas Completadas', 'corridas');
     } else {
