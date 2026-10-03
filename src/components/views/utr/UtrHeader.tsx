@@ -4,6 +4,7 @@ import { SaasMetric, SaasPanel, SaasPanelHeader } from '@/components/views/share
 
 interface UtrHeaderProps {
     isExporting: boolean;
+    exportDisabled?: boolean;
     onExport: () => void;
     totalSections: number;
     totalSlices: number;
@@ -11,6 +12,7 @@ interface UtrHeaderProps {
 
 export const UtrHeader = React.memo(function UtrHeader({
     isExporting,
+    exportDisabled = false,
     onExport,
     totalSections,
     totalSlices
@@ -26,7 +28,8 @@ export const UtrHeader = React.memo(function UtrHeader({
                 actions={(
                     <button
                         onClick={onExport}
-                        disabled={isExporting}
+                        disabled={isExporting || exportDisabled}
+                        title={exportDisabled ? 'Aguarde a atualização dos dados antes de exportar.' : undefined}
                         type="button"
                         className="group inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200/80 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-[border-color,background-color,color,box-shadow,transform] duration-200 motion-safe:hover:-translate-y-0.5 hover:border-amber-300 hover:text-amber-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800/80 dark:bg-slate-950 dark:text-slate-300 dark:hover:border-amber-500/40 dark:hover:text-amber-300"
                     >

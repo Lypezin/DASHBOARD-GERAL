@@ -10,10 +10,58 @@ import { normalizeValoresEntregadores } from '@/utils/valores/normalizeValoresEn
 
 // Re-export specific fetchers
 export { fetchValoresDetalhados } from './valoresDetalhadosFetcher';
-export { fetchValoresBreakdown } from './valoresBreakdownFetcher';
 
 interface FetchOptions {
     filterPayload: FilterPayload;
+}
+
+export interface ValoresPageData {
+    entregadores: ValoresEntregador[];
+    total: number;
+    total_geral: number;
+    total_corridas: number;
+    taxa_media_geral: number;
+    limit: number;
+    offset: number;
+    has_more: boolean;
+    snapshot: string;
+}
+
+export async function fetchValoresPage(options: FetchOptions): Promise<{ data: ValoresPageData | null; error: RpcError | null }> {
+    const allowedParams = [
+        'p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final',
+        'p_organization_id', 'p_limit', 'p_offset', 'p_search', 'p_sort_field', 'p_sort_direction', 'p_snapshot',
+    ];
+    const payload = buildFilterPayload(options.filterPayload, allowedParams, { expandImplicitSingleYear: false });
+    if (!('p_limit' in payload)) payload.p_limit = 100;
+    if (!('p_offset' in payload)) payload.p_offset = 0;
+
+    const result = await fetchDashboardDataApi<ValoresPageData>('valores_page', payload);
+    if (result.error) return { data: null, error: result.error };
+
+    const page = result.data;
+    if (
+        !page
+        || !Array.isArray(page.entregadores)
+        || !Number.isFinite(Number(page.total))
+        || !Number.isFinite(Number(page.total_geral))
+        || !Number.isFinite(Number(page.total_corridas))
+        || !Number.isFinite(Number(page.taxa_media_geral))
+        || !Number.isInteger(Number(page.limit))
+        || Number(page.limit) <= 0
+        || !Number.isInteger(Number(page.offset))
+        || Number(page.offset) !== Number(payload.p_offset)
+        || typeof page.has_more !== 'boolean'
+        || typeof page.snapshot !== 'string'
+        || page.snapshot.length !== 64
+    ) {
+        return {
+            data: null,
+            error: { code: 'INVALID_RESPONSE', message: 'A consulta paginada de valores respondeu em um formato inválido.' },
+        };
+    }
+
+    return { data: page, error: null };
 }
 
 /**
@@ -58,30 +106,45 @@ export async function fetchValoresData(options: FetchOptions): Promise<{ data: V
         return { data: [], error: result.error };
     }
 
-    let processedData: ValoresEntregador[] = [];
-    if (result?.data) {
-        let parsedData = result.data;
-        if (Array.isArray(parsedData) && parsedData.length > 0) {
-            // Se for [{ listar_valores_entregadores: ... }] ou [{ entregadores: ... }]
-            parsedData = parsedData[0];
-        }
+    let parsedData = result.data;
+    if (parsedData === null || parsedData === undefined) {
+        return {
+            data: null,
+            error: { code: 'EMPTY_RESPONSE', message: 'A consulta de valores respondeu sem dados.' },
+        };
+    }
 
-        if (parsedData && parsedData.listar_valores_entregadores) {
-            parsedData = parsedData.listar_valores_entregadores;
-        }
+    if (Array.isArray(parsedData) && parsedData.length > 0) {
+        // Se for [{ listar_valores_entregadores: ... }] ou [{ entregadores: ... }]
+        parsedData = parsedData[0];
+    }
 
-        if (typeof parsedData === 'object' && !Array.isArray(parsedData)) {
-            const dataObj = parsedData as { entregadores?: ValoresEntregador[]; valores?: ValoresEntregador[] } | null;
-            if (dataObj && 'entregadores' in dataObj && Array.isArray(dataObj.entregadores)) {
-                processedData = dataObj.entregadores;
-            } else if (dataObj && 'valores' in dataObj && Array.isArray(dataObj.valores)) {
-                processedData = dataObj.valores;
-            } else {
-                safeLog.warn('[fetchValoresData] Estrutura inesperada:', dataObj);
-            }
-        } else if (Array.isArray(parsedData)) {
-            processedData = parsedData as ValoresEntregador[];
+    if (parsedData && typeof parsedData === 'object' && !Array.isArray(parsedData) && 'listar_valores_entregadores' in parsedData) {
+        parsedData = (parsedData as { listar_valores_entregadores?: unknown }).listar_valores_entregadores;
+    }
+
+    let processedData: ValoresEntregador[];
+    if (Array.isArray(parsedData)) {
+        processedData = parsedData as ValoresEntregador[];
+    } else if (parsedData && typeof parsedData === 'object') {
+        const dataObj = parsedData as { entregadores?: ValoresEntregador[]; valores?: ValoresEntregador[] };
+        if (Array.isArray(dataObj.entregadores)) {
+            processedData = dataObj.entregadores;
+        } else if (Array.isArray(dataObj.valores)) {
+            processedData = dataObj.valores;
+        } else {
+            safeLog.warn('[fetchValoresData] Estrutura inesperada:', dataObj);
+            return {
+                data: null,
+                error: { code: 'INVALID_RESPONSE', message: 'A consulta de valores respondeu em um formato inválido.' },
+            };
         }
+    } else {
+        safeLog.warn('[fetchValoresData] Estrutura inesperada:', parsedData);
+        return {
+            data: null,
+            error: { code: 'INVALID_RESPONSE', message: 'A consulta de valores respondeu em um formato inválido.' },
+        };
     }
 
     return { data: normalizeValoresEntregadores(processedData), error: null };

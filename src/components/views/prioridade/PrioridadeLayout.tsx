@@ -25,6 +25,8 @@ interface PrioridadeLayoutProps {
     sortDirection: SortDirection;
     searchTerm: string;
     isSearching: boolean;
+    exportDisabled?: boolean;
+    exportFilters?: Record<string, unknown>;
     filtroAderencia: string;
     filtroRejeicao: string;
     filtroCompletadas: string;
@@ -50,6 +52,8 @@ export const PrioridadeLayout = React.memo(function PrioridadeLayout({
     sortDirection,
     searchTerm,
     isSearching,
+    exportDisabled = false,
+    exportFilters,
     filtroAderencia,
     filtroRejeicao,
     filtroCompletadas,
@@ -68,7 +72,7 @@ export const PrioridadeLayout = React.memo(function PrioridadeLayout({
 }: PrioridadeLayoutProps) {
     return (
         <ViewContainer className="space-y-8 pb-8">
-            <PrioridadeHeader sortedEntregadores={sortedEntregadores} />
+            <PrioridadeHeader sortedEntregadores={sortedEntregadores} exportDisabled={exportDisabled} exportFilters={exportFilters} />
 
             <PrioridadeFilters
                 filtroAderencia={filtroAderencia}

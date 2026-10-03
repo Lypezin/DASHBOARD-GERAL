@@ -20,13 +20,11 @@ export function extractUtrValue(value: unknown): number | null {
   const geral = (parsed as Record<string, unknown>).geral;
 
   if (geral && typeof geral === 'object' && 'utr' in geral) {
-    const utrValue = Number((geral as { utr?: unknown }).utr);
-    return Number.isFinite(utrValue) ? utrValue : 0;
+    return parseNumericUtr((geral as { utr?: unknown }).utr);
   }
 
   if ('utr' in (parsed as Record<string, unknown>)) {
-    const utrValue = Number((parsed as Record<string, unknown>).utr);
-    return Number.isFinite(utrValue) ? utrValue : 0;
+    return parseNumericUtr((parsed as Record<string, unknown>).utr);
   }
 
   if ('calcular_utr' in (parsed as Record<string, unknown>)) {
@@ -40,12 +38,10 @@ export function extractUtrValue(value: unknown): number | null {
   return null;
 }
 
-export function createEmptyUtrData(): UtrData {
-  return {
-    geral: {
-      tempo_horas: 0,
-      corridas: 0,
-      utr: 0,
-    },
-  };
+function parseNumericUtr(value: unknown): number | null {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+  if (typeof value !== 'string' || value.trim() === '') return null;
+
+  const numericValue = Number(value);
+  return Number.isFinite(numericValue) ? numericValue : null;
 }

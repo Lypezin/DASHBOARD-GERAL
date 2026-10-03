@@ -1,5 +1,7 @@
 import { loadAuthenticatedUser } from './authenticatedUser';
 import { createServiceRoleClient } from '@/utils/supabase/admin';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
+import { safeLog } from '@/lib/errorHandler';
 
 export type CurrentUserProfile = {
   id?: string;
@@ -16,8 +18,9 @@ export type CurrentUserProfile = {
 };
 
 type ProfileFailure = {
-  status: 400 | 401 | 403;
+  status: 400 | 401 | 403 | 503;
   message: string;
+  code?: string;
 };
 
 type LoadCurrentUserProfileOptions = {
@@ -37,6 +40,20 @@ const PROFILE_SELECT = 'id, email, full_name, role, is_admin, is_approved, organ
 const PROFILE_CACHE_TTL_MS = 10_000;
 const profileCache = new Map<string, { profile: CurrentUserProfile; expiresAt: number }>();
 const inFlightProfileRequests = new Map<string, Promise<{ profile: CurrentUserProfile | null; error: unknown }>>();
+
+function createSessionProfileClient(accessToken: string) {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
+  if (!supabaseUrl || !anonKey) {
+    throw new Error('A configuração pública do Supabase não está completa no servidor.');
+  }
+
+  return createSupabaseClient(supabaseUrl, anonKey, {
+    // Supabase JS overwrites a global Authorization header with the API key
+    // when no session is stored. accessToken binds PostgREST to the caller JWT.
+    accessToken: async () => accessToken,
+  });
+}
 
 export function normalizeCurrentUserProfile(profile: unknown): CurrentUserProfile | null {
   if (Array.isArray(profile)) {
@@ -149,9 +166,13 @@ export async function loadCurrentUserProfile(
   const profileResult = existingProfileRequest
     ? await existingProfileRequest
     : await (async () => {
-      const admin = createServiceRoleClient();
+      // Keep this read under the caller's own RLS scope. Login validation
+      // must work without a service-role secret in local development.
+      const profileClient = auth.accessToken
+        ? createSessionProfileClient(auth.accessToken)
+        : createServiceRoleClient();
       const request = (async () => {
-        const { data: profileData, error } = await admin
+        const { data: profileData, error } = await profileClient
           .from('user_profiles')
           .select(PROFILE_SELECT)
           .eq('id', auth.user.id)
@@ -172,6 +193,17 @@ export async function loadCurrentUserProfile(
   const profile = profileResult.profile;
 
   if (profileError || !profile) {
+    if (profileError) {
+      safeLog.error('Falha ao consultar user_profiles para o usuário autenticado:', profileError);
+      return {
+        failure: {
+          status: 503,
+          code: 'PROFILE_QUERY_FAILED',
+          message: 'Não foi possível consultar o perfil agora. Tente novamente.',
+        },
+      };
+    }
+
     if (!profileError) {
       const admin = createServiceRoleClient();
       const metadata = auth.user.user_metadata || {};

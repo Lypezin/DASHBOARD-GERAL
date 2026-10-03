@@ -13,7 +13,11 @@ export async function fetchAllOrganizations(): Promise<{ data: Organization[] | 
             return { data: null, error: rpcError.message || 'Erro ao buscar organizações' };
         }
 
-        return { data: data || [], error: null };
+        if (!Array.isArray(data)) {
+            return { data: null, error: 'A consulta de organizações retornou uma resposta inválida.' };
+        }
+
+        return { data, error: null };
     } catch (err: unknown) {
         const errorMessage = err instanceof Error ? err.message : 'Erro ao carregar organizações';
         if (IS_DEV) safeLog.error('[organizationService] Erro:', err);

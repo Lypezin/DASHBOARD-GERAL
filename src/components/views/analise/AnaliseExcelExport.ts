@@ -3,9 +3,10 @@ import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { calcularTaxas } from '@/hooks/analise/useAnaliseTaxas';
-import { formatarNumero, gerarDadosFormatados } from './excel/AnaliseExcelHelpers';
+import { formatarNumero, gerarDadosFormatados, toAnaliseItem } from './excel/AnaliseExcelHelpers';
 import { IS_DEV } from '@/constants/environment';
-import { appendStyledJsonSheet, applyWorkbookMetadata } from '@/utils/excel/workbookStyle';
+import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit, createExcelFilterRows } from '@/utils/excel/workbookStyle';
+import type { FilterPayload } from '@/types/filters';
 
 export async function exportarAnaliseParaExcel(
   totals: Totals,
@@ -13,9 +14,11 @@ export async function exportarAnaliseParaExcel(
   aderenciaTurno: AderenciaTurno[],
   aderenciaSubPraca: AderenciaSubPraca[],
   aderenciaOrigem: AderenciaOrigem[],
-  aderenciaDiaOrigem: any[]
+  aderenciaDiaOrigem: any[],
+  filters?: FilterPayload
 ): Promise<void> {
   try {
+    [aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem, aderenciaDiaOrigem].forEach((rows) => assertExcelRowLimit(rows?.length || 0));
     const XLSX = await loadXLSX();
     const wb = XLSX.utils.book_new();
     applyWorkbookMetadata(wb, 'Analise de taxas');
@@ -63,7 +66,35 @@ export async function exportarAnaliseParaExcel(
     appendPlanilha(aderenciaTurno, 'Por Turno', 'turno', 'Turno');
     appendPlanilha(aderenciaSubPraca, 'Por Sub-Praca', 'sub_praca', 'Sub-Praca');
     appendPlanilha(aderenciaOrigem, 'Por Origem', 'origem', 'Origem');
-    appendPlanilha(aderenciaDiaOrigem, 'Dia x Origem', 'origem', 'Origem');
+    const diaOrigemFormatado = aderenciaDiaOrigem.map((item) => {
+      const taxas = calcularTaxas(toAnaliseItem(item));
+      const horasEntregues = item.horas_entregues || formatarHorasParaHMS((item.segundos_realizados || 0) / 3600);
+
+      return {
+        Dia: item.dia || 'N/A',
+        'Dia da Semana (ISO)': item.dia_iso ?? '',
+        Origem: item.origem || 'N/A',
+        Ofertadas: formatarNumero(item.corridas_ofertadas),
+        Aceitas: formatarNumero(item.corridas_aceitas),
+        Rejeitadas: formatarNumero(item.corridas_rejeitadas),
+        Completadas: formatarNumero(item.corridas_completadas),
+        'Taxa Aceitacao': taxas.taxaAceitacao,
+        'Taxa Rejeicao': taxas.taxaRejeicao,
+        'Taxa Completude': taxas.taxaCompletude,
+        'Aderencia (%)': item.aderencia_percentual,
+        'Horas Entregues': horasEntregues,
+      };
+    });
+    appendStyledJsonSheet(XLSX, wb, diaOrigemFormatado, 'Dia x Origem', {
+      title: 'Dia x Origem',
+      theme: 'slate',
+      highlightFirstColumn: true,
+    });
+    appendStyledJsonSheet(XLSX, wb, createExcelFilterRows(filters), 'Filtros', {
+      title: 'Filtros aplicados',
+      theme: 'slate',
+      highlightFirstColumn: true,
+    });
 
     const agora = new Date();
     const dataHora = agora.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
@@ -74,6 +105,6 @@ export async function exportarAnaliseParaExcel(
     if (IS_DEV) safeLog.info(`Analise exportada: ${nomeArquivo}`);
   } catch (error) {
     safeLog.error('Erro ao exportar analise:', error);
-    throw new Error('Falha ao gerar arquivo Excel de Analise.');
+    throw error instanceof Error ? error : new Error('Falha ao gerar arquivo Excel de Analise.');
   }
 }

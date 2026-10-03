@@ -3,6 +3,9 @@ import {
     loadCurrentUserProfile,
     resolveAuthorizedOrganizationId,
 } from '@/app/api/_shared/currentUserProfile';
+import { normalizeAssignedPracas } from '@/app/api/app/secure-rpc/cache';
+import { hasFullCityAccess, normalizePracaKey, splitPracas, uniquePracas } from '@/app/api/app/secure-rpc/utils';
+import type { CurrentUserProfile } from '@/app/api/_shared/currentUserProfile';
 import {
     getServiceRoleConfigErrorPayload,
     isServiceRoleConfigError,
@@ -20,6 +23,45 @@ type DashboardDataRequest = {
     mode?: unknown;
     payload?: unknown;
 };
+
+function scopeDashboardPracas(
+    mode: NonNullable<ReturnType<typeof normalizeMode>>,
+    source: Record<string, unknown>,
+    profile: CurrentUserProfile,
+) {
+    if (hasFullCityAccess(profile)) return { source };
+
+    const assigned = uniquePracas(normalizeAssignedPracas(profile));
+    if (assigned.length === 0) {
+        return { error: 'Nenhuma praça foi atribuída a este usuário.' };
+    }
+
+    const allowedByKey = new Map(assigned.map((praca) => [normalizePracaKey(praca), praca]));
+    const requested = uniquePracas([
+        ...splitPracas(source.p_praca),
+        ...splitPracas(source.p_pracas),
+    ]);
+    const scoped = requested.length > 0
+        ? requested.map((praca) => allowedByKey.get(normalizePracaKey(praca))).filter((praca): praca is string => Boolean(praca))
+        : assigned;
+
+    if (scoped.length !== requested.length && requested.length > 0) {
+        return { error: 'Praça não permitida para este usuário.' };
+    }
+
+    const nextSource = { ...source };
+    if (mode === 'resumo_local') {
+        nextSource.p_pracas = scoped;
+        delete nextSource.p_praca;
+    } else {
+        // These RPCs parse comma-separated plaza filters; preserve the UI's
+        // multi-selection while enforcing the profile's allowed set.
+        nextSource.p_praca = scoped.join(',');
+        delete nextSource.p_pracas;
+    }
+
+    return { source: nextSource };
+}
 
 export async function POST(request: Request) {
     try {
@@ -53,7 +95,12 @@ export async function POST(request: Request) {
             return NextResponse.json({ data: null, error: organizationAccess.failure.message }, { status: organizationAccess.failure.status });
         }
 
-        const { data, cached } = await fetchDashboardData(mode, source, organizationAccess.organizationId);
+        const plazaAccess = scopeDashboardPracas(mode, source, auth.profile);
+        if ('error' in plazaAccess) {
+            return NextResponse.json({ data: null, error: plazaAccess.error }, { status: 403 });
+        }
+
+        const { data, cached } = await fetchDashboardData(mode, plazaAccess.source, organizationAccess.organizationId);
 
         return NextResponse.json({ data, error: null, cached });
     } catch (error) {

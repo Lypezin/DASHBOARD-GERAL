@@ -4,6 +4,7 @@ import { buildCityQuery } from '@/utils/marketingQueries';
 import { MarketingFilters, MarketingCostsComparison, MarketingCostData } from '@/types';
 import { SLIDE_CITIES, DISPLAY_CITY_TO_DB_CITY, PRIORITY_CITIES, ABERTO_STATUSES } from '../constants';
 import { REGIAO_TO_CIDADE_VALORES } from '../../atendenteMappers';
+import { fetchAllMarketingRows, requireMarketingCount } from './queryErrors';
 
 export async function fetchMarketingCostsComparison(
     filters: MarketingFilters,
@@ -46,10 +47,14 @@ export async function fetchMarketingCostsComparison(
 async function fetchRange(sISO: string, eISO: string, orgId: string | null, client: SupabaseClient): Promise<MarketingCostData[]> {
     const cityMap = new Map<string, any>();
 
-    let costQ = client.from('dados_valores_cidade').select('valor, cidade, id_atendente, organization_id, conversas')
-        .gte('data', sISO).lte('data', eISO);
-    if (orgId) costQ = costQ.eq('organization_id', orgId);
-    const { data: allCosts } = await costQ;
+    const allCosts = await fetchAllMarketingRows('Erro ao carregar os custos para comparação.', (from, to, includeExactCount) => {
+        let query = client.from('dados_valores_cidade').select(
+            'id, valor, cidade, id_atendente, organization_id, conversas',
+            includeExactCount ? { count: 'exact' } : undefined
+        ).gte('data', sISO).lte('data', eISO);
+        if (orgId) query = query.eq('organization_id', orgId);
+        return query.order('id', { ascending: true }).range(from, to);
+    });
 
     await Promise.all(SLIDE_CITIES.map(async (name) => {
         const { valor, convs } = aggregateCityCosts(name, allCosts || []);
@@ -57,7 +62,7 @@ async function fetchRange(sISO: string, eISO: string, orgId: string | null, clie
         cityMap.set(name, { regiao: name.replace(' 2.0', ''), valorUsado: valor, ...metrics, conversas: convs });
     }));
 
-    return finalizeRangeData(cityMap, allCosts || []);
+    return finalizeRangeData(cityMap, allCosts);
 }
 
 function aggregateCityCosts(name: string, costs: any[]) {
@@ -84,7 +89,11 @@ async function fetchCityMetricsForRange(name: string, s: string, e: string, orgI
             q().not('rodou_dia', 'is', null).gte('rodou_dia', s).lte('rodou_dia', e),
             q().in('status', ABERTO_STATUSES).gte('data_envio', s).lte('data_envio', e),
         ]);
-        return { l: l.count || 0, r: r.count || 0, a: a.count || 0 };
+        return {
+            l: requireMarketingCount('Erro ao contar liberados no período.', l.count, l.error),
+            r: requireMarketingCount('Erro ao contar entregadores em operação no período.', r.count, r.error),
+            a: requireMarketingCount('Erro ao contar registros em aberto no período.', a.count, a.error),
+        };
     };
     if (name === 'ABC 2.0') {
         const [m1, m2, m3] = await Promise.all([fetch('Santo André'), fetch('São Bernardo'), fetch('ABC 2.0')]);

@@ -19,11 +19,11 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
   filterPayload: FilterPayload;
   currentUser: CurrentUser | null;
 }) {
-  const { data: tabData, loading } = useTabData('prioridade', filterPayload, currentUser);
+  const { data: tabData, loading, error, retry } = useTabData('prioridade', filterPayload, currentUser);
   const { prioridadeData } = useTabDataMapper({ activeTab: 'prioridade', tabData });
   const { state, actions } = usePrioridadeViewController(prioridadeData, loading);
 
-  if (state.loading && !state.entregadoresData) {
+  if (state.loading && (!state.entregadoresData || state.entregadoresData.entregadores.length === 0)) {
     return (
       <ViewTransition stateKey="prioridade-loading">
         <DashboardSkeleton contentOnly />
@@ -31,10 +31,18 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
     );
   }
 
+  if (error && (!state.entregadoresData || state.entregadoresData.entregadores.length === 0)) {
+    return (
+      <ViewTransition stateKey="prioridade-error">
+        <PrioridadeErrorState onRetry={retry} />
+      </ViewTransition>
+    );
+  }
+
   if (!state.entregadoresData) {
     return (
       <ViewTransition stateKey="prioridade-error">
-        <PrioridadeErrorState />
+        <PrioridadeErrorState onRetry={retry} />
       </ViewTransition>
     );
   }
@@ -49,6 +57,11 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
 
   return (
     <ViewTransition stateKey="prioridade-content" className="w-full">
+      {error ? (
+        <div role="alert" className="mb-4 rounded-2xl border border-amber-200/70 bg-amber-50/85 px-4 py-3 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
+          Não foi possível atualizar a Prioridade. Exibindo a resposta válida anterior.
+        </div>
+      ) : null}
       {state.loading ? (
         <div className="mb-4 rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/25 dark:text-blue-200">
           Atualizando prioridade com os filtros atuais...
@@ -64,6 +77,15 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
         sortDirection={state.sortDirection}
         searchTerm={state.searchTerm}
         isSearching={state.isSearching}
+        exportDisabled={loading || Boolean(error) || state.isSearching}
+        exportFilters={{
+          ...filterPayload,
+          p_search: state.searchTerm || null,
+          p_filtro_aderencia: state.filtroAderencia,
+          p_filtro_rejeicao: state.filtroRejeicao,
+          p_filtro_completadas: state.filtroCompletadas,
+          p_filtro_aceitas: state.filtroAceitas,
+        }}
         filtroAderencia={state.filtroAderencia}
         filtroRejeicao={state.filtroRejeicao}
         filtroCompletadas={state.filtroCompletadas}

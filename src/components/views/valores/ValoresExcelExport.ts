@@ -2,10 +2,12 @@ import { ValoresEntregador } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { IS_DEV } from '@/constants/environment';
-import { appendStyledJsonSheet, applyWorkbookMetadata } from '@/utils/excel/workbookStyle';
+import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit, createExcelFilterRows } from '@/utils/excel/workbookStyle';
+import type { FilterPayload } from '@/types/filters';
 
-export async function exportarValoresParaExcel(valoresData: ValoresEntregador[]): Promise<void> {
+export async function exportarValoresParaExcel(valoresData: ValoresEntregador[], filters?: FilterPayload): Promise<void> {
     try {
+        assertExcelRowLimit(valoresData?.length || 0);
         const XLSX = await loadXLSX();
         const wb = XLSX.utils.book_new();
         applyWorkbookMetadata(wb, 'Valores por entregador');
@@ -23,6 +25,11 @@ export async function exportarValoresParaExcel(valoresData: ValoresEntregador[])
             theme: 'emerald',
             highlightFirstColumn: true,
         });
+        appendStyledJsonSheet(XLSX, wb, createExcelFilterRows(filters), 'Filtros', {
+            title: 'Filtros aplicados',
+            theme: 'slate',
+            highlightFirstColumn: true,
+        });
 
         const agora = new Date();
         const dataHora = agora.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
@@ -33,6 +40,6 @@ export async function exportarValoresParaExcel(valoresData: ValoresEntregador[])
         if (IS_DEV) safeLog.info(`Valores exportados: ${nomeArquivo}`);
     } catch (error) {
         safeLog.error('Erro ao exportar valores:', error);
-        throw new Error('Falha ao gerar arquivo Excel de Valores.');
+        throw error instanceof Error ? error : new Error('Falha ao gerar arquivo Excel de Valores.');
     }
 }

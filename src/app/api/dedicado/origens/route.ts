@@ -3,6 +3,9 @@ import {
     loadCurrentUserProfile,
     resolveAuthorizedOrganizationId,
 } from '@/app/api/_shared/currentUserProfile';
+import type { CurrentUserProfile } from '@/app/api/_shared/currentUserProfile';
+import { normalizeAssignedPracas } from '@/app/api/app/secure-rpc/cache';
+import { hasFullCityAccess, normalizePracaKey, splitPracas, uniquePracas } from '@/app/api/app/secure-rpc/utils';
 import {
     createServiceRoleClient,
     getServiceRoleConfigErrorPayload,
@@ -135,6 +138,34 @@ function normalizePayload(mode: DedicadoMode, rawPayload: unknown) {
     return buildDedicadoFilterPayload(source, extraPayload);
 }
 
+type DedicadoPracaScopeResult = { payload: Record<string, unknown> } | { error: string };
+
+function scopeDedicadoPracas(payload: Record<string, unknown>, profile: CurrentUserProfile): DedicadoPracaScopeResult {
+    if (hasFullCityAccess(profile)) return { payload };
+
+    const assigned = uniquePracas(normalizeAssignedPracas(profile));
+    if (assigned.length === 0) {
+        return { error: 'Nenhuma praça foi atribuída a este usuário.' };
+    }
+
+    const allowedByKey = new Map(assigned.map((praca) => [normalizePracaKey(praca), praca]));
+    const requested = uniquePracas([
+        ...splitPracas(payload.p_praca),
+        ...splitPracas(payload.p_pracas),
+    ]);
+    const scoped = requested.length > 0
+        ? requested.map((praca) => allowedByKey.get(normalizePracaKey(praca))).filter((praca): praca is string => Boolean(praca))
+        : assigned;
+
+    if (requested.length > 0 && scoped.length !== requested.length) {
+        return { error: 'Praça não permitida para este usuário.' };
+    }
+
+    const nextPayload: Record<string, unknown> = { ...payload, p_praca: scoped.join(',') };
+    delete nextPayload.p_pracas;
+    return { payload: nextPayload };
+}
+
 function shouldFallbackOnDedicadoEntregadores(error: RpcErrorLike, primaryName: string) {
     const errorMessage = String(error?.message || '');
 
@@ -203,30 +234,38 @@ export async function POST(request: Request) {
             return NextResponse.json({ data: null, error: organizationAccess.failure.message }, { status: organizationAccess.failure.status });
         }
 
-        payload.p_organization_id = organizationAccess.organizationId;
+        const plazaAccess = scopeDedicadoPracas(payload, auth.profile);
+        if ('error' in plazaAccess) {
+            return NextResponse.json({ data: null, error: plazaAccess.error }, { status: 403 });
+        }
+
+        const scopedPayload: Record<string, unknown> = {
+            ...plazaAccess.payload,
+            p_organization_id: organizationAccess.organizationId,
+        };
 
         if (mode === 'entregador') {
-            const entregadorId = typeof payload.p_entregador_id === 'string' ? payload.p_entregador_id.trim() : '';
+            const entregadorId = typeof scopedPayload.p_entregador_id === 'string' ? scopedPayload.p_entregador_id.trim() : '';
             if (!entregadorId) {
                 return NextResponse.json({ data: null, error: 'Entregador invalido para detalhamento.' }, { status: 400 });
             }
         }
 
-        const { data, cached } = await resolveDedicadoWithCache(mode, payload, auth.profile.id, async () => {
+        const { data, cached } = await resolveDedicadoWithCache(mode, scopedPayload, auth.profile.id, async () => {
             const result = mode === 'summary'
                 ? await executeRpcWithFallback(
                     'dashboard_dedicado_origens_v2',
-                    payload,
+                    scopedPayload,
                     {
-                        fallbackName: payload.p_include_dia_origem === true ? undefined : 'dashboard_dedicado_origens',
+                        fallbackName: scopedPayload.p_include_dia_origem === true ? undefined : 'dashboard_dedicado_origens',
                         shouldFallback: (error) => shouldFallbackOnLegacySummary(error, 'dashboard_dedicado_origens_v2'),
                         prepareFallbackPayload: (requestPayload) => omitPayloadKeys(requestPayload, ['p_semanas', 'p_include_dia_origem']),
                     }
                 )
                 : mode === 'entregadores'
                     ? await executeRpcWithFallback(
-                        'listar_entregadores_origens_v2',
-                        payload,
+                    'listar_entregadores_origens_v2',
+                    scopedPayload,
                         {
                             fallbackName: 'listar_entregadores_origens',
                             shouldFallback: (error) => shouldFallbackOnDedicadoEntregadores(error, 'listar_entregadores_origens_v2'),
@@ -234,8 +273,8 @@ export async function POST(request: Request) {
                         }
                     )
                     : await executeRpcWithFallback(
-                        'dedicado_entregador_origens_v2',
-                        payload,
+                    'dedicado_entregador_origens_v2',
+                    scopedPayload,
                         {
                             fallbackName: 'dedicado_entregador_origens',
                             shouldFallback: (error) => shouldFallbackOnMissingFunction(error, 'dedicado_entregador_origens_v2'),

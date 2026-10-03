@@ -11,6 +11,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 export interface RpcError {
   message: string;
   code?: string;
+  status?: number;
   details?: string;
   hint?: string;
   resetTime?: number;

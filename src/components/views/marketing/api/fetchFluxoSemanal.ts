@@ -40,7 +40,11 @@ export async function fetchFluxoSemanal<T = Record<string, unknown>>(
             throw new Error(payload?.error || 'Erro ao consultar fluxo semanal.');
         }
 
-        return Array.isArray(payload?.data) ? payload.data : [];
+        if (!Array.isArray(payload?.data)) {
+            throw new Error('A resposta do fluxo semanal está vazia ou em formato inválido.');
+        }
+
+        return payload.data;
     })().finally(() => {
         inFlightFluxoRequests.delete(requestKey);
     });

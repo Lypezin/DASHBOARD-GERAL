@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { MediaSlideData } from '@/types/presentation';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -17,21 +17,56 @@ export function useSavedPresentations() {
     const { organization } = useOrganization();
     const [savedPresentations, setSavedPresentations] = useState<SavedPresentation[]>([]);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [resolvedOrganizationId, setResolvedOrganizationId] = useState<string | null>(null);
+    const resolvedOrganizationIdRef = useRef<string | null>(null);
+    const requestIdRef = useRef(0);
 
     const fetchPresentations = useCallback(async () => {
-        if (!organization?.id) return;
+        const requestId = ++requestIdRef.current;
+        const organizationId = organization?.id || null;
+        if (!organizationId) {
+            resolvedOrganizationIdRef.current = null;
+            setResolvedOrganizationId(null);
+            setSavedPresentations([]);
+            setError(null);
+            setLoading(false);
+            return;
+        }
+
+        const hasDataForOrganization = resolvedOrganizationIdRef.current === organizationId;
+        if (!hasDataForOrganization) {
+            setSavedPresentations([]);
+            setError(null);
+        }
+
         try {
             setLoading(true);
+            setError(null);
             const { data: { user } } = await supabase.auth.getUser();
-            let query = supabase.from('presentations').select('id, name, slides, sections, filters, created_at').eq('organization_id', organization.id);
+            if (requestId !== requestIdRef.current) return;
+            let query = supabase.from('presentations').select('id, name, slides, sections, filters, created_at').eq('organization_id', organizationId);
             if (user?.id) query = query.contains('filters', { user_id: user.id });
             const { data, error } = await query.order('created_at', { ascending: false });
+            if (requestId !== requestIdRef.current) return;
             if (error) throw error;
-            setSavedPresentations(data || []);
-        } catch (error) {
-            safeLog.error('Error fetching presentations:', error);
+            if (!Array.isArray(data)) {
+                throw new Error('A consulta de apresentações salvas retornou uma resposta inválida.');
+            }
+            resolvedOrganizationIdRef.current = organizationId;
+            setResolvedOrganizationId(organizationId);
+            setSavedPresentations(data);
+        } catch (fetchError) {
+            if (requestId !== requestIdRef.current) return;
+            safeLog.error('Error fetching presentations:', fetchError);
+            setError(fetchError instanceof Error ? fetchError.message : 'Não foi possível carregar as apresentações salvas.');
+            if (!hasDataForOrganization) {
+                resolvedOrganizationIdRef.current = organizationId;
+                setResolvedOrganizationId(organizationId);
+                setSavedPresentations([]);
+            }
         } finally {
-            setLoading(false);
+            if (requestId === requestIdRef.current) setLoading(false);
         }
     }, [organization?.id]);
 
@@ -73,8 +108,9 @@ export function useSavedPresentations() {
     }, [fetchPresentations]);
 
     return {
-        savedPresentations,
-        loading,
+        savedPresentations: resolvedOrganizationId === organization?.id ? savedPresentations : [],
+        loading: loading || Boolean(organization?.id && resolvedOrganizationId !== organization.id),
+        error: resolvedOrganizationId === organization?.id ? error : null,
         fetchPresentations,
         savePresentation,
         deletePresentation

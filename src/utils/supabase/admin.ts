@@ -66,7 +66,7 @@ export function getServiceRoleConfigErrorPayload() {
     return {
         success: false,
         code: SERVICE_ROLE_CONFIG_ERROR_CODE,
-        error: 'Configuracao do servidor incompleta: cadastre SUPABASE_SERVICE_ROLE_KEY nas variaveis de ambiente do servidor e faca redeploy.',
+        error: 'Configuração do servidor incompleta. No ambiente local, adicione SUPABASE_SERVICE_ROLE_KEY ao .env.local e reinicie npm run dev. Em produção, configure essa variável no provedor e faça um novo deploy. Não use o prefixo NEXT_PUBLIC_.',
         accepted_env_names: [...SERVICE_ROLE_ENV_NAMES]
     };
 }

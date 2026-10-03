@@ -18,10 +18,14 @@ interface ComparacaoFiltersProps {
     onClearSemanas: () => void;
     onMostrarApresentacao: () => void;
     loading: boolean;
+    error: string | null;
     dadosComparacao: any[];
     utrComparacao: any[];
     secoesVisiveis: SecoesVisiveis;
     onToggleSecao: (secao: keyof SecoesVisiveis) => void;
+    loadingSemanas: boolean;
+    errorSemanas: string | null;
+    onRetrySemanas: () => void;
 }
 
 export const ComparacaoFilters = React.memo(function ComparacaoFilters({
@@ -34,11 +38,19 @@ export const ComparacaoFilters = React.memo(function ComparacaoFilters({
     onToggleSemana,
     onClearSemanas,
     onMostrarApresentacao,
+    loading,
+    error,
     dadosComparacao,
     secoesVisiveis,
-    onToggleSecao
+    onToggleSecao,
+    loadingSemanas,
+    errorSemanas,
+    onRetrySemanas,
 }: ComparacaoFiltersProps) {
-    const hasEnoughData = semanasSelecionadas.length === 2 && dadosComparacao.length === 2;
+    const hasEnoughData = !loading
+        && !error
+        && semanasSelecionadas.length === 2
+        && dadosComparacao.length === 2;
 
     return (
         <SaasPanel className="overflow-visible">
@@ -67,7 +79,13 @@ export const ComparacaoFilters = React.memo(function ComparacaoFilters({
                             disabled={!hasEnoughData}
                             type="button"
                             className="inline-flex h-9 items-center gap-2 rounded-xl bg-slate-950 px-3 text-[10px] font-black uppercase tracking-[0.14em] text-white shadow-sm transition-[background-color,box-shadow,transform,opacity] duration-200 hover:-translate-y-0.5 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-30 disabled:grayscale dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 sm:h-10 sm:px-4 sm:text-[11px] sm:tracking-[0.18em]"
-                            title={!hasEnoughData ? 'Selecione exatamente 2 semanas' : 'Gerar apresentação'}
+                            title={loading
+                                ? 'Aguarde a atualização dos dados'
+                                : error
+                                    ? 'Corrija a atualização antes de gerar a apresentação'
+                                    : !hasEnoughData
+                                        ? 'Selecione exatamente 2 semanas com dados carregados'
+                                        : 'Gerar apresentação'}
                         >
                             <Presentation className="h-4 w-4" />
                             Apresentação
@@ -108,6 +126,9 @@ export const ComparacaoFilters = React.memo(function ComparacaoFilters({
                             todasSemanas={todasSemanas}
                             semanasSelecionadas={semanasSelecionadas}
                             onToggleSemana={onToggleSemana}
+                            loading={loadingSemanas}
+                            error={errorSemanas}
+                            onRetry={onRetrySemanas}
                         />
                     </div>
                 </div>

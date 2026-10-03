@@ -4,6 +4,7 @@ import { AderenciaSemanal, CurrentUser } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { useTargetWeeks } from './useTargetWeeks';
 import type { Filters } from '@/types/filters';
+import { createRequestKey } from '@/utils/request/createRequestKey';
 
 export interface ComparisonMetricData {
     label: string;
@@ -21,8 +22,11 @@ interface UseWeekComparisonOptions {
 export function useWeekComparison({ aderenciaSemanal, filters, currentUser }: UseWeekComparisonOptions) {
     const [loading, setLoading] = useState(false);
     const [metrics, setMetrics] = useState<ComparisonMetricData[]>([]);
+    const [error, setError] = useState<string | null>(null);
+    const [retryCount, setRetryCount] = useState(0);
     const [currentWeekLabel, setCurrentWeekLabel] = useState('');
     const [previousWeekLabel, setPreviousWeekLabel] = useState('');
+    const [resolvedRequestKey, setResolvedRequestKey] = useState<string | null>(null);
     const currentUserId = currentUser?.id || '';
     const currentUserRole = currentUser?.role;
     const currentUserOrganizationId = currentUser?.organization_id ?? null;
@@ -36,6 +40,13 @@ export function useWeekComparison({ aderenciaSemanal, filters, currentUser }: Us
     const currentUserKey = currentUser
         ? `${currentUserId}|${isCurrentUserAdmin ? '1' : '0'}|${assignedPracasKey}|${currentUserRole || ''}|${currentUserOrganizationId || ''}`
         : 'anonymous';
+    const requestKey = createRequestKey({
+        weeksComparisonKey,
+        year: filters.ano || null,
+        plaza: filters.praca || null,
+        currentUserKey,
+    });
+    const requestResolutionKey = `${requestKey}:${retryCount}`;
     const stableCurrentUser = useMemo(() => currentUserKey !== 'anonymous'
         ? {
             id: currentUserId,
@@ -49,6 +60,11 @@ export function useWeekComparison({ aderenciaSemanal, filters, currentUser }: Us
     useEffect(() => {
         if (!weeksToCompare) {
             setMetrics([]);
+            setError(null);
+            setCurrentWeekLabel('');
+            setPreviousWeekLabel('');
+            setResolvedRequestKey(requestResolutionKey);
+            setLoading(false);
             return;
         }
 
@@ -56,6 +72,7 @@ export function useWeekComparison({ aderenciaSemanal, filters, currentUser }: Us
 
         const fetchData = async () => {
             setLoading(true);
+            setError(null);
             try {
                 const praca = filters.praca || null;
                 const year = filters.ano || undefined;
@@ -83,9 +100,21 @@ export function useWeekComparison({ aderenciaSemanal, filters, currentUser }: Us
                     ]);
                     setCurrentWeekLabel(weeksToCompare.currentLabel);
                     setPreviousWeekLabel(weeksToCompare.previousLabel);
+                } else {
+                    setMetrics([]);
+                    setCurrentWeekLabel('');
+                    setPreviousWeekLabel('');
                 }
+                setResolvedRequestKey(requestResolutionKey);
             } catch (err) {
                 safeLog.error('Erro:', err);
+                if (isMounted) {
+                    setMetrics([]);
+                    setError('Não foi possível atualizar o comparativo semanal. Tente novamente.');
+                    setCurrentWeekLabel('');
+                    setPreviousWeekLabel('');
+                    setResolvedRequestKey(requestResolutionKey);
+                }
             } finally {
                 if (isMounted) setLoading(false);
             }
@@ -93,7 +122,15 @@ export function useWeekComparison({ aderenciaSemanal, filters, currentUser }: Us
 
         void fetchData();
         return () => { isMounted = false; };
-    }, [filters.ano, filters.praca, stableCurrentUser, weeksComparisonKey, weeksToCompare]);
+    }, [filters.ano, filters.praca, requestKey, requestResolutionKey, stableCurrentUser, weeksComparisonKey, weeksToCompare]);
 
-    return { metrics, loading, currentWeekLabel, previousWeekLabel };
+    const requestIsResolved = resolvedRequestKey === requestResolutionKey;
+    return {
+        metrics: requestIsResolved ? metrics : [],
+        error: requestIsResolved ? error : null,
+        loading: loading || Boolean(weeksToCompare && !requestIsResolved),
+        currentWeekLabel: requestIsResolved ? currentWeekLabel : '',
+        previousWeekLabel: requestIsResolved ? previousWeekLabel : '',
+        retry: () => setRetryCount((count) => count + 1),
+    };
 }

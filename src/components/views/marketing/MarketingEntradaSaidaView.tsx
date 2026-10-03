@@ -5,9 +5,10 @@ import { EntradaSaidaView } from './EntradaSaidaView';
 import { useAuth } from '@/hooks/auth/useAuth';
 import { MarketingFilters } from './MarketingFilters';
 import { useMarketingFilters } from './hooks/useMarketingFilters';
+import { LoadingNotice } from '@/components/ui/loading-notice';
 
 const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView() {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
     const {
         filters,
         setFilters,
@@ -41,14 +42,20 @@ const MarketingEntradaSaidaView = React.memo(function MarketingEntradaSaidaView(
                 />
             </div>
 
-            {appliedFilters.dataInicial && appliedFilters.dataFinal && (
+            {authLoading ? (
+                <LoadingNotice
+                    tone="blue"
+                    message="Preparando os filtros da organização"
+                    detail="Aguardando a identificação do perfil antes de consultar o fluxo."
+                />
+            ) : appliedFilters.dataInicial && appliedFilters.dataFinal && user?.organization_id ? (
                 <EntradaSaidaView
                     dataInicial={appliedFilters.dataInicial}
                     dataFinal={appliedFilters.dataFinal}
-                    organizationId={user?.organization_id || undefined}
+                    organizationId={user.organization_id || undefined}
                     praca={appliedFilters.praca}
                 />
-            )}
+            ) : null}
         </div>
     );
 });

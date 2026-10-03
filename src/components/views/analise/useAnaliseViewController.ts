@@ -5,6 +5,8 @@ import { useAnaliseTaxas } from '@/hooks/analise/useAnaliseTaxas';
 import { useAnaliseTableData } from '@/hooks/analise/useAnaliseTableData';
 import { exportarAnaliseParaExcel } from './AnaliseExcelExport';
 import { safeLog } from '@/lib/errorHandler';
+import { toast } from 'sonner';
+import type { FilterPayload } from '@/types/filters';
 
 export type TableType = 'dia' | 'turno' | 'sub_praca' | 'origem' | 'dia_origem';
 
@@ -14,7 +16,9 @@ export function useAnaliseViewController(
     aderenciaTurno: AderenciaTurno[] = [],
     aderenciaSubPraca: AderenciaSubPraca[] = [],
     aderenciaOrigem: AderenciaOrigem[] = [],
-    aderenciaDiaOrigem: any[] = []
+    aderenciaDiaOrigem: any[] = [],
+    exportDisabled = false,
+    filterPayload?: FilterPayload
 ) {
     const [activeTable, setActiveTable] = useState<TableType>('dia');
     const [isExporting, setIsExporting] = useState(false);
@@ -34,6 +38,7 @@ export function useAnaliseViewController(
     const handleTableChange = useCallback((table: TableType) => setActiveTable(table), []);
 
     const handleExport = useCallback(async () => {
+        if (isExporting || exportDisabled) return;
         try {
             setIsExporting(true);
             await exportarAnaliseParaExcel(
@@ -42,14 +47,16 @@ export function useAnaliseViewController(
                 aderenciaTurno,
                 aderenciaSubPraca,
                 aderenciaOrigem,
-                aderenciaDiaOrigem
+                aderenciaDiaOrigem,
+                filterPayload
             );
         } catch (error) {
             safeLog.error('Erro no export:', error);
+            toast.error(error instanceof Error ? error.message : 'Não foi possível gerar o Excel da análise.');
         } finally {
             setIsExporting(false);
         }
-    }, [totals, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem, aderenciaDiaOrigem]);
+    }, [totals, aderenciaDia, aderenciaTurno, aderenciaSubPraca, aderenciaOrigem, aderenciaDiaOrigem, exportDisabled, filterPayload, isExporting]);
 
     // Calcular total de horas
     const totalHoras = useMemo(() => {
@@ -60,6 +67,7 @@ export function useAnaliseViewController(
     return {
         activeTable,
         isExporting,
+        exportDisabled,
         handleExport,
         handleTableChange,
         taxaAceitacao,

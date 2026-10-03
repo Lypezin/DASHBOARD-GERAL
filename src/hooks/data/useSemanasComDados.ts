@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { safeRpc } from '@/lib/rpcWrapper';
@@ -14,15 +14,26 @@ const weeksRequests = new Map<string, Promise<number[]>>();
  * O cache curto evita repetir a mesma RPC ao remontar filtros ou alternar abas.
  */
 export function useSemanasComDados(ano: number | null) {
-    const { organization } = useOrganization();
+    const { organization, isLoading: isOrganizationLoading } = useOrganization();
     const [semanas, setSemanas] = useState<number[]>([]);
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [resolvedRequestKey, setResolvedRequestKey] = useState<string | null>(null);
+    const [dataRequestKey, setDataRequestKey] = useState<string | null>(null);
+    const [retryNonce, setRetryNonce] = useState(0);
+    const requestKey = ano ? `${organization?.id || 'no-org'}:${ano}` : null;
 
     useEffect(() => {
         let cancelled = false;
 
+        if (isOrganizationLoading) return;
+
         if (!ano) {
             setSemanas([]);
+            setResolvedRequestKey(null);
+            setDataRequestKey(null);
+            setLoading(false);
+            setError(null);
             return;
         }
 
@@ -30,18 +41,31 @@ export function useSemanasComDados(ano: number | null) {
             const cachedWeeks = getCachedAvailableWeeks(ano, organization?.id);
             if (cachedWeeks) {
                 setSemanas(cachedWeeks);
+                setResolvedRequestKey(requestKey);
+                setDataRequestKey(requestKey);
                 setLoading(false);
+                setError(null);
                 return;
             }
 
             setLoading(true);
+            setError(null);
 
             try {
                 const semanasOtimizadas = await fetchAvailableWeeks(ano, organization?.id);
-                if (!cancelled) setSemanas(semanasOtimizadas);
+                if (!cancelled) {
+                    setSemanas(semanasOtimizadas);
+                    setResolvedRequestKey(requestKey);
+                    setDataRequestKey(requestKey);
+                }
             } catch (err) {
                 if (IS_DEV) safeLog.error('Erro ao buscar semanas com dados:', err);
-                if (!cancelled) setSemanas([]);
+                if (!cancelled) {
+                    setSemanas([]);
+                    setResolvedRequestKey(requestKey);
+                    setDataRequestKey(requestKey);
+                    setError('Não foi possível carregar as semanas disponíveis.');
+                }
             } finally {
                 if (!cancelled) setLoading(false);
             }
@@ -52,9 +76,16 @@ export function useSemanasComDados(ano: number | null) {
         return () => {
             cancelled = true;
         };
-    }, [ano, organization?.id]);
+    }, [ano, isOrganizationLoading, organization?.id, requestKey, retryNonce]);
 
-    return { semanasComDados: semanas, loadingSemanasComDados: loading };
+    const retry = useCallback(() => setRetryNonce((current) => current + 1), []);
+
+    return {
+        semanasComDados: dataRequestKey === requestKey ? semanas : [],
+        loadingSemanasComDados: loading || isOrganizationLoading || Boolean(ano && resolvedRequestKey !== requestKey),
+        error: resolvedRequestKey === requestKey ? error : null,
+        retry,
+    };
 }
 
 function getCachedAvailableWeeks(ano: number, organizationId?: string | null) {
@@ -87,19 +118,31 @@ async function fetchAvailableWeeks(ano: number, organizationId?: string | null) 
         if (error) {
             throw error;
         }
+        if (!Array.isArray(data)) {
+            throw new Error('A consulta de semanas respondeu em um formato inválido.');
+        }
 
-        const semanasOtimizadas = Array.isArray(data)
-            ? data
-                .map((item: { semana_iso?: number }) => Number(item?.semana_iso))
-                .filter((semana) => Number.isFinite(semana) && semana > 0)
-            : [];
+        const semanasOtimizadas = data.map((item: unknown) => {
+            if (!item || typeof item !== 'object' || Array.isArray(item)) {
+                throw new Error('A consulta de semanas respondeu em um formato inválido.');
+            }
+
+            const week = Number((item as { semana_iso?: unknown }).semana_iso);
+            if (!Number.isInteger(week) || week < 1 || week > 53) {
+                throw new Error('A consulta de semanas respondeu em um formato inválido.');
+            }
+
+            return week;
+        });
+
+        const uniqueWeeks = Array.from(new Set(semanasOtimizadas)).sort((a, b) => a - b);
 
         weeksCache.set(cacheKey, {
-            data: semanasOtimizadas,
+            data: uniqueWeeks,
             expiresAt: Date.now() + WEEKS_CACHE_TTL_MS,
         });
 
-        return semanasOtimizadas;
+        return uniqueWeeks;
     })().finally(() => {
         weeksRequests.delete(cacheKey);
     });

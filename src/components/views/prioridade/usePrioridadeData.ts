@@ -10,14 +10,14 @@ export function usePrioridadeData(entregadoresData: EntregadoresData | null) {
     const [searchTerm, setSearchTerm] = useState('');
 
     // Hook para pesquisa
-    const { searchResults, isSearching } = usePrioridadeSearch(searchTerm, entregadoresData);
+    const { searchResults, deferredSearchTerm, isSearching } = usePrioridadeSearch(searchTerm, entregadoresData);
 
     // Usar resultados da pesquisa se houver termo de busca e resultados, senão usar dados originais
     const dataToDisplay = useMemo(() => {
         const baseData = entregadoresData?.entregadores;
         const baseArray = Array.isArray(baseData) ? baseData : [];
-        return searchTerm.trim() ? searchResults : baseArray;
-    }, [searchTerm, searchResults, entregadoresData]);
+        return deferredSearchTerm.trim() ? searchResults : baseArray;
+    }, [deferredSearchTerm, searchResults, entregadoresData]);
 
     // Hook para filtros
     const {

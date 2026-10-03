@@ -111,7 +111,22 @@ function DashboardShellContent() {
                   turnos={filters.options.turnos}
                   currentUser={auth.currentUser}
                   activeTab={ui.activeTab}
+                  optionsLoading={filters.optionsLoading}
+                  optionsError={filters.optionsError}
                 />
+                {ui.activeTab !== 'marketing' && filters.optionsLoading && !filters.optionsError ? (
+                  <p role="status" className="mt-2 pl-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                    Carregando opções dos filtros…
+                  </p>
+                ) : null}
+                {ui.activeTab !== 'marketing' && filters.optionsError ? (
+                  <div role="alert" className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-100">
+                    <span>{filters.optionsError}</span>
+                    <button type="button" onClick={filters.retryOptions} className="underline underline-offset-2 hover:no-underline">
+                      Tentar novamente
+                    </button>
+                  </div>
+                ) : null}
               </div>
               {showLoginBadge ? <DeferredLoginStreakBadge className="self-start xl:self-auto shrink-0" /> : null}
             </div>
@@ -145,6 +160,9 @@ function DashboardShellContent() {
                 aderenciaSubPraca={data.aderenciaSubPraca}
                 aderenciaOrigem={data.aderenciaOrigem}
                 aderenciaDiaOrigem={data.aderenciaDiaOrigem}
+                mainDataLoading={data.loading}
+                mainDataError={data.error}
+                retryMainData={data.retryMainData}
               />
             </main>
           </div>

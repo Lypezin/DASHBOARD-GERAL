@@ -3,15 +3,15 @@ import { Metadata } from 'next';
 import {
     fetchMarketingCitiesData,
     fetchMarketingDailyEvolution,
-    fetchMarketingWeeklyComparison,
+    fetchMarketingWeeklyData,
     fetchMarketingCostsComparison,
-    fetchMarketingWeeklyComparisonByCity,
 } from '@/utils/marketingDataFetcher';
 import { generatePrintStyles } from '@/utils/apresentacao/printPageHelpers';
 import { MarketingReportSlides } from './components/MarketingReportSlides';
 import { MARKETING_PRESENTATION_WEEKLY_CITIES } from '@/constants/marketing';
 import { loadCurrentUserProfile } from '@/app/api/_shared/currentUserProfile';
 import { createServiceRoleClient } from '@/utils/supabase/admin';
+import { safeLog } from '@/lib/errorHandler';
 
 interface PageProps {
     searchParams: {
@@ -33,6 +33,15 @@ function renderAccessRestricted(message: string) {
         <div style={{ background: '#0f172a', color: 'white', padding: 48, textAlign: 'center', fontFamily: 'sans-serif', minHeight: '100vh' }}>
             <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Acesso Restrito</h1>
             <p>{message}</p>
+        </div>
+    );
+}
+
+function renderDataUnavailable() {
+    return (
+        <div role="alert" style={{ background: '#0f172a', color: 'white', padding: 48, textAlign: 'center', fontFamily: 'sans-serif', minHeight: '100vh' }}>
+            <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Dados temporariamente indisponíveis</h1>
+            <p>Não foi possível carregar todos os dados da apresentação. Atualize a página em alguns instantes.</p>
         </div>
     );
 }
@@ -134,21 +143,31 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
     // O acesso e a organização já foram validados acima. Usar o cliente
     // server-only evita que políticas RLS inconsistentes deixem slides vazios,
     // mantendo todas as consultas explicitamente limitadas à organização.
-    const supabase = createServiceRoleClient();
+    type PresentationData = {
+        citiesData: Awaited<ReturnType<typeof fetchMarketingCitiesData>>;
+        evolutionData: Awaited<ReturnType<typeof fetchMarketingDailyEvolution>>;
+        weeklyData: Awaited<ReturnType<typeof fetchMarketingWeeklyData>>;
+        costsComparison: Awaited<ReturnType<typeof fetchMarketingCostsComparison>>;
+    };
 
-    const [citiesData, evolutionData, generalWeeklyData, costsComparison, weeklyDataByCity] = await Promise.all([
-        fetchMarketingCitiesData(panelFilters as any, orgId, supabase, true),
-        fetchMarketingDailyEvolution(panelFilters as any, orgId, supabase),
-        fetchMarketingWeeklyComparison(orgId, null, null, dateFinal, supabase),
-        fetchMarketingCostsComparison(filters as any, orgId, supabase),
-        fetchMarketingWeeklyComparisonByCity(
-            orgId,
-            MARKETING_PRESENTATION_WEEKLY_CITIES as unknown as string[],
-            null,
-            dateFinal,
-            supabase
-        ),
-    ]);
+    let presentationData: PresentationData;
+    try {
+        const supabase = createServiceRoleClient();
+        const [citiesData, evolutionData, weeklyData, costsComparison] = await Promise.all([
+            fetchMarketingCitiesData(panelFilters as any, orgId, supabase, true),
+            fetchMarketingDailyEvolution(panelFilters as any, orgId, supabase),
+            fetchMarketingWeeklyData(orgId, MARKETING_PRESENTATION_WEEKLY_CITIES as unknown as string[], null, dateFinal, supabase),
+            fetchMarketingCostsComparison(filters as any, orgId, supabase),
+        ]);
+        presentationData = { citiesData, evolutionData, weeklyData, costsComparison };
+    } catch (error) {
+        safeLog.error('Falha ao carregar os dados da apresentação de Marketing:', error);
+        return renderDataUnavailable();
+    }
+
+    const { citiesData, evolutionData, weeklyData, costsComparison } = presentationData;
+    const generalWeeklyData = weeklyData.overall;
+    const weeklyDataByCity = weeklyData.byCity;
 
     const pageStyle = generatePrintStyles();
     const formatarData = (date?: string) => {

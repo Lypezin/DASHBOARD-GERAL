@@ -31,6 +31,9 @@ export const renderActiveView = (activeTab: TabType, props: DashboardViewRenderP
                     filterPayload={props.filterPayload}
                     currentUser={props.currentUser}
                     totals={props.totals}
+                    mainDataLoading={props.mainDataLoading}
+                    mainDataError={props.mainDataError}
+                    retryMainData={props.retryMainData}
                     aderenciaSemanal={props.aderenciaSemanal}
                     aderenciaDia={props.aderenciaDia}
                     aderenciaTurno={props.aderenciaTurno}
@@ -50,6 +53,9 @@ export const renderActiveView = (activeTab: TabType, props: DashboardViewRenderP
                     aderenciaSubPraca={props.aderenciaSubPraca}
                     aderenciaOrigem={props.aderenciaOrigem}
                     aderenciaDiaOrigem={props.aderenciaDiaOrigem}
+                    mainDataLoading={props.mainDataLoading}
+                    mainDataError={props.mainDataError}
+                    retryMainData={props.retryMainData}
                 />
             );
         case 'utr':

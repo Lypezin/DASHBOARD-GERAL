@@ -5,13 +5,14 @@ import { calcularPercentualAceitas, calcularPercentualCompletadas } from './Entr
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { fetchEntregadoresFirstSeen, formatFirstSeenDate } from './fetchEntregadoresFirstSeen';
 import { IS_DEV } from '@/constants/environment';
-import { appendStyledJsonSheet, applyWorkbookMetadata } from '@/utils/excel/workbookStyle';
+import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit, createExcelFilterRows } from '@/utils/excel/workbookStyle';
 
 export async function exportarEntregadoresMainParaExcel(
     entregadores: Entregador[],
-    options: { organizationId?: string | null } = {}
+    options: { organizationId?: string | null; filters?: Record<string, unknown> } = {}
 ): Promise<void> {
     try {
+        assertExcelRowLimit(entregadores?.length || 0);
         const XLSX = await loadXLSX();
         const wb = XLSX.utils.book_new();
         applyWorkbookMetadata(wb, 'Entregadores operacional');
@@ -25,8 +26,7 @@ export async function exportarEntregadoresMainParaExcel(
                     options.organizationId
                 );
             } catch (error) {
-                safeLog.error('Erro ao buscar primeira aparicao para exportacao:', error);
-                throw new Error('Nao foi possivel buscar a primeira aparicao dos entregadores para o Excel.');
+                safeLog.warn('Nao foi possivel enriquecer a exportacao com a primeira aparicao; usando os dados disponiveis:', error);
             }
 
             const dadosExportacao = entregadores.map((e) => ({
@@ -56,6 +56,12 @@ export async function exportarEntregadoresMainParaExcel(
                 highlightFirstColumn: true,
             });
         }
+
+        appendStyledJsonSheet(XLSX, wb, createExcelFilterRows(options.filters), 'Filtros', {
+            title: 'Filtros aplicados',
+            theme: 'slate',
+            highlightFirstColumn: true,
+        });
 
         const agora = new Date();
         const dataHora = agora.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');

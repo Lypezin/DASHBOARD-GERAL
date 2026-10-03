@@ -1,12 +1,12 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
 import { AlertCircle, Calendar } from 'lucide-react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { ComparacaoFilters } from './ComparacaoFilters';
 import { ComparacaoContent } from './ComparacaoContent';
 import { FilterOption } from '@/types';
 import { ViewContainer } from '@/components/layout/ViewContainer';
+import { ViewTransition } from '@/components/ui/view-transition';
 
 const ApresentacaoView = dynamic(() => import('@/components/ApresentacaoView'), {
     ssr: false,
@@ -26,8 +26,18 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
     data,
     actions
 }: ComparacaoLayoutProps) {
-    const shouldReduceMotion = useReducedMotion();
-    const hasComparisonData = data.dadosComparacao.length > 0 || data.utrComparacao.length > 0;
+    const hasComparisonData = data.dadosComparacao.length > 0 || data.utrComparacao.some((item: { utr: unknown }) => item.utr !== null);
+    const comparisonStateKey = state.loading && !hasComparisonData
+        ? 'loading'
+        : (state.error || data.utrError) && !hasComparisonData
+            ? 'error'
+            : state.semanasSelecionadas.length > 2
+                ? 'limit'
+                : state.semanasSelecionadas.length < 2
+                    ? 'selection-needed'
+                    : hasComparisonData
+                        ? 'content'
+                        : 'empty';
     const contentState = React.useMemo(() => ({
         secoesVisiveis: state.secoesVisiveis,
         semanasSelecionadas: state.semanasSelecionadas,
@@ -48,19 +58,14 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
         setViewModeDia: actions.setViewModeDia,
         setViewModeSubPraca: actions.setViewModeSubPraca,
         setViewModeOrigem: actions.setViewModeOrigem,
+        retryData: actions.retryData,
     }), [
         actions.setViewModeDetalhada,
         actions.setViewModeDia,
         actions.setViewModeSubPraca,
         actions.setViewModeOrigem,
+        actions.retryData,
     ]);
-    const motionProps = {
-        initial: shouldReduceMotion ? false : { opacity: 0, y: 4 },
-        animate: shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 },
-        exit: shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -2 },
-        transition: { duration: shouldReduceMotion ? 0.01 : 0.08, ease: [0.22, 1, 0.36, 1] },
-    } as const;
-
     return (
         <ViewContainer className="space-y-8 pb-8">
             <ComparacaoFilters
@@ -74,43 +79,43 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                 onClearSemanas={actions.limparSemanas}
                 onMostrarApresentacao={() => actions.setMostrarApresentacao(true)}
                 loading={state.loading}
+                error={state.error}
                 dadosComparacao={data.dadosComparacao}
                 utrComparacao={data.utrComparacao}
                 secoesVisiveis={state.secoesVisiveis}
                 onToggleSecao={actions.toggleSecao}
+                loadingSemanas={state.loadingSemanas}
+                errorSemanas={state.errorSemanas}
+                onRetrySemanas={actions.retrySemanas}
             />
 
-            <AnimatePresence mode="wait" initial={false}>
+            <ViewTransition stateKey={comparisonStateKey}>
                 {state.loading && !hasComparisonData ? (
-                    <motion.div key="comparacao-loading" {...motionProps} className="min-w-0">
+                    <div className="min-w-0">
                         <DashboardSkeleton contentOnly />
-                    </motion.div>
-                ) : state.error && !hasComparisonData ? (
-                    <motion.div
-                        key="comparacao-error"
-                        {...motionProps}
+                    </div>
+                ) : (state.error || data.utrError) && !hasComparisonData ? (
+                    <div
                         className="rounded-[2rem] border border-rose-200/70 bg-white/95 px-4 py-16 text-center shadow-[0_20px_60px_-44px_rgba(190,24,93,0.35)] dark:border-rose-900/40 dark:bg-slate-950/80"
                     >
                         <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-rose-100/90 dark:bg-rose-950/50">
                             <AlertCircle className="h-8 w-8 text-rose-500 dark:text-rose-300" />
                         </div>
                         <h2 className="mb-2 text-xl font-bold text-slate-900 dark:text-white">
-                            Erro ao carregar comparação
+                            {state.error ? 'Erro ao carregar comparação' : 'Erro ao carregar UTR'}
                         </h2>
                         <p className="mx-auto max-w-md leading-relaxed text-slate-500 dark:text-slate-400">
-                            {state.error}
+                            {state.error || data.utrError}
                         </p>
                         <button
-                            onClick={() => window.location.reload()}
+                            onClick={actions.retryData}
                             className="mt-6 rounded-full bg-rose-500 px-6 py-2 text-xs font-bold uppercase tracking-widest text-white shadow-md shadow-rose-500/20 transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:bg-rose-600"
                         >
                             Tentar novamente
                         </button>
-                    </motion.div>
+                    </div>
                 ) : state.semanasSelecionadas.length > 2 ? (
-                    <motion.div
-                        key="comparacao-limit"
-                        {...motionProps}
+                    <div
                         className="rounded-[2rem] border border-slate-200/80 bg-white/95 px-4 py-20 text-center shadow-[0_24px_70px_-50px_rgba(15,23,42,0.34)] dark:border-slate-800/80 dark:bg-slate-950/80"
                     >
                         <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-sky-50 dark:bg-sky-950/30">
@@ -128,11 +133,37 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                         >
                             Reajustar seleção
                         </button>
-                    </motion.div>
+                    </div>
+                ) : state.semanasSelecionadas.length < 2 ? (
+                    <div
+                        className="rounded-[2rem] border border-slate-200/80 bg-white/95 px-4 py-16 text-center shadow-[0_24px_70px_-50px_rgba(15,23,42,0.24)] dark:border-slate-800/80 dark:bg-slate-950/80"
+                    >
+                        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-sky-50 dark:bg-sky-950/30">
+                            <Calendar className="h-8 w-8 text-sky-500 dark:text-sky-300" />
+                        </div>
+                        <h2 className="mb-2 text-xl font-bold text-slate-900 dark:text-white">
+                            Selecione duas semanas para comparar
+                        </h2>
+                        <p className="mx-auto max-w-md leading-relaxed text-slate-500 dark:text-slate-400">
+                            Use o filtro de semanas acima e escolha dois períodos para carregar os indicadores e as tabelas.
+                        </p>
+                    </div>
+                ) : !hasComparisonData ? (
+                    <div
+                        className="rounded-[2rem] border border-slate-200/80 bg-white/95 px-4 py-16 text-center shadow-[0_24px_70px_-50px_rgba(15,23,42,0.24)] dark:border-slate-800/80 dark:bg-slate-950/80"
+                    >
+                        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
+                            <Calendar className="h-8 w-8 text-slate-500 dark:text-slate-300" />
+                        </div>
+                        <h2 className="mb-2 text-xl font-bold text-slate-900 dark:text-white">
+                            Nenhum dado encontrado para essa combinação
+                        </h2>
+                        <p className="mx-auto max-w-md leading-relaxed text-slate-500 dark:text-slate-400">
+                            Tente outras semanas ou selecione outra praça nos filtros acima.
+                        </p>
+                    </div>
                 ) : (
-                    <motion.div
-                        key={`comparacao-content-${state.semanasSelecionadas.join('-')}-${state.pracaSelecionada || 'todas'}`}
-                        {...motionProps}
+                    <div
                         className="min-w-0"
                     >
                         {state.loading ? (
@@ -140,7 +171,7 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                                 Atualizando comparação com os filtros atuais...
                             </div>
                         ) : null}
-                        {state.error ? (
+                                {state.error ? (
                             <div className="mb-4 rounded-2xl border border-amber-200/70 bg-amber-50/85 px-4 py-3 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
                                 Não foi possível atualizar todos os dados da comparação. Exibindo a última resposta válida.
                             </div>
@@ -150,11 +181,11 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                             state={contentState}
                             actions={contentActions}
                         />
-                    </motion.div>
+                    </div>
                 )}
-            </AnimatePresence>
+            </ViewTransition>
 
-            {state.mostrarApresentacao && (
+            {state.mostrarApresentacao && !state.loading && !state.error && data.dadosComparacao.length === 2 && (
                 <ApresentacaoView
                     dadosComparacao={data.dadosComparacao}
                     utrComparacao={data.utrComparacao}

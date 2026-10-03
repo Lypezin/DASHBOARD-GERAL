@@ -1,29 +1,38 @@
 import React from 'react';
-import { Trophy } from 'lucide-react';
+import { AlertCircle, RotateCcw, Trophy } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { normalizeMetricNumber } from './metrics';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import type { Entregador } from '@/types';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+import { Button } from '@/components/ui/button';
 
 interface DedicadoRankingProps {
   entregadores: Entregador[];
   loading: boolean;
+  error?: string | null;
+  onRetry?: () => void;
 }
 
-export function DedicadoRanking({ entregadores, loading }: DedicadoRankingProps) {
+export function DedicadoRanking({ entregadores, loading, error, onRetry }: DedicadoRankingProps) {
   if (loading && entregadores.length === 0) return <DashboardSkeleton contentOnly />;
 
   if (entregadores.length === 0) {
     return (
       <Card className="border-slate-200/70 bg-white/90 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/85">
         <CardContent className="p-10 text-center">
-          <Trophy className="mx-auto mb-3 h-10 w-10 text-slate-300 dark:text-slate-700" />
-          <h3 className="text-lg font-black text-slate-900 dark:text-white">Ranking sem dados</h3>
+          {error ? <AlertCircle className="mx-auto mb-3 h-10 w-10 text-rose-500" /> : <Trophy className="mx-auto mb-3 h-10 w-10 text-slate-300 dark:text-slate-700" />}
+          <h3 className="text-lg font-black text-slate-900 dark:text-white">{error ? 'Erro ao carregar ranking' : 'Ranking sem dados'}</h3>
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            Ajuste os filtros ou aguarde a carga dos entregadores dedicados para montar o ranking.
+            {error ? 'Não foi possível carregar os entregadores para este ranking.' : 'Ajuste os filtros para encontrar entregadores dedicados.'}
           </p>
+          {error && onRetry ? (
+            <Button onClick={onRetry} variant="outline" className="mt-5 gap-2">
+              <RotateCcw className="h-4 w-4" />
+              Tentar novamente
+            </Button>
+          ) : null}
         </CardContent>
       </Card>
     );
@@ -35,6 +44,13 @@ export function DedicadoRanking({ entregadores, loading }: DedicadoRankingProps)
         <CardContent className="pb-0 pt-6">
           <p className="rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/25 dark:text-blue-200">
             Atualizando ranking dedicado com os filtros atuais...
+          </p>
+        </CardContent>
+      ) : null}
+      {error ? (
+        <CardContent className="pb-0">
+          <p role="alert" className="rounded-2xl border border-amber-200/70 bg-amber-50/85 px-4 py-3 text-sm font-semibold text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
+            Não foi possível atualizar o ranking. Exibindo a resposta válida anterior.
           </p>
         </CardContent>
       ) : null}

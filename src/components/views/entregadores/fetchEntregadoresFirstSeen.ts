@@ -31,7 +31,11 @@ async function fetchFirstSeenChunk(
     throw new Error(error);
   }
 
-  return data || [];
+  if (!Array.isArray(data)) {
+    throw new Error('A consulta de primeira aparição retornou uma resposta inválida.');
+  }
+
+  return data;
 }
 
 export async function fetchEntregadoresFirstSeen(
@@ -78,9 +82,7 @@ export async function fetchEntregadoresFirstSeen(
     Array.from({ length: Math.min(REQUEST_CONCURRENCY, chunks.length) }, () => worker())
   );
 
-  const hasAtLeastOneDate = Array.from(firstSeenById.values()).some(Boolean);
-
-  if (errors.length > 0 && !hasAtLeastOneDate) {
+  if (errors.length > 0) {
     throw errors[0] || new Error('Erro ao buscar primeira aparicao.');
   }
 

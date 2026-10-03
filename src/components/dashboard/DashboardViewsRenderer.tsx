@@ -15,8 +15,8 @@ import type {
 import type { FilterPayload } from '@/types/filters';
 import { needsChartReady, renderActiveView } from './utils/viewRenderer';
 import { useGamification } from '@/contexts/GamificationContext';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { scheduleIdleTask } from '@/utils/scheduling/idleTask';
+import { ViewTransition } from '@/components/ui/view-transition';
 
 interface DashboardViewsRendererProps {
   activeTab: TabType;
@@ -40,6 +40,9 @@ interface DashboardViewsRendererProps {
   aderenciaSubPraca: AderenciaSubPraca[];
   aderenciaOrigem: AderenciaOrigem[];
   aderenciaDiaOrigem: AderenciaDiaOrigem[];
+  mainDataLoading: boolean;
+  mainDataError: string | null;
+  retryMainData: () => void;
 }
 
 export type DashboardViewRenderProps = DashboardViewsRendererProps;
@@ -47,7 +50,6 @@ export type DashboardViewRenderProps = DashboardViewsRendererProps;
 export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer(props: DashboardViewsRendererProps) {
   const { activeTab, chartReady } = props;
   const { registerInteraction } = useGamification();
-  const shouldReduceMotion = useReducedMotion();
 
   useEffect(() => {
     const interactionMap = {
@@ -66,25 +68,22 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
 
   const needsChart = needsChartReady(activeTab);
 
-  if (needsChart && !chartReady) {
-    return <DashboardSkeleton contentOnly />;
-  }
+  const viewStateKey = needsChart && !chartReady ? `chart-loading-${activeTab}` : activeTab;
 
   return (
     <ErrorBoundary>
       <Suspense fallback={<DashboardSkeleton contentOnly />}>
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={activeTab}
-            initial={shouldReduceMotion ? false : { opacity: 0, y: 4 }}
-            animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -2 }}
-            transition={{ duration: shouldReduceMotion ? 0.01 : 0.09, ease: [0.22, 1, 0.36, 1] }}
-            className="min-w-0 w-full"
-          >
-            {renderActiveView(activeTab, props)}
-          </motion.div>
-        </AnimatePresence>
+        <ViewTransition stateKey={viewStateKey}>
+          {needsChart && !chartReady ? (
+            <div className="min-w-0 w-full">
+              <DashboardSkeleton contentOnly />
+            </div>
+          ) : (
+            <div className="min-w-0 w-full">
+              {renderActiveView(activeTab, props)}
+            </div>
+          )}
+        </ViewTransition>
       </Suspense>
     </ErrorBoundary>
   );

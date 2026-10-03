@@ -10,7 +10,7 @@ interface CountUpProps {
 
 export const CountUp: React.FC<CountUpProps> = ({ value, duration = 2 }) => {
     const shouldReduceMotion = useReducedMotion();
-    const motionValue = useMotionValue(0);
+    const motionValue = useMotionValue(value);
     const springValue = useSpring(motionValue, {
         stiffness: 100,
         damping: 30,
@@ -23,6 +23,8 @@ export const CountUp: React.FC<CountUpProps> = ({ value, duration = 2 }) => {
         motionValue.set(value);
     }, [value, motionValue]);
 
+    // Start at the current value so loading never looks like a real zero; later
+    // changes still animate from the previous value.
     if (shouldReduceMotion) return <span>{Math.floor(value)}</span>;
     return <motion.span>{displayValue}</motion.span>;
 };

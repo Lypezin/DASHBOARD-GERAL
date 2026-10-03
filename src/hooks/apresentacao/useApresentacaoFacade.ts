@@ -8,6 +8,9 @@ import { usePresentationNavigation } from './usePresentationNavigation';
 import { DashboardResumoData, UtrComparacaoItem } from '@/types';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { fetchEntregadoresData } from '@/utils/tabData/fetchers/entregadoresFetcher';
+import { parseWeekString } from '@/utils/comparacaoHelpers';
+import { createRequestKey } from '@/utils/request/createRequestKey';
+import { safeLog } from '@/lib/errorHandler';
 
 interface FacadeProps {
     dadosComparacao: DashboardResumoData[];
@@ -23,7 +26,14 @@ export function useApresentacaoFacade(props: FacadeProps) {
     const { dadosComparacao, utrComparacao, semanasSelecionadas, pracaSelecionada, anoSelecionado, onPracaChange, onSemanasChange } = props;
 
     const { state, actions } = useApresentacaoController({ praca: pracaSelecionada, ano: anoSelecionado, semanas: semanasSelecionadas });
-    const { savedPresentations, loading: isLoadingSaves, savePresentation, deletePresentation } = useSavedPresentations();
+    const {
+        savedPresentations,
+        loading: isLoadingSaves,
+        error: savedPresentationsError,
+        fetchPresentations,
+        savePresentation,
+        deletePresentation,
+    } = useSavedPresentations();
 
     const [isManagersOpen, setIsManagersOpen] = useState(false);
     const [isSaveDialogOpen, setIsSaveDialogOpen] = useState(false);
@@ -39,29 +49,44 @@ export function useApresentacaoFacade(props: FacadeProps) {
 
     const { organizationId } = useOrganization();
     const [entregadoresComparativo, setEntregadoresComparativo] = useState<any[]>([]);
+    const [entregadoresResolvedKey, setEntregadoresResolvedKey] = useState<string | null>(null);
+    const [entregadoresError, setEntregadoresError] = useState<{ key: string; message: string } | null>(null);
 
     const shouldLoadEntregadores = state.visibleSections.entregadores === true;
+    const parsedWeeks = useMemo(
+        () => semanasSelecionadas.map((week) => parseWeekString(week, anoSelecionado)),
+        [semanasSelecionadas, anoSelecionado]
+    );
+    const entregadoresRequestKey = createRequestKey({
+        enabled: shouldLoadEntregadores,
+        weeks: parsedWeeks,
+        plaza: pracaSelecionada,
+        organizationId,
+    });
+    const currentEntregadores = entregadoresResolvedKey === entregadoresRequestKey ? entregadoresComparativo : [];
+    const isLoadingEntregadores = shouldLoadEntregadores
+        && semanasSelecionadas.length === 2
+        && entregadoresResolvedKey !== entregadoresRequestKey
+        && entregadoresError?.key !== entregadoresRequestKey;
+    const currentEntregadoresError = entregadoresError?.key === entregadoresRequestKey ? entregadoresError.message : null;
 
     useEffect(() => {
         if (!shouldLoadEntregadores || semanasSelecionadas.length !== 2) {
             setEntregadoresComparativo([]);
+            setEntregadoresResolvedKey(entregadoresRequestKey);
+            setEntregadoresError(null);
             return;
         }
         
         let active = true;
         const load = async () => {
             try {
-                const getWeekNumber = (weekStr: string): number => {
-                    const match = weekStr.match(/\d+/);
-                    return match ? Number(match[0]) : 0;
-                };
-                const sem1 = getWeekNumber(semanasSelecionadas[0]);
-                const sem2 = getWeekNumber(semanasSelecionadas[1]);
+                const [{ semanaNumero: sem1, anoNumero: ano1 }, { semanaNumero: sem2, anoNumero: ano2 }] = parsedWeeks;
                 
                 const [res1, res2] = await Promise.all([
                     fetchEntregadoresData({
                         filterPayload: {
-                            p_ano: anoSelecionado,
+                            p_ano: ano1,
                             p_semana: sem1,
                             p_praca: pracaSelecionada,
                             p_organization_id: organizationId
@@ -69,13 +94,17 @@ export function useApresentacaoFacade(props: FacadeProps) {
                     }),
                     fetchEntregadoresData({
                         filterPayload: {
-                            p_ano: anoSelecionado,
+                            p_ano: ano2,
                             p_semana: sem2,
                             p_praca: pracaSelecionada,
                             p_organization_id: organizationId
                         }
                     })
                 ]);
+
+                if (res1.error || res2.error || !res1.data || !res2.data) {
+                    throw new Error('Não foi possível carregar os entregadores das duas semanas. Tente novamente.');
+                }
                 
                 if (!active) return;
                 
@@ -111,21 +140,30 @@ export function useApresentacaoFacade(props: FacadeProps) {
                     .sort((a, b) => (b.segundosSem1 + b.segundosSem2) - (a.segundosSem1 + a.segundosSem2));
                 
                 setEntregadoresComparativo(comparisonList);
+                setEntregadoresResolvedKey(entregadoresRequestKey);
+                setEntregadoresError(null);
             } catch (err) {
-                console.error('Erro ao buscar entregadores comparativo:', err);
+                safeLog.error('Erro ao buscar entregadores comparativo:', err);
+                if (active) {
+                    setEntregadoresComparativo([]);
+                    setEntregadoresError({
+                        key: entregadoresRequestKey,
+                        message: err instanceof Error ? err.message : 'Não foi possível carregar os entregadores. Tente novamente.',
+                    });
+                }
             }
         };
         
         load();
         return () => { active = false; };
-    }, [shouldLoadEntregadores, semanasSelecionadas, pracaSelecionada, anoSelecionado, organizationId]);
+    }, [shouldLoadEntregadores, semanasSelecionadas, parsedWeeks, pracaSelecionada, organizationId, entregadoresRequestKey]);
 
     const slides = useApresentacaoSlides(
         dadosProcessados, dadosComparacao, utrComparacao,
         dadosBasicos.numeroSemana1, dadosBasicos.numeroSemana2,
         dadosBasicos.periodoSemana1, dadosBasicos.periodoSemana2,
         pracaSelecionada, state.visibleSections, state.mediaSlides, actions.handleUpdateMediaSlide,
-        entregadoresComparativo
+        currentEntregadores, isLoadingEntregadores, currentEntregadoresError
     );
 
     const { goToNextSlide, goToPrevSlide } = usePresentationNavigation(slides, actions.setCurrentSlide);
@@ -133,11 +171,13 @@ export function useApresentacaoFacade(props: FacadeProps) {
 
     return {
         state, actions,
-        savedPresentations, isLoadingSaves, deletePresentation,
+        savedPresentations, isLoadingSaves, savedPresentationsError, fetchPresentations, deletePresentation,
         isManagersOpen, setIsManagersOpen,
         isSaveDialogOpen, setIsSaveDialogOpen,
         handleSavePresentation, handleLoadPresentation,
         dadosBasicos, slides, goToNextSlide, goToPrevSlide, initialOrder,
-        entregadoresComparativo
+        entregadoresComparativo: currentEntregadores,
+        isLoadingEntregadores,
+        entregadoresError: currentEntregadoresError
     };
 }

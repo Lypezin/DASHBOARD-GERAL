@@ -29,8 +29,16 @@ export function useAdminData() {
         fetchPracasWithFallback(),
       ]);
 
-      const rawUsers = usersPromise.status === 'fulfilled' && !usersPromise.value.error ? usersPromise.value.data || [] : [];
-      const rawPendingUsers = pendingPromise.status === 'fulfilled' && !pendingPromise.value.error ? pendingPromise.value.data || [] : [];
+      const usersLoaded = usersPromise.status === 'fulfilled'
+        && !usersPromise.value.error
+        && Array.isArray(usersPromise.value.data);
+      const pendingLoaded = pendingPromise.status === 'fulfilled'
+        && !pendingPromise.value.error
+        && Array.isArray(pendingPromise.value.data);
+      const pracasLoaded = pracasPromise.status === 'fulfilled';
+      const rawUsers = usersLoaded ? usersPromise.value.data ?? [] : [];
+      const rawPendingUsers = pendingLoaded ? pendingPromise.value.data ?? [] : [];
+      const failures: string[] = [];
       const avatarIds = Array.from(new Set([...rawUsers, ...rawPendingUsers].map((user) => user.id).filter(Boolean)));
       const profilesMap = new Map<string, string>();
 
@@ -43,25 +51,29 @@ export function useAdminData() {
         });
       }
 
-      if (usersPromise.status === 'fulfilled' && !usersPromise.value.error) {
+      if (usersLoaded) {
         setUsers(rawUsers.map(u => ({ ...u, avatar_url: profilesMap.get(u.id) || u.avatar_url })));
       } else {
+        failures.push('usuários');
         if (IS_DEV) safeLog.warn('Erro ao buscar usuários:', usersPromise.status === 'fulfilled' ? usersPromise.value.error : 'Erro desconhecido');
-        setUsers([]);
       }
 
-      if (pendingPromise.status === 'fulfilled' && !pendingPromise.value.error) {
+      if (pendingLoaded) {
         setPendingUsers(rawPendingUsers.map(u => ({ ...u, avatar_url: profilesMap.get(u.id) || u.avatar_url })));
       } else {
+        failures.push('usuários pendentes');
         if (IS_DEV) safeLog.warn('Erro ao buscar usuários pendentes:', pendingPromise.status === 'fulfilled' ? pendingPromise.value.error : 'Erro desconhecido');
-        setPendingUsers([]);
       }
 
-      if (pracasPromise.status === 'fulfilled') setPracasDisponiveis(pracasPromise.value);
+      if (pracasLoaded) setPracasDisponiveis(pracasPromise.value);
       else {
+        failures.push('praças');
         if (IS_DEV) safeLog.warn('Erro ao buscar praças:', pracasPromise.status === 'rejected' ? pracasPromise.reason : 'Erro desconhecido');
-        setPracasDisponiveis([]);
       }
+
+      setError(failures.length > 0
+        ? `Não foi possível atualizar: ${failures.join(', ')}. Os últimos dados disponíveis foram mantidos; tente novamente.`
+        : null);
     } catch (err: unknown) {
       if (IS_DEV) safeLog.error('Erro ao carregar dados:', err);
       setError(err instanceof Error ? err.message : 'Erro desconhecido');

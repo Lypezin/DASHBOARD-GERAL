@@ -16,12 +16,14 @@ interface DedicadoResumoProps {
   rows: Array<DedicadoOrigemRow & { label: string; horas_entregues?: string }>;
   loading: boolean;
   error?: string | null;
+  onRetry?: () => void;
 }
 
 export function DedicadoResumo({
   rows,
   loading,
   error,
+  onRetry,
 }: DedicadoResumoProps) {
   if (loading && rows.length === 0) return <DashboardSkeleton contentOnly />;
 
@@ -40,7 +42,7 @@ export function DedicadoResumo({
       ) : null}
       {error ? (
         <CardContent className="pb-0">
-          <DedicadoInlineNotice message={error} />
+          <DedicadoInlineNotice message={error} onRetry={onRetry} />
         </CardContent>
       ) : null}
       <CardContent className="max-w-full overflow-hidden p-0">

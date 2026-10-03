@@ -18,6 +18,7 @@ type DedicadoOrigemRow = AderenciaOrigem & {
 interface DedicadoDashboardProps {
   loading: boolean;
   error?: string | null;
+  onRetry?: () => void;
   stats: {
     entregadores: number;
     origens: number;
@@ -37,6 +38,7 @@ interface DedicadoDashboardProps {
 export function DedicadoDashboard({
   loading,
   error,
+  onRetry,
   stats,
   topOrigens,
 }: DedicadoDashboardProps) {
@@ -56,7 +58,7 @@ export function DedicadoDashboard({
   return (
     <div className="space-y-6">
       {loading ? <DedicadoInlineNotice message="Atualizando dashboard dedicado com os filtros atuais..." tone="info" /> : null}
-      {error ? <DedicadoInlineNotice message={error} /> : null}
+      {error ? <DedicadoInlineNotice message={error} onRetry={onRetry} /> : null}
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-6">
         {cards.map((card) => {

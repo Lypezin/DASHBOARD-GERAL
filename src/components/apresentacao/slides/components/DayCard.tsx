@@ -27,11 +27,16 @@ const buildCircleDasharray = (valor: number, radius: number) => {
     return `${(clamped / 100) * circumference} ${circumference}`;
 };
 
+function getProgressDelay(dayKey: string) {
+    const stableHash = Array.from(dayKey).reduce((total, char) => total + char.charCodeAt(0), 0);
+    return (stableHash % 4) * 70;
+}
+
 import { useAnimatedProgress } from '@/hooks/ui/useAnimatedProgress';
 
 export const DayCard: React.FC<ComponentDayCardProps> = ({ dia, isSecondWeek = false, variacao, isActive = true }) => {
     // Animate adherence
-    const animatedAderencia = useAnimatedProgress(dia.aderencia, 1000, Math.random() * 300, isActive);
+    const animatedAderencia = useAnimatedProgress(dia.aderencia, 1000, getProgressDelay(dia.sigla), isActive);
 
     return (
         <div className={`rounded-xl border px-2 py-3 flex flex-col items-center gap-2 ${isSecondWeek ? 'bg-gradient-to-b from-blue-50 to-white dark:from-blue-900/30 dark:to-slate-800 border-blue-200 dark:border-blue-800/50' : 'bg-gradient-to-b from-sky-50 to-white dark:from-sky-900/30 dark:to-slate-800 border-sky-200 dark:border-sky-800/50'}`}>

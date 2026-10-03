@@ -4,9 +4,10 @@ import { fetchInternalRpcApi } from '@/utils/app/fetchInternalRpcApi';
 export type DashboardDataApiMode =
     | 'utr'
     | 'entregadores'
+    | 'entregadores_page'
     | 'valores'
+    | 'valores_page'
     | 'valores_detalhados'
-    | 'valores_breakdown'
     | 'resumo_local';
 
 export async function fetchDashboardDataApi<T>(

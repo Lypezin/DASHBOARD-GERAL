@@ -10,11 +10,23 @@ import { fetchDashboardDataApi } from '@/utils/dashboard/fetchDashboardDataApi';
 
 interface FetchOptions {
     filterPayload: FilterPayload;
+    requestScopeKey?: string;
 }
 
 function normalizeNumber(value: unknown) {
-    const parsed = Number(value || 0);
-    return Number.isFinite(parsed) ? parsed : 0;
+    if (value === null || value === undefined || value === '') return 0;
+
+    const parsed = typeof value === 'number'
+        ? value
+        : typeof value === 'string' && value.trim() !== ''
+            ? Number(value)
+            : Number.NaN;
+
+    if (!Number.isFinite(parsed)) {
+        throw new Error('INVALID_RESPONSE');
+    }
+
+    return parsed;
 }
 
 function isMojibakeName(name: string) {
@@ -39,7 +51,7 @@ function chooseEarliestDate(current?: string | null, next?: string | null) {
 }
 
 function normalizeEntregador(entregador: Entregador): Entregador | null {
-    const id = String(entregador.id_entregador || '').trim();
+    const id = String(entregador.id_entregador ?? '').trim();
     if (!id) return null;
 
     return {
@@ -111,22 +123,54 @@ function mergeEntregadoresById(entregadores: Entregador[]) {
 }
 
 function parseEntregadoresResponse(resultData: unknown): EntregadoresData {
+    if (resultData === null || resultData === undefined) {
+        throw new Error('EMPTY_RESPONSE');
+    }
+
     const processedData: EntregadoresData = { entregadores: [], total: 0 };
 
-    if (!resultData) return processedData;
-
     let entregadores: Record<string, unknown>[] = [];
+    let responseTotal: number | null = null;
+    let summary: EntregadoresData['summary'];
+    let performersByMetric: EntregadoresData['performers_by_metric'];
 
     if (typeof resultData === 'object' && !Array.isArray(resultData)) {
         const dataObject = resultData as Record<string, unknown>;
         if (Array.isArray(dataObject.entregadores)) {
             entregadores = dataObject.entregadores as Record<string, unknown>[];
             processedData.periodo_resolvido = dataObject.periodo_resolvido as EntregadoresData['periodo_resolvido'];
+            const parsedTotal = Number(dataObject.total);
+            responseTotal = Number.isFinite(parsedTotal) && parsedTotal >= 0 ? parsedTotal : null;
+            const parsedPage = Number(dataObject.page);
+            const parsedPageSize = Number(dataObject.page_size);
+            if (Number.isInteger(parsedPage) && parsedPage > 0) processedData.page = parsedPage;
+            if (Number.isInteger(parsedPageSize) && parsedPageSize > 0) processedData.page_size = parsedPageSize;
+            if (dataObject.summary && typeof dataObject.summary === 'object') {
+                summary = dataObject.summary as EntregadoresData['summary'];
+            }
+            if (dataObject.performers_by_metric && typeof dataObject.performers_by_metric === 'object') {
+                performersByMetric = dataObject.performers_by_metric as EntregadoresData['performers_by_metric'];
+            }
         } else {
             safeLog.warn('[fetchEntregadoresData] Estrutura de dados inesperada:', resultData);
+            throw new Error('INVALID_RESPONSE');
         }
     } else if (Array.isArray(resultData)) {
         entregadores = resultData;
+    } else {
+        safeLog.warn('[fetchEntregadoresData] Estrutura de dados inesperada:', resultData);
+        throw new Error('INVALID_RESPONSE');
+    }
+
+    const hasValidRows = entregadores.every((row) =>
+        row !== null
+        && typeof row === 'object'
+        && !Array.isArray(row)
+        && String(row.id_entregador ?? '').trim() !== ''
+    );
+    if (!hasValidRows) {
+        safeLog.warn('[fetchEntregadoresData] A resposta contém linhas sem identificador válido:', resultData);
+        throw new Error('INVALID_RESPONSE');
     }
 
     const normalizedEntregadores = mergeEntregadoresById(entregadores as unknown as Entregador[]);
@@ -134,7 +178,9 @@ function parseEntregadoresResponse(resultData: unknown): EntregadoresData {
     return {
         ...processedData,
         entregadores: normalizedEntregadores,
-        total: normalizedEntregadores.length
+        total: responseTotal ?? normalizedEntregadores.length,
+        summary,
+        performers_by_metric: performersByMetric,
     };
 }
 
@@ -156,16 +202,24 @@ function normalizeDedicadoAderencia(data: EntregadoresData | null): Entregadores
 }
 
 async function fetchEntregadoresByRpc(
-    rpcName: 'listar_entregadores_v2',
+    rpcName: 'listar_entregadores_dashboard_fast_v1' | 'listar_entregadores_dashboard_page_v1',
     filterPayload: FilterPayload,
-    options: { fallbackOnError: boolean }
+    options: { fallbackOnError: boolean; pageMode?: boolean }
 ): Promise<{ data: EntregadoresData | null; error: RpcError | null }> {
-    const allowedParams = ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_only_dedicados', 'p_search'];
+    const allowedParams = options.pageMode
+        ? ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_only_dedicados', 'p_search', 'p_limit', 'p_page', 'p_sort_field', 'p_sort_direction', 'p_only_inactive']
+        : ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_only_dedicados', 'p_search'];
     const listarEntregadoresPayload = buildFilterPayload(filterPayload, allowedParams);
 
-    const result = await fetchDashboardDataApi<any>('entregadores', listarEntregadoresPayload);
+    const result = await fetchDashboardDataApi<any>(options.pageMode ? 'entregadores_page' : 'entregadores', listarEntregadoresPayload);
 
     if (result.error) {
+        if (options.pageMode) {
+            if (is500Error(result.error)) throw new Error('RETRY_500');
+            if (isRateLimitError(result.error)) throw new Error('RETRY_RATE_LIMIT');
+            return { data: null, error: result.error };
+        }
+
         const search = typeof listarEntregadoresPayload.p_search === 'string'
             ? listarEntregadoresPayload.p_search.trim()
             : '';
@@ -180,17 +234,6 @@ async function fetchEntregadoresByRpc(
             filterPayload.p_data_final
         );
         const canUseRawFallback = hasSearch || hasExplicitNarrowPeriod;
-        const emptySearchData: EntregadoresData = {
-            entregadores: [],
-            total: 0,
-            periodo_resolvido: {
-                ano: typeof listarEntregadoresPayload.p_ano === 'number' ? listarEntregadoresPayload.p_ano : null,
-                semana: typeof listarEntregadoresPayload.p_semana === 'number' ? listarEntregadoresPayload.p_semana : null,
-                semanas: Array.isArray(listarEntregadoresPayload.p_semanas) ? listarEntregadoresPayload.p_semanas : null,
-                auto_semana: false,
-                search
-            }
-        };
         const is500 = is500Error(result.error);
         const isRateLimit = isRateLimitError(result.error);
         const isTimeout = isTimeoutError(result.error);
@@ -209,11 +252,6 @@ async function fetchEntregadoresByRpc(
                 'Fallback bruto de entregadores ignorado para evitar scan amplo em dados_corridas.',
                 { hasSearch, hasExplicitNarrowPeriod }
             );
-        }
-
-        if (hasSearch && (is500 || isTimeout)) {
-            safeLog.error(`Busca de entregadores falhou via ${rpcName}; retornando estado vazio controlado.`, result.error);
-            return { data: emptySearchData, error: null };
         }
 
         if (is500 && options.fallbackOnError) {
@@ -253,7 +291,12 @@ async function fetchEntregadoresByRpc(
  * Busca dados de Entregadores
  */
 export async function fetchEntregadoresData(options: FetchOptions): Promise<{ data: EntregadoresData | null; error: RpcError | null }> {
-    return fetchEntregadoresByRpc('listar_entregadores_v2', options.filterPayload, { fallbackOnError: true });
+    const pageMode = Object.prototype.hasOwnProperty.call(options.filterPayload, 'p_limit');
+    return fetchEntregadoresByRpc(
+        pageMode ? 'listar_entregadores_dashboard_page_v1' : 'listar_entregadores_dashboard_fast_v1',
+        options.filterPayload,
+        { fallbackOnError: !pageMode, pageMode }
+    );
 }
 
 /**
@@ -263,13 +306,12 @@ export async function fetchDedicadoEntregadoresData(options: FetchOptions): Prom
     const allowedParams = ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_data_inicial', 'p_data_final', 'p_organization_id'];
     const payload = buildFilterPayload(options.filterPayload, allowedParams);
 
-    const result = await fetchDedicadoApi<unknown>('entregadores', payload);
-    const parsedData = parseEntregadoresResponse(result.data);
-
+    const result = await fetchDedicadoApi<unknown>('entregadores', payload, options.requestScopeKey);
     if (result.error) {
         safeLog.error('Erro ao buscar entregadores do DEDICADO via API:', result.error);
         return { data: { entregadores: [], total: 0 }, error: result.error };
     }
 
+    const parsedData = parseEntregadoresResponse(result.data);
     return { data: normalizeDedicadoAderencia(parsedData), error: null };
 }

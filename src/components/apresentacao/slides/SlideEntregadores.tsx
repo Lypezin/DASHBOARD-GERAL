@@ -8,6 +8,8 @@ interface SlideEntregadoresProps {
     numeroSemana1: string;
     numeroSemana2: string;
     entregadores: Array<{ id: string; nome: string; segundosSem1: number; segundosSem2: number }>;
+    loading?: boolean;
+    error?: string | null;
     totaisHorasOficiais?: {
         semana1?: string;
         semana2?: string;
@@ -48,6 +50,8 @@ export const SlideEntregadores: React.FC<SlideEntregadoresProps> = ({
     numeroSemana1,
     numeroSemana2,
     entregadores,
+    loading = false,
+    error = null,
     totaisHorasOficiais
 }) => {
     const totalSegundosEntregadoresSem1 = entregadores.reduce((sum, e) => sum + e.segundosSem1, 0);
@@ -64,12 +68,31 @@ export const SlideEntregadores: React.FC<SlideEntregadoresProps> = ({
     const totalUnicos = entregadores.length;
 
     const renderContent = () => {
+        if (loading) {
+            return (
+                <div role="status" className="flex h-full min-h-64 flex-col items-center justify-center gap-4 text-center">
+                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-sky-100 border-t-sky-600 dark:border-slate-700 dark:border-t-sky-300" />
+                    <p className="text-lg font-semibold text-slate-600 dark:text-slate-300">Carregando entregadores das duas semanas...</p>
+                </div>
+            );
+        }
+
+        if (error) {
+            return (
+                <div role="alert" className="flex h-full min-h-64 flex-col items-center justify-center p-8 text-center">
+                    <AlertTriangle className="mb-4 h-14 w-14 text-rose-500" />
+                    <h3 className="mb-2 text-xl font-bold text-slate-800 dark:text-slate-100">Não foi possível carregar o comparativo</h3>
+                    <p className="max-w-xl text-base text-slate-600 dark:text-slate-400">{error}</p>
+                </div>
+            );
+        }
+
         if (!entregadores || entregadores.length === 0) {
             return (
                 <div className="flex flex-col items-center justify-center flex-1 h-full text-center p-8">
                     <AlertTriangle className="h-16 w-16 text-amber-500 mb-4" />
-                    <h3 className="text-2xl font-bold text-slate-700 dark:text-slate-200 mb-2">Dados de entregadores não disponíveis</h3>
-                    <p className="text-lg text-slate-500 dark:text-slate-400">Não foi possível carregar os entregadores para o período.</p>
+                    <h3 className="text-2xl font-bold text-slate-700 dark:text-slate-200 mb-2">Nenhum entregador encontrado</h3>
+                    <p className="text-lg text-slate-500 dark:text-slate-400">Não há registros para as duas semanas e os filtros selecionados.</p>
                 </div>
             );
         }

@@ -12,6 +12,25 @@ interface FetchOptions {
     filterPayload: FilterPayload;
 }
 
+function isFiniteMetric(value: unknown) {
+    if (typeof value === 'number') return Number.isFinite(value);
+    if (typeof value !== 'string' || value.trim() === '') return false;
+    return Number.isFinite(Number(value));
+}
+
+function isValidUtrPayload(value: Record<string, unknown>): value is Record<string, unknown> & UtrData {
+    const geral = value.geral;
+    if (!geral || typeof geral !== 'object' || Array.isArray(geral)) return false;
+
+    const totals = geral as Record<string, unknown>;
+    if (!['tempo_horas', 'corridas', 'utr'].every((key) => isFiniteMetric(totals[key]))) return false;
+
+    return [
+        'praca', 'sub_praca', 'origem', 'turno',
+        'por_praca', 'por_sub_praca', 'por_origem', 'por_turno',
+    ].every((key) => value[key] === undefined || Array.isArray(value[key]));
+}
+
 
 /**
  * Busca dados de UTR
@@ -73,11 +92,18 @@ export async function fetchUtrData(options: FetchOptions): Promise<{ data: UtrDa
         parsedData = parsedData.calcular_utr_completo;
     }
 
-    if (typeof parsedData === 'object' && !Array.isArray(parsedData)) {
-        utrData = parsedData as UtrData;
+    if (parsedData && typeof parsedData === 'object' && !Array.isArray(parsedData)
+        && isValidUtrPayload(parsedData as Record<string, unknown>)) {
+        utrData = parsedData;
     } else {
         safeLog.warn('[fetchUtrData] Estrutura de dados inesperada:', result.data);
-        utrData = null;
+        return {
+            data: null,
+            error: {
+                code: result.data === null || result.data === undefined ? 'EMPTY_RESPONSE' : 'INVALID_RESPONSE',
+                message: 'A consulta de UTR respondeu sem dados válidos.',
+            },
+        };
     }
 
     if (IS_DEV) safeLog.info('[UTR Fetcher] Dados recebidos do RPC:', { utrData: result.data });

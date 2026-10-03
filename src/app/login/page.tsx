@@ -10,7 +10,7 @@ export default function LoginPage() {
   // Limpar sessões inválidas ao carregar
   useSessionCleanup();
 
-  const { loading, error, handleLogin } = useLogin();
+  const { loading, error, profileValidationPending, handleLogin, retryProfileValidation } = useLogin();
 
   return (
     <ErrorBoundary>
@@ -18,7 +18,9 @@ export default function LoginPage() {
         <LoginForm
           loading={loading}
           error={error}
+          profileValidationPending={profileValidationPending}
           onSubmit={handleLogin}
+          onRetryProfileValidation={retryProfileValidation}
         />
       </LoginPageLayout>
     </ErrorBoundary>

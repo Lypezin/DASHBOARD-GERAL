@@ -5,6 +5,8 @@ import { INTERNAL_FETCH_OPTIONS, JSON_HEADERS } from './internalFetchOptions';
 type InternalRpcApiResponse<T> = {
     data?: T | null;
     error?: string | null;
+    code?: string | null;
+    details?: string | null;
 };
 
 const inFlightInternalRpcRequests = new Map<string, Promise<RpcResult<unknown>>>();
@@ -14,6 +16,7 @@ interface FetchInternalRpcApiOptions {
     mode: string;
     payload: Record<string, unknown>;
     errorMessage: string;
+    requestScopeKey?: string;
 }
 
 export async function fetchInternalRpcApi<T>({
@@ -21,8 +24,9 @@ export async function fetchInternalRpcApi<T>({
     mode,
     payload,
     errorMessage,
+    requestScopeKey,
 }: FetchInternalRpcApiOptions): Promise<RpcResult<T>> {
-    const requestKey = createRequestKey({ path, mode, payload });
+    const requestKey = createRequestKey({ path, mode, payload, requestScopeKey: requestScopeKey || null });
     const existingRequest = inFlightInternalRpcRequests.get(requestKey);
 
     if (existingRequest) {
@@ -45,6 +49,19 @@ export async function fetchInternalRpcApi<T>({
                 data: null,
                 error: {
                     message: result?.error || errorMessage,
+                    status: response.status,
+                    code: result?.code || undefined,
+                    details: result?.details || undefined,
+                },
+            };
+        }
+
+        if (!result || typeof result !== 'object' || !Object.prototype.hasOwnProperty.call(result, 'data')) {
+            return {
+                data: null,
+                error: {
+                    message: 'A API interna retornou uma resposta vazia ou inválida.',
+                    status: response.status,
                 },
             };
         }

@@ -9,9 +9,21 @@ import { ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { LoginHeader } from './components/LoginHeader';
 import { LoginFields } from './components/LoginFields';
 
-interface LoginFormProps { loading: boolean; error: string | null; onSubmit: (formData: LoginFormData) => void; }
+interface LoginFormProps {
+  loading: boolean;
+  error: string | null;
+  profileValidationPending: boolean;
+  onSubmit: (formData: LoginFormData) => void;
+  onRetryProfileValidation: () => void;
+}
 
-export const LoginForm = React.memo(function LoginForm({ loading, error, onSubmit }: LoginFormProps) {
+export const LoginForm = React.memo(function LoginForm({
+  loading,
+  error,
+  profileValidationPending,
+  onSubmit,
+  onRetryProfileValidation,
+}: LoginFormProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -20,6 +32,7 @@ export const LoginForm = React.memo(function LoginForm({ loading, error, onSubmi
   const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value), []);
   const handlePasswordChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value), []);
   const toggleShowPassword = useCallback(() => setShowPassword(prev => !prev), []);
+  const canRetryProfileValidation = profileValidationPending || /perfil|validar|profile|validation/i.test(error || '');
 
   return (
     <>
@@ -29,7 +42,20 @@ export const LoginForm = React.memo(function LoginForm({ loading, error, onSubmi
       {error && (
         <Alert variant="destructive" className="mb-6 bg-red-50 border-red-200 text-red-700">
           <AlertCircle className="h-4 w-4 text-red-600" />
-          <AlertDescription>{error}</AlertDescription>
+          <AlertDescription className="space-y-2">
+            <p>{error}</p>
+            {canRetryProfileValidation && (
+              <button
+                type="button"
+                onClick={onRetryProfileValidation}
+                disabled={loading}
+                className="inline-flex items-center gap-1 font-semibold text-red-700 underline underline-offset-2 disabled:cursor-wait disabled:opacity-60"
+              >
+                {loading && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                Tentar validar novamente
+              </button>
+            )}
+          </AlertDescription>
         </Alert>
       )}
 

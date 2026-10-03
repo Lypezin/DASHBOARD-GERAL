@@ -3,6 +3,7 @@ import { safeRpc } from '@/lib/rpcWrapper';
 import { createComparisonFilter, parseWeekString } from '@/utils/comparacaoHelpers';
 import { DashboardResumoData, CurrentUser } from '@/types';
 import { IS_DEV } from '@/constants/environment';
+import { parseDashboardResumoResponse } from '@/utils/dashboard/dashboardResumoValidation';
 
 
 export async function fetchComparisonMetrics(
@@ -44,27 +45,16 @@ export async function fetchComparisonMetrics(
 
         if (error) throw error;
 
-        const data = Array.isArray(rawData) ? rawData[0] : rawData;
-        return { semana, dados: data as DashboardResumoData };
+        const data = parseDashboardResumoResponse(rawData);
+        if (!data) {
+            throw new Error(`A consulta de resumo da semana ${semana} retornou uma resposta vazia ou inválida.`);
+        }
+        return { semana, dados: data };
     });
 
     const resultadosDados = await Promise.all(promessasDados);
 
     return resultadosDados.map(resultado => {
-        const defaultData: DashboardResumoData = {
-            total_ofertadas: 0,
-            total_aceitas: 0,
-            total_completadas: 0,
-            total_rejeitadas: 0,
-            aderencia_semanal: [],
-            aderencia_dia: [],
-            aderencia_turno: [],
-            aderencia_sub_praca: [],
-            aderencia_origem: [],
-            aderencia_dia_origem: [],
-            dimensoes: { anos: [], semanas: [], pracas: [], sub_pracas: [], origens: [] }
-        };
-        const dados = resultado.dados ? { ...defaultData, ...resultado.dados } : defaultData;
-        return dados;
+        return resultado.dados;
     });
 }

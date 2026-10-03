@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { CITY_DB_MAPPING } from '@/constants/marketing';
 import { fetchFluxoSemanal } from './api/fetchFluxoSemanal';
 import { processFluxoData, FluxoEntregadores } from './utils/processFluxoData';
 import { readJsonStorage, removeJsonStorage, writeJsonStorage } from '@/utils/storage/jsonStorage';
+import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
+import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
 
 const CACHE_TTL_MS = 1000 * 60 * 15;
 const STALE_CACHE_TTL_MS = 1000 * 60 * 60;
@@ -18,18 +20,44 @@ interface UseEntradaSaidaDataProps {
     praca?: string | null;
 }
 
+function formatLocalDate(date: Date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
 export function useEntradaSaidaData({
     dataInicial,
     dataFinal,
     organizationId,
     praca
 }: UseEntradaSaidaDataProps) {
+    const { currentUser } = useAppBootstrap();
+    const accessScopeKey = createAccessScopeKey(currentUser, organizationId);
     const [data, setData] = useState<FluxoEntregadores[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const hasVisibleDataRef = useRef(false);
+    const [resolvedCacheKey, setResolvedCacheKey] = useState<string | null>(null);
+    const [dataOrganizationId, setDataOrganizationId] = useState<string | null>(null);
+    const [dataCacheKey, setDataCacheKey] = useState<string | null>(null);
+    const [dataAccessScopeKey, setDataAccessScopeKey] = useState<string | null>(null);
 
-    hasVisibleDataRef.current = data.length > 0;
+    const hasExplicitRange = Boolean(dataInicial && dataFinal);
+    let start = dataInicial;
+    let end = dataFinal;
+    if (!hasExplicitRange) {
+        const now = new Date();
+        const firstDay = new Date(now.getFullYear(), 0, 1);
+        start = formatLocalDate(firstDay);
+        end = formatLocalDate(now);
+    }
+
+    const resolvedStart = start || '';
+    const resolvedEnd = end || '';
+
+    const dbPraca = praca ? CITY_DB_MAPPING[praca] || praca : null;
+    const cacheKey = organizationId ? buildCacheKey(organizationId, dbPraca, resolvedStart, resolvedEnd, accessScopeKey) : null;
 
     useEffect(() => {
         let cancelled = false;
@@ -38,26 +66,25 @@ export function useEntradaSaidaData({
             if (!organizationId) {
                 setData([]);
                 setLoading(false);
+                setError(null);
+                setResolvedCacheKey(null);
+                setDataOrganizationId(null);
+                setDataCacheKey(null);
+                setDataAccessScopeKey(null);
                 return;
             }
 
-            let start = dataInicial;
-            let end = dataFinal;
+            if (!cacheKey) return;
 
-            if (!start || !end) {
-                const now = new Date();
-                const firstDay = new Date(now.getFullYear(), 0, 1);
-                start = firstDay.toISOString().split('T')[0];
-                end = now.toISOString().split('T')[0];
-            }
-
-            const dbPraca = praca ? CITY_DB_MAPPING[praca] || praca : null;
-            const cacheKey = buildCacheKey(organizationId, dbPraca, start, end);
             const cached = getCachedFluxo(cacheKey);
 
             if (cached) {
                 setData(cached);
                 setError(null);
+                setResolvedCacheKey(cacheKey);
+                setDataOrganizationId(organizationId);
+                setDataCacheKey(cacheKey);
+                setDataAccessScopeKey(accessScopeKey);
                 setLoading(false);
                 return;
             }
@@ -66,16 +93,20 @@ export function useEntradaSaidaData({
             if (staleCached) {
                 setData(staleCached);
                 setError(null);
+                setResolvedCacheKey(cacheKey);
+                setDataOrganizationId(organizationId);
+                setDataCacheKey(cacheKey);
+                setDataAccessScopeKey(accessScopeKey);
             }
-
-            const hasVisibleData = hasVisibleDataRef.current;
-            setLoading(!staleCached);
+            // Stale data stays visible, while the banner communicates that a
+            // fresh response for these exact filters is still being requested.
+            setLoading(true);
             setError(null);
 
             try {
                 const filteredData = await fetchFluxoWithDedupe(cacheKey, {
-                    dataInicial: start,
-                    dataFinal: end,
+                    dataInicial: resolvedStart,
+                    dataFinal: resolvedEnd,
                     organizationId,
                     praca: dbPraca,
                     includeNames: false,
@@ -83,6 +114,10 @@ export function useEntradaSaidaData({
 
                 if (cancelled) return;
                 setData(filteredData);
+                setResolvedCacheKey(cacheKey);
+                setDataOrganizationId(organizationId);
+                setDataCacheKey(cacheKey);
+                setDataAccessScopeKey(accessScopeKey);
             } catch (err: unknown) {
                 if (cancelled) return;
 
@@ -91,14 +126,18 @@ export function useEntradaSaidaData({
 
                 if (fallback) {
                     setData(fallback);
-                    setError(null);
+                    setError('Não foi possível atualizar. Exibindo os dados salvos anteriormente.');
+                    setResolvedCacheKey(cacheKey);
+                    setDataOrganizationId(organizationId);
+                    setDataCacheKey(cacheKey);
+                    setDataAccessScopeKey(accessScopeKey);
                     return;
                 }
 
                 setError(err instanceof Error ? err.message : 'Erro ao carregar dados.');
-                if (!hasVisibleData) {
-                    setData([]);
-                }
+                setResolvedCacheKey(cacheKey);
+                setDataOrganizationId(organizationId);
+                setDataAccessScopeKey(accessScopeKey);
             } finally {
                 if (!cancelled) setLoading(false);
             }
@@ -109,18 +148,28 @@ export function useEntradaSaidaData({
         return () => {
             cancelled = true;
         };
-    }, [dataInicial, dataFinal, organizationId, praca]);
+    }, [accessScopeKey, cacheKey, dbPraca, organizationId, resolvedEnd, resolvedStart]);
 
-    return { data, loading, error };
+    const waitingForCurrentFilters = Boolean(organizationId && cacheKey && resolvedCacheKey !== cacheKey);
+    const canShowCurrentRequestData = dataOrganizationId === organizationId
+        && dataCacheKey === cacheKey
+        && dataAccessScopeKey === accessScopeKey;
+
+    return {
+        data: canShowCurrentRequestData ? data : [],
+        loading: loading || waitingForCurrentFilters,
+        error: resolvedCacheKey === cacheKey ? error : null,
+    };
 }
 
 function buildCacheKey(
     organizationId: string,
     praca: string | null,
     dataInicial: string,
-    dataFinal: string
+    dataFinal: string,
+    accessScopeKey: string
 ) {
-    return `${organizationId}|${praca || 'all'}|${dataInicial}|${dataFinal}`;
+    return `${accessScopeKey}|${organizationId}|${praca || 'all'}|${dataInicial}|${dataFinal}`;
 }
 
 function getCachedFluxo(cacheKey: string) {

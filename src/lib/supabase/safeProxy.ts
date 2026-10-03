@@ -13,19 +13,27 @@ function createSafeRpcStub() {
 }
 
 function createSafeAuthStub() {
-    const emptyUserResponse = Promise.resolve({
-        data: { user: null, session: null },
-        error: { message: 'Cliente Supabase não está disponível.', code: 'CLIENT_NOT_READY' },
-    });
+    const unavailableResponse = () => {
+        const error = Object.assign(
+            new Error('Cliente Supabase indisponível. Configure NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY.'),
+            { code: 'CLIENT_NOT_READY' }
+        );
+        return Promise.resolve({
+            data: { user: null, session: null },
+            error,
+        });
+    };
 
     return {
-        getSession: () => emptyUserResponse,
-        getUser: () => emptyUserResponse,
+        getSession: unavailableResponse,
+        getUser: unavailableResponse,
+        signInWithPassword: unavailableResponse,
+        signUp: unavailableResponse,
+        verifyOtp: unavailableResponse,
+        exchangeCodeForSession: unavailableResponse,
+        setSession: unavailableResponse,
         signOut: () => Promise.resolve({ error: null }),
-        updateUser: () => Promise.resolve({
-            data: { user: null },
-            error: { message: 'Cliente Supabase não está disponível.', code: 'CLIENT_NOT_READY' },
-        }),
+        updateUser: unavailableResponse,
         onAuthStateChange: () => ({
             data: {
                 subscription: {

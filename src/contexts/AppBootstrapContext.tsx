@@ -65,9 +65,7 @@ async function resolveBootstrapState(force: boolean = false): Promise<AppBootstr
 
       const rawProfile = await fetchProfileWithRetry();
       const profile = await hydrateAvatarUrl(authUser, rawProfile);
-      const organizationId = profile?.organization_id
-        || authUser.user_metadata?.organization_id
-        || null;
+      const organizationId = profile?.organization_id || null;
         
       const organization = await resolveOrganization(
         organizationId, 

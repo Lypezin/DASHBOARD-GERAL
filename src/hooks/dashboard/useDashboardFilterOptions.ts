@@ -12,18 +12,29 @@ interface UseDashboardFiltersOptions {
   currentUser?: CurrentUser | null;
   filters?: Filters | null;
   organizationId?: string | null;
+  dimensionsLoading?: boolean;
+  dimensionsError?: string | null;
+  retryDimensions?: () => void;
 }
 
 export function useDashboardFilterOptions(options: UseDashboardFiltersOptions) {
   const { dimensoes, currentUser, filters, organizationId } = options;
 
   const pracas = usePracaOptions(dimensoes, currentUser, filters);
-  const { subPracas, origens, turnos } = useDimensionOptions(dimensoes, currentUser, filters, organizationId);
+  const dimensions = useDimensionOptions(dimensoes, currentUser, filters, organizationId);
+
+  const retryOptions = () => {
+    options.retryDimensions?.();
+    dimensions.retry();
+  };
 
   return {
     pracas,
-    subPracas,
-    origens,
-    turnos,
+    subPracas: dimensions.subPracas,
+    origens: dimensions.origens,
+    turnos: dimensions.turnos,
+    optionsLoading: Boolean(options.dimensionsLoading || dimensions.loading),
+    optionsError: options.dimensionsError || dimensions.error,
+    retryOptions,
   };
 }

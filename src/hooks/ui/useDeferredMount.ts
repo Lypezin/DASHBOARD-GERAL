@@ -10,19 +10,32 @@ interface UseDeferredMountOptions {
 
 export function useDeferredMount(options: UseDeferredMountOptions = {}) {
   const { enabled = true, timeoutMs = 250 } = options;
-  const [isMounted, setIsMounted] = useState(!enabled);
+  const [mountState, setMountState] = useState(() => ({
+    enabled,
+    timeoutMs,
+    isMounted: !enabled,
+  }));
+  const stateMatchesOptions = mountState.enabled === enabled && mountState.timeoutMs === timeoutMs;
 
   useEffect(() => {
     if (!enabled) {
-      setIsMounted(true);
+      setMountState({ enabled, timeoutMs, isMounted: true });
       return;
     }
 
-    setIsMounted(false);
+    setMountState({ enabled, timeoutMs, isMounted: false });
 
-    const mount = () => setIsMounted(true);
+    const mount = () => {
+      setMountState((current) => (
+        current.enabled === enabled && current.timeoutMs === timeoutMs
+          ? { ...current, isMounted: true }
+          : current
+      ));
+    };
     return scheduleIdleTask(mount, { timeoutMs });
   }, [enabled, timeoutMs]);
 
-  return isMounted;
+  // Apply option changes during render so a false -> true toggle cannot mount
+  // the deferred subtree for one frame before the effect resets its timer.
+  return !enabled || (stateMatchesOptions && mountState.isMounted);
 }

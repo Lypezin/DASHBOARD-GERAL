@@ -141,8 +141,11 @@ export const ValoresTable = React.memo(function ValoresTable({
                                         <TableCell colSpan={isDetailed ? 6 : 4} className="h-12 py-4 text-center">
                                             <div ref={lastElementRef} className="flex items-center justify-center gap-2 text-slate-500">
                                                 {isLoadingMore
-                                                    ? <div className="h-4 w-4 animate-spin rounded-full border-b-2 border-slate-600" />
-                                                    : <span className="text-xs">Carregando mais...</span>}
+                                                    ? <>
+                                                        <div className="h-4 w-4 motion-safe:animate-spin rounded-full border-b-2 border-slate-600" />
+                                                        <span className="sr-only">Carregando mais entregadores</span>
+                                                    </>
+                                                    : <span className="text-xs">Mais entregadores disponíveis ao rolar</span>}
                                             </div>
                                         </TableCell>
                                     </TableRow>

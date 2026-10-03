@@ -9,6 +9,8 @@ import { SavePresentationDialog } from './apresentacao/components/SavePresentati
 import { PresentationEditorProvider } from '@/components/apresentacao/context/PresentationEditorContext';
 import { useApresentacaoFacade } from '@/hooks/apresentacao/useApresentacaoFacade';
 import { exportComparacaoToExcel } from '@/utils/comparacao/exportExcel';
+import { safeLog } from '@/lib/errorHandler';
+import { toast } from 'sonner';
 
 interface ApresentacaoViewProps {
   dadosComparacao: DashboardResumoData[];
@@ -23,9 +25,30 @@ interface ApresentacaoViewProps {
 
 const ApresentacaoView: React.FC<ApresentacaoViewProps> = (props) => {
   const facade = useApresentacaoFacade(props);
+  const [isExportingExcel, setIsExportingExcel] = React.useState(false);
+
+  const handleExportExcel = React.useCallback(async () => {
+    if (isExportingExcel) return;
+
+    setIsExportingExcel(true);
+    try {
+      await exportComparacaoToExcel(
+        props.dadosComparacao,
+        props.utrComparacao,
+        props.semanasSelecionadas,
+        props.pracaSelecionada,
+        facade.entregadoresComparativo
+      );
+    } catch (error) {
+      safeLog.error('Erro ao exportar comparativo para Excel:', error);
+      toast.error(error instanceof Error ? error.message : 'Não foi possível gerar o Excel comparativo.');
+    } finally {
+      setIsExportingExcel(false);
+    }
+  }, [facade.entregadoresComparativo, isExportingExcel, props.dadosComparacao, props.pracaSelecionada, props.semanasSelecionadas, props.utrComparacao]);
 
   const {
-    state, actions, savedPresentations, isLoadingSaves, deletePresentation,
+    state, actions, savedPresentations, isLoadingSaves, savedPresentationsError, fetchPresentations, deletePresentation,
     isManagersOpen, setIsManagersOpen, isSaveDialogOpen, setIsSaveDialogOpen,
     handleSavePresentation, handleLoadPresentation, dadosBasicos, slides,
     goToNextSlide, goToPrevSlide, initialOrder, entregadoresComparativo
@@ -67,7 +90,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = (props) => {
             onDeleteMediaSlide={actions.handleDeleteMediaSlide}
             onManageClick={() => setIsManagersOpen(true)}
             onSaveClick={() => setIsSaveDialogOpen(true)}
-            onExportExcel={() => exportComparacaoToExcel(props.dadosComparacao, props.utrComparacao, props.semanasSelecionadas, props.pracaSelecionada, entregadoresComparativo)}
+            onExportExcel={handleExportExcel}
+            isExportingExcel={isExportingExcel}
           />
         )}
 
@@ -84,6 +108,8 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = (props) => {
           onLoad={handleLoadPresentation}
           onDelete={deletePresentation}
           isLoading={isLoadingSaves}
+          error={savedPresentationsError}
+          onRetry={fetchPresentations}
         />
         <SavePresentationDialog
           isOpen={isSaveDialogOpen}

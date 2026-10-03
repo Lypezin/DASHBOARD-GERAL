@@ -1,13 +1,13 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { DashboardResumoData } from '@/types';
 import { RPC_TIMEOUTS } from '@/constants/config';
-import { transformDashboardData, createEmptyDashboardData } from '@/utils/dashboard/transformers';
 import type { FilterPayload } from '@/types/filters';
 import type { RpcError } from '@/types/rpc';
 import { IS_DEV } from '@/constants/environment';
-
+import { createRequestKey } from '@/utils/request/createRequestKey';
+import { parseDashboardResumoResponse } from '@/utils/dashboard/dashboardResumoValidation';
 
 function getSafeErrorMessage(error: unknown): string {
     if (error && typeof error === 'object' && 'message' in error && typeof error.message === 'string') {
@@ -19,15 +19,22 @@ function getSafeErrorMessage(error: unknown): string {
 
 export function useDashboardDataFetcher({
     onError,
+    payloadKey,
 }: {
     onError?: (error: Error | RpcError) => void;
+    payloadKey: string;
 }) {
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
+    const requestIdRef = useRef(0);
+    const [loadingState, setLoadingState] = useState<{ key: string; loading: boolean } | null>(null);
+    const [errorState, setErrorState] = useState<{ key: string; error: string } | null>(null);
 
     const fetchDashboardData = useCallback(async (currentPayload: FilterPayload) => {
-        setLoading(true);
-        setError(null);
+        const requestKey = payloadKey || createRequestKey(currentPayload);
+        const requestId = ++requestIdRef.current;
+        const isCurrentRequest = () => requestIdRef.current === requestId;
+
+        setLoadingState({ key: requestKey, loading: true });
+        setErrorState((current) => current?.key === requestKey ? null : current);
 
         try {
 
@@ -42,38 +49,46 @@ export function useDashboardDataFetcher({
                 const errorMessage = String(rpcError?.message || '');
                 if (errorMessage.includes('placeholder.supabase.co') || errorMessage.includes('ERR_NAME_NOT_RESOLVED')) {
                     const errorMsg = 'VariÃ¡veis de ambiente do Supabase nÃ£o estÃ£o configuradas.';
-                    setError(errorMsg);
-                    if (onError) onError(new Error(errorMsg));
-                    setLoading(false);
+                    if (isCurrentRequest()) {
+                        setErrorState({ key: requestKey, error: errorMsg });
+                        if (onError) onError(new Error(errorMsg));
+                    }
                     return null;
                 }
                 safeLog.error('Erro ao carregar dashboard_resumo:', rpcError);
-                setError(errorMessage || 'Erro ao carregar dados do dashboard');
-                if (onError) onError(rpcError);
-                setLoading(false);
+                if (isCurrentRequest()) {
+                    setErrorState({ key: requestKey, error: errorMessage || 'Erro ao carregar dados do dashboard' });
+                    if (onError) onError(rpcError);
+                }
                 return null;
             }
 
-            if (!data) {
+            const parsedData = parseDashboardResumoResponse(data);
+            if (!parsedData) {
                 if (IS_DEV) safeLog.warn('[useDashboardMainData] dashboard_resumo retornou null ou undefined');
-                setLoading(false);
-                return createEmptyDashboardData();
+                throw new Error('A consulta de resumo retornou uma resposta vazia ou em formato inválido.');
             }
 
             if (IS_DEV) safeLog.info('[useDashboardMainData] Dados recebidos com sucesso');
-            setLoading(false);
-            return data;
+            return parsedData;
 
         } catch (err) {
             const errorMsg = getSafeErrorMessage(err);
             const error = err instanceof Error ? err : new Error(errorMsg);
             safeLog.error('Erro ao carregar dados principais do dashboard:', err);
-            setError(errorMsg);
-            if (onError) onError(error);
-            setLoading(false);
+            if (isCurrentRequest()) {
+                setErrorState({ key: requestKey, error: errorMsg });
+                if (onError) onError(error);
+            }
             return null;
+        } finally {
+            if (isCurrentRequest()) setLoadingState({ key: requestKey, loading: false });
         }
-    }, [onError]);
+    }, [onError, payloadKey]);
 
-    return { fetchDashboardData, loading, error };
+    return {
+        fetchDashboardData,
+        loading: loadingState?.key === payloadKey && loadingState.loading,
+        error: errorState?.key === payloadKey ? errorState.error : null,
+    };
 }

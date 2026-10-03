@@ -1,34 +1,33 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabaseClient';
-import { safeLog } from '@/lib/errorHandler';
 import { buildCityQuery } from '@/utils/marketingQueries';
 import { MarketingFilters } from '@/types';
 import { EXCLUDED_ENVIADOS } from '../constants';
+import { fetchAllMarketingRows } from './queryErrors';
 
 export async function fetchMarketingDailyEvolution(
     filters: MarketingFilters,
     organizationId: string | null,
     client: SupabaseClient = supabase
 ): Promise<Array<{ data: string; liberado: number; enviado: number; rodando: number; criado: number }>> {
-    let query = client.from('dados_marketing').select('data_liberacao, data_envio, rodou_dia, Criado, created_at, status')
-        .match(organizationId ? { organization_id: organizationId } : {});
-
-    if (filters.praca) query = buildCityQuery(query, filters.praca);
-
     const { minDate, maxDate } = getEvolutionRange(filters);
-    if (minDate && maxDate) {
-        const conds = ['data_envio', 'data_liberacao', 'rodou_dia', 'Criado'].map(f => `and(${f}.gte.${minDate},${f}.lte.${maxDate})`);
-        query = query.or(conds.join(','));
-    }
+    const rows = await fetchAllMarketingRows('Erro ao buscar evolução diária.', (from, to, includeExactCount) => {
+        let query = client.from('dados_marketing')
+            .select('id, data_liberacao, data_envio, rodou_dia, Criado, created_at, status', includeExactCount ? { count: 'exact' } : undefined)
+            .match(organizationId ? { organization_id: organizationId } : {});
 
-    const { data, error } = await query;
-    if (error) {
-        safeLog.error('Erro ao buscar evolução diária:', error);
-        return [];
-    }
+        if (filters.praca) query = buildCityQuery(query, filters.praca);
 
-    const dailyMap = processDailyData(data, minDate, maxDate);
-    if (minDate && maxDate) fillDailyGaps(dailyMap, data, minDate, maxDate);
+        if (minDate && maxDate) {
+            const conds = ['data_envio', 'data_liberacao', 'rodou_dia', 'Criado'].map(f => `and(${f}.gte.${minDate},${f}.lte.${maxDate})`);
+            query = query.or(conds.join(','));
+        }
+
+        return query.order('id', { ascending: true }).range(from, to);
+    });
+
+    const dailyMap = processDailyData(rows, minDate, maxDate);
+    if (minDate && maxDate) fillDailyGaps(dailyMap, rows, minDate, maxDate);
 
     return Array.from(dailyMap.values()).sort((a, b) => a.data.localeCompare(b.data));
 }

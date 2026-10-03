@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
+import { isMissingRpcFunctionError } from '@/lib/rpc/errors';
 import { CurrentUser, hasFullCityAccess, DimensoesDashboard, Filters } from '@/types';
-import { toUniqueOptions, createPracasKey, createDimensionCacheKey, processFallbackSubPracas } from './dimensionHelpers';
-import { DimensionCacheEntry, readCachedOptions, writeCachedOptions } from './dimensionCache';
+import { toUniqueOptions, createPracasKey, createDimensionCacheKey } from './dimensionHelpers';
+import { DimensionCacheEntry, isValidCacheEntry, readCachedOptions, writeCachedOptions } from './dimensionCache';
 import { IS_DEV } from '@/constants/environment';
-
 
 interface DimensionOptionsRpcRow {
     sub_pracas?: unknown[];
@@ -13,13 +13,29 @@ interface DimensionOptionsRpcRow {
     turnos?: unknown[];
 }
 
+type RemoteOptionsState = {
+    scopeKey: string;
+    options: DimensionCacheEntry;
+};
+
+type RemoteStatusState = {
+    scopeKey: string;
+    loading: boolean;
+    error: string | null;
+};
+
+const EMPTY_OPTIONS = { subPracas: [], origens: [], turnos: [] };
+
 export function useDimensionOptions(
     dimensoes: DimensoesDashboard | null,
     currentUser?: CurrentUser | null,
     filters?: Filters | null,
     organizationId?: string | null
 ) {
-    const [remoteOptions, setRemoteOptions] = useState<DimensionCacheEntry | null>(null);
+    const [remoteOptionsState, setRemoteOptionsState] = useState<RemoteOptionsState | null>(null);
+    const [remoteStatusState, setRemoteStatusState] = useState<RemoteStatusState | null>(null);
+    const [retryIndex, setRetryIndex] = useState(0);
+    const retry = useCallback(() => setRetryIndex((value) => value + 1), []);
     const stableTargetPracasRef = useRef<{ key: string; pracas: string[] } | null>(null);
     const assignedPracasKey = currentUser?.assigned_pracas.join('|') || '';
     const assignedPracas = useMemo(() => assignedPracasKey.split('|').filter(Boolean), [assignedPracasKey]);
@@ -35,14 +51,15 @@ export function useDimensionOptions(
     }, [dimensoes]);
 
     const targetPracas = useMemo(() => {
-        if (filters?.praca) return [filters.praca];
-
-        if (!userHasFullAccess && assignedPracas.length > 0) {
-            return assignedPracas;
+        if (filters?.praca) {
+            if (userHasFullAccess || assignedPracas.some((praca) => praca.toUpperCase() === filters.praca?.toUpperCase())) {
+                return [filters.praca];
+            }
         }
 
+        if (!userHasFullAccess && assignedPracas.length > 0) return assignedPracas;
         return [];
-    }, [filters?.praca, userHasFullAccess, assignedPracas]);
+    }, [assignedPracas, filters?.praca, userHasFullAccess]);
 
     const targetPracasKey = useMemo(() => createPracasKey(targetPracas), [targetPracas]);
     if (!stableTargetPracasRef.current || stableTargetPracasRef.current.key !== targetPracasKey) {
@@ -55,40 +72,51 @@ export function useDimensionOptions(
     );
 
     const baseOptions = useMemo(() => {
-        if (!dimensoes) {
-            return { subPracas: [], origens: [], turnos: [] };
-        }
+        if (!dimensoes) return EMPTY_OPTIONS;
 
-        if (targetPracas.length === 0 || hasScopedDimensions || !userHasFullAccess) {
+        if (targetPracas.length === 0 || hasScopedDimensions) {
             return {
                 subPracas: toUniqueOptions(dimensoes.sub_pracas),
                 origens: toUniqueOptions(dimensoes.origens),
-                turnos: toUniqueOptions(dimensoes.turnos || [])
+                turnos: toUniqueOptions(dimensoes.turnos || []),
             };
         }
 
         return null;
-    }, [dimensoes, hasScopedDimensions, targetPracas.length, userHasFullAccess]);
+    }, [dimensoes, hasScopedDimensions, targetPracas.length]);
+
+    const shouldFetchRemote = Boolean(
+        dimensoes && stableTargetPracas.length > 0 && !hasScopedDimensions
+    );
 
     useEffect(() => {
-        if (!dimensoes || stableTargetPracas.length === 0 || hasScopedDimensions || !userHasFullAccess) {
-            setRemoteOptions(null);
-            return;
-        }
-
         let cancelled = false;
 
-        const fetchOptionsByPraca = async () => {
-            const cached = readCachedOptions(dimensionCacheKey);
-            if (cached) {
-                setRemoteOptions(cached);
-                return;
-            }
+        if (!shouldFetchRemote) {
+            setRemoteStatusState({ scopeKey: dimensionCacheKey, loading: false, error: null });
+            return () => {
+                cancelled = true;
+            };
+        }
 
+        const cached = readCachedOptions(dimensionCacheKey, true);
+        if (cached) {
+            setRemoteOptionsState({ scopeKey: dimensionCacheKey, options: cached });
+            if (isValidCacheEntry(cached)) {
+                setRemoteStatusState({ scopeKey: dimensionCacheKey, loading: false, error: null });
+                return () => {
+                    cancelled = true;
+                };
+            }
+        }
+
+        setRemoteStatusState({ scopeKey: dimensionCacheKey, loading: true, error: null });
+
+        const fetchOptionsByPraca = async () => {
             try {
                 const rpcParams = {
                     p_pracas: stableTargetPracas,
-                    p_organization_id: organizationId || currentUser?.organization_id || null
+                    p_organization_id: organizationId || currentUser?.organization_id || null,
                 };
                 const combinedResult = await safeRpc<DimensionOptionsRpcRow[]>(
                     'get_dashboard_dimension_options',
@@ -97,51 +125,58 @@ export function useDimensionOptions(
                 );
 
                 if (cancelled) return;
-                if (!combinedResult.error && Array.isArray(combinedResult.data)) {
-                    const row = combinedResult.data[0] || {};
-                    const nextOptions: DimensionCacheEntry = {
-                        timestamp: Date.now(),
-                        subPracas: toUniqueOptions(row.sub_pracas),
-                        origens: toUniqueOptions(row.origens),
-                        turnos: toUniqueOptions(row.turnos)
+
+                let resultData: DimensionOptionsRpcRow;
+                if (!combinedResult.error) {
+                    const row = Array.isArray(combinedResult.data) ? combinedResult.data[0] : null;
+                    if (!row || !Array.isArray(row.sub_pracas) || !Array.isArray(row.origens) || !Array.isArray(row.turnos)) {
+                        throw new Error('A consulta de dimensões retornou uma resposta inválida.');
+                    }
+                    resultData = row;
+                } else {
+                    if (!isMissingRpcFunctionError(combinedResult.error)) {
+                        throw new Error('Falha ao consultar dimensões para a praça selecionada.');
+                    }
+
+                    const [subPracasResult, origensResult, turnosResult] = await Promise.all([
+                        safeRpc<string[]>('get_subpracas_by_praca', { p_pracas: stableTargetPracas }, { timeout: 10000, validateParams: false }),
+                        safeRpc<string[]>('get_origens_by_praca', { p_pracas: stableTargetPracas }, { timeout: 10000, validateParams: false }),
+                        safeRpc<string[]>('get_turnos_by_praca', { p_pracas: stableTargetPracas }, { timeout: 10000, validateParams: false }),
+                    ]);
+
+                    if (cancelled) return;
+                    if (subPracasResult.error || origensResult.error || turnosResult.error) {
+                        throw new Error('Falha ao consultar dimensões para a praça selecionada.');
+                    }
+                    if (!Array.isArray(subPracasResult.data) || !Array.isArray(origensResult.data) || !Array.isArray(turnosResult.data)) {
+                        throw new Error('As consultas de dimensões retornaram respostas inválidas.');
+                    }
+
+                    resultData = {
+                        sub_pracas: subPracasResult.data,
+                        origens: origensResult.data,
+                        turnos: turnosResult.data,
                     };
-
-                    setRemoteOptions(nextOptions);
-                    writeCachedOptions(dimensionCacheKey, nextOptions);
-                    return;
-                }
-
-                const [subPracasResult, origensResult, turnosResult] = await Promise.all([
-                    safeRpc<string[]>('get_subpracas_by_praca', { p_pracas: stableTargetPracas }, { timeout: 10000, validateParams: false }),
-                    safeRpc<string[]>('get_origens_by_praca', { p_pracas: stableTargetPracas }, { timeout: 10000, validateParams: false }),
-                    safeRpc<string[]>('get_turnos_by_praca', { p_pracas: stableTargetPracas }, { timeout: 10000, validateParams: false })
-                ]);
-
-                if (cancelled) return;
-                if (subPracasResult.error || origensResult.error || turnosResult.error) {
-                    throw new Error('Falha ao carregar dimensoes por praca');
                 }
 
                 const nextOptions: DimensionCacheEntry = {
                     timestamp: Date.now(),
-                    subPracas: toUniqueOptions(subPracasResult.data),
-                    origens: toUniqueOptions(origensResult.data),
-                    turnos: toUniqueOptions(turnosResult.data)
+                    subPracas: toUniqueOptions(resultData.sub_pracas),
+                    origens: toUniqueOptions(resultData.origens),
+                    turnos: toUniqueOptions(resultData.turnos),
                 };
 
-                setRemoteOptions(nextOptions);
+                setRemoteOptionsState({ scopeKey: dimensionCacheKey, options: nextOptions });
+                setRemoteStatusState({ scopeKey: dimensionCacheKey, loading: false, error: null });
                 writeCachedOptions(dimensionCacheKey, nextOptions);
             } catch (error) {
-                if (IS_DEV) safeLog.warn('Failed to fetch dimension options by praca', error);
+                if (IS_DEV) safeLog.warn('Falha ao carregar as opções de dimensão da praça.', error);
                 if (!cancelled) {
-                    const fallbackOptions = {
-                        timestamp: Date.now(),
-                        subPracas: processFallbackSubPracas(dimensoes, stableTargetPracas),
-                        origens: [],
-                        turnos: []
-                    };
-                    setRemoteOptions(fallbackOptions);
-                    writeCachedOptions(dimensionCacheKey, fallbackOptions);
+                    setRemoteStatusState({
+                        scopeKey: dimensionCacheKey,
+                        loading: false,
+                        error: 'Não foi possível atualizar os filtros de subpraça, origem e turno.',
+                    });
                 }
             }
         };
@@ -151,11 +186,20 @@ export function useDimensionOptions(
         return () => {
             cancelled = true;
         };
-    }, [currentUser?.organization_id, dimensionCacheKey, dimensoes, hasScopedDimensions, organizationId, stableTargetPracas, userHasFullAccess]);
+    }, [currentUser?.organization_id, dimensionCacheKey, dimensoes, organizationId, retryIndex, shouldFetchRemote, stableTargetPracas]);
 
-    if (baseOptions) {
-        return baseOptions;
-    }
+    const activeRemoteOptions = remoteOptionsState?.scopeKey === dimensionCacheKey
+        ? remoteOptionsState.options
+        : null;
+    const activeStatus = remoteStatusState?.scopeKey === dimensionCacheKey ? remoteStatusState : null;
+    const optionsLoading = shouldFetchRemote && (!activeStatus || activeStatus.loading);
+    const optionsError = activeStatus?.error || null;
+    const options = baseOptions || activeRemoteOptions || EMPTY_OPTIONS;
 
-    return remoteOptions || { subPracas: [], origens: [], turnos: [] };
+    return {
+        ...options,
+        loading: optionsLoading,
+        error: optionsError,
+        retry,
+    };
 }

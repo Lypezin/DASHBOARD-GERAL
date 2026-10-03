@@ -45,9 +45,8 @@ export function useOrganizations(options: { enabled?: boolean } = {}) {
 
     if (serviceError) {
       setError(serviceError);
-      setOrganizations([]);
     } else {
-      setOrganizations(data || []);
+      setOrganizations(data ?? []);
     }
     setLoading(false);
   }, [enabled]);

@@ -1,43 +1,18 @@
 
 /**
- * Helpers para gerenciar organization_id no Supabase Auth
+ * Helpers para resolver a organização do usuário a partir do perfil.
  */
-import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { getCurrentUserProfileData } from '@/utils/app/fetchAppApi';
 import { IS_DEV } from '@/constants/environment';
 
 
 /**
- * Sincroniza organization_id do user_profiles para user_metadata do Supabase Auth
- * Re-exported from authMetadataService
- */
-export { syncOrganizationIdToMetadata } from './auth/authMetadataService';
-
-
-/**
- * Obtém o organization_id do usuário atual
- * Tenta obter do user_metadata primeiro, depois do perfil
- * Se for admin/master sem organization_id, retorna organização padrão
+ * Obtém organization_id somente do perfil canônico no banco.
+ * Se for admin/master sem organization_id, retorna null para acesso global.
  */
 export async function getCurrentUserOrganizationId(): Promise<string | null> {
     try {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-        if (authError || !user) {
-            if (IS_DEV) {
-                safeLog.warn('[getCurrentUserOrganizationId] Usuário não autenticado');
-            }
-            return null;
-        }
-
-        // Tentar obter do user_metadata primeiro
-        const orgIdFromMetadata = user.user_metadata?.organization_id as string | undefined;
-        if (orgIdFromMetadata && orgIdFromMetadata !== '00000000-0000-0000-0000-000000000001') {
-            return orgIdFromMetadata;
-        }
-
-        // Se não tiver no metadata, buscar do perfil
         const { data: profile, error: profileError } = await getCurrentUserProfileData<{
             organization_id?: string | null;
             is_admin?: boolean;

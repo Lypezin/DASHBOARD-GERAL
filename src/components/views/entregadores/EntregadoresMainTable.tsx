@@ -12,6 +12,12 @@ interface EntregadoresMainTableProps {
     onSort: (field: keyof Entregador | 'percentual_aceitas' | 'percentual_completadas') => void;
     searchTerm: string;
     onRowClick?: (entregador: Entregador) => void;
+    serverPagination?: {
+        currentPage: number;
+        pageSize: number;
+        totalItems: number;
+        onPageChange: (page: number) => void;
+    };
 }
 
 const DEFAULT_ITEMS_PER_PAGE = 50;
@@ -25,24 +31,29 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
     onSort,
     searchTerm,
     onRowClick,
+    serverPagination,
 }: EntregadoresMainTableProps) {
     const itemsPerPage = sortedEntregadores.length > 1000
         ? VERY_HEAVY_DATASET_ITEMS_PER_PAGE
         : sortedEntregadores.length > 400
             ? HEAVY_DATASET_ITEMS_PER_PAGE
             : DEFAULT_ITEMS_PER_PAGE;
-    const [currentPage, setCurrentPage] = useState(1);
+    const [localCurrentPage, setLocalCurrentPage] = useState(1);
 
     useEffect(() => {
-        setCurrentPage(1);
+        setLocalCurrentPage(1);
     }, [searchTerm, sortField, sortDirection]);
 
-    const totalPages = Math.ceil(sortedEntregadores.length / itemsPerPage);
+    const pageSize = serverPagination?.pageSize ?? itemsPerPage;
+    const currentPage = serverPagination?.currentPage ?? localCurrentPage;
+    const totalItems = serverPagination?.totalItems ?? sortedEntregadores.length;
+    const totalPages = Math.ceil(totalItems / pageSize);
 
     const currentItems = useMemo(() => {
-        const start = (currentPage - 1) * itemsPerPage;
-        return sortedEntregadores.slice(start, start + itemsPerPage);
-    }, [sortedEntregadores, currentPage, itemsPerPage]);
+        if (serverPagination) return sortedEntregadores;
+        const start = (currentPage - 1) * pageSize;
+        return sortedEntregadores.slice(start, start + pageSize);
+    }, [serverPagination, sortedEntregadores, currentPage, pageSize]);
 
     return (
         <div className="overflow-hidden rounded-[2rem] border border-slate-200/75 bg-white/90 shadow-[0_18px_48px_-40px_rgba(15,23,42,0.52)] ring-1 ring-slate-100/80 dark:border-slate-800/75 dark:bg-slate-950/80 dark:ring-slate-800/50">
@@ -86,9 +97,9 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
             <EntregadoresPagination
                 currentPage={currentPage}
                 totalPages={totalPages}
-                totalItems={sortedEntregadores.length}
-                itemsPerPage={itemsPerPage}
-                onPageChange={setCurrentPage}
+                totalItems={totalItems}
+                itemsPerPage={pageSize}
+                onPageChange={serverPagination?.onPageChange ?? setLocalCurrentPage}
             />
         </div>
     );

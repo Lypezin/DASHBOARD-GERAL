@@ -52,7 +52,9 @@ export function ensurePracaScope(
   }
 
   const assigned = uniquePracas(normalizeAssignedPracas(profile));
-  if (assigned.length === 0) return { params };
+  if (assigned.length === 0) {
+    return { error: 'Nenhuma praça foi atribuída a este usuário.' };
+  }
 
   const allowedByKey = new Map(assigned.map((item) => [normalizePracaKey(item), item]));
   const supportsPracasArray = RPCS_SUPPORTING_PRACAS_ARRAY.has(functionName);

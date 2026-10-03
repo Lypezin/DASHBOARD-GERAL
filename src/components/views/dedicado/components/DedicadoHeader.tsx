@@ -18,6 +18,7 @@ interface DedicadoHeaderProps {
   setActiveSubTab: (tab: DedicadoSubTab) => void;
   subTabs: SubTabItem[];
   isExporting: boolean;
+  exportDisabled?: boolean;
   onExport: () => void;
 }
 
@@ -26,6 +27,7 @@ export const DedicadoHeader = React.memo(function DedicadoHeader({
   setActiveSubTab,
   subTabs,
   isExporting,
+  exportDisabled = false,
   onExport,
 }: DedicadoHeaderProps) {
   return (
@@ -48,7 +50,7 @@ export const DedicadoHeader = React.memo(function DedicadoHeader({
           <button
             type="button"
             onClick={onExport}
-            disabled={isExporting}
+            disabled={isExporting || exportDisabled}
             className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-200 bg-blue-600 px-4 py-2.5 text-xs font-black uppercase tracking-[0.16em] text-white shadow-sm shadow-blue-600/20 transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:border-blue-500/40 sm:w-auto xl:self-end"
           >
             <Download className="h-4 w-4" />

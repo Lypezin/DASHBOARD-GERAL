@@ -2,12 +2,14 @@ import { Entregador } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { IS_DEV } from '@/constants/environment';
-import { appendStyledJsonSheet, applyWorkbookMetadata } from '@/utils/excel/workbookStyle';
+import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit, createExcelFilterRows } from '@/utils/excel/workbookStyle';
 
 export async function exportarPrioridadeParaExcel(
-    entregadores: Entregador[]
+    entregadores: Entregador[],
+    filters?: Record<string, unknown>
 ): Promise<void> {
     try {
+        assertExcelRowLimit(entregadores?.length || 0);
         const XLSX = await loadXLSX();
 
         const dadosExportacao = (entregadores || []).map((entregador) => {
@@ -40,6 +42,11 @@ export async function exportarPrioridadeParaExcel(
             theme: 'amber',
             highlightFirstColumn: true,
         });
+        appendStyledJsonSheet(XLSX, wb, createExcelFilterRows(filters), 'Filtros', {
+            title: 'Filtros aplicados',
+            theme: 'slate',
+            highlightFirstColumn: true,
+        });
 
         const agora = new Date();
         const dataHora = agora.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
@@ -52,6 +59,6 @@ export async function exportarPrioridadeParaExcel(
         }
     } catch (err: unknown) {
         safeLog.error('Erro ao exportar para Excel:', err);
-        throw new Error('Erro ao exportar dados para Excel. Por favor, tente novamente.');
+        throw err instanceof Error ? err : new Error('Erro ao exportar dados para Excel. Por favor, tente novamente.');
     }
 }

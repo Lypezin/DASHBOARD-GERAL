@@ -47,22 +47,39 @@ export async function fetchValoresDetalhados(options: FetchOptions): Promise<{ d
         return { data: [], total: 0, error: result.error };
     }
 
+    if (result.data === null || result.data === undefined) {
+        return {
+            data: null,
+            total: 0,
+            error: { code: 'EMPTY_RESPONSE', message: 'A consulta detalhada de valores respondeu sem dados.' },
+        };
+    }
+
     let processedData: ValoresEntregador[] = [];
     let total = 0;
 
-    if (result && result.data !== null && result.data !== undefined) {
-        if (typeof result.data === 'object' && !Array.isArray(result.data)) {
-            const dataObj = result.data as { entregadores?: ValoresEntregador[]; total?: number } | null;
-            if (dataObj && 'entregadores' in dataObj && Array.isArray(dataObj.entregadores)) {
-                processedData = dataObj.entregadores;
-            }
-            if (dataObj && 'total' in dataObj) {
-                total = Number(dataObj.total) || 0;
-            }
-        } else if (Array.isArray(result.data)) {
-            processedData = result.data;
-            total = result.data.length;
+    if (typeof result.data === 'object' && !Array.isArray(result.data)) {
+        const dataObj = result.data as { entregadores?: ValoresEntregador[]; total?: number };
+        if (!Array.isArray(dataObj.entregadores)) {
+            safeLog.warn('[fetchValoresDetalhados] Estrutura inesperada:', result.data);
+            return {
+                data: null,
+                total: 0,
+                error: { code: 'INVALID_RESPONSE', message: 'A consulta detalhada de valores respondeu em um formato inválido.' },
+            };
         }
+        processedData = dataObj.entregadores;
+        total = Number(dataObj.total) || 0;
+    } else if (Array.isArray(result.data)) {
+        processedData = result.data;
+        total = result.data.length;
+    } else {
+        safeLog.warn('[fetchValoresDetalhados] Estrutura inesperada:', result.data);
+        return {
+            data: null,
+            total: 0,
+            error: { code: 'INVALID_RESPONSE', message: 'A consulta detalhada de valores respondeu em um formato inválido.' },
+        };
     }
 
     return { data: processedData, total, error: null };

@@ -57,9 +57,9 @@ export const EntradaSaidaExpanded: React.FC<Props> = ({
 
     return (
         <motion.div
-            initial={shouldReduceMotion ? false : { height: 0, opacity: 0 }}
-            animate={shouldReduceMotion ? { opacity: 1 } : { height: 'auto', opacity: 1 }}
-            exit={shouldReduceMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
             transition={{ duration: shouldReduceMotion ? 0.01 : 0.25, ease: 'easeInOut' }}
             className="overflow-hidden"
         >

@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { MarketingDateFilter, ValoresCidadeDateFilter, ValoresCidadePorCidade } from '@/types';
 import { createRequestKey } from '@/utils/request/createRequestKey';
+import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
 
 interface ValoresCidadeResumoRow {
   cidade: string;
@@ -19,11 +20,13 @@ const valoresCidadeRequests = new Map<string, Promise<ValoresCidadeResumoRow[]>>
 
 function buildCacheKey(
   organizationId: string | null | undefined,
+  accessScopeKey: string,
   filter: ValoresCidadeDateFilter,
   filterEnviados: MarketingDateFilter
 ) {
   return createRequestKey({
     organizationId: organizationId || 'global',
+    accessScopeKey,
     valorInicial: filter.dataInicial,
     valorFinal: filter.dataFinal,
     enviadosInicial: filterEnviados.dataInicial,
@@ -54,8 +57,11 @@ async function fetchValoresCidadeResumo(cacheKey: string, params: Record<string,
     });
 
     if (error) throw error;
+    if (!Array.isArray(data)) {
+      throw new Error('A consulta de valores por cidade retornou uma resposta inválida.');
+    }
 
-    const normalized = Array.isArray(data) ? data : [];
+    const normalized = data;
     valoresCidadeCache.set(cacheKey, {
       timestamp: Date.now(),
       data: normalized,
@@ -77,23 +83,35 @@ export const useValoresCidadeData = (
 ) => {
   const { organization, currentUser } = useAppBootstrap();
   const organizationId = organization?.id || currentUser?.organization_id || null;
+  const organizationScope = organizationId || 'global';
+  const accessScopeKey = createAccessScopeKey(currentUser, organizationId);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [cidadesData, setCidadesData] = useState<ValoresCidadePorCidade[]>([]);
   const [quantidadeLiberados, setQuantidadeLiberados] = useState<number>(0);
+  const [resolvedCacheKey, setResolvedCacheKey] = useState<string | null>(null);
+  const [dataOrganizationScope, setDataOrganizationScope] = useState<string | null>(null);
+  const [dataAccessScopeKey, setDataAccessScopeKey] = useState<string | null>(null);
+  const dataScopeRef = useRef({ organizationScope: dataOrganizationScope, accessScopeKey: dataAccessScopeKey });
+  dataScopeRef.current = { organizationScope: dataOrganizationScope, accessScopeKey: dataAccessScopeKey };
   const requestPayload = useMemo(() => ({
     organizationId,
     filter,
     filterEnviados,
-    cacheKey: buildCacheKey(organizationId, filter, filterEnviados),
-  }), [filter, filterEnviados, organizationId]);
+    accessScopeKey,
+    cacheKey: buildCacheKey(organizationId, accessScopeKey, filter, filterEnviados),
+  }), [accessScopeKey, filter, filterEnviados, organizationId]);
 
   useEffect(() => {
     if (!isAuthenticated) {
       setLoading(false);
+      setError(null);
       setCidadesData([]);
       setQuantidadeLiberados(0);
+      setResolvedCacheKey(null);
+      setDataOrganizationScope(null);
+      setDataAccessScopeKey(null);
       return;
     }
 
@@ -130,11 +148,23 @@ export const useValoresCidadeData = (
         setQuantidadeLiberados(
           normalizedRows.reduce((total, row) => total + (row.quantidade_liberados || 0), 0)
         );
+        setResolvedCacheKey(cacheKey);
+        setDataOrganizationScope(organizationScope);
+        setDataAccessScopeKey(accessScopeKey);
       } catch (err: unknown) {
         if (cancelled) return;
 
         safeLog.error('Erro ao buscar dados de Valores por Cidade:', err);
+        const hasDataForCurrentScope = dataScopeRef.current.organizationScope === organizationScope
+          && dataScopeRef.current.accessScopeKey === accessScopeKey;
+        if (!hasDataForCurrentScope) {
+          setCidadesData([]);
+          setQuantidadeLiberados(0);
+        }
         setError(err instanceof Error ? err.message : 'Erro ao carregar dados de Valores por Cidade');
+        setResolvedCacheKey(requestPayload.cacheKey);
+        setDataOrganizationScope(organizationScope);
+        setDataAccessScopeKey(accessScopeKey);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -147,25 +177,35 @@ export const useValoresCidadeData = (
     };
   }, [
     isAuthenticated,
+    accessScopeKey,
+    organizationScope,
     requestPayload,
   ]);
 
+  const canShowCurrentOrganizationData = dataOrganizationScope === organizationScope
+    && dataAccessScopeKey === accessScopeKey;
+  const visibleCidadesData = useMemo(
+    () => canShowCurrentOrganizationData ? cidadesData : [],
+    [canShowCurrentOrganizationData, cidadesData]
+  );
+  const visibleQuantidadeLiberados = canShowCurrentOrganizationData ? quantidadeLiberados : 0;
+
   const totalGeral = useMemo(
-    () => cidadesData.reduce((sum, item) => sum + item.valor_total, 0),
-    [cidadesData]
+    () => visibleCidadesData.reduce((sum, item) => sum + item.valor_total, 0),
+    [visibleCidadesData]
   );
 
   const custoPorLiberado = useMemo(() => {
-    const totalValorEnviados = cidadesData.reduce((sum, item) => sum + (item.valor_total_enviados || 0), 0);
-    return quantidadeLiberados > 0 ? totalValorEnviados / quantidadeLiberados : 0;
-  }, [cidadesData, quantidadeLiberados]);
+    const totalValorEnviados = visibleCidadesData.reduce((sum, item) => sum + (item.valor_total_enviados || 0), 0);
+    return visibleQuantidadeLiberados > 0 ? totalValorEnviados / visibleQuantidadeLiberados : 0;
+  }, [visibleCidadesData, visibleQuantidadeLiberados]);
 
   return {
-    loading,
-    error,
-    cidadesData,
+    loading: loading || Boolean(isAuthenticated && resolvedCacheKey !== requestPayload.cacheKey),
+    error: resolvedCacheKey === requestPayload.cacheKey ? error : null,
+    cidadesData: visibleCidadesData,
     totalGeral,
     custoPorLiberado,
-    quantidadeLiberados,
+    quantidadeLiberados: visibleQuantidadeLiberados,
   };
 };

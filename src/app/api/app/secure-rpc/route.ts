@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { loadCurrentUserProfile, hasElevatedRole } from '@/app/api/_shared/currentUserProfile';
 import { createServiceRoleClient, getServiceRoleConfigErrorPayload, isServiceRoleConfigError } from '@/utils/supabase/admin';
 import { ALLOWED_RPC, FULL_CITY_ACCESS_ONLY } from './constants';
-import { asParams, clampPagination, getInternalScopedPracas, stripInternalParams, mergeDashboardResumoResults, mergeDashboardEvolucaoBundleResults } from './utils';
+import { asParams, clampPagination, getInternalScopedPracas, stripInternalParams, mergeDashboardEvolucaoBundleResults } from './utils';
 import { resolveSecureRpcWithCache } from './cache';
 import { ensureAuthorizedOrganization, ensurePracaScope, filterPracasResult } from './authScope';
 import { hasFullCityAccess } from './utils';
@@ -66,24 +66,13 @@ export async function POST(request: Request) {
       const scopedPracas = supportsScopedPracas ? getInternalScopedPracas(params) : [];
 
       if (functionName === 'dashboard_resumo' && scopedPracas.length > 1) {
-        const baseParams = stripInternalParams(params);
-        
-        // Mantemos o Promise.all no dashboard_resumo que processa as praças filtradas em escopo, pois isso precisaria de mudança no banco para consertar definitivamente o N+1.
-        // Se houverem muitos elementos, processar em lotes (batch) seria a solução mas a quantia de pracas por usuário geralmente é pequena.
-        const results = await Promise.all(scopedPracas.map(async (praca) => {
-          const { data: rpcData, error } = await admin.rpc(functionName, {
-            ...baseParams,
-            p_praca: praca,
-          });
+        const { data: rpcData, error } = await admin.rpc(functionName, {
+          ...stripInternalParams(params),
+          p_praca: scopedPracas.join(','),
+        });
 
-          if (error) {
-            throw new Error(`Erro em ${praca}: ${error.message}`);
-          }
-
-          return rpcData ?? null;
-        }));
-
-        return mergeDashboardResumoResults(results);
+        if (error) throw new Error(error.message);
+        return rpcData ?? null;
       }
 
       if (

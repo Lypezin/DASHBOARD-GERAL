@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Activity } from 'lucide-react';
+import { Activity, AlertCircle, RotateCcw } from 'lucide-react';
 import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
+import { Button } from '@/components/ui/button';
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
 import { ViewTransition } from '@/components/ui/view-transition';
@@ -20,7 +21,7 @@ const UtrView = React.memo(function UtrView({
   filterPayload: FilterPayload;
   currentUser: CurrentUser | null;
 }) {
-  const { data: tabData, loading } = useTabData('utr', filterPayload, currentUser);
+  const { data: tabData, loading, error, retry } = useTabData('utr', filterPayload, currentUser);
   const { utrData } = useTabDataMapper({ activeTab: 'utr', tabData });
   const {
     isExporting,
@@ -29,7 +30,7 @@ const UtrView = React.memo(function UtrView({
     porSubPraca,
     porOrigem,
     porTurno
-  } = useUtrView(utrData);
+  } = useUtrView(utrData, loading || Boolean(error), filterPayload);
 
   let stateKey = 'utr-content';
   let content: React.ReactNode;
@@ -39,6 +40,21 @@ const UtrView = React.memo(function UtrView({
     content = (
       <div className="mx-auto w-full max-w-[1600px] space-y-5 px-4 pt-4 motion-safe:animate-fade-in sm:px-6 lg:px-8">
         <TableSkeleton rows={6} columns={4} />
+      </div>
+    );
+  } else if (error && (!utrData || !utrData.geral)) {
+    stateKey = 'utr-error';
+    content = (
+      <div className="mx-auto w-full max-w-[1600px] px-4 pt-4 sm:px-6 lg:px-8">
+        <div className="rounded-[1.65rem] border border-rose-200/80 bg-rose-50/80 px-6 py-12 text-center shadow-sm dark:border-rose-900/50 dark:bg-rose-950/20">
+          <AlertCircle className="mx-auto mb-4 h-8 w-8 text-rose-500" />
+          <p className="text-base font-bold text-rose-950 dark:text-rose-100">Não foi possível carregar a UTR</p>
+          <p className="mx-auto mt-1.5 max-w-sm text-xs text-rose-800 dark:text-rose-300">Tente carregar novamente. Os filtros atuais serão mantidos.</p>
+          <Button onClick={retry} variant="outline" className="mt-5 gap-2 border-rose-300 bg-white text-rose-800 hover:bg-rose-100 dark:border-rose-800 dark:bg-slate-950 dark:text-rose-200">
+            <RotateCcw className="h-4 w-4" />
+            Tentar novamente
+          </Button>
+        </div>
       </div>
     );
   } else if (!utrData || !utrData.geral) {
@@ -64,6 +80,7 @@ const UtrView = React.memo(function UtrView({
       <ViewContainer className="flex flex-col gap-8 pb-16 pt-4">
         <UtrHeader
           isExporting={isExporting}
+          exportDisabled={loading || Boolean(error)}
           onExport={handleExport}
           totalSections={sectionCount}
           totalSlices={totalSlices}
@@ -72,6 +89,12 @@ const UtrView = React.memo(function UtrView({
         {loading ? (
           <div className="rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/25 dark:text-blue-200">
             Atualizando UTR com os filtros atuais...
+          </div>
+        ) : null}
+
+        {error ? (
+          <div role="alert" className="rounded-2xl border border-amber-200/70 bg-amber-50/85 px-4 py-3 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
+            Não foi possível atualizar a UTR. Exibindo a resposta válida anterior.
           </div>
         ) : null}
 

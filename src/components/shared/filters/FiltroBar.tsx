@@ -12,10 +12,12 @@ import { IS_DEV } from '@/constants/environment';
 
 const FiltroBar = React.memo(function FiltroBar({
   filters, setFilters, anos, semanas, pracas, subPracas, origens, turnos, currentUser,
+  optionsLoading = false, optionsError = null,
 }: {
   filters: Filters; setFilters: React.Dispatch<React.SetStateAction<Filters>>;
   anos: number[]; semanas: string[]; pracas: FilterOption[]; subPracas: FilterOption[];
   origens: FilterOption[]; turnos: FilterOption[]; currentUser: CurrentUser | null;
+  optionsLoading?: boolean; optionsError?: string | null;
 }) {
   const {
     handleChange,
@@ -59,7 +61,7 @@ const FiltroBar = React.memo(function FiltroBar({
     }
   }, [filters]);
 
-  const { anosOptions, semanasOptions } = useFiltroBarOptions(anos, semanas, filters);
+  const { anosOptions, semanasOptions, loadingSemanas, errorSemanas, retrySemanas } = useFiltroBarOptions(anos, semanas, filters);
 
   return (
     <div className="relative z-10 w-full">
@@ -82,6 +84,9 @@ const FiltroBar = React.memo(function FiltroBar({
             setFilters={setFilters}
             anosOptions={anosOptions}
             semanasOptions={semanasOptions}
+            loadingSemanas={loadingSemanas}
+            errorSemanas={errorSemanas}
+            onRetrySemanas={retrySemanas}
             handleChange={handleChange}
           />
 
@@ -94,6 +99,8 @@ const FiltroBar = React.memo(function FiltroBar({
             turnos={turnos}
             handleChange={handleChange}
             shouldDisablePracaFilter={shouldDisablePracaFilter}
+            optionsLoading={optionsLoading}
+            optionsError={optionsError}
           />
         </div>
 

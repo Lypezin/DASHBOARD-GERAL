@@ -6,9 +6,7 @@
 
 export * from './marketing/constants';
 export * from './marketing/dateUtils';
-export * from './marketing/fetchers/totalsFetcher';
 export * from './marketing/fetchers/citiesFetcher';
 export * from './marketing/fetchers/evolutionFetcher';
-export * from './marketing/fetchers/weeklyComparisonFetcher';
+export * from './marketing/fetchers/weeklyDataFetcher';
 export * from './marketing/fetchers/costsComparisonFetcher';
-export * from './marketing/fetchers/weeklyCityComparisonFetcher';

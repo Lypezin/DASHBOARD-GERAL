@@ -20,11 +20,11 @@ export function getStorageKey(key: string) {
     return `dashboard_dimension_options_v1_${key}`;
 }
 
-function cleanupDimensionCache() {
+function cleanupDimensionCache(removeExpired = true) {
     const canUseSessionStorage = typeof sessionStorage !== 'undefined';
 
     for (const [key, entry] of dimensionMemoryCache.entries()) {
-        if (!isValidCacheEntry(entry)) {
+        if (removeExpired && !isValidCacheEntry(entry)) {
             dimensionMemoryCache.delete(key);
             if (!canUseSessionStorage) continue;
 
@@ -42,19 +42,24 @@ function cleanupDimensionCache() {
     }
 }
 
-export function readCachedOptions(key: string): DimensionCacheEntry | null {
-    cleanupDimensionCache();
+export function readCachedOptions(key: string, allowStale = false): DimensionCacheEntry | null {
+    cleanupDimensionCache(!allowStale);
 
     const memoryEntry = dimensionMemoryCache.get(key);
-    if (isValidCacheEntry(memoryEntry)) return memoryEntry;
+    if (memoryEntry && (allowStale || isValidCacheEntry(memoryEntry))) return memoryEntry;
 
     if (typeof sessionStorage === 'undefined') return null;
 
     const entry = readJsonStorage<DimensionCacheEntry | null>(sessionStorage, getStorageKey(key), null);
-    if (isValidCacheEntry(entry)) {
+    const hasValidShape = !!entry && typeof entry.timestamp === 'number'
+        && Array.isArray(entry.subPracas) && Array.isArray(entry.origens) && Array.isArray(entry.turnos);
+
+    if (hasValidShape && (allowStale || isValidCacheEntry(entry))) {
         dimensionMemoryCache.set(key, entry);
         return entry;
     }
+
+    if (entry) removeJsonStorage(sessionStorage, getStorageKey(key));
 
     return null;
 }

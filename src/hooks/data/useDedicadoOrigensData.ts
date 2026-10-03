@@ -47,12 +47,20 @@ function getCachedDedicadoOrigens(cacheKey: string) {
   return cached.data;
 }
 
-async function fetchDedicadoOrigensWithDedupe(cacheKey: string, requestWithMode: Record<string, unknown>) {
+async function fetchDedicadoOrigensWithDedupe(
+  cacheKey: string,
+  requestWithMode: Record<string, unknown>,
+  accessScopeKey: string
+) {
   const activeRequest = dedicadoOrigensRequests.get(cacheKey);
   if (activeRequest) return activeRequest;
 
   const request = (async () => {
-    const { data, error } = await fetchDedicadoApi<DedicadoOrigensPayload>('summary', requestWithMode);
+    const { data, error } = await fetchDedicadoApi<DedicadoOrigensPayload>(
+      'summary',
+      requestWithMode,
+      accessScopeKey
+    );
     if (error) throw error;
 
     const normalized = {
@@ -81,6 +89,7 @@ interface UseDedicadoOrigensDataProps {
   shouldLoadOrigemSummary: boolean;
   shouldLoadDiaOrigem: boolean;
   origemOrganizationId: string;
+  accessScopeKey: string;
 }
 
 export function useDedicadoOrigensData({
@@ -88,18 +97,29 @@ export function useDedicadoOrigensData({
   shouldLoadOrigemSummary,
   shouldLoadDiaOrigem,
   origemOrganizationId,
+  accessScopeKey,
 }: UseDedicadoOrigensDataProps) {
   const [data, setData] = React.useState<DedicadoOrigensPayload>({ origem: [], dia_origem: [] });
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const [resolvedRequestKey, setResolvedRequestKey] = React.useState<string | null>(null);
+  const [dataOrganizationId, setDataOrganizationId] = React.useState<string | null>(null);
+  const [dataAccessScopeKey, setDataAccessScopeKey] = React.useState<string | null>(null);
+  const [retryNonce, setRetryNonce] = React.useState(0);
 
   const origemPayloadKey = React.useMemo(() => createRequestKey(origemPayload), [origemPayload]);
+  const requestWithMode = React.useMemo(() => ({
+    ...(JSON.parse(origemPayloadKey) as Record<string, unknown>),
+    p_include_dia_origem: shouldLoadDiaOrigem,
+  }), [origemPayloadKey, shouldLoadDiaOrigem]);
+  const currentRequestKey = React.useMemo(() => createRequestKey({ requestWithMode, accessScopeKey }), [accessScopeKey, requestWithMode]);
+  const isEnabled = shouldLoadOrigemSummary || shouldLoadDiaOrigem;
 
   React.useEffect(() => {
     let cancelled = false;
 
     async function fetchDedicadoOrigens() {
-      if (!shouldLoadOrigemSummary && !shouldLoadDiaOrigem) {
+      if (!isEnabled) {
         setLoading(false);
         setError(null);
         return;
@@ -109,6 +129,9 @@ export function useDedicadoOrigensData({
         setLoading(false);
         setError('Selecione uma organização para carregar os dados do DEDICADO.');
         setData({ origem: [], dia_origem: [] });
+        setDataOrganizationId(null);
+        setDataAccessScopeKey(null);
+        setResolvedRequestKey(currentRequestKey);
         return;
       }
 
@@ -116,14 +139,8 @@ export function useDedicadoOrigensData({
       setError(null);
 
       try {
-        const requestPayload = JSON.parse(origemPayloadKey) as Record<string, unknown>;
-        const requestWithMode = {
-          ...requestPayload,
-          p_include_dia_origem: shouldLoadDiaOrigem,
-        };
-        const cacheKey = createRequestKey(requestWithMode);
-        const cached = getCachedDedicadoOrigens(cacheKey);
-        const resolvedData = cached || await fetchDedicadoOrigensWithDedupe(cacheKey, requestWithMode);
+        const cached = getCachedDedicadoOrigens(currentRequestKey);
+        const resolvedData = cached || await fetchDedicadoOrigensWithDedupe(currentRequestKey, requestWithMode, accessScopeKey);
 
         if (cancelled) return;
 
@@ -133,10 +150,15 @@ export function useDedicadoOrigensData({
           dia_origem: shouldLoadDiaOrigem && Array.isArray(resolvedData?.dia_origem) ? resolvedData.dia_origem : [],
           periodo_resolvido: resolvedData?.periodo_resolvido,
         });
+        setDataOrganizationId(origemOrganizationId);
+        setDataAccessScopeKey(accessScopeKey);
+        setResolvedRequestKey(currentRequestKey);
       } catch (err) {
         if (!cancelled) {
           safeLog.error('Erro inesperado ao carregar dedicado por origem:', err);
           setError('Erro inesperado ao carregar o DEDICADO. Tente novamente em alguns instantes.');
+          setDataOrganizationId(origemOrganizationId);
+          setResolvedRequestKey(currentRequestKey);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -148,7 +170,19 @@ export function useDedicadoOrigensData({
     return () => {
       cancelled = true;
     };
-  }, [origemOrganizationId, origemPayloadKey, shouldLoadDiaOrigem, shouldLoadOrigemSummary]);
+  }, [accessScopeKey, currentRequestKey, isEnabled, origemOrganizationId, requestWithMode, retryNonce, shouldLoadDiaOrigem]);
 
-  return { data, loading, error };
+  const retry = React.useCallback(() => setRetryNonce((current) => current + 1), []);
+
+  const visibleData = dataOrganizationId === origemOrganizationId && dataAccessScopeKey === accessScopeKey
+    ? data
+    : { origem: [], dia_origem: [] };
+  const waitingForCurrentRequest = isEnabled && Boolean(origemOrganizationId)
+    && resolvedRequestKey !== currentRequestKey;
+  const visibleError = (resolvedRequestKey === currentRequestKey ? error : null)
+    || (isEnabled && !origemOrganizationId
+      ? 'Selecione uma organização para carregar os dados do DEDICADO.'
+      : null);
+
+  return { data: visibleData, loading: loading || waitingForCurrentRequest, error: visibleError, retry };
 }

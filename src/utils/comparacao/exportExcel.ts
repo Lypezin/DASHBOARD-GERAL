@@ -1,14 +1,14 @@
-import * as XLSXStyle from 'xlsx-js-style';
 import type * as XLSXType from 'xlsx';
-import { DashboardResumoData } from '@/types';
+import { loadXLSX } from '@/lib/xlsxClient';
+import { DashboardResumoData, UtrData } from '@/types';
 import { getWeeklyHours, getMetricValue, getTimeMetric } from '@/utils/comparacao/metrics';
 import { converterHorasParaDecimal, formatarHorasParaHMS } from '@/utils/formatters';
 import { findDayData } from '@/utils/comparacao/dataLookup';
 import { DIAS_DA_SEMANA } from '@/constants/comparacao';
+import { assertExcelRowLimit, calculateColumnWidths } from '@/utils/excel/workbookStyle';
+import { extractUtrValue } from '@/utils/utr/extractUtrValue';
 
 type WorksheetTheme = 'blue' | 'green' | 'purple' | 'amber' | 'slate';
-
-const XLSX = XLSXStyle as unknown as typeof import('xlsx');
 
 const THEME_COLORS: Record<WorksheetTheme, string> = {
     blue: '2563EB',
@@ -51,12 +51,25 @@ function getExcelNumberFormat(header: string, value: unknown) {
 
 function getVariation(val1: number, val2: number) {
     if (val1 === 0 && val2 === 0) return 0;
-    if (val1 === 0) return 100;
+    if (val1 === 0) return null;
     return ((val2 - val1) / val1) * 100;
 }
 
-function formatVariation(value: number, suffix = '%') {
+function formatVariation(value: number | null, suffix = '%') {
+    if (value === null) return 'Novo';
     return `${value > 0 ? '+' : ''}${value.toFixed(1)}${suffix}`;
+}
+
+function getUtrMetricValue(utr: UtrData | null | undefined, metric: 'utr' | 'tempo_horas' | 'corridas') {
+    if (!utr) return null;
+
+    if (metric === 'utr') return extractUtrValue(utr);
+
+    const value = (utr.geral as unknown as Record<string, unknown> | undefined)?.[metric];
+    if (typeof value === 'number') return Number.isFinite(value) ? value : null;
+    if (typeof value !== 'string' || value.trim() === '') return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
 }
 
 function formatSecondsToHMS(totalSeconds: number): string {
@@ -96,6 +109,7 @@ function getOfficialWeeklySeconds(dados: DashboardResumoData) {
 }
 
 function styleWorksheet(
+    xlsx: typeof import('xlsx'),
     ws: XLSXType.WorkSheet,
     headers: string[],
     rows: any[][],
@@ -103,7 +117,7 @@ function styleWorksheet(
     totalRowIndex?: number,
     headerRowIndex = 0
 ) {
-    const range = XLSX.utils.decode_range(ws['!ref'] || 'A1:A1');
+    const range = xlsx.utils.decode_range(ws['!ref'] || 'A1:A1');
     const themeColor = THEME_COLORS[theme];
     const lightThemeColor = THEME_LIGHT_COLORS[theme];
     const darkThemeColor = THEME_DARK_COLORS[theme];
@@ -112,22 +126,15 @@ function styleWorksheet(
         e: range.e,
     };
 
-    ws['!autofilter'] = { ref: XLSX.utils.encode_range(tableRange) };
+    ws['!autofilter'] = { ref: xlsx.utils.encode_range(tableRange) };
     ws['!freeze'] = { xSplit: 0, ySplit: headerRowIndex + 1 };
     ws['!rows'] = Array.from({ length: range.e.r + 1 }, (_, index) => ({
         hpt: index === 0 ? 34 : index === 1 ? 22 : index === headerRowIndex ? 26 : 21,
     }));
-    ws['!cols'] = headers.map((header, colIndex) => {
-        const maxContentLength = Math.max(
-            String(header).length,
-            ...rows.map((row) => String(row[colIndex] ?? '').length)
-        );
-
-        return { wch: Math.min(Math.max(maxContentLength + 3, colIndex === 0 ? 24 : 14), 46) };
-    });
+    ws['!cols'] = calculateColumnWidths(headers, rows, { maxWidth: 46, padding: 3 });
 
     headers.forEach((_, colIndex) => {
-        const cell = ws[XLSX.utils.encode_cell({ r: headerRowIndex, c: colIndex })];
+        const cell = ws[xlsx.utils.encode_cell({ r: headerRowIndex, c: colIndex })];
         if (!cell) return;
 
         cell.s = {
@@ -142,7 +149,7 @@ function styleWorksheet(
 
     for (let rowIndex = 0; rowIndex <= range.e.r; rowIndex += 1) {
         for (let colIndex = 0; colIndex <= range.e.c; colIndex += 1) {
-            const cell = ws[XLSX.utils.encode_cell({ r: rowIndex, c: colIndex })];
+            const cell = ws[xlsx.utils.encode_cell({ r: rowIndex, c: colIndex })];
             if (!cell) continue;
 
             if (rowIndex < headerRowIndex) {
@@ -193,6 +200,7 @@ function styleWorksheet(
 }
 
 function createStyledSheet(
+    xlsx: typeof import('xlsx'),
     headers: string[],
     rows: any[][],
     theme: WorksheetTheme,
@@ -200,9 +208,11 @@ function createStyledSheet(
     subtitle: string,
     totalRowIndex?: number
 ) {
-    const ws = XLSX.utils.aoa_to_sheet([[title], [subtitle], [], headers, ...rows]);
+    assertExcelRowLimit(rows.length);
+
+    const ws = xlsx.utils.aoa_to_sheet([[title], [subtitle], [], headers, ...rows]);
     const headerRowIndex = 3;
-    const totalSheetRowIndex = totalRowIndex !== undefined ? totalRowIndex + headerRowIndex : undefined;
+    const totalSheetRowIndex = totalRowIndex !== undefined ? totalRowIndex + headerRowIndex + 1 : undefined;
 
     if (headers.length > 1) {
         ws['!merges'] = [
@@ -211,27 +221,37 @@ function createStyledSheet(
         ];
     }
 
-    styleWorksheet(ws, headers, rows, theme, totalSheetRowIndex, headerRowIndex);
+    styleWorksheet(xlsx, ws, headers, rows, theme, totalSheetRowIndex, headerRowIndex);
     return ws;
 }
 
-function appendSheet(wb: XLSXType.WorkBook, ws: XLSXType.WorkSheet, name: string, color: string) {
-    XLSX.utils.book_append_sheet(wb, ws, name);
+function appendSheet(xlsx: typeof import('xlsx'), wb: XLSXType.WorkBook, ws: XLSXType.WorkSheet, name: string, color: string) {
+    xlsx.utils.book_append_sheet(wb, ws, name);
     const sheet = wb.Workbook?.Sheets?.find((item) => item.name === name);
     if (sheet) {
         (sheet as typeof sheet & { TabColor?: { rgb: string } }).TabColor = { rgb: color };
     }
 }
 
-export function exportComparacaoToExcel(
+export async function exportComparacaoToExcel(
     dadosComparacao: DashboardResumoData[],
     utrComparacao: any[],
     semanasSelecionadas: string[],
     pracaSelecionada: string | null,
     entregadoresComparativo?: any[]
 ) {
-    if (dadosComparacao.length < 2 || semanasSelecionadas.length < 2) {
-        alert('Dados insuficientes para exportar.');
+    if (dadosComparacao.length !== 2 || semanasSelecionadas.length !== 2) {
+        alert('A exportação comparativa precisa de exatamente duas semanas carregadas. Ajuste a seleção e tente novamente.');
+        return;
+    }
+
+    assertExcelRowLimit(entregadoresComparativo?.length || 0);
+
+    let XLSX: typeof import('xlsx');
+    try {
+        XLSX = await loadXLSX();
+    } catch {
+        alert('Não foi possível carregar o módulo de Excel. Tente novamente.');
         return;
     }
 
@@ -396,27 +416,23 @@ export function exportComparacaoToExcel(
     const utrSem1 = utrComparacao.find((u) => String(u.semana) === String(sem1))?.utr;
     const utrSem2 = utrComparacao.find((u) => String(u.semana) === String(sem2))?.utr;
 
-    const addUtrRow = (label: string, propKey: string, formatAsPercent = false) => {
-        const val1 = utrSem1 ? Number(utrSem1[propKey] || 0) : 0;
-        const val2 = utrSem2 ? Number(utrSem2[propKey] || 0) : 0;
-        const diff = val2 - val1;
+    const addUtrRow = (label: string, metric: 'utr' | 'tempo_horas' | 'corridas', formatAsPercent = false) => {
+        const val1 = getUtrMetricValue(utrSem1, metric);
+        const val2 = getUtrMetricValue(utrSem2, metric);
+        const diff = val1 !== null && val2 !== null ? val2 - val1 : null;
         rowsUtr.push([
             label,
-            formatAsPercent ? Number(val1.toFixed(1)) : val1,
-            formatAsPercent ? Number(val2.toFixed(1)) : val2,
-            formatAsPercent ? formatVariation(diff) : diff,
-            formatVariation(getVariation(val1, val2)),
+            val1 === null ? 'N/D' : formatAsPercent ? Number(val1.toFixed(1)) : val1,
+            val2 === null ? 'N/D' : formatAsPercent ? Number(val2.toFixed(1)) : val2,
+            diff === null ? 'N/D' : formatAsPercent ? formatVariation(diff) : diff,
+            val1 === null || val2 === null ? 'N/D' : formatVariation(getVariation(val1, val2)),
         ]);
     };
 
     if (utrSem1 || utrSem2) {
-        addUtrRow('Aderência UTR (%)', 'aderencia_percentual', true);
-        addUtrRow('Corridas Ofertadas', 'corridas_ofertadas');
-        addUtrRow('Corridas Aceitas', 'corridas_aceitas');
-        addUtrRow('Corridas Completadas', 'corridas_completadas');
-        addUtrRow('Corridas Rejeitadas', 'corridas_rejeitadas');
-        addUtrRow('Taxa de Aceitação (%)', 'taxa_aceitacao', true);
-        addUtrRow('Taxa de Completude (%)', 'taxa_completude', true);
+        addUtrRow('UTR Geral', 'utr', true);
+        addUtrRow('Tempo Total (h)', 'tempo_horas');
+        addUtrRow('Corridas Completadas', 'corridas');
     } else {
         rowsUtr.push(['Nenhum dado UTR disponível para as semanas selecionadas', '', '', '', '']);
     }
@@ -434,22 +450,23 @@ export function exportComparacaoToExcel(
         ['Relatório', `Comparativo Semana ${sem1} vs Semana ${sem2}`],
         ['Praça', pracaSelecionada || 'Todas as praças'],
         ['Gerado em', new Date().toLocaleString('pt-BR')],
-        ['Abas principais', entregadoresComparativo && entregadoresComparativo.length > 0 ? 7 : 6],
+        ['Abas principais', entregadoresComparativo && entregadoresComparativo.length > 0 ? 8 : 7],
     ];
 
     appendSheet(
+        XLSX,
         wb,
-        createStyledSheet(['Informação', 'Valor'], exportInfoRows, 'slate', 'Informações da exportação', subtitleBase),
+        createStyledSheet(XLSX, ['Informação', 'Valor'], exportInfoRows, 'slate', 'Informações da exportação', subtitleBase),
         'Exportação',
         THEME_COLORS.slate
     );
 
-    appendSheet(wb, createStyledSheet(headersResumo, rowsResumo, 'blue', 'Resumo geral', subtitleBase), 'Resumo Geral', THEME_COLORS.blue);
-    appendSheet(wb, createStyledSheet(headersDia, rowsDia, 'green', 'Aderência por dia', subtitleBase), 'Aderência por Dia', THEME_COLORS.green);
-    appendSheet(wb, createStyledSheet(headersSub, rowsSub, 'purple', 'Sub-praças', subtitleBase), 'Sub-Praças', THEME_COLORS.purple);
-    appendSheet(wb, createStyledSheet(headersTurnos, rowsTurnos, 'amber', 'Turnos', subtitleBase), 'Turnos', THEME_COLORS.amber);
-    appendSheet(wb, createStyledSheet(headersOrigens, rowsOrigens, 'blue', 'Origens', subtitleBase), 'Origens', THEME_COLORS.blue);
-    appendSheet(wb, createStyledSheet(headersUtr, rowsUtr, 'slate', 'UTR', subtitleBase), 'UTR', THEME_COLORS.slate);
+    appendSheet(XLSX, wb, createStyledSheet(XLSX, headersResumo, rowsResumo, 'blue', 'Resumo geral', subtitleBase), 'Resumo Geral', THEME_COLORS.blue);
+    appendSheet(XLSX, wb, createStyledSheet(XLSX, headersDia, rowsDia, 'green', 'Aderência por dia', subtitleBase), 'Aderência por Dia', THEME_COLORS.green);
+    appendSheet(XLSX, wb, createStyledSheet(XLSX, headersSub, rowsSub, 'purple', 'Sub-praças', subtitleBase), 'Sub-Praças', THEME_COLORS.purple);
+    appendSheet(XLSX, wb, createStyledSheet(XLSX, headersTurnos, rowsTurnos, 'amber', 'Turnos', subtitleBase), 'Turnos', THEME_COLORS.amber);
+    appendSheet(XLSX, wb, createStyledSheet(XLSX, headersOrigens, rowsOrigens, 'blue', 'Origens', subtitleBase), 'Origens', THEME_COLORS.blue);
+    appendSheet(XLSX, wb, createStyledSheet(XLSX, headersUtr, rowsUtr, 'slate', 'UTR', subtitleBase), 'UTR', THEME_COLORS.slate);
 
     if (entregadoresComparativo && entregadoresComparativo.length > 0) {
         const headersEnt = ['Entregador', 'ID', `Horas Sem ${sem1}`, `Horas Sem ${sem2}`, 'Diferença'];
@@ -472,8 +489,9 @@ export function exportComparacaoToExcel(
         ]);
 
         appendSheet(
+            XLSX,
             wb,
-            createStyledSheet(headersEnt, rowsEnt, 'green', 'Entregadores', subtitleBase, rowsEnt.length),
+            createStyledSheet(XLSX, headersEnt, rowsEnt, 'green', 'Entregadores', subtitleBase, rowsEnt.length - 1),
             'Entregadores',
             THEME_COLORS.green
         );

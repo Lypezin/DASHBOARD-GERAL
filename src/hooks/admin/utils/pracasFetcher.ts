@@ -1,4 +1,3 @@
-import { supabase } from '@/lib/supabaseClient';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { adminRpc } from '@/services/adminRpcClient';
@@ -7,7 +6,6 @@ import { readJsonStorage, removeJsonStorage, writeJsonStorage } from '@/utils/st
 
 const CACHE_KEY = 'admin_pracas_cache_v3';
 const CACHE_TTL_MS = 5 * 60 * 1000;
-const MIN_COMPLETE_PRACAS = 4;
 
 interface PracasCacheEntry {
     timestamp: number;
@@ -52,56 +50,44 @@ export async function fetchPracasWithFallback(): Promise<string[]> {
         null
     );
 
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+    if (cached && Array.isArray(cached.pracas) && Date.now() - cached.timestamp < CACHE_TTL_MS) {
         const parsedCache = normalizePracas(cached.pracas);
-        if (parsedCache.length >= MIN_COMPLETE_PRACAS) return parsedCache;
+        return parsedCache;
     }
 
-    try {
-        const { data, error } = await adminRpc<Array<string | { praca?: string }>>('list_pracas_disponiveis');
-        const pracas = normalizePracas(data);
+    let lastError: unknown = null;
 
-        if (!error && pracas.length > 0) {
+    try {
+        const result = await adminRpc<Array<string | { praca?: string }>>('list_pracas_disponiveis');
+
+        if (!result.error && Array.isArray(result.data)) {
+            const pracas = normalizePracas(result.data);
             savePracasCache(pracas);
             return pracas;
         }
+        lastError = result.error || new Error('A API administrativa retornou uma lista de praças inválida.');
     } catch (err) {
+        lastError = err;
         if (IS_DEV) safeLog.warn('API administrativa de pracas falhou, tentando RPC direta:', err);
     }
 
     try {
-        const { data: pracasData, error: pracasError } = await safeRpc<Array<string | { praca?: string }>>('list_pracas_disponiveis', {}, {
+        const result = await safeRpc<Array<string | { praca?: string }>>('list_pracas_disponiveis', {}, {
             timeout: 30000,
             validateParams: false
         });
-        const pracas = normalizePracas(pracasData);
 
-        if (!pracasError && pracas.length > 0) {
+        if (!result.error && Array.isArray(result.data)) {
+            const pracas = normalizePracas(result.data);
             savePracasCache(pracas);
             return pracas;
         }
+        lastError = result.error || new Error('A RPC de praças retornou uma resposta inválida.');
     } catch (err) {
+        lastError = err;
         if (IS_DEV) safeLog.warn('Função list_pracas_disponiveis falhou, tentando fallback:', err);
     }
 
-    try {
-        const { data: fallbackPracas, error: fallbackError } = await supabase
-            .from('dados_corridas')
-            .select('praca')
-            .not('praca', 'is', null)
-            .order('praca')
-            .limit(500);
-
-        if (!fallbackError && fallbackPracas) {
-            const uniquePracas = normalizePracas(fallbackPracas);
-            if (uniquePracas.length >= MIN_COMPLETE_PRACAS) {
-                savePracasCache(uniquePracas);
-            }
-            return uniquePracas;
-        }
-    } catch (err) {
-        if (IS_DEV) safeLog.error('Todos os métodos de busca de praças falharam:', err);
-    }
-
-    return [];
+    if (IS_DEV) safeLog.error('Todas as fontes completas da lista de praças falharam:', lastError);
+    throw new Error('Não foi possível carregar a lista completa de praças. Tente novamente.');
 }

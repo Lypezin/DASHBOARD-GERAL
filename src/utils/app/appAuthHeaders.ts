@@ -1,8 +1,21 @@
 type HeaderMap = Record<string, string>;
 
-export async function buildAppAuthHeaders(baseHeaders: HeaderMap = {}): Promise<HeaderMap> {
+export async function buildAppAuthContext(baseHeaders: HeaderMap = {}, accessTokenOverride?: string): Promise<{
+  headers: HeaderMap;
+  cacheScopeKey: string | null;
+}> {
+  if (accessTokenOverride) {
+    return {
+      headers: {
+        ...baseHeaders,
+        Authorization: `Bearer ${accessTokenOverride}`,
+      },
+      cacheScopeKey: null,
+    };
+  }
+
   if (typeof window === 'undefined') {
-    return baseHeaders;
+    return { headers: baseHeaders, cacheScopeKey: null };
   }
 
   try {
@@ -11,14 +24,22 @@ export async function buildAppAuthHeaders(baseHeaders: HeaderMap = {}): Promise<
     const accessToken = session?.access_token;
 
     if (!accessToken) {
-      return baseHeaders;
+      return { headers: baseHeaders, cacheScopeKey: 'anonymous' };
     }
 
     return {
-      ...baseHeaders,
-      Authorization: `Bearer ${accessToken}`,
+      headers: {
+        ...baseHeaders,
+        Authorization: `Bearer ${accessToken}`,
+      },
+      cacheScopeKey: session?.user?.id || null,
     };
   } catch {
-    return baseHeaders;
+    return { headers: baseHeaders, cacheScopeKey: 'anonymous' };
   }
+}
+
+export async function buildAppAuthHeaders(baseHeaders: HeaderMap = {}, accessTokenOverride?: string): Promise<HeaderMap> {
+  const context = await buildAppAuthContext(baseHeaders, accessTokenOverride);
+  return context.headers;
 }

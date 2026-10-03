@@ -1,4 +1,4 @@
-import { FilterOption, DimensoesDashboard } from '@/types';
+import { FilterOption } from '@/types';
 
 export function toUniqueOptions(arr: unknown): FilterOption[] {
     if (!Array.isArray(arr)) return [];
@@ -27,14 +27,4 @@ export function createPracasKey(pracas: string[]) {
 
 export function createDimensionCacheKey(pracasKey: string, organizationId?: string | null) {
     return `${organizationId || 'no-org'}::${pracasKey}`;
-}
-
-export function processFallbackSubPracas(dimensoes: DimensoesDashboard, activePracas: string[]) {
-    return toUniqueOptions(dimensoes.sub_pracas).filter((subPraca) =>
-        activePracas.some((praca) => {
-            const upperSubPraca = subPraca.value.toUpperCase();
-            const upperPraca = praca.toUpperCase();
-            return upperSubPraca.includes(upperPraca) || upperSubPraca.startsWith(upperPraca);
-        })
-    );
 }

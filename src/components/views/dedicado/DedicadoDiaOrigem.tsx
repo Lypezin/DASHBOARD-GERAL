@@ -64,6 +64,7 @@ interface DedicadoDiaOrigemProps {
   dayDateMap: Record<string, string>;
   loading: boolean;
   error?: string | null;
+  onRetry?: () => void;
 }
 
 export function DedicadoDiaOrigem({
@@ -71,6 +72,7 @@ export function DedicadoDiaOrigem({
   dayDateMap,
   loading,
   error,
+  onRetry,
 }: DedicadoDiaOrigemProps) {
   if (loading && data.length === 0) return <DashboardSkeleton contentOnly />;
 
@@ -84,7 +86,7 @@ export function DedicadoDiaOrigem({
       </CardHeader>
       <CardContent className="min-w-0 p-3 sm:p-6">
         {loading ? <DedicadoInlineNotice message="Atualizando matriz Dia x Origem com os filtros atuais..." tone="info" /> : null}
-        {error ? <DedicadoInlineNotice message={error} /> : null}
+        {error ? <DedicadoInlineNotice message={error} onRetry={onRetry} /> : null}
         <AnaliseDiaOrigemTable data={data} dayDateMap={dayDateMap} />
       </CardContent>
     </Card>

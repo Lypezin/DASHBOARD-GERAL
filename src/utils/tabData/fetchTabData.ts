@@ -8,6 +8,7 @@ type TabData = UtrData | EntregadoresData | ValoresEntregador[] | null;
 interface FetchOptions {
     tab: string;
     filterPayload: FilterPayload;
+    requestScopeKey?: string;
     onRetry?: (attempt: number) => void;
 }
 
@@ -15,7 +16,7 @@ interface FetchOptions {
  * Busca dados baseado no tipo de tab
  */
 export async function fetchTabData(options: FetchOptions): Promise<{ data: TabData; total?: number; error: RpcError | null }> {
-    const { tab, filterPayload } = options;
+    const { tab, filterPayload, requestScopeKey } = options;
 
     try {
         switch (tab) {
@@ -29,7 +30,7 @@ export async function fetchTabData(options: FetchOptions): Promise<{ data: TabDa
                 return await fetchEntregadoresData({ filterPayload });
 
             case 'dedicado':
-                return await fetchDedicadoEntregadoresData({ filterPayload });
+                return await fetchDedicadoEntregadoresData({ filterPayload, requestScopeKey });
 
             case 'valores':
                 if (filterPayload.detailed) {

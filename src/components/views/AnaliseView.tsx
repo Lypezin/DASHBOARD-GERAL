@@ -11,6 +11,8 @@ import type {
 import type { FilterPayload } from '@/types/filters';
 import { safeLog } from '@/lib/errorHandler';
 import { ViewContainer } from '@/components/layout/ViewContainer';
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+import { DashboardDataStatus } from '@/components/dashboard/DashboardDataStatus';
 
 const AnaliseView = React.memo(function AnaliseView({
   filterPayload,
@@ -20,6 +22,9 @@ const AnaliseView = React.memo(function AnaliseView({
   aderenciaSubPraca,
   aderenciaOrigem,
   aderenciaDiaOrigem,
+  mainDataLoading,
+  mainDataError,
+  retryMainData,
 }: {
   filters: DashboardFilters;
   filterPayload: FilterPayload;
@@ -30,10 +35,14 @@ const AnaliseView = React.memo(function AnaliseView({
   aderenciaSubPraca: AderenciaSubPraca[];
   aderenciaOrigem: AderenciaOrigem[];
   aderenciaDiaOrigem: AderenciaDiaOrigem[];
+  mainDataLoading: boolean;
+  mainDataError: string | null;
+  retryMainData: () => void;
 }) {
   const {
     activeTable,
     isExporting,
+    exportDisabled,
     handleExport,
     handleTableChange,
     taxaAceitacao,
@@ -48,7 +57,9 @@ const AnaliseView = React.memo(function AnaliseView({
     aderenciaTurno || [],
     aderenciaSubPraca || [],
     aderenciaOrigem || [],
-    aderenciaDiaOrigem || []
+    aderenciaDiaOrigem || [],
+    mainDataLoading || Boolean(mainDataError),
+    filterPayload
   );
 
   const dayDateMap = React.useMemo(() => {
@@ -97,8 +108,17 @@ const AnaliseView = React.memo(function AnaliseView({
     return map;
   }, [aderenciaDia, filterPayload?.p_ano, filterPayload?.p_semana]);
 
+  const hasResolvedData = totals !== null || aderenciaDia.length > 0 || aderenciaTurno.length > 0
+    || aderenciaSubPraca.length > 0 || aderenciaOrigem.length > 0 || aderenciaDiaOrigem.length > 0;
+
+  if (mainDataLoading && !hasResolvedData) return <DashboardSkeleton contentOnly />;
+  if (mainDataError && !hasResolvedData) {
+    return <div className="mx-auto w-full max-w-[1600px] px-4 pt-5 sm:px-6 lg:px-8"><DashboardDataStatus hasPreviousData={false} onRetry={retryMainData} /></div>;
+  }
+
   return (
     <ViewContainer className="flex flex-col gap-8 pb-16 pt-4">
+      {mainDataError ? <DashboardDataStatus hasPreviousData={hasResolvedData} onRetry={retryMainData} /> : null}
       <AnaliseMetricCards
         totals={totals || { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }}
         taxaAceitacao={taxaAceitacao}
@@ -113,6 +133,7 @@ const AnaliseView = React.memo(function AnaliseView({
         tableData={tableData}
         labelColumn={labelColumn}
         isExporting={isExporting}
+        exportDisabled={exportDisabled}
         onExport={handleExport}
         aderenciaDiaOrigem={aderenciaDiaOrigem || []}
         dayDateMap={dayDateMap}

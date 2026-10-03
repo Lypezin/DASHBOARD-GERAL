@@ -1,21 +1,30 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { Entregador } from '@/types';
+import { Entregador, EntregadoresData, EntregadoresPerformerMetric } from '@/types';
 import { AlertTriangle, ChevronDown, Trophy } from 'lucide-react';
 import { calculateHealthScore } from '@/components/ui/HealthBadge';
 import { SortMetric, metricLabels, getMetricValue, PerformerRow } from './TopBottomPerformerRow';
 
 interface TopBottomPerformersProps {
     entregadores: Entregador[];
+    performersByMetric?: EntregadoresData['performers_by_metric'];
+    totalEntregadores?: number;
 }
 
 export const TopBottomPerformers = React.memo(function TopBottomPerformers({
     entregadores,
+    performersByMetric,
+    totalEntregadores,
 }: TopBottomPerformersProps) {
     const [metric, setMetric] = useState<SortMetric>('aderencia');
 
     const { top10, bottom10 } = useMemo(() => {
+        const serverPerformers = performersByMetric?.[metric as EntregadoresPerformerMetric];
+        if (serverPerformers) {
+            return { top10: serverPerformers.top, bottom10: serverPerformers.bottom };
+        }
+
         if (!entregadores || entregadores.length === 0) {
             return { top10: [], bottom10: [] };
         }
@@ -30,9 +39,9 @@ export const TopBottomPerformers = React.memo(function TopBottomPerformers({
             top10: sorted.slice(0, 10),
             bottom10: sorted.slice(-10).reverse(),
         };
-    }, [entregadores, metric]);
+    }, [entregadores, metric, performersByMetric]);
 
-    if (entregadores.length < 5) return null;
+    if ((totalEntregadores ?? entregadores.length) < 5) return null;
 
     return (
         <div className="space-y-4 rounded-[1.75rem] border border-slate-200/70 bg-white/90 p-5 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/80">
@@ -101,7 +110,7 @@ export const TopBottomPerformers = React.memo(function TopBottomPerformers({
                                 key={entregador.id_entregador}
                                 e={entregador}
                                 metric={metric}
-                                rank={entregadores.length - index}
+                            rank={(totalEntregadores ?? entregadores.length) - index}
                                 hs={calculateHealthScore(
                                     entregador.aderencia_percentual,
                                     entregador.corridas_completadas,

@@ -6,6 +6,7 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 import type { FilterPayload } from '@/types/filters';
 import { fetchTabData } from '@/utils/tabData/fetchTabData';
 import { createRequestKey } from '@/utils/request/createRequestKey';
+import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
 import { processTabSuccessData, getTabFallbackData, TabData } from './tabDataHelpers';
 
 const SELF_MANAGED_TABS = ['evolucao', 'dashboard', 'analise', 'comparacao', 'marketing'];
@@ -29,6 +30,14 @@ function getTabCacheKey(tab: string, filterPayloadKey: string) {
   return `${tab}-${filterPayloadKey}`;
 }
 
+function resolvePayloadOrganizationId(payload: FilterPayload, fallback?: string | null) {
+  const payloadOrganizationId = typeof payload.p_organization_id === 'string'
+    ? payload.p_organization_id.trim()
+    : '';
+
+  return payloadOrganizationId || fallback || null;
+}
+
 interface UseTabDataOptions {
   enabled?: boolean;
 }
@@ -46,12 +55,16 @@ function hasLoadedData(data: TabData) {
 export function useTabData(
   activeTab: string,
   filterPayload: object,
-  _currentUser?: CurrentUser | null,
+  currentUser?: CurrentUser | null,
   options: UseTabDataOptions = {}
 ) {
   const [data, setData] = useState<TabData>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resolvedRequestKey, setResolvedRequestKey] = useState<string | null>(null);
+  const [dataOrganizationId, setDataOrganizationId] = useState<string | null>(null);
+  const [dataTabScope, setDataTabScope] = useState<string | null>(null);
+  const [dataAccessScopeKey, setDataAccessScopeKey] = useState<string | null>(null);
   const fetchIdRef = useRef(0);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -66,17 +79,44 @@ export function useTabData(
     getCacheKey: (params) => getTabCacheKey(params.tab, params.filterPayloadKey),
   });
 
-  const filterPayloadStr = useMemo(() => createRequestKey(filterPayload), [filterPayload]);
+  const payloadOrganizationId = resolvePayloadOrganizationId(filterPayload as FilterPayload, currentUser?.organization_id);
+  const accessScopeKey = createAccessScopeKey(currentUser, payloadOrganizationId);
+  const filterPayloadStr = useMemo(() => createRequestKey({
+    payload: filterPayload,
+    organizationId: payloadOrganizationId,
+    accessScopeKey,
+  }), [accessScopeKey, filterPayload, payloadOrganizationId]);
   if (!stableFilterPayloadRef.current || stableFilterPayloadRef.current.key !== filterPayloadStr) {
     stableFilterPayloadRef.current = { key: filterPayloadStr, payload: filterPayload as FilterPayload };
   }
   const stableFilterPayload = stableFilterPayloadRef.current.payload;
-  hasCurrentDataRef.current = hasLoadedData(data);
+  const currentOrganizationId = resolvePayloadOrganizationId(stableFilterPayload, currentUser?.organization_id);
+  const currentTabScope = getTabScope(activeTab);
+  const currentRequestKey = getTabCacheKey(currentTabScope, filterPayloadStr);
+  const isManagedTab = !SELF_MANAGED_TABS.includes(activeTab);
+  hasCurrentDataRef.current = hasLoadedData(data)
+    && dataOrganizationId === currentOrganizationId
+    && dataAccessScopeKey === accessScopeKey
+    && dataTabScope === currentTabScope;
+
+  // Keep same-organization data visible while filters refresh, but hide a prior
+  // organization's rows immediately when the organization scope changes.
+  const visibleData = isManagedTab && (
+    dataOrganizationId !== currentOrganizationId
+    || dataAccessScopeKey !== accessScopeKey
+    || dataTabScope !== currentTabScope
+  )
+    ? null
+    : data;
 
   const resetTabState = useCallback(() => {
     fetchIdRef.current++;
     retryAttemptsRef.current.clear();
     setData((previousData) => (previousData === null ? previousData : null));
+    setDataOrganizationId(null);
+    setDataTabScope(null);
+    setDataAccessScopeKey(null);
+    setResolvedRequestKey(null);
     setLoading((previousLoading) => (previousLoading ? false : previousLoading));
     setError(null);
   }, []);
@@ -84,12 +124,17 @@ export function useTabData(
   const fetchData = useCallback(async (tab: string, payload: FilterPayload, filterPayloadKey: string, fetchId: number) => {
     const tabScope = getTabScope(tab);
     const requestTab = getRequestTab(tab);
+    const requestKey = getTabCacheKey(tabScope, filterPayloadKey);
     const cacheParams = { tab: tabScope, filterPayloadKey };
     const cached = getCached(cacheParams);
 
     if (cached !== null) {
       if (fetchIdRef.current === fetchId) {
         setData(tab === 'valores' ? (Array.isArray(cached) ? cached : []) : cached);
+        setDataOrganizationId(resolvePayloadOrganizationId(payload, currentUser?.organization_id));
+        setDataTabScope(tabScope);
+        setDataAccessScopeKey(accessScopeKey);
+        setResolvedRequestKey(requestKey);
         setLoading(false);
         setError(null);
       }
@@ -105,7 +150,7 @@ export function useTabData(
 
       if (!request) {
         request = (async () => {
-          const result = await fetchTabData({ tab: requestTab, filterPayload: payload });
+          const result = await fetchTabData({ tab: requestTab, filterPayload: payload, requestScopeKey: accessScopeKey });
           if (result.error) {
             throw result.error;
           }
@@ -123,6 +168,10 @@ export function useTabData(
 
       retryAttemptsRef.current.delete(fetchId);
       setData(processedData);
+      setDataOrganizationId(resolvePayloadOrganizationId(payload, currentUser?.organization_id));
+      setDataTabScope(tabScope);
+      setDataAccessScopeKey(accessScopeKey);
+      setResolvedRequestKey(requestKey);
       setCached(cacheParams, processedData);
       setLoading(false);
       setError(null);
@@ -135,8 +184,14 @@ export function useTabData(
 
         if (currentAttempts >= 1) {
           retryAttemptsRef.current.delete(fetchId);
+          if (!hasCurrentDataRef.current) {
+            setDataOrganizationId(resolvePayloadOrganizationId(payload, currentUser?.organization_id));
+            setDataTabScope(tabScope);
+            setDataAccessScopeKey(accessScopeKey);
+          }
+          setResolvedRequestKey(requestKey);
           setData((previousData) => {
-            if (hasLoadedData(previousData)) return previousData;
+            if (hasCurrentDataRef.current && hasLoadedData(previousData)) return previousData;
             return getTabFallbackData(tab);
           });
           setLoading(false);
@@ -157,14 +212,34 @@ export function useTabData(
       }
 
       retryAttemptsRef.current.delete(fetchId);
+      if (!hasCurrentDataRef.current) {
+        setDataOrganizationId(resolvePayloadOrganizationId(payload, currentUser?.organization_id));
+        setDataTabScope(tabScope);
+        setDataAccessScopeKey(accessScopeKey);
+      }
+      setResolvedRequestKey(requestKey);
       setData((previousData) => {
-        if (hasLoadedData(previousData)) return previousData;
+        if (hasCurrentDataRef.current && hasLoadedData(previousData)) return previousData;
         return getTabFallbackData(tab);
       });
       setLoading(false);
       setError(error instanceof Error ? error.message : 'Erro ao carregar dados.');
     }
-  }, [getCached, setCached]);
+  }, [accessScopeKey, currentUser?.organization_id, getCached, setCached]);
+
+  const retry = useCallback(() => {
+    const currentPayload = stableFilterPayloadRef.current;
+    if (!currentPayload) return;
+
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+
+    const fetchId = ++fetchIdRef.current;
+    retryAttemptsRef.current.delete(fetchId);
+    void fetchData(activeTab, currentPayload.payload, currentPayload.key, fetchId);
+  }, [activeTab, fetchData]);
 
   useEffect(() => {
     if (debounceRef.current) {
@@ -185,7 +260,7 @@ export function useTabData(
     if (isOrgLoading) return;
 
     const payload = stableFilterPayload;
-    const hasOrganizationContext = typeof payload.p_organization_id === 'string' && payload.p_organization_id.trim().length > 0;
+    const hasOrganizationContext = currentOrganizationId !== null;
 
     if (SELF_MANAGED_TABS.includes(activeTab)) {
       resetTabState();
@@ -203,6 +278,10 @@ export function useTabData(
 
     if (cached !== null) {
       setData(activeTab === 'valores' ? (Array.isArray(cached) ? cached : []) : cached);
+      setDataOrganizationId(currentOrganizationId);
+      setDataTabScope(tabScope);
+      setDataAccessScopeKey(accessScopeKey);
+      setResolvedRequestKey(currentRequestKey);
       setLoading(false);
       setError(null);
       return;
@@ -219,7 +298,20 @@ export function useTabData(
       if (debounceRef.current) clearTimeout(debounceRef.current);
       if (retryTimeoutRef.current) clearTimeout(retryTimeoutRef.current);
     };
-  }, [activeTab, enabled, fetchData, filterPayloadStr, getCached, isOrgLoading, resetTabState, stableFilterPayload]);
+  }, [accessScopeKey, activeTab, currentOrganizationId, currentRequestKey, enabled, fetchData, filterPayloadStr, getCached, isOrgLoading, resetTabState, stableFilterPayload]);
 
-  return { data, loading, error };
+  const waitingForCurrentRequest = enabled && isManagedTab && (
+    isOrgLoading || (
+      currentOrganizationId !== null && resolvedRequestKey !== currentRequestKey
+    )
+  );
+  const isCurrentDataScope = dataOrganizationId === currentOrganizationId
+    && dataAccessScopeKey === accessScopeKey;
+
+  return {
+    data: isManagedTab && (!isCurrentDataScope || dataTabScope !== currentTabScope) ? null : visibleData,
+    loading: enabled && isManagedTab && (loading || waitingForCurrentRequest),
+    error: resolvedRequestKey === currentRequestKey ? error : null,
+    retry,
+  };
 }

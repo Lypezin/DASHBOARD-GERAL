@@ -3,6 +3,7 @@ import { safeLog } from '@/lib/errorHandler';
 import { getAppApiData } from '@/utils/app/fetchAppApi';
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { readJsonStorage, removeJsonStorage, writeJsonStorage } from '@/utils/storage/jsonStorage';
+import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
 
 interface CityUpdateInfo {
   city: string;
@@ -13,7 +14,7 @@ const globalCache = new Map<string, { data: CityUpdateInfo[]; timestamp: number 
 const globalPromises = new Map<string, Promise<CityUpdateInfo[] | null>>();
 
 const CACHE_TTL = 30 * 60 * 1000;
-const SESSION_CACHE_KEY_PREFIX = 'city_last_updates_cache_v3';
+const SESSION_CACHE_KEY_PREFIX = 'city_last_updates_cache_v4';
 
 function getSessionCacheKey(scopeKey: string) {
   return `${SESSION_CACHE_KEY_PREFIX}:${scopeKey}`;
@@ -44,8 +45,8 @@ function writeSessionCache(scopeKey: string, data: CityUpdateInfo[]) {
 }
 
 export function useCityLastUpdates() {
-  const { hasResolved, isAuthenticated, profile } = useAppBootstrap();
-  const scopeKey = profile?.organization_id || 'no-org';
+  const { hasResolved, isAuthenticated, profile, currentUser } = useAppBootstrap();
+  const scopeKey = createAccessScopeKey(currentUser, profile?.organization_id) || 'no-user';
   const sessionCacheRef = useRef<{ scopeKey: string; value: ReturnType<typeof readSessionCache> } | null>(null);
   const cachedEntry = globalCache.get(scopeKey);
   const sessionCache = sessionCacheRef.current?.scopeKey === scopeKey
@@ -57,9 +58,20 @@ export function useCityLastUpdates() {
   }
 
   const initialCache = cachedEntry?.data || sessionCache?.data || [];
+  const hasFreshInitialCache = Boolean(
+    (cachedEntry && Date.now() - cachedEntry.timestamp < CACHE_TTL)
+    || sessionCache
+  );
 
   const [data, setData] = useState<CityUpdateInfo[]>(initialCache);
+  const [dataScopeKey, setDataScopeKey] = useState<string | null>(hasFreshInitialCache ? scopeKey : null);
   const [loading, setLoading] = useState(false);
+
+  const isScopeReady = hasResolved && isAuthenticated;
+  const visibleData = isScopeReady
+    ? dataScopeKey === scopeKey ? data : initialCache
+    : [];
+  const visibleLoading = !hasResolved || (isScopeReady && dataScopeKey !== scopeKey) || loading;
 
   useEffect(() => {
     let mounted = true;
@@ -68,6 +80,7 @@ export function useCityLastUpdates() {
       if (!hasResolved || !isAuthenticated) {
         if (mounted) {
           setData([]);
+          setDataScopeKey(scopeKey);
           setLoading(false);
         }
         return;
@@ -88,13 +101,15 @@ export function useCityLastUpdates() {
       if (currentCache && Date.now() - currentCache.timestamp < CACHE_TTL) {
         if (mounted) {
           setData(currentCache.data);
+          setDataScopeKey(scopeKey);
           setLoading(false);
         }
         return;
       }
 
       if (mounted) {
-        setData([]);
+        setData(currentCache?.data || []);
+        setDataScopeKey(scopeKey);
         setLoading(true);
       }
 
@@ -131,6 +146,7 @@ export function useCityLastUpdates() {
 
       if (mounted) {
         if (result) setData(result);
+        setDataScopeKey(scopeKey);
         setLoading(false);
       }
     }
@@ -142,5 +158,5 @@ export function useCityLastUpdates() {
     };
   }, [hasResolved, isAuthenticated, scopeKey]);
 
-  return { data, loading };
+  return { data: visibleData, loading: visibleLoading };
 }

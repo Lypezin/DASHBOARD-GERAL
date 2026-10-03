@@ -13,7 +13,7 @@ type AuthenticatedUserFailure = {
 };
 
 type LoadAuthenticatedUserResult =
-  | { user: AuthenticatedUser }
+  | { user: AuthenticatedUser; accessToken?: string }
   | { failure: AuthenticatedUserFailure };
 
 const AUTHENTICATED_USER_CACHE_TTL_MS = 10_000;
@@ -44,7 +44,7 @@ export async function loadAuthenticatedUser(
     const cached = authenticatedUserCache.get(bearerToken);
 
     if (cached && cached.expiresAt > Date.now()) {
-      return { user: cached.user };
+      return { user: cached.user, accessToken: bearerToken };
     }
 
     if (cached) {
@@ -79,6 +79,7 @@ export async function loadAuthenticatedUser(
 
       return {
         user,
+        accessToken: bearerToken,
       };
     }
   }
@@ -86,8 +87,14 @@ export async function loadAuthenticatedUser(
   const { data: userData, error: userError } = await supabase.auth.getUser();
 
   if (!userError && userData.user) {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.user.id === userData.user.id
+      ? sessionData.session.access_token
+      : undefined;
+
     return {
       user: userData.user as AuthenticatedUser,
+      accessToken,
     };
   }
 

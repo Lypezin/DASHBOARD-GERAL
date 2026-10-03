@@ -37,6 +37,9 @@ export const ORG_PARAM_BY_RPC: Record<string, string> = {
   get_marketing_comparison_weekly: 'p_organization_id',
   get_marketing_resultados_data: 'p_organization_id',
   get_valores_cidade_resumo: 'p_organization_id',
+  list_pracas_disponiveis: 'p_organization_id',
+  listar_anos_disponiveis: 'p_organization_id',
+  listar_todas_semanas: 'p_organization_id',
 };
 
 export const FULL_CITY_ACCESS_ONLY = new Set([

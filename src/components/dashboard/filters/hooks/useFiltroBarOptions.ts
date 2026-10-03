@@ -15,15 +15,18 @@ export function useFiltroBarOptions(
 
     // Busca semanas que realmente têm dados para o ano selecionado
     const selectedYear = filters?.ano ? parseInt(String(filters.ano), 10) : null;
-    const { semanasComDados } = useSemanasComDados(selectedYear);
+    const { semanasComDados, loadingSemanasComDados, error, retry } = useSemanasComDados(selectedYear);
 
     const semanasOptions = useMemo(() => {
+        if (error) return [];
+
         const today = new Date();
         const currentYear = getISOWeekYear(today);
         const currentWeek = getISOWeek(today);
 
-        // Se temos semanas com dados do banco, usar elas
-        if (semanasComDados.length > 0) {
+        // Com um ano selecionado, a RPC define exatamente quais semanas têm
+        // registros. Uma lista vazia válida não deve reabrir as opções antigas.
+        if (selectedYear !== null) {
             return semanasComDados
                 .filter(weekNum => {
                     // Para o ano atual, filtrar semanas futuras
@@ -58,7 +61,13 @@ export function useFiltroBarOptions(
             .filter((opt, index, self) =>
                 index === self.findIndex((o) => o.value === opt.value)
             );
-    }, [semanas, selectedYear, semanasComDados]);
+    }, [semanas, selectedYear, semanasComDados, error]);
 
-    return { anosOptions, semanasOptions };
+    return {
+        anosOptions,
+        semanasOptions,
+        loadingSemanas: loadingSemanasComDados,
+        errorSemanas: error,
+        retrySemanas: retry,
+    };
 }

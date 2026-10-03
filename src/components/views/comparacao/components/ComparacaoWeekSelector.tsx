@@ -14,12 +14,18 @@ interface ComparacaoWeekSelectorProps {
     todasSemanas: (number | string)[];
     semanasSelecionadas: string[];
     onToggleSemana: (semana: number | string) => void;
+    loading: boolean;
+    error: string | null;
+    onRetry: () => void;
 }
 
 export const ComparacaoWeekSelector = React.memo(function ComparacaoWeekSelector({
     todasSemanas,
     semanasSelecionadas,
-    onToggleSemana
+    onToggleSemana,
+    loading,
+    error,
+    onRetry,
 }: ComparacaoWeekSelectorProps) {
     const selectedWeeksSet = useMemo(() => new Set(semanasSelecionadas), [semanasSelecionadas]);
     const selectedWeekLabels = useMemo(() => semanasSelecionadas.map((semana) => {
@@ -33,7 +39,11 @@ export const ComparacaoWeekSelector = React.memo(function ComparacaoWeekSelector
         ? selectedWeekLabels.length <= 2
             ? `Sem ${selectedWeekLabels.join(', ')}`
             : `Sem ${selectedWeekLabels.slice(0, 2).join(', ')} +${selectedWeekLabels.length - 2}`
-        : 'Adicionar semanas', [selectedWeekLabels]);
+        : loading
+            ? 'Carregando semanas...'
+            : error && todasSemanas.length === 0
+                ? 'Semanas indisponíveis'
+                : 'Adicionar semanas', [selectedWeekLabels, loading, error, todasSemanas.length]);
 
     return (
         <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center">
@@ -41,6 +51,7 @@ export const ComparacaoWeekSelector = React.memo(function ComparacaoWeekSelector
                 <DropdownMenuTrigger asChild>
                     <Button
                         variant="outline"
+                        disabled={loading || todasSemanas.length === 0}
                         className="h-11 w-full min-w-0 justify-between rounded-xl border-slate-200/80 bg-white/90 px-4 shadow-sm transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-sky-300 hover:bg-white dark:border-slate-800/80 dark:bg-slate-950 dark:hover:border-sky-500/40 dark:hover:bg-slate-900 sm:min-w-[280px] sm:px-5 lg:w-auto"
                     >
                         <span
@@ -77,6 +88,18 @@ export const ComparacaoWeekSelector = React.memo(function ComparacaoWeekSelector
                     })}
                 </DropdownMenuContent>
             </DropdownMenu>
+
+            {error ? (
+                <button
+                    type="button"
+                    onClick={onRetry}
+                    className="text-left text-[11px] font-semibold text-rose-700 underline underline-offset-2 hover:text-rose-900 dark:text-rose-300 dark:hover:text-rose-100"
+                >
+                    Não foi possível carregar as semanas. Tentar novamente
+                </button>
+            ) : loading ? (
+                <span className="text-[11px] font-medium text-slate-400">Carregando semanas disponíveis...</span>
+            ) : null}
 
             <div className="flex min-h-[44px] flex-1 flex-wrap items-center gap-2">
                 {semanasSelecionadas.length === 0 ? (

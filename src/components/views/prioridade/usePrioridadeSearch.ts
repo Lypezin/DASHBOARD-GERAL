@@ -1,12 +1,13 @@
-import { useMemo } from 'react';
+import { useDeferredValue, useMemo } from 'react';
 import { Entregador, EntregadoresData } from '@/types';
 
 export function usePrioridadeSearch(
   searchTerm: string,
   entregadoresData: EntregadoresData | null
 ) {
+  const deferredSearchTerm = useDeferredValue(searchTerm);
   const searchResults = useMemo<Entregador[]>(() => {
-    const term = searchTerm.trim().toLowerCase();
+    const term = deferredSearchTerm.trim().toLowerCase();
     const entregadores = entregadoresData?.entregadores || [];
 
     if (!term) {
@@ -17,7 +18,11 @@ export function usePrioridadeSearch(
       e.nome_entregador.toLowerCase().includes(term) ||
       e.id_entregador.toLowerCase().includes(term)
     );
-  }, [searchTerm, entregadoresData]);
+  }, [deferredSearchTerm, entregadoresData]);
 
-  return { searchResults, isSearching: false };
+  return {
+    searchResults,
+    deferredSearchTerm,
+    isSearching: searchTerm.trim() !== deferredSearchTerm.trim(),
+  };
 }

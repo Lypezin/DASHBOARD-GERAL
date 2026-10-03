@@ -4,6 +4,8 @@ import { DashboardDailyPerformance } from './dashboard/DashboardDailyPerformance
 import { DashboardOperationalDetail } from './dashboard/DashboardOperationalDetail';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
 import { ViewContainer } from '@/components/layout/ViewContainer';
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+import { DashboardDataStatus } from '@/components/dashboard/DashboardDataStatus';
 import type {
   DashboardFilters,
   CurrentUser,
@@ -22,11 +24,18 @@ const DashboardView = React.memo(function DashboardView({
   aderenciaTurno,
   aderenciaSubPraca,
   aderenciaOrigem,
+  totals,
+  mainDataLoading,
+  mainDataError,
+  retryMainData,
 }: {
   filters: DashboardFilters;
   filterPayload: FilterPayload;
   currentUser: CurrentUser | null;
   totals: Totals | null;
+  mainDataLoading: boolean;
+  mainDataError: string | null;
+  retryMainData: () => void;
   aderenciaSemanal: AderenciaSemanal[];
   aderenciaDia: AderenciaDia[];
   aderenciaTurno: AderenciaTurno[];
@@ -34,9 +43,17 @@ const DashboardView = React.memo(function DashboardView({
   aderenciaOrigem: AderenciaOrigem[];
 }) {
   const aderenciaGeral = useMemo(() => calculateAderenciaGeral(aderenciaSemanal), [aderenciaSemanal]);
+  const hasResolvedData = totals !== null || aderenciaSemanal.length > 0 || aderenciaDia.length > 0
+    || aderenciaTurno.length > 0 || aderenciaSubPraca.length > 0 || aderenciaOrigem.length > 0;
+
+  if (mainDataLoading && !hasResolvedData) return <DashboardSkeleton contentOnly />;
+  if (mainDataError && !hasResolvedData) {
+    return <div className="mx-auto w-full max-w-[1600px] px-4 pt-5 sm:px-6 lg:px-8"><DashboardDataStatus hasPreviousData={false} onRetry={retryMainData} /></div>;
+  }
 
   return (
     <ViewContainer className="space-y-9 pb-16 pt-5">
+      {mainDataError ? <DashboardDataStatus hasPreviousData={hasResolvedData} onRetry={retryMainData} /> : null}
       <section className="space-y-4">
         <DashboardSectionHeader
           title="Resumo Operacional"

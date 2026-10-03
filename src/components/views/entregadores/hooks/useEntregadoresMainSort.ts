@@ -1,11 +1,9 @@
 import { useCallback, useState, useMemo, useEffect, useDeferredValue, useTransition } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { Entregador, EntregadoresData } from '@/types';
+import { Entregador, EntregadoresData, EntregadoresSortField } from '@/types';
 import { calcularPercentualAceitas, calcularPercentualCompletadas } from '../EntregadoresUtils';
 
-type EntregadoresSortField = keyof Entregador | 'percentual_aceitas' | 'percentual_completadas';
-
-const VALID_SORT_FIELDS: EntregadoresSortField[] = [
+export const VALID_SORT_FIELDS: EntregadoresSortField[] = [
     'id_entregador',
     'nome_entregador',
     'corridas_ofertadas',
@@ -21,10 +19,43 @@ const VALID_SORT_FIELDS: EntregadoresSortField[] = [
 
 const stringCollator = new Intl.Collator('pt-BR', { sensitivity: 'base', numeric: true });
 
-export function useEntregadoresMainSort(entregadoresData: EntregadoresData | null, searchTerm: string) {
+export function filterAndSortEntregadores(
+    rows: Entregador[],
+    searchTerm: string,
+    showInactiveOnly: boolean,
+    sortField: EntregadoresSortField,
+    sortDirection: 'asc' | 'desc'
+) {
+    const normalizedTerm = searchTerm.trim().toLowerCase();
+    const filtered = rows.filter((entregador) => {
+        const matchesSearch = !normalizedTerm
+            || `${entregador.nome_entregador || ''} ${entregador.id_entregador || ''}`.toLowerCase().includes(normalizedTerm);
+        const matchesInactive = !showInactiveOnly || (entregador.corridas_completadas || 0) === 0;
+        return matchesSearch && matchesInactive;
+    });
+
+    return [...filtered].sort((a, b) => {
+        let aVal: number | string = 0, bVal: number | string = 0;
+        if (sortField === 'percentual_aceitas') { aVal = calcularPercentualAceitas(a); bVal = calcularPercentualAceitas(b); }
+        else if (sortField === 'percentual_completadas') { aVal = calcularPercentualCompletadas(a); bVal = calcularPercentualCompletadas(b); }
+        else { aVal = a[sortField] ?? 0; bVal = b[sortField] ?? 0; }
+
+        if (typeof aVal === 'string' && typeof bVal === 'string') {
+            return sortDirection === 'asc' ? stringCollator.compare(aVal, bVal) : stringCollator.compare(bVal, aVal);
+        }
+        return sortDirection === 'asc' ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
+    });
+}
+
+export function useEntregadoresMainSort(
+    entregadoresData: EntregadoresData | null,
+    searchTerm: string,
+    options: { serverSorted?: boolean } = {}
+) {
     const searchParams = useSearchParams();
     const router = useRouter();
     const pathname = usePathname();
+    const serverSorted = options.serverSorted === true;
     const deferredSearchTerm = useDeferredValue(searchTerm);
 
     const getInitialSortField = (): EntregadoresSortField => {
@@ -87,6 +118,8 @@ export function useEntregadoresMainSort(entregadoresData: EntregadoresData | nul
 
         if (showInactiveOnly) filteredEntregadores = filteredEntregadores.filter(e => (e.corridas_completadas || 0) === 0);
 
+        if (serverSorted) return filteredEntregadores;
+
         return [...filteredEntregadores].sort((a, b) => {
             let aVal: number | string = 0, bVal: number | string = 0;
             if (sortField === 'percentual_aceitas') { aVal = calcularPercentualAceitas(a); bVal = calcularPercentualAceitas(b); }
@@ -97,7 +130,7 @@ export function useEntregadoresMainSort(entregadoresData: EntregadoresData | nul
             return sortDirection === 'asc' ? (aVal as number) - (bVal as number) : (bVal as number) - (aVal as number);
         });
 
-    }, [deferredSearchTerm, indexedEntregadores, showInactiveOnly, sortDirection, sortField]);
+    }, [deferredSearchTerm, indexedEntregadores, serverSorted, showInactiveOnly, sortDirection, sortField]);
 
     const setShowInactiveOnly = useCallback((value: boolean) => {
         startTransition(() => {

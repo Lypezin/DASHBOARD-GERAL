@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { EvolucaoFilters } from './evolucao/EvolucaoFilters';
 import { EvolucaoChart } from './evolucao/EvolucaoChart';
 import { EvolucaoStatsCards } from './evolucao/EvolucaoStatsCards';
@@ -11,6 +10,7 @@ import { useDashboardEvolucao } from '@/hooks/dashboard/useDashboardEvolucao';
 import type { FilterPayload } from '@/types/filters';
 import { ViewContainer } from '@/components/layout/ViewContainer';
 import { RefreshCw } from 'lucide-react';
+import { ViewTransition } from '@/components/ui/view-transition';
 
 const EvolucaoView = React.memo(function EvolucaoView({
   filterPayload,
@@ -26,7 +26,6 @@ const EvolucaoView = React.memo(function EvolucaoView({
     anoEvolucao: anoSelecionado,
     activeTab: 'evolucao'
   });
-  const shouldReduceMotion = useReducedMotion();
 
   const { state, actions } = useEvolucaoViewController({
     evolucaoMensal,
@@ -35,26 +34,15 @@ const EvolucaoView = React.memo(function EvolucaoView({
     anoSelecionado
   });
 
-  const motionProps = {
-    initial: shouldReduceMotion ? false : { opacity: 0, y: 4 },
-    animate: shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 },
-    exit: shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -2 },
-    transition: { duration: shouldReduceMotion ? 0.01 : 0.08, ease: [0.22, 1, 0.36, 1] },
-  } as const;
-
   return (
     <ViewContainer className="space-y-8">
-      <AnimatePresence mode="wait" initial={false}>
+      <ViewTransition stateKey={state.loading && state.totalPeriodos === 0 ? 'evolucao-loading' : `evolucao-content-${state.viewMode}-${anoSelecionado}`}>
         {state.loading && state.totalPeriodos === 0 ? (
-          <motion.div key="evolucao-loading" {...motionProps} className="min-w-0">
+          <div className="min-w-0">
             <DashboardSkeleton contentOnly />
-          </motion.div>
+          </div>
         ) : (
-          <motion.div
-            key={`evolucao-content-${state.viewMode}-${anoSelecionado}`}
-            {...motionProps}
-            className="min-w-0 space-y-8"
-          >
+          <div className="min-w-0 space-y-8">
             {state.loading ? (
               <div className="rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/25 dark:text-blue-200">
                 Atualizando evolucao com os filtros atuais...
@@ -101,9 +89,9 @@ const EvolucaoView = React.memo(function EvolucaoView({
               viewMode={state.viewMode}
               anoSelecionado={anoSelecionado}
             />
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
+      </ViewTransition>
     </ViewContainer>
   );
 });

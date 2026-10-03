@@ -3,7 +3,6 @@
 import React from 'react';
 import { LayoutDashboard, ListChecks, Table2, Trophy, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
 import { formatarHorasParaHMS } from '@/utils/formatters';
@@ -21,6 +20,7 @@ import {
 import type { AderenciaDiaOrigem, AderenciaOrigem, CurrentUser } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 import { createRequestKey } from '@/utils/request/createRequestKey';
+import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
 import { useDedicadoOrigensData } from '@/hooks/data/useDedicadoOrigensData';
 
 // Subcomponentes modulares do DEDICADO
@@ -30,7 +30,10 @@ import { DedicadoDiaOrigem, buildDayDateMap } from './dedicado/DedicadoDiaOrigem
 import { DedicadoRanking } from './dedicado/DedicadoRanking';
 import { DedicadoInlineNotice } from './dedicado/DedicadoInlineNotice';
 import { ViewContainer } from '@/components/layout/ViewContainer';
+import { ViewTransition } from '@/components/ui/view-transition';
 import { DedicadoHeader } from './dedicado/components/DedicadoHeader';
+import { safeLog } from '@/lib/errorHandler';
+import { toast } from 'sonner';
 
 type DedicadoSubTab = 'dashboard' | 'entregadores' | 'ranking' | 'resumo' | 'dia_origem';
 
@@ -73,7 +76,6 @@ const DedicadoView = React.memo(function DedicadoView({
   const [activeSubTab, setActiveSubTab] = React.useState<DedicadoSubTab>('dashboard');
   
   const [isExporting, setIsExporting] = React.useState(false);
-  const shouldReduceMotion = useReducedMotion();
   const filterPayloadKey = React.useMemo(() => createRequestKey(filterPayload), [filterPayload]);
   const dedicatedPayload = React.useMemo<FilterPayload>(() => {
     const payload = JSON.parse(filterPayloadKey) as FilterPayload;
@@ -94,7 +96,7 @@ const DedicadoView = React.memo(function DedicadoView({
   const shouldLoadEntregadores = hasOrganizationContext && (activeSubTab === 'entregadores' || activeSubTab === 'ranking');
   const shouldLoadOrigemSummary = activeSubTab === 'dashboard' || activeSubTab === 'resumo';
   const shouldLoadDiaOrigem = activeSubTab === 'dia_origem';
-  const { data: tabData, loading } = useTabData('dedicado', dedicatedPayload, currentUser, {
+  const { data: tabData, loading, error: entregadoresError, retry: retryEntregadores } = useTabData('dedicado', dedicatedPayload, currentUser, {
     enabled: shouldLoadEntregadores,
   });
   const { entregadoresData } = useTabDataMapper({ activeTab: 'dedicado', tabData });
@@ -106,8 +108,9 @@ const DedicadoView = React.memo(function DedicadoView({
       ? origemPayload.p_organization_id.trim()
       : '';
   }, [origemPayload.p_organization_id]);
+  const accessScopeKey = createAccessScopeKey(currentUser, origemOrganizationId);
 
-  const { data: dedicadoData, loading: dedicadoLoading, error: dedicadoError } = useDedicadoOrigensData({ origemPayload, shouldLoadOrigemSummary, shouldLoadDiaOrigem, origemOrganizationId });
+  const { data: dedicadoData, loading: dedicadoLoading, error: dedicadoError, retry: retryDedicadoOrigens } = useDedicadoOrigensData({ origemPayload, shouldLoadOrigemSummary, shouldLoadDiaOrigem, origemOrganizationId, accessScopeKey });
 
   const entregadores = React.useMemo(
     () => entregadoresData?.entregadores || [],
@@ -175,16 +178,21 @@ const DedicadoView = React.memo(function DedicadoView({
     };
   }, [dedicatedOrigem.length, dedicatedTotals, entregadores]);
 
+  const exportDisabled = loading || dedicadoLoading || Boolean(entregadoresError || dedicadoError) || !hasOrganizationContext;
+
   const handleExportDedicado = React.useCallback(async () => {
-    if (isExporting) return;
+    if (isExporting || exportDisabled) return;
 
     try {
       setIsExporting(true);
-      await exportarDedicadoParaExcel(dedicatedPayload);
+      await exportarDedicadoParaExcel(dedicatedPayload, accessScopeKey);
+    } catch (error) {
+      safeLog.error('Erro ao exportar DEDICADO:', error);
+      toast.error(error instanceof Error ? error.message : 'Não foi possível gerar o Excel do DEDICADO.');
     } finally {
       setIsExporting(false);
     }
-  }, [dedicatedPayload, isExporting]);
+  }, [accessScopeKey, dedicatedPayload, exportDisabled, isExporting]);
 
   const resumoOrigemRows = React.useMemo(() => {
     return dedicatedOrigem.map((item) => ({
@@ -194,13 +202,6 @@ const DedicadoView = React.memo(function DedicadoView({
     }));
   }, [dedicatedOrigem]);
 
-  const subTabMotionProps = {
-    initial: shouldReduceMotion ? false : { opacity: 0, y: 4 },
-    animate: shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 },
-    exit: shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -2 },
-    transition: { duration: shouldReduceMotion ? 0.01 : 0.08, ease: [0.22, 1, 0.36, 1] },
-  } as const;
-
   return (
     <ViewContainer className="flex min-w-0 flex-col gap-6 pb-10">
       <DedicadoHeader
@@ -208,17 +209,13 @@ const DedicadoView = React.memo(function DedicadoView({
         setActiveSubTab={setActiveSubTab}
         subTabs={SUB_TABS}
         isExporting={isExporting}
+        exportDisabled={exportDisabled}
         onExport={handleExportDedicado}
       />
 
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={activeSubTab}
-          {...subTabMotionProps}
-          className="w-full"
-        >
+      <ViewTransition stateKey={activeSubTab}>
           {activeSubTab === 'dashboard' ? (
-            <DedicadoDashboard loading={dedicadoLoading} error={dedicadoError} stats={stats} topOrigens={dedicatedOrigem.slice(0, 8)} />
+            <DedicadoDashboard loading={dedicadoLoading} error={dedicadoError} onRetry={retryDedicadoOrigens} stats={stats} topOrigens={dedicatedOrigem.slice(0, 8)} />
           ) : null}
 
           {activeSubTab === 'entregadores' ? (
@@ -226,8 +223,11 @@ const DedicadoView = React.memo(function DedicadoView({
               <EntregadoresMainContent
                 entregadoresData={entregadoresData}
                 loading={loading}
+                error={entregadoresError}
+                onRetry={retryEntregadores}
                 variant="dedicado"
                 filterPayload={dedicatedPayload}
+                requestScopeKey={accessScopeKey}
               />
             ) : (
               <DedicadoInlineNotice message="Selecione uma organizacao para carregar os entregadores dedicados." />
@@ -236,21 +236,20 @@ const DedicadoView = React.memo(function DedicadoView({
 
           {activeSubTab === 'ranking' ? (
             hasOrganizationContext ? (
-              <DedicadoRanking entregadores={rankingEntregadores} loading={loading} />
+              <DedicadoRanking entregadores={rankingEntregadores} loading={loading} error={entregadoresError} onRetry={retryEntregadores} />
             ) : (
               <DedicadoInlineNotice message="Selecione uma organizacao para montar o ranking do DEDICADO." />
             )
           ) : null}
 
           {activeSubTab === 'resumo' ? (
-            <DedicadoResumo rows={resumoOrigemRows} loading={dedicadoLoading} error={dedicadoError} />
+            <DedicadoResumo rows={resumoOrigemRows} loading={dedicadoLoading} error={dedicadoError} onRetry={retryDedicadoOrigens} />
           ) : null}
 
           {activeSubTab === 'dia_origem' ? (
-            <DedicadoDiaOrigem data={dedicatedDiaOrigem} dayDateMap={dayDateMap} loading={dedicadoLoading} error={dedicadoError} />
+            <DedicadoDiaOrigem data={dedicatedDiaOrigem} dayDateMap={dayDateMap} loading={dedicadoLoading} error={dedicadoError} onRetry={retryDedicadoOrigens} />
           ) : null}
-        </motion.div>
-      </AnimatePresence>
+      </ViewTransition>
     </ViewContainer>
   );
 });

@@ -29,14 +29,20 @@ export function ViewTransition({ stateKey, children, className }: ViewTransition
       };
 
   return (
-    <AnimatePresence mode="sync" initial={false}>
-      <motion.div
-        key={stateKey}
-        {...motionProps}
-        className={cn('min-w-0', className)}
-      >
-        {children}
-      </motion.div>
-    </AnimatePresence>
+    <motion.div
+      layout={!shouldReduceMotion}
+      transition={{ layout: { duration: shouldReduceMotion ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] } }}
+      className={cn('grid min-w-0 w-full', className)}
+    >
+      <AnimatePresence mode="sync" initial={false}>
+        <motion.div
+          key={stateKey}
+          {...motionProps}
+          className="col-start-1 row-start-1 min-w-0 w-full"
+        >
+          {children}
+        </motion.div>
+      </AnimatePresence>
+    </motion.div>
   );
 }

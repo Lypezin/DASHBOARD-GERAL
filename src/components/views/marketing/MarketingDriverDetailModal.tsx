@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
-import { FileSpreadsheet } from 'lucide-react';
+import { FileSpreadsheet, Loader2 } from 'lucide-react';
 import { useMarketingDriverDetails } from './useMarketingDriverDetails';
 import { MarketingDriverTable } from './MarketingDriverTable';
 
@@ -31,6 +31,7 @@ export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProp
         handleLoadMore,
         getWeekRange,
         handleExport,
+        exportLoading,
     } = useMarketingDriverDetails({
         isOpen,
         semanaIso,
@@ -73,11 +74,11 @@ export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProp
                             variant="outline"
                             size="sm"
                             onClick={handleExport}
-                            disabled={loading}
+                            disabled={loading || exportLoading}
                             className="w-full gap-2 sm:w-auto"
                         >
-                            <FileSpreadsheet className="h-4 w-4" />
-                            Exportar Excel
+                            {exportLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                            {exportLoading ? 'Preparando Excel...' : 'Exportar Excel'}
                         </Button>
                     </div>
 

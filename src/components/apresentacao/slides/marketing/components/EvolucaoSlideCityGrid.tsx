@@ -27,7 +27,7 @@ export const EvolucaoSlideCityGrid: React.FC<EvolucaoSlideCityGridProps> = React
                 {citiesData.map((data, idx) => (
                     <TiltCard key={idx} className="relative group perspective-1000">
                         <motion.div 
-                            initial={shouldReduceMotion ? false : { opacity: 0, y: 30, filter: 'blur(10px)' }}
+                            initial={{ opacity: 0, y: 30, filter: 'blur(10px)' }}
                             animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
                             transition={shouldReduceMotion ? { duration: 0.01 } : {
                                 type: 'spring', 

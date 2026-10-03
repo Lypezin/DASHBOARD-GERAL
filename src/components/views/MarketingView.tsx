@@ -3,10 +3,10 @@
 import React, { startTransition } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import TabButton from '@/components/TabButton';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { ViewContainer } from '@/components/layout/ViewContainer';
+import { ViewTransition } from '@/components/ui/view-transition';
 
 const ValoresCidadeView = dynamic(() => import('./ValoresCidadeView'), {
   ssr: false,
@@ -45,7 +45,6 @@ const MarketingView = React.memo(function MarketingView() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const pathname = usePathname();
-  const shouldReduceMotion = useReducedMotion();
 
   const activeSubTab = searchParams.get('mkt_tab') || 'valores-cidade';
 
@@ -110,18 +109,9 @@ const MarketingView = React.memo(function MarketingView() {
         </div>
       </div>
 
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={activeSubTab}
-          initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
-          animate={shouldReduceMotion ? { opacity: 1 } : { opacity: 1, y: 0 }}
-          exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
-          transition={{ duration: shouldReduceMotion ? 0.01 : 0.13, ease: [0.22, 1, 0.36, 1] }}
-          className="min-w-0"
-        >
-          {content}
-        </motion.div>
-      </AnimatePresence>
+      <ViewTransition stateKey={activeSubTab}>
+        <div className="min-w-0">{content}</div>
+      </ViewTransition>
     </ViewContainer>
   );
 });

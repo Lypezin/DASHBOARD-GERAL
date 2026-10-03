@@ -6,6 +6,7 @@ import { CIDADES } from '@/constants/marketing';
 import { buildDateFilterQuery, buildCityQuery } from '@/utils/marketingQueries';
 import { MarketingFilters, MarketingCityData } from '@/types';
 import { IS_DEV, EXCLUDED_ENVIADOS } from '../constants';
+import { isMissingRpcFunctionError, requireMarketingCount, throwMarketingQueryError } from './queryErrors';
 
 export async function fetchMarketingCitiesData(
     filters: MarketingFilters, 
@@ -28,7 +29,11 @@ export async function fetchMarketingCitiesData(
 
     const cidadesToProcess = allCities || !filters.praca ? CIDADES : [filters.praca];
     
-    if (!rpcError && rpcData && Array.isArray(rpcData)) {
+    if (rpcError && !isMissingRpcFunctionError(rpcError)) {
+        throwMarketingQueryError('Erro ao buscar indicadores de Marketing por cidade.', rpcError);
+    }
+
+    if (!rpcError && Array.isArray(rpcData)) {
         const rpcMap = new Map(rpcData.map(item => [item.cidade, item]));
         return cidadesToProcess.map(cidade => ({ 
             cidade, criado: rpcMap.get(cidade)?.criado || 0, enviado: rpcMap.get(cidade)?.enviado || 0,
@@ -38,6 +43,10 @@ export async function fetchMarketingCitiesData(
             voltou: rpcMap.get(cidade)?.voltou || 0,
             conversas: 0
         }));
+    }
+
+    if (!rpcError) {
+        throw new Error('A consulta de indicadores por cidade retornou uma resposta inválida.');
     }
 
     if (IS_DEV) safeLog.info('Using manual fetch for cities data');
@@ -59,10 +68,15 @@ export async function fetchMarketingCitiesData(
             buildDateFilterQuery(base().not('Criado', 'is', null), 'Criado', filters.filtroDataInicio)
         ]);
 
-        results.push({ 
-            cidade, criado: c.count || 0, enviado: e.count || 0, 
-            liberado: l.count || 0, rodandoInicio: r.count || 0,
-            aberto: a.count || 0, voltou: v.count || 0, conversas: 0
+        results.push({
+            cidade,
+            criado: requireMarketingCount('Erro ao contar cadastros de Marketing.', c.count, c.error),
+            enviado: requireMarketingCount('Erro ao contar entregadores enviados.', e.count, e.error),
+            liberado: requireMarketingCount('Erro ao contar entregadores liberados.', l.count, l.error),
+            rodandoInicio: requireMarketingCount('Erro ao contar entregadores em operação.', r.count, r.error),
+            aberto: requireMarketingCount('Erro ao contar entregadores em aberto.', a.count, a.error),
+            voltou: requireMarketingCount('Erro ao contar entregadores que voltaram.', v.count, v.error),
+            conversas: 0
         });
     }
     return results;

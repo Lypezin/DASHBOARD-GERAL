@@ -118,6 +118,12 @@ export async function POST(request: Request) {
             return NextResponse.json({ data: null, error: auth.failure.message }, { status: auth.failure.status });
         }
 
+        const role = String(auth.profile.role || '').toLowerCase();
+        const hasFullCityAccess = hasElevatedRole(auth.profile) || role === 'marketing';
+        if (!hasFullCityAccess) {
+            return NextResponse.json({ data: null, error: 'Usuario sem permissao para esta consulta.' }, { status: 403 });
+        }
+
         const body = await request.json().catch(() => null) as FluxoRequestBody | null;
         const dataInicial = normalizeDate(body?.dataInicial);
         const dataFinal = normalizeDate(body?.dataFinal);

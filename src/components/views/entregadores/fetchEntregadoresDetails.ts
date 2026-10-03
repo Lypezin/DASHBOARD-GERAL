@@ -61,7 +61,10 @@ export async function fetchEntregadoresDetails(
       rodando: null,
     }));
 
-    const totalCount = Number(data[0]?.total_count ?? 0);
+    const totalCount = Number(data[0]?.total_count);
+    if (!Number.isSafeInteger(totalCount) || totalCount < resultData.length) {
+      throw new Error('A API retornou um total de registros inválido para a exportação. Tente novamente.');
+    }
 
     return { data: resultData, totalCount };
   } catch (error) {

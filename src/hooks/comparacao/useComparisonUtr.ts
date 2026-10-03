@@ -3,7 +3,15 @@ import { createComparisonFilter } from '@/utils/comparacaoHelpers';
 import { UtrData, CurrentUser } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 import { fetchUtrData } from '@/utils/tabData/fetchers/utrFetcher';
-import { createEmptyUtrData, extractUtrValue } from '@/utils/utr/extractUtrValue';
+import { extractUtrValue } from '@/utils/utr/extractUtrValue';
+import { getSafeErrorMessage } from '@/lib/errorHandler';
+
+type ComparisonUtrItem = { semana: string | number; utr: UtrData | null };
+
+type ComparisonUtrResult = {
+    data: ComparisonUtrItem[];
+    error: string | null;
+};
 
 export async function fetchComparisonUtr(
     semanasSelecionadas: string[],
@@ -11,7 +19,8 @@ export async function fetchComparisonUtr(
     currentUser: CurrentUser | null,
     organizationId: string | null,
     selectedYear?: number
-): Promise<Array<{ semana: string | number; utr: UtrData | null }>> {
+): Promise<ComparisonUtrResult> {
+    const errors: string[] = [];
     const promessasUtr = semanasSelecionadas.map(async (semana) => {
         const filtro = createComparisonFilter(
             semana,
@@ -26,16 +35,22 @@ export async function fetchComparisonUtr(
 
             if (error) {
                 safeLog.error(`[Comparacao] Erro ao calcular UTR para semana ${semana}:`, error);
-                return { semana, utr: createEmptyUtrData() };
+                errors.push(`Semana ${semana}: ${getSafeErrorMessage(error)}`);
+                return { semana, utr: null };
             }
 
-            const normalizedData = data && extractUtrValue(data) !== null ? data : createEmptyUtrData();
+            const normalizedData = data && extractUtrValue(data) !== null ? data : null;
             return { semana, utr: normalizedData };
         } catch (err) {
             safeLog.error(`[Comparacao] Excecao ao calcular UTR para semana ${semana}:`, err);
-            return { semana, utr: createEmptyUtrData() };
+            errors.push(`Semana ${semana}: ${getSafeErrorMessage(err)}`);
+            return { semana, utr: null };
         }
     });
 
-    return await Promise.all(promessasUtr);
+    const data = await Promise.all(promessasUtr);
+    return {
+        data,
+        error: errors.length > 0 ? errors.join(' · ') : null,
+    };
 }

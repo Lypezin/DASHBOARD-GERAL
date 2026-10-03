@@ -76,6 +76,8 @@ export function normalizeValoresEntregadores(
     return Array.from(byDriverId.values()).sort((a, b) => {
         const totalDifference = b.total_taxas - a.total_taxas;
         if (totalDifference !== 0) return totalDifference;
-        return valoresNameCollator.compare(a.nome_entregador, b.nome_entregador);
+        const nameDifference = valoresNameCollator.compare(a.nome_entregador, b.nome_entregador);
+        if (nameDifference !== 0) return nameDifference;
+        return valoresNameCollator.compare(a.id_entregador, b.id_entregador);
     });
 }

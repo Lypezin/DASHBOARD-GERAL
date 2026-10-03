@@ -13,6 +13,8 @@ interface FilterSecondarySectionProps {
     turnos: FilterOption[];
     handleChange: FiltroBarChangeHandler;
     shouldDisablePracaFilter: boolean;
+    optionsLoading: boolean;
+    optionsError: string | null;
 }
 
 export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
@@ -23,38 +25,51 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
     origens,
     turnos,
     handleChange,
-    shouldDisablePracaFilter
+    shouldDisablePracaFilter,
+    optionsLoading,
+    optionsError,
 }) => {
+    const isUnavailable = (options: FilterOption[]) => options.length === 0 && Boolean(optionsError);
+    const isWaitingForOptions = (options: FilterOption[]) => options.length === 0 && optionsLoading;
+    const placeholderFor = (options: FilterOption[], allLabel: string) => {
+        if (isWaitingForOptions(options)) return 'Carregando opções...';
+        if (isUnavailable(options)) return 'Opções indisponíveis';
+        return allLabel;
+    };
+
     return (
         <>
             <FiltroSelect
                 label="Praça"
                 value={filters.praca ?? ''}
                 options={pracas}
-                placeholder="Todas"
+                placeholder={placeholderFor(pracas, 'Todas')}
                 onChange={(value) => handleChange('praca', value)}
-                disabled={shouldDisablePracaFilter}
+                disabled={shouldDisablePracaFilter || isWaitingForOptions(pracas) || isUnavailable(pracas)}
             />
             <FiltroMultiSelect
                 label="Sub praça"
                 selected={filters.subPracas || []}
                 options={subPracas}
-                placeholder="Todas"
-                onSelectionChange={(values) => setFilters(prev => ({ ...prev, subPracas: values }))}
+                placeholder={placeholderFor(subPracas, 'Todas')}
+                disabled={isWaitingForOptions(subPracas) || isUnavailable(subPracas)}
+                onSelectionChange={(values) => setFilters(prev => ({ ...prev, subPraca: values[0] || null, subPracas: values }))}
             />
             <FiltroMultiSelect
                 label="Origem"
                 selected={filters.origens || []}
                 options={origens}
-                placeholder="Todas"
-                onSelectionChange={(values) => setFilters(prev => ({ ...prev, origens: values }))}
+                placeholder={placeholderFor(origens, 'Todas')}
+                disabled={isWaitingForOptions(origens) || isUnavailable(origens)}
+                onSelectionChange={(values) => setFilters(prev => ({ ...prev, origem: values[0] || null, origens: values }))}
             />
             <FiltroMultiSelect
                 label="Turno"
                 selected={filters.turnos || []}
                 options={turnos}
-                placeholder="Todos"
-                onSelectionChange={(values) => setFilters(prev => ({ ...prev, turnos: values }))}
+                placeholder={placeholderFor(turnos, 'Todos')}
+                disabled={isWaitingForOptions(turnos) || isUnavailable(turnos)}
+                onSelectionChange={(values) => setFilters(prev => ({ ...prev, turno: values[0] || null, turnos: values }))}
             />
         </>
     );

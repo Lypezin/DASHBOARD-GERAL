@@ -2,7 +2,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Trash2, Calendar, MapPin, Play } from 'lucide-react';
+import { Trash2, Calendar, MapPin, Play, RefreshCw } from 'lucide-react';
 import { SavedPresentation } from '@/hooks/apresentacao/useSavedPresentations';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -14,10 +14,12 @@ interface PresentationManagerProps {
     onLoad: (presentation: SavedPresentation) => void;
     onDelete: (id: string) => void;
     isLoading: boolean;
+    error: string | null;
+    onRetry: () => void;
 }
 
 export const PresentationManager: React.FC<PresentationManagerProps> = ({
-    isOpen, onClose, presentations, onLoad, onDelete, isLoading
+    isOpen, onClose, presentations, onLoad, onDelete, isLoading, error, onRetry
 }) => {
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
@@ -27,10 +29,19 @@ export const PresentationManager: React.FC<PresentationManagerProps> = ({
                 </DialogHeader>
 
                 <div className="mt-4">
-                    {isLoading ? (
+                    {error && (
+                        <div role="alert" className="mb-4 flex flex-col gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 sm:flex-row sm:items-center sm:justify-between">
+                            <span>{error}</span>
+                            <Button type="button" size="sm" variant="outline" onClick={onRetry} disabled={isLoading} className="shrink-0 gap-2">
+                                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                                Tentar novamente
+                            </Button>
+                        </div>
+                    )}
+                    {isLoading && presentations.length === 0 ? (
                         <div className="flex justify-center p-8 text-slate-500">Carregando...</div>
                     ) : presentations.length === 0 ? (
-                        <div className="text-center p-8 text-slate-500">Nenhuma apresentação salva encontrada.</div>
+                        error ? null : <div className="text-center p-8 text-slate-500">Nenhuma apresentação salva encontrada.</div>
                     ) : (
                         <ScrollArea className="h-[400px] w-full pr-4">
                             <div className="space-y-3">

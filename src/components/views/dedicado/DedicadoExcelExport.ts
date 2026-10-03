@@ -8,12 +8,13 @@ import {
   calculateAcceptanceRate,
   calculateCompletionRate,
   calculateHourlyAderencia,
+  formatMetricPercent,
   normalizeMetricNumber,
 } from './metrics';
 import type { Entregador } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 import { fetchDedicadoApi } from '@/utils/dedicado/fetchDedicadoApi';
-import { appendStyledJsonSheet, applyWorkbookMetadata } from '@/utils/excel/workbookStyle';
+import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit } from '@/utils/excel/workbookStyle';
 
 interface DedicadoExportPayload {
   totais?: {
@@ -76,6 +77,21 @@ function formatFilters(payload: Record<string, unknown>) {
   ];
 }
 
+function hasFiniteNumber(value: unknown) {
+  if (typeof value === 'number') return Number.isFinite(value);
+  return typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value));
+}
+
+function assertNumericFields(row: Record<string, unknown>, fields: string[], label: string) {
+  if (fields.some((field) => !hasFiniteNumber(row[field]))) {
+    throw new Error(`O relatório de ${label} veio com métricas ausentes ou inválidas. Gere o arquivo novamente.`);
+  }
+}
+
+function assertRowsHaveNumericFields(rows: Array<Record<string, unknown>>, fields: string[], label: string) {
+  rows.forEach((row) => assertNumericFields(row, fields, label));
+}
+
 function appendSheet(XLSX: typeof import('xlsx'), workbook: import('xlsx').WorkBook, data: Record<string, unknown>[], sheetName: string) {
   appendStyledJsonSheet(XLSX, workbook, data, sheetName, {
     title: `DEDICADO - ${sheetName}`,
@@ -84,7 +100,7 @@ function appendSheet(XLSX: typeof import('xlsx'), workbook: import('xlsx').WorkB
   });
 }
 
-export async function exportarDedicadoParaExcel(filterPayload: FilterPayload): Promise<void> {
+export async function exportarDedicadoParaExcel(filterPayload: FilterPayload, requestScopeKey?: string): Promise<void> {
   try {
     const rpcPayload = buildDedicadoFilterPayload(filterPayload);
     const XLSX = await loadXLSX();
@@ -95,17 +111,50 @@ export async function exportarDedicadoParaExcel(filterPayload: FilterPayload): P
       fetchDedicadoApi<DedicadoExportPayload>('summary', {
         ...rpcPayload,
         p_include_dia_origem: true,
-      }),
-      fetchDedicadoApi<DedicadoEntregadoresPayload>('entregadores', rpcPayload),
+      }, requestScopeKey),
+      fetchDedicadoApi<DedicadoEntregadoresPayload>('entregadores', rpcPayload, requestScopeKey),
     ]);
 
     if (summaryResult.error) throw new Error(summaryResult.error.message || 'Erro ao buscar resumo do DEDICADO');
     if (entregadoresResult.error) throw new Error(entregadoresResult.error.message || 'Erro ao buscar entregadores do DEDICADO');
 
-    const totals = summaryResult.data?.totais || {};
-    const origemRows = Array.isArray(summaryResult.data?.origem) ? summaryResult.data.origem : [];
-    const diaOrigemRows = Array.isArray(summaryResult.data?.dia_origem) ? summaryResult.data.dia_origem : [];
-    const entregadores = Array.isArray(entregadoresResult.data?.entregadores) ? entregadoresResult.data.entregadores : [];
+    const summary = summaryResult.data;
+    const driverPayload = entregadoresResult.data;
+    if (!summary?.totais || !Array.isArray(summary.origem) || !Array.isArray(summary.dia_origem)) {
+      throw new Error('O resumo do DEDICADO veio incompleto. Tente gerar o arquivo novamente.');
+    }
+    if (!driverPayload || !Array.isArray(driverPayload.entregadores)) {
+      throw new Error('A lista de entregadores do DEDICADO veio incompleta. Tente gerar o arquivo novamente.');
+    }
+
+    const totals = summary.totais;
+    const origemRows = summary.origem;
+    const diaOrigemRows = summary.dia_origem;
+    const entregadores = driverPayload.entregadores;
+    const totalEntregadoresResumo = Number(totals.total_entregadores);
+    const totalEntregadores = Number(driverPayload.total);
+    if (!Number.isSafeInteger(totalEntregadores) || totalEntregadores < 0 || totalEntregadores !== entregadores.length) {
+      throw new Error('A lista de entregadores recebida para o Excel está incompleta. Tente novamente.');
+    }
+    if (totalEntregadoresResumo !== totalEntregadores) {
+      throw new Error('O resumo e a lista de entregadores retornaram totais diferentes. Gere o Excel novamente.');
+    }
+    [origemRows, diaOrigemRows, entregadores].forEach((rows) => assertExcelRowLimit(rows.length));
+
+    assertNumericFields(totals as Record<string, unknown>, [
+      'total_entregadores', 'total_origens', 'corridas_ofertadas', 'corridas_aceitas',
+      'corridas_rejeitadas', 'corridas_completadas', 'segundos_realizados', 'segundos_planejados',
+    ], 'resumo');
+    const rowMetricFields = [
+      'segundos_realizados', 'segundos_planejados', 'corridas_ofertadas', 'corridas_aceitas',
+      'corridas_rejeitadas', 'corridas_completadas',
+    ];
+    assertRowsHaveNumericFields(origemRows, rowMetricFields, 'origens');
+    assertRowsHaveNumericFields(diaOrigemRows, rowMetricFields, 'dia x origem');
+    assertRowsHaveNumericFields(entregadores as unknown as Array<Record<string, unknown>>, [
+      'total_segundos', 'corridas_ofertadas', 'corridas_aceitas', 'corridas_rejeitadas',
+      'corridas_completadas', 'aderencia_percentual', 'rejeicao_percentual',
+    ], 'entregadores');
 
     appendSheet(XLSX, workbook, [
       { Indicador: 'Entregadores', Valor: normalizeMetricNumber(totals.total_entregadores) },
@@ -116,7 +165,7 @@ export async function exportarDedicadoParaExcel(filterPayload: FilterPayload): P
       { Indicador: 'Completadas', Valor: normalizeMetricNumber(totals.corridas_completadas) },
       { Indicador: 'Horas', Valor: formatarHorasParaHMS(normalizeMetricNumber(totals.segundos_realizados) / 3600) },
       { Indicador: 'Horas Planejadas', Valor: formatarHorasParaHMS(normalizeMetricNumber(totals.segundos_planejados) / 3600) },
-      { Indicador: 'Ader\u00eancia Horas', Valor: normalizeMetricNumber(totals.segundos_planejados) > 0 ? calculateHourlyAderencia(totals.segundos_realizados, totals.segundos_planejados) : 0 },
+      { Indicador: 'Ader\u00eancia Horas', Valor: formatMetricPercent(calculateHourlyAderencia(totals.segundos_realizados, totals.segundos_planejados)) },
     ], 'Resumo');
 
     appendSheet(XLSX, workbook, origemRows.map((row) => ({
@@ -169,6 +218,6 @@ export async function exportarDedicadoParaExcel(filterPayload: FilterPayload): P
     XLSX.writeFile(workbook, `dedicado_${dataHora}.xlsx`);
   } catch (error) {
     safeLog.error('Erro ao exportar DEDICADO para Excel:', error);
-    throw new Error('Falha ao gerar Excel do DEDICADO.');
+    throw error instanceof Error ? error : new Error('Falha ao gerar Excel do DEDICADO.');
   }
 }

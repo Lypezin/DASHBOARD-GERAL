@@ -11,6 +11,9 @@ interface FilterPrimarySectionProps {
     setFilters: React.Dispatch<React.SetStateAction<Filters>>;
     anosOptions: { value: string; label: string }[];
     semanasOptions: { value: string; label: string }[];
+    loadingSemanas: boolean;
+    errorSemanas: string | null;
+    onRetrySemanas: () => void;
     handleChange: FiltroBarChangeHandler;
 }
 
@@ -20,6 +23,9 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
     setFilters,
     anosOptions,
     semanasOptions,
+    loadingSemanas,
+    errorSemanas,
+    onRetrySemanas,
     handleChange
 }) => {
     if (isModoIntervalo) {
@@ -76,7 +82,8 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
                     label="Semana"
                     selected={selectedWeeks}
                     options={semanasOptions}
-                    placeholder="Todas"
+                    placeholder={loadingSemanas ? 'Carregando semanas...' : errorSemanas ? 'Semanas indisponíveis' : 'Todas'}
+                    disabled={loadingSemanas}
                     onSelectionChange={(values) => {
                         setFilters(prev => {
                             const semanas = values
@@ -92,6 +99,15 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
                         });
                     }}
                 />
+                {errorSemanas ? (
+                    <button
+                        type="button"
+                        onClick={onRetrySemanas}
+                        className="mt-1 pl-1 text-[10px] font-semibold text-rose-700 underline underline-offset-2 hover:text-rose-900 dark:text-rose-300 dark:hover:text-rose-100"
+                    >
+                        Erro ao carregar semanas. Tentar novamente
+                    </button>
+                ) : null}
             </div>
         </>
     );

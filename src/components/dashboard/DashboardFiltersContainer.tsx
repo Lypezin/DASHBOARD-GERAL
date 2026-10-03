@@ -14,6 +14,8 @@ interface DashboardFiltersContainerProps {
   turnos: FilterOption[];
   currentUser: CurrentUser | null;
   activeTab: string;
+  optionsLoading: boolean;
+  optionsError: string | null;
 }
 
 export const DashboardFiltersContainer = React.memo(function DashboardFiltersContainer({
@@ -27,6 +29,8 @@ export const DashboardFiltersContainer = React.memo(function DashboardFiltersCon
   turnos,
   currentUser,
   activeTab,
+  optionsLoading,
+  optionsError,
 }: DashboardFiltersContainerProps) {
   if (activeTab === 'marketing') {
     return null;
@@ -49,6 +53,8 @@ export const DashboardFiltersContainer = React.memo(function DashboardFiltersCon
         origens={origens}
         turnos={turnos}
         currentUser={currentUser}
+        optionsLoading={optionsLoading}
+        optionsError={optionsError}
       />
     </div>
   );

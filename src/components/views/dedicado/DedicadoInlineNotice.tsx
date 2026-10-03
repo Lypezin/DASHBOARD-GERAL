@@ -5,11 +5,13 @@ import { cn } from '@/lib/utils';
 interface DedicadoInlineNoticeProps {
   message: string;
   tone?: 'warning' | 'info';
+  onRetry?: () => void;
 }
 
 export function DedicadoInlineNotice({
   message,
   tone = 'warning',
+  onRetry,
 }: DedicadoInlineNoticeProps) {
   const isInfo = tone === 'info';
   const Icon = isInfo ? Info : AlertCircle;
@@ -24,7 +26,14 @@ export function DedicadoInlineNotice({
       )}
     >
       <Icon className="mt-0.5 h-4 w-4 shrink-0" />
-      <p className="font-semibold">{message}</p>
+      <div className="min-w-0 flex-1">
+        <p className="font-semibold">{message}</p>
+        {onRetry ? (
+          <button type="button" onClick={onRetry} className="mt-1 text-xs font-bold underline underline-offset-2 hover:opacity-80">
+            Tentar novamente
+          </button>
+        ) : null}
+      </div>
     </div>
   );
 }

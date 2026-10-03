@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useCallback, useMemo, useState } from 'react';
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { ComparacaoLayout } from '@/components/views/comparacao/ComparacaoLayout';
+import { useChartRegistration } from '@/hooks/dashboard/useChartRegistration';
 import type { DashboardResumoData, FilterOption } from '@/types';
 import type { SecoesVisiveis, ViewMode } from '@/components/views/comparacao/hooks/useComparacaoFilters';
 
@@ -158,6 +160,7 @@ function makeWeekData(week: string, factor: number): DashboardResumoData {
 }
 
 export default function VisualSmokePage() {
+  const chartReady = useChartRegistration(true);
   const [mostrarApresentacao, setMostrarApresentacao] = useState(false);
   const [semanasSelecionadas, setSemanasSelecionadas] = useState(semanasSmoke);
   const [pracaSelecionada, setPracaSelecionada] = useState<string | null>('Guarulhos');
@@ -252,6 +255,10 @@ export default function VisualSmokePage() {
     limparSemanas: () => setSemanasSelecionadas([]),
     toggleSecao,
   };
+
+  if (!chartReady) {
+    return <main className="min-h-screen bg-slate-100 py-6 dark:bg-slate-950"><DashboardSkeleton contentOnly /></main>;
+  }
 
   return (
     <main className="min-h-screen bg-slate-100 py-6 dark:bg-slate-950">

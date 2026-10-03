@@ -46,6 +46,7 @@ interface Props {
     organizationId?: string;
     variant?: 'entregadores' | 'dedicado';
     filterPayload?: FilterPayload;
+    requestScopeKey?: string;
 }
 
 export const EntregadorProfileDialog = React.memo(function EntregadorProfileDialog({
@@ -55,6 +56,7 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
     organizationId,
     variant = 'entregadores',
     filterPayload,
+    requestScopeKey,
 }: Props) {
     const isDedicado = variant === 'dedicado';
     const [origemBreakdown, setOrigemBreakdown] = React.useState<OrigemBreakdownRow[]>([]);
@@ -83,7 +85,7 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
 
             try {
                 const payload = JSON.parse(origemPayloadKey) as Record<string, unknown>;
-                const { data, error } = await fetchDedicadoApi<OrigemBreakdownPayload>('entregador', payload);
+                const { data, error } = await fetchDedicadoApi<OrigemBreakdownPayload>('entregador', payload, requestScopeKey);
 
                 if (cancelled) return;
 
@@ -123,7 +125,7 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
         return () => {
             cancelled = true;
         };
-    }, [open, isDedicado, origemPayloadKey]);
+    }, [open, isDedicado, origemPayloadKey, requestScopeKey]);
 
     React.useEffect(() => {
         let cancelled = false;

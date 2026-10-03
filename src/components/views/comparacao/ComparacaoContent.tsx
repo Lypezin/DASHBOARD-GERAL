@@ -19,9 +19,23 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
     state,
     actions
 }: ComparacaoContentProps) {
-    if (data.dadosComparacao.length === 0) return null;
-
     const sv = state.secoesVisiveis;
+
+    if (data.dadosComparacao.length === 0) {
+        if (data.utrComparacao.length === 0 || !sv.utr) return null;
+
+        return (
+            <Section show={sv.utr}>
+                <ComparacaoUtrSection
+                    utrComparacao={data.utrComparacao}
+                    semanasSelecionadas={state.semanasSelecionadas}
+                    loading={data.loading}
+                    utrError={data.utrError}
+                    onRetry={actions.retryData}
+                />
+            </Section>
+        );
+    }
 
     return (
         <div className="space-y-6 motion-safe:animate-fade-in">
@@ -69,6 +83,9 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
                 <ComparacaoUtrSection
                     utrComparacao={data.utrComparacao}
                     semanasSelecionadas={state.semanasSelecionadas}
+                    loading={data.loading}
+                    utrError={data.utrError}
+                    onRetry={actions.retryData}
                 />
             </Section>
         </div>

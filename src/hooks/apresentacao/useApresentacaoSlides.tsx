@@ -21,15 +21,17 @@ export const useApresentacaoSlides = (
   },
   mediaSlides: MediaSlideData[] = [],
   onUpdateMediaSlide?: (id: string, updates: Partial<MediaSlideData>) => void,
-  entregadoresComparativo: any[] = []
+  entregadoresComparativo: any[] = [],
+  isLoadingEntregadores = false,
+  entregadoresError: string | null = null
 ) => {
   const slides = useMemo(() => {
     if (!dadosProcessados) {
       return [] as Array<{ key: string; render: (visible: boolean) => React.ReactNode }>;
     }
-    return buildAllSlides(dadosProcessados, utrComparacao, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada, visibleSections, mediaSlides, onUpdateMediaSlide, entregadoresComparativo);
+    return buildAllSlides(dadosProcessados, utrComparacao, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada, visibleSections, mediaSlides, onUpdateMediaSlide, entregadoresComparativo, isLoadingEntregadores, entregadoresError);
   }, [
-    dadosProcessados, visibleSections, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada, mediaSlides, utrComparacao, onUpdateMediaSlide, entregadoresComparativo
+    dadosProcessados, visibleSections, numeroSemana1, numeroSemana2, periodoSemana1, periodoSemana2, pracaSelecionada, mediaSlides, utrComparacao, onUpdateMediaSlide, entregadoresComparativo, isLoadingEntregadores, entregadoresError
   ]);
 
   return slides;

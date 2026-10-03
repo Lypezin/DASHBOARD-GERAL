@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { CurrentUser } from '@/types';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { safeLog } from '@/lib/errorHandler';
+import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
 
 export interface MarketingComparisonData {
   semana_iso: string;
@@ -24,8 +26,8 @@ const CACHE_TTL_MS = 5 * 60 * 1000;
 const comparisonCache = new Map<string, { timestamp: number; data: MarketingComparisonData[] }>();
 const comparisonRequests = new Map<string, Promise<MarketingComparisonData[]>>();
 
-function buildCacheKey(dataInicial: string, dataFinal: string, organizationId: string, praca: string | null) {
-  return `${organizationId}|${praca || 'all'}|${dataInicial}|${dataFinal}`;
+function buildCacheKey(dataInicial: string, dataFinal: string, organizationId: string, praca: string | null, accessScopeKey: string) {
+  return `${accessScopeKey}|${organizationId}|${praca || 'all'}|${dataInicial}|${dataFinal}`;
 }
 
 function getCachedValue(cacheKey: string) {
@@ -55,7 +57,11 @@ async function fetchMarketingComparison(cacheKey: string, params: Record<string,
       throw rpcError;
     }
 
-    const normalized = result || [];
+    if (!Array.isArray(result)) {
+      throw new Error('A consulta de comparação do Marketing retornou uma resposta inválida.');
+    }
+
+    const normalized = result;
     comparisonCache.set(cacheKey, {
       timestamp: Date.now(),
       data: normalized,
@@ -70,23 +76,43 @@ async function fetchMarketingComparison(cacheKey: string, params: Record<string,
   return request;
 }
 
-export function useMarketingComparacao(dataInicial: string, dataFinal: string, organizationId: string | undefined, praca: string | null) {
+export function useMarketingComparacao(dataInicial: string, dataFinal: string, organizationId: string | undefined, praca: string | null, currentUser: CurrentUser | null) {
   const [data, setData] = useState<MarketingComparisonData[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [resolvedCacheKey, setResolvedCacheKey] = useState<string | null>(null);
+  const [dataOrganizationId, setDataOrganizationId] = useState<string | null>(null);
+  const [dataAccessScopeKey, setDataAccessScopeKey] = useState<string | null>(null);
   const requestIdRef = useRef(0);
   const hasVisibleDataRef = useRef(false);
-  hasVisibleDataRef.current = data.length > 0;
+  const accessScopeKey = createAccessScopeKey(currentUser, organizationId);
+  const currentCacheKey = dataInicial && dataFinal && organizationId
+    ? buildCacheKey(dataInicial, dataFinal, organizationId, praca, accessScopeKey)
+    : null;
+  hasVisibleDataRef.current = dataOrganizationId === (organizationId || null)
+    && dataAccessScopeKey === accessScopeKey
+    && data.length > 0;
 
   const fetchData = useCallback(async () => {
-    if (!dataInicial || !dataFinal || !organizationId) return;
-
     const currentRequestId = ++requestIdRef.current;
-    const cacheKey = buildCacheKey(dataInicial, dataFinal, organizationId, praca);
+    if (!dataInicial || !dataFinal || !organizationId || !currentCacheKey) {
+      setData([]);
+      setError(null);
+      setLoading(false);
+      setResolvedCacheKey(null);
+      setDataOrganizationId(null);
+      setDataAccessScopeKey(null);
+      return;
+    }
+
+    const cacheKey = currentCacheKey;
     const cached = getCachedValue(cacheKey);
 
     if (cached) {
       setData(cached);
+      setResolvedCacheKey(cacheKey);
+      setDataOrganizationId(organizationId);
+      setDataAccessScopeKey(accessScopeKey);
       setError(null);
       setLoading(false);
       return;
@@ -112,18 +138,29 @@ export function useMarketingComparacao(dataInicial: string, dataFinal: string, o
       }
 
       setData(result);
+      setResolvedCacheKey(cacheKey);
+      setDataOrganizationId(organizationId);
+      setDataAccessScopeKey(accessScopeKey);
     } catch (err: unknown) {
       if (currentRequestId !== requestIdRef.current) {
         return;
       }
 
       if ((err as { code?: string; message?: string })?.code === '57014' || (err as { message?: string })?.message?.includes('57014')) {
-        safeLog.warn('Ignored cancelled request', err);
+        safeLog.warn('Consulta de comparação de marketing cancelada antes de concluir.', err);
+        setError('A consulta foi cancelada antes de concluir. Tente novamente.');
+        setResolvedCacheKey(cacheKey);
+        setDataOrganizationId(organizationId);
+        setDataAccessScopeKey(accessScopeKey);
+        if (!hasVisibleData) setData([]);
         return;
       }
 
       safeLog.error('Erro ao buscar comparacao marketing:', err);
       setError(err instanceof Error ? err.message : 'Erro ao carregar dados');
+      setResolvedCacheKey(cacheKey);
+      setDataOrganizationId(organizationId);
+      setDataAccessScopeKey(accessScopeKey);
       if (!hasVisibleData) {
         setData([]);
       }
@@ -132,7 +169,7 @@ export function useMarketingComparacao(dataInicial: string, dataFinal: string, o
         setLoading(false);
       }
     }
-  }, [dataFinal, dataInicial, organizationId, praca]);
+  }, [accessScopeKey, currentCacheKey, dataFinal, dataInicial, organizationId, praca]);
 
   useEffect(() => {
     void fetchData();
@@ -143,5 +180,13 @@ export function useMarketingComparacao(dataInicial: string, dataFinal: string, o
     };
   }, [fetchData]);
 
-  return { data, loading, error, refetch: fetchData };
+  const canShowCurrentOrganizationData = dataOrganizationId === (organizationId || null)
+    && dataAccessScopeKey === accessScopeKey;
+
+  return {
+    data: canShowCurrentOrganizationData ? data : [],
+    loading: loading || Boolean(currentCacheKey && resolvedCacheKey !== currentCacheKey),
+    error: resolvedCacheKey === currentCacheKey ? error : null,
+    refetch: fetchData,
+  };
 }

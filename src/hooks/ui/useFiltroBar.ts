@@ -38,6 +38,32 @@ export function useFiltroBar({
                 };
             }
 
+            if (key === 'ano') {
+                if (prev.ano === processedValue) return prev;
+                return {
+                    ...prev,
+                    ano: processedValue as number,
+                    semana: null,
+                    semanas: [],
+                };
+            }
+
+            if (key === 'praca') {
+                const praca = processedValue as string | null;
+                if (prev.praca === praca) return prev;
+
+                return {
+                    ...prev,
+                    praca,
+                    subPraca: null,
+                    subPracas: [],
+                    origem: null,
+                    origens: [],
+                    turno: null,
+                    turnos: [],
+                };
+            }
+
             return { ...prev, [key]: processedValue };
         });
     }, [setFilters]);

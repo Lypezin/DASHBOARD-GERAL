@@ -6,8 +6,6 @@ export const runtime = 'nodejs';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_IDS = 15000;
-const AGGREGATE_CHUNK_SIZE = 180;
-const FALLBACK_CONCURRENCY = 8;
 
 type FirstSeenBody = {
   entregadorIds?: unknown;
@@ -69,22 +67,7 @@ function resolveOrganizationId(body: FirstSeenBody | null, profileOrganizationId
     : null;
 }
 
-function chunkArray<T>(items: T[], chunkSize: number) {
-  const chunks: T[][] = [];
-
-  for (let index = 0; index < items.length; index += chunkSize) {
-    chunks.push(items.slice(index, index + chunkSize));
-  }
-
-  return chunks;
-}
-
-function readFirstSeenDate(row: Record<string, unknown>) {
-  const value = row.primeira_data_aparicao ?? row.min ?? row.data_do_periodo;
-  return typeof value === 'string' && value ? value : null;
-}
-
-async function fetchFirstSeenAggregate(
+async function fetchFirstSeenBatch(
   supabase: ReturnType<typeof createServiceRoleClient>,
   ids: string[],
   organizationId: string | null,
@@ -92,93 +75,20 @@ async function fetchFirstSeenAggregate(
 ) {
   const result = new Map<string, string | null>();
 
-  for (const chunk of chunkArray(ids, AGGREGATE_CHUNK_SIZE)) {
-    let query = supabase
-      .from('dados_corridas')
-      .select('id_da_pessoa_entregadora, data_do_periodo.min()')
-      .in('id_da_pessoa_entregadora', chunk)
-      .not('data_do_periodo', 'is', null);
+  const { data, error } = await supabase.rpc('get_entregadores_first_seen_v1', {
+    p_entregador_ids: ids,
+    p_organization_id: organizationId,
+    p_allowed_pracas: allowedPracas,
+  });
 
-    if (organizationId) {
-      query = query.eq('organization_id', organizationId);
-    }
+  if (error) throw error;
+  if (!Array.isArray(data)) throw new Error('A consulta de primeira aparição retornou uma resposta inválida.');
 
-    if (allowedPracas) {
-      query = query.in('praca', allowedPracas);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      throw error;
-    }
-
-    for (const row of data || []) {
-      const id = normalizeString(row.id_da_pessoa_entregadora, 120);
-      if (id) result.set(id, readFirstSeenDate(row as Record<string, unknown>));
-    }
+  for (const row of data) {
+    const id = normalizeString(row.id_entregador, 120);
+    const date = typeof row.primeira_data_aparicao === 'string' ? row.primeira_data_aparicao : null;
+    if (id) result.set(id, date);
   }
-
-  return result;
-}
-
-async function fetchOneFirstSeen(
-  supabase: ReturnType<typeof createServiceRoleClient>,
-  id: string,
-  organizationId: string | null,
-  allowedPracas: string[] | null,
-) {
-  let query = supabase
-    .from('dados_corridas')
-    .select('data_do_periodo')
-    .eq('id_da_pessoa_entregadora', id)
-    .not('data_do_periodo', 'is', null);
-
-  if (organizationId) {
-    query = query.eq('organization_id', organizationId);
-  }
-
-  if (allowedPracas) {
-    query = query.in('praca', allowedPracas);
-  }
-
-  const { data, error } = await query
-    .order('data_do_periodo', { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    throw error;
-  }
-
-  return typeof data?.data_do_periodo === 'string' ? data.data_do_periodo : null;
-}
-
-async function fetchFirstSeenFallback(
-  supabase: ReturnType<typeof createServiceRoleClient>,
-  ids: string[],
-  organizationId: string | null,
-  allowedPracas: string[] | null,
-) {
-  const result = new Map<string, string | null>();
-  let nextIndex = 0;
-
-  async function worker() {
-    while (nextIndex < ids.length) {
-      const currentIndex = nextIndex;
-      nextIndex += 1;
-
-      const id = ids[currentIndex];
-      if (!id) continue;
-
-      const firstSeen = await fetchOneFirstSeen(supabase, id, organizationId, allowedPracas);
-      result.set(id, firstSeen);
-    }
-  }
-
-  await Promise.all(
-    Array.from({ length: Math.min(FALLBACK_CONCURRENCY, ids.length) }, () => worker())
-  );
 
   return result;
 }
@@ -217,13 +127,7 @@ export async function POST(request: Request) {
   const supabase = createServiceRoleClient();
 
   try {
-    let firstSeenById: Map<string, string | null>;
-
-    try {
-      firstSeenById = await fetchFirstSeenAggregate(supabase, entregadorIds, organizationId, allowedPracas);
-    } catch {
-      firstSeenById = await fetchFirstSeenFallback(supabase, entregadorIds, organizationId, allowedPracas);
-    }
+    const firstSeenById = await fetchFirstSeenBatch(supabase, entregadorIds, organizationId, allowedPracas);
 
     const data: FirstSeenRow[] = entregadorIds.map((id) => ({
       id_entregador: id,

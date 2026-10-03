@@ -28,7 +28,7 @@ export const MonthComparisonCards = React.memo(function MonthComparisonCards({
     filters,
     currentUser
 }: MonthComparisonCardsProps) {
-    const { metrics, loading, currentWeekLabel, previousWeekLabel } = useWeekComparison({
+    const { metrics, loading, error, currentWeekLabel, previousWeekLabel, retry } = useWeekComparison({
         aderenciaSemanal,
         filters,
         currentUser
@@ -45,6 +45,17 @@ export const MonthComparisonCards = React.memo(function MonthComparisonCards({
                         <div key={i} className="h-20 rounded-xl bg-muted animate-pulse border border-border" />
                     ))}
                 </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div role="alert" className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200/70 bg-amber-50/85 px-4 py-3 text-sm text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
+                <span>{error}</span>
+                <button type="button" onClick={retry} className="font-bold underline underline-offset-2 hover:no-underline">
+                    Tentar novamente
+                </button>
             </div>
         );
     }

@@ -25,7 +25,9 @@ export function buildAllSlides(
     visibleSections: Record<string, boolean>,
     mediaSlides: MediaSlideData[],
     onUpdateMediaSlide?: (id: string, updates: Partial<MediaSlideData>) => void,
-    entregadoresComparativo?: any[]
+    entregadoresComparativo?: any[],
+    isLoadingEntregadores = false,
+    entregadoresError: string | null = null
 ): SlideConfig[] {
     const slidesConfig: SlideConfig[] = [];
     const { resumoSemana1, resumoSemana2, subPracasComparativo, semana1Dias, semana2Dias, turnosComparativo, origensComparativo, mediaOrigens, demandaItens, demandaOrigemItens } = dadosProcessados;
@@ -39,7 +41,7 @@ export function buildAllSlides(
     const aderenciaGeral = buildSlideAderenciaGeral(visibleSections['aderencia-geral'], dadosProcessados);
     if (aderenciaGeral) slidesConfig.push(aderenciaGeral);
 
-    if (visibleSections['entregadores'] !== false && entregadoresComparativo && entregadoresComparativo.length > 0) {
+    if (visibleSections['entregadores'] !== false) {
         slidesConfig.push({
             key: 'entregadores',
             render: (visible) => (
@@ -47,7 +49,9 @@ export function buildAllSlides(
                     isVisible={visible}
                     numeroSemana1={numeroSemana1}
                     numeroSemana2={numeroSemana2}
-                    entregadores={entregadoresComparativo}
+                    entregadores={entregadoresComparativo || []}
+                    loading={isLoadingEntregadores}
+                    error={entregadoresError}
                     totaisHorasOficiais={{
                         semana1: resumoSemana1.horasEntregues,
                         semana2: resumoSemana2.horasEntregues,

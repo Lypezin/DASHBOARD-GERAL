@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { X, Check, FilePlus, FolderOpen, Save, Download, FileSpreadsheet } from 'lucide-react';
+import { X, Check, FilePlus, FolderOpen, Save, Download, FileSpreadsheet, Loader2 } from 'lucide-react';
 import { PresentationSectionToggle } from './PresentationSectionToggle';
 import { PresentationNavigation } from './PresentationNavigation';
 
@@ -19,6 +19,7 @@ interface ApresentacaoControlsProps {
     onSaveClick?: () => void;
     onManageClick?: () => void;
     onExportExcel?: () => void;
+    isExportingExcel?: boolean;
 }
 
 export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = React.memo(({
@@ -35,7 +36,8 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = React.m
     onManageMedia,
     onSaveClick,
     onManageClick,
-    onExportExcel
+    onExportExcel,
+    isExportingExcel = false,
 }) => {
     return (
         <div className="sticky top-0 z-10 flex min-w-0 flex-col gap-2 border-b border-slate-200 bg-white/96 p-2.5 shadow-sm backdrop-blur dark:border-slate-800 dark:bg-slate-900/96 md:flex-row md:items-center md:gap-3 md:p-3">
@@ -102,10 +104,14 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = React.m
                         variant="outline"
                         className="h-9 shrink-0 border-slate-200 px-3 hover:bg-slate-100 dark:border-slate-700 dark:hover:bg-slate-800"
                         onClick={onExportExcel}
-                        title="Exportar Planilha Excel"
+                        disabled={isExportingExcel}
+                        title={isExportingExcel ? 'Preparando a planilha Excel' : 'Exportar Planilha Excel'}
+                        aria-label={isExportingExcel ? 'Preparando a planilha Excel' : 'Exportar planilha Excel'}
                     >
-                        <FileSpreadsheet className="h-4 w-4 text-emerald-600 sm:mr-2" />
-                        <span className="hidden sm:inline">Excel</span>
+                        {isExportingExcel
+                            ? <Loader2 className="h-4 w-4 animate-spin sm:mr-2" />
+                            : <FileSpreadsheet className="h-4 w-4 text-emerald-600 sm:mr-2" />}
+                        <span className="hidden sm:inline">{isExportingExcel ? 'Preparando...' : 'Excel'}</span>
                     </Button>
                 )}
 

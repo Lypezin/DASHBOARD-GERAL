@@ -7,7 +7,7 @@ import { getDateRangeFromWeek } from '@/utils/formatters/dateUtils';
 import { getAllYearsDateRange } from '@/utils/filters/allYearsRange';
 
 export function useMarketingComparacaoViewController(filters: DashboardFilters) {
-    const { user } = useAuth();
+    const { user, loading: authLoading } = useAuth();
 
     // Determine the date range
     let dataInicial = filters.dataInicial;
@@ -45,7 +45,8 @@ export function useMarketingComparacaoViewController(filters: DashboardFilters) 
         dataInicial,
         dataFinal,
         user?.organization_id || undefined,
-        praca
+        praca,
+        user
     );
 
     // Calculate totals
@@ -78,7 +79,7 @@ export function useMarketingComparacaoViewController(filters: DashboardFilters) 
 
     return {
         data,
-        loading,
+        loading: authLoading || loading,
         error,
         totals,
         praca
