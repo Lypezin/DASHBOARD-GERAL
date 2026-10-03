@@ -25,6 +25,10 @@ export function createPracasKey(pracas: string[]) {
     return pracas.map((praca) => praca.trim().toUpperCase()).filter(Boolean).sort().join('|');
 }
 
-export function createDimensionCacheKey(pracasKey: string, organizationId?: string | null) {
-    return `${organizationId || 'no-org'}::${pracasKey}`;
+export function createDimensionCacheKey(
+    pracasKey: string,
+    organizationId?: string | null,
+    accessScopeKey = 'default'
+) {
+    return `${organizationId || 'no-org'}::${accessScopeKey}::${pracasKey}`;
 }

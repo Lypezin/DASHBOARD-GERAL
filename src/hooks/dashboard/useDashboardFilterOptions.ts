@@ -21,7 +21,7 @@ export function useDashboardFilterOptions(options: UseDashboardFiltersOptions) {
   const { dimensoes, currentUser, filters, organizationId } = options;
 
   const pracas = usePracaOptions(dimensoes, currentUser, filters);
-  const dimensions = useDimensionOptions(dimensoes, currentUser, filters, organizationId);
+  const dimensions = useDimensionOptions(currentUser, filters, organizationId);
 
   const retryOptions = () => {
     options.retryDimensions?.();

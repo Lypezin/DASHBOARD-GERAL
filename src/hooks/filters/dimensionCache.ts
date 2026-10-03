@@ -17,7 +17,7 @@ export function isValidCacheEntry(entry?: DimensionCacheEntry | null): entry is 
 }
 
 export function getStorageKey(key: string) {
-    return `dashboard_dimension_options_v1_${key}`;
+    return `dashboard_dimension_options_v2_${key}`;
 }
 
 function cleanupDimensionCache(removeExpired = true) {

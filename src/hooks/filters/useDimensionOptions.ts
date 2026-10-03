@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { isMissingRpcFunctionError } from '@/lib/rpc/errors';
-import { CurrentUser, hasFullCityAccess, DimensoesDashboard, Filters } from '@/types';
+import { CurrentUser, hasFullCityAccess, Filters } from '@/types';
 import { toUniqueOptions, createPracasKey, createDimensionCacheKey } from './dimensionHelpers';
 import { DimensionCacheEntry, isValidCacheEntry, readCachedOptions, writeCachedOptions } from './dimensionCache';
 import { IS_DEV } from '@/constants/environment';
@@ -27,7 +27,6 @@ type RemoteStatusState = {
 const EMPTY_OPTIONS = { subPracas: [], origens: [], turnos: [] };
 
 export function useDimensionOptions(
-    dimensoes: DimensoesDashboard | null,
     currentUser?: CurrentUser | null,
     filters?: Filters | null,
     organizationId?: string | null
@@ -40,6 +39,7 @@ export function useDimensionOptions(
     const assignedPracasKey = currentUser?.assigned_pracas.join('|') || '';
     const assignedPracas = useMemo(() => assignedPracasKey.split('|').filter(Boolean), [assignedPracasKey]);
     const userHasFullAccess = hasFullCityAccess(currentUser);
+    const organizationScope = organizationId || currentUser?.organization_id || null;
     const targetPracas = useMemo(() => {
         if (filters?.praca) {
             if (userHasFullAccess || assignedPracas.some((praca) => praca.toUpperCase() === filters.praca?.toUpperCase())) {
@@ -57,16 +57,22 @@ export function useDimensionOptions(
     }
     const stableTargetPracas = stableTargetPracasRef.current.pracas;
     const dimensionCacheKey = useMemo(
-        () => createDimensionCacheKey(targetPracasKey, organizationId || currentUser?.organization_id),
-        [currentUser?.organization_id, organizationId, targetPracasKey]
+        () => createDimensionCacheKey(
+            targetPracasKey,
+            organizationScope,
+            [currentUser?.id, currentUser?.role, currentUser?.is_admin, assignedPracasKey].join('|')
+        ),
+        [assignedPracasKey, currentUser?.id, currentUser?.is_admin, currentUser?.role, organizationScope, targetPracasKey]
     );
 
     // The dimensions returned with dashboard rows are narrowed by the active
     // filters. Use the independent RPC for filter choices so selecting one
-    // value does not remove the other available choices. An empty plaza list
+    // value does not remove the other available choices. This request only
+    // needs the authorized organization/plaza scope, so it can start in parallel
+    // with the separate years and plaza-option requests. An empty plaza list
     // means all plazas within this user's organization.
-    const baseOptions = dimensoes ? null : EMPTY_OPTIONS;
-    const shouldFetchRemote = Boolean(dimensoes);
+    const shouldFetchRemote = Boolean(currentUser?.id && organizationScope);
+    const baseOptions = shouldFetchRemote ? null : EMPTY_OPTIONS;
 
     useEffect(() => {
         let cancelled = false;
@@ -95,7 +101,7 @@ export function useDimensionOptions(
             try {
                 const rpcParams = {
                     p_pracas: stableTargetPracas,
-                    p_organization_id: organizationId || currentUser?.organization_id || null,
+                    p_organization_id: organizationScope,
                 };
                 const combinedResult = await safeRpc<DimensionOptionsRpcRow[]>(
                     'get_dashboard_dimension_options',
@@ -165,7 +171,7 @@ export function useDimensionOptions(
         return () => {
             cancelled = true;
         };
-    }, [currentUser?.organization_id, dimensionCacheKey, dimensoes, organizationId, retryIndex, shouldFetchRemote, stableTargetPracas]);
+    }, [dimensionCacheKey, organizationScope, retryIndex, shouldFetchRemote, stableTargetPracas]);
 
     const activeRemoteOptions = remoteOptionsState?.scopeKey === dimensionCacheKey
         ? remoteOptionsState.options
