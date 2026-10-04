@@ -22,10 +22,11 @@ interface ApresentacaoPreviewProps {
   onSaveClick?: () => void; onManageClick?: () => void;
   onExportExcel?: () => void;
   isExportingExcel?: boolean;
+  exportDisabled?: boolean;
 }
 
 const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
-  slides, currentSlide, onSlideChange, onClose, numeroSemana1, numeroSemana2, visibleSections, onToggleSection, onStartPresentation, mediaSlides, onUpdateMediaSlide, onAddMediaSlide, onDeleteMediaSlide, onSaveClick, onManageClick, onExportExcel, isExportingExcel
+  slides, currentSlide, onSlideChange, onClose, numeroSemana1, numeroSemana2, visibleSections, onToggleSection, onStartPresentation, mediaSlides, onUpdateMediaSlide, onAddMediaSlide, onDeleteMediaSlide, onSaveClick, onManageClick, onExportExcel, isExportingExcel, exportDisabled
 }) => {
   const contentRef = useRef<HTMLDivElement>(null);
   const captureContainerRef = useRef<HTMLDivElement>(null);
@@ -90,7 +91,7 @@ const ApresentacaoPreviewContent: React.FC<ApresentacaoPreviewProps> = ({
               onGeneratePDF={generatePDF} onStartPresentation={() => onStartPresentation(orderedSlides)}
               isGenerating={isGenerating} visibleSections={visibleSections} onToggleSection={onToggleSection}
               onSaveClick={onSaveClick} onManageClick={onManageClick}
-              onExportExcel={onExportExcel} isExportingExcel={isExportingExcel}
+              onExportExcel={onExportExcel} isExportingExcel={isExportingExcel} exportDisabled={exportDisabled}
             />
             <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-slate-100 dark:bg-slate-950">
               <PresentationViewport

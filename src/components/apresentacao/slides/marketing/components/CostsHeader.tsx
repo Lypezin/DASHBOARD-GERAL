@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 interface CostsHeaderProps {
     titulo: string;
@@ -9,6 +9,8 @@ interface CostsHeaderProps {
 }
 
 export const CostsHeader: React.FC<CostsHeaderProps> = ({ titulo, isDark }) => {
+    const shouldReduceMotion = useReducedMotion();
+
     return (
         <>
             <div className="flex justify-between items-start mb-2">
@@ -25,9 +27,10 @@ export const CostsHeader: React.FC<CostsHeaderProps> = ({ titulo, isDark }) => {
 
             <div className="flex justify-center mb-4">
                 <motion.h1 
-                    initial={{ opacity: 0, y: -20 }}
+                    initial={shouldReduceMotion ? false : { opacity: 0, y: -12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`text-[8rem] font-black leading-none tracking-tighter text-center ${
+                    transition={{ duration: shouldReduceMotion ? 0 : 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    className={`text-[clamp(3.5rem,10vw,8rem)] font-black leading-none tracking-tighter text-center ${
                         isDark ? 'text-white' : 'text-slate-900'
                     }`}
                 >

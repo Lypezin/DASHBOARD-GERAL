@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { MarketingCostData } from '@/types';
 import { CostsTableRow } from './CostsTableRow';
 import { CostsTableFooter } from './CostsTableFooter';
@@ -19,11 +19,14 @@ interface CostsTableProps {
 }
 
 export const CostsTable: React.FC<CostsTableProps> = ({ data, totals, isDark }) => {
+    const shouldReduceMotion = useReducedMotion();
+
     return (
         <div className="flex-1 flex flex-col justify-center max-w-7xl mx-auto w-full">
             <motion.div 
-                initial={{ opacity: 0, scale: 0.98 }}
+                initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.99 }}
                 animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: shouldReduceMotion ? 0 : 0.3, ease: [0.22, 1, 0.36, 1] }}
                 className={`rounded-[2rem] overflow-hidden border shadow-[0_20px_40px_-12px_rgba(0,0,0,0.1)] ${
                     isDark ? 'border-slate-800 bg-slate-900/40 backdrop-blur-xl' : 'border-slate-200 bg-white'
                 }`}

@@ -18,6 +18,7 @@ interface ApresentacaoViewProps {
   semanasSelecionadas: string[];
   pracaSelecionada: string | null;
   anoSelecionado?: number;
+  dimensionFilters?: Record<string, unknown>;
   onClose: () => void;
   onPracaChange?: (praca: string) => void;
   onSemanasChange?: (semanas: string[]) => void;
@@ -30,6 +31,13 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = (props) => {
   const handleExportExcel = React.useCallback(async () => {
     if (isExportingExcel) return;
 
+    const includesEntregadores = facade.state.visibleSections.entregadores === true;
+    if (includesEntregadores && facade.isLoadingEntregadores) return;
+    if (includesEntregadores && facade.entregadoresError) {
+      toast.error(`Não foi possível incluir os entregadores no Excel: ${facade.entregadoresError}`);
+      return;
+    }
+
     setIsExportingExcel(true);
     try {
       await exportComparacaoToExcel(
@@ -37,7 +45,13 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = (props) => {
         props.utrComparacao,
         props.semanasSelecionadas,
         props.pracaSelecionada,
-        facade.entregadoresComparativo
+        facade.entregadoresComparativo,
+        {
+          p_ano: props.anoSelecionado,
+          p_semanas: props.semanasSelecionadas,
+          p_praca: props.pracaSelecionada,
+          ...props.dimensionFilters,
+        }
       );
     } catch (error) {
       safeLog.error('Erro ao exportar comparativo para Excel:', error);
@@ -45,7 +59,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = (props) => {
     } finally {
       setIsExportingExcel(false);
     }
-  }, [facade.entregadoresComparativo, isExportingExcel, props.dadosComparacao, props.pracaSelecionada, props.semanasSelecionadas, props.utrComparacao]);
+  }, [facade.entregadoresComparativo, facade.entregadoresError, facade.isLoadingEntregadores, facade.state.visibleSections, isExportingExcel, props.anoSelecionado, props.dadosComparacao, props.dimensionFilters, props.pracaSelecionada, props.semanasSelecionadas, props.utrComparacao]);
 
   const {
     state, actions, savedPresentations, isLoadingSaves, savedPresentationsError, fetchPresentations, deletePresentation,
@@ -92,6 +106,7 @@ const ApresentacaoView: React.FC<ApresentacaoViewProps> = (props) => {
             onSaveClick={() => setIsSaveDialogOpen(true)}
             onExportExcel={handleExportExcel}
             isExportingExcel={isExportingExcel}
+            exportDisabled={facade.state.visibleSections.entregadores === true && facade.isLoadingEntregadores}
           />
         )}
 

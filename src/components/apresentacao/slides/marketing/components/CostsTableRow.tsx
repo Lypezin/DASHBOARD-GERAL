@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { MarketingCostData } from '@/types';
 
 interface CostsTableRowProps {
@@ -11,15 +11,16 @@ interface CostsTableRowProps {
 }
 
 export const CostsTableRow: React.FC<CostsTableRowProps> = ({ row, idx, isDark }) => {
+    const shouldReduceMotion = useReducedMotion();
     const numConversa = row.conversas || 0;
     const cpc = numConversa > 0 ? row.valorUsado / numConversa : 0;
     const cpl = row.liberado > 0 ? row.valorUsado / row.liberado : 0;
 
     return (
         <motion.tr 
-            initial={{ opacity: 0, x: -10 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, x: -6 }}
             animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 + (idx * 0.05) }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.18, delay: shouldReduceMotion ? 0 : Math.min(idx * 0.012, 0.12) }}
             className={`border-b last:border-0 ${isDark ? 'border-slate-800' : 'border-slate-100'} hover:bg-blue-500/5 transition-colors`}
         >
             <td className="px-5 py-4 text-sm font-bold border-r border-slate-800/5">{row.regiao}</td>

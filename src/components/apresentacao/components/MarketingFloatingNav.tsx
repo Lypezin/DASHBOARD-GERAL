@@ -23,9 +23,9 @@ export const MarketingFloatingNav: React.FC = () => {
     const scrollToSection = (id: string) => {
         const element = document.getElementById(id);
         if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
+            element.scrollIntoView({ behavior: shouldReduceMotion ? 'auto' : 'smooth' });
         } else if (id === 'top') {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({ top: 0, behavior: shouldReduceMotion ? 'auto' : 'smooth' });
         }
     };
 
@@ -41,6 +41,8 @@ export const MarketingFloatingNav: React.FC = () => {
                     <button
                         key={item.id}
                         onClick={() => scrollToSection(item.id)}
+                        aria-label={`Ir para ${item.label}`}
+                        title={item.label}
                         className="group relative p-3.5 rounded-xl transition-all duration-300 hover:bg-white/10 active:scale-95"
                     >
                         <item.icon className="h-5 w-5 text-slate-400 transition-all duration-300 group-hover:text-blue-400 group-hover:scale-110" />
