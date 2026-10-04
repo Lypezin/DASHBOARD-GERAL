@@ -7,7 +7,7 @@ import { EntradaSaidaStatsCards } from './components/EntradaSaidaStatsCards';
 import { EntradaSaidaWeeklyGrid } from './components/EntradaSaidaWeeklyGrid';
 import { Button } from '@/components/ui/button';
 import { loadXLSX } from '@/lib/xlsxClient';
-import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit } from '@/utils/excel/workbookStyle';
+import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit, writeWorkbookFile } from '@/utils/excel/workbookStyle';
 import { safeLog } from '@/lib/errorHandler';
 import { toast } from 'sonner';
 
@@ -68,7 +68,7 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
         });
 
         const dateStr = new Date().toISOString().split('T')[0];
-        XLSX.writeFile(wb, `fluxo_entregadores_marketing_${dateStr}.xlsx`);
+        await writeWorkbookFile(XLSX, wb, `fluxo_entregadores_marketing_${dateStr}.xlsx`);
         } catch (exportError) {
             safeLog.error('Erro ao exportar fluxo semanal:', exportError);
             toast.error(exportError instanceof Error ? exportError.message : 'Não foi possível gerar o Excel do fluxo semanal.');

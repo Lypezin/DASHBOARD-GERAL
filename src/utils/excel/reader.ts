@@ -7,7 +7,7 @@ export async function readExcelFile(file: File): Promise<Record<string, unknown>
     safeLog.info('Arquivo lido, tamanho:', { size: arrayBuffer.byteLength });
 
     safeLog.info('Lendo workbook Excel...');
-    const XLSX = await import('xlsx');
+    const XLSX = await import('xlsx-js-style');
     const workbook = XLSX.read(arrayBuffer, { raw: true });
     safeLog.info('Sheets disponíveis:', { sheets: workbook.SheetNames });
 

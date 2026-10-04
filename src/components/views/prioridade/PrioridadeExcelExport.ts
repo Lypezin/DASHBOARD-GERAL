@@ -2,7 +2,7 @@ import { Entregador } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { IS_DEV } from '@/constants/environment';
-import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit, createExcelFilterRows } from '@/utils/excel/workbookStyle';
+import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit, createExcelFilterRows, writeWorkbookFile } from '@/utils/excel/workbookStyle';
 
 export async function exportarPrioridadeParaExcel(
     entregadores: Entregador[],
@@ -52,7 +52,7 @@ export async function exportarPrioridadeParaExcel(
         const dataHora = agora.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
         const nomeArquivo = `prioridade_promo_${dataHora}.xlsx`;
 
-        XLSX.writeFile(wb, nomeArquivo);
+        await writeWorkbookFile(XLSX, wb, nomeArquivo);
 
         if (IS_DEV) {
             safeLog.info(`Arquivo Excel exportado: ${nomeArquivo} (${dadosExportacao.length} registros)`);

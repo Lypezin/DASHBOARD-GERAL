@@ -16,8 +16,6 @@ import { LoadingNotice } from '@/components/ui/loading-notice';
 import type { CurrentUser } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 import { ViewContainer } from '@/components/layout/ViewContainer';
-import { fetchValoresData } from '@/utils/tabData/fetchers/valoresFetcher';
-import { filterAndSortValores } from '@/utils/valores/filterAndSortValores';
 
 const ValoresView = React.memo(function ValoresView({ 
   filterPayload, 
@@ -34,7 +32,7 @@ const ValoresView = React.memo(function ValoresView({
   const {
     paginatedValores, sortField, sortDirection, searchTerm, isSearching, error,
     totalGeral, totalCorridas, taxaMediaGeral, totalEntregadores, loadMore, hasMore, isLoadingMore,
-    setSearchTerm, handleSort, formatarReal, hasResolvedData, loading, retry
+    setSearchTerm, handleSort, formatarReal, hasResolvedData, loading, retry, loadAllRows
   } = useValoresData(valoresPayload, currentUser);
   const exportDisabled = loading || isSearching || Boolean(error) || !hasResolvedData;
 
@@ -42,13 +40,13 @@ const ValoresView = React.memo(function ValoresView({
     if (isExporting || exportDisabled) return;
     try {
       setIsExporting(true);
-      const result = await fetchValoresData({ filterPayload: valoresPayload });
-      if (result.error || !result.data) {
-        throw new Error(result.error?.message || 'A consulta completa de valores não retornou dados.');
-      }
-
-      const exportRows = filterAndSortValores(result.data, { searchTerm, sortField, sortDirection });
-      await exportarValoresParaExcel(exportRows, { ...filterPayload, p_search: searchTerm || null });
+      const exportRows = await loadAllRows();
+      await exportarValoresParaExcel(exportRows, {
+        ...filterPayload,
+        p_search: searchTerm.trim() || null,
+        p_sort_field: String(sortField),
+        p_sort_direction: sortDirection,
+      });
     }
     catch (err) {
       safeLog.error('Erro export valores', err);
@@ -56,7 +54,7 @@ const ValoresView = React.memo(function ValoresView({
       toast.error(message.startsWith('RETRY_') ? 'A consulta demorou mais que o esperado. Tente exportar novamente.' : message || 'Não foi possível gerar o Excel de valores.');
     }
     finally { setIsExporting(false); }
-  }, [exportDisabled, filterPayload, isExporting, searchTerm, sortDirection, sortField, valoresPayload]);
+  }, [exportDisabled, filterPayload, isExporting, loadAllRows, searchTerm, sortDirection, sortField]);
 
   if (loading && !hasResolvedData) {
     return (
@@ -119,7 +117,7 @@ const ValoresView = React.memo(function ValoresView({
           </div>
 
           <div>
-            <ValoresTable sortedValores={paginatedValores} sortField={sortField} sortDirection={sortDirection} onSort={handleSort} formatarReal={formatarReal} isDetailed={false} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} />
+            <ValoresTable sortedValores={paginatedValores} sortField={sortField} sortDirection={sortDirection} onSort={handleSort} formatarReal={formatarReal} isDetailed={false} isUpdating={loading && paginatedValores.length === 0} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} />
           </div>
         </div>
       </ViewContainer>

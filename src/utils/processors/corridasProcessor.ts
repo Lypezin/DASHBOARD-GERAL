@@ -118,7 +118,7 @@ function validateCorridasImportQuality(rows: Record<string, unknown>[]) {
  */
 export async function processCorridasFile(file: File): Promise<Record<string, unknown>[]> {
   const arrayBuffer = await file.arrayBuffer();
-  const XLSX = await import('xlsx');
+  const XLSX = await import('xlsx-js-style');
   const workbook = XLSX.read(arrayBuffer, { raw: true });
   const sheetName = workbook.SheetNames[0];
   const worksheet = workbook.Sheets[sheetName];

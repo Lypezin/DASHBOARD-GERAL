@@ -92,7 +92,7 @@ function assertRowsHaveNumericFields(rows: Array<Record<string, unknown>>, field
   rows.forEach((row) => assertNumericFields(row, fields, label));
 }
 
-function appendSheet(XLSX: typeof import('xlsx'), workbook: import('xlsx').WorkBook, data: Record<string, unknown>[], sheetName: string) {
+function appendSheet(XLSX: typeof import('xlsx-js-style'), workbook: import('xlsx-js-style').WorkBook, data: Record<string, unknown>[], sheetName: string) {
   appendStyledJsonSheet(XLSX, workbook, data, sheetName, {
     title: `DEDICADO - ${sheetName}`,
     theme: sheetName === 'Ranking' ? 'amber' : sheetName === 'Filtros' ? 'slate' : 'blue',

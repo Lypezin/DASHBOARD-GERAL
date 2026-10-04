@@ -10,10 +10,11 @@ import { toast } from 'sonner';
 interface PrioridadeHeaderProps {
     sortedEntregadores: Entregador[];
     exportDisabled?: boolean;
+    exportDisabledReason?: string;
     exportFilters?: Record<string, unknown>;
 }
 
-export const PrioridadeHeader: React.FC<PrioridadeHeaderProps> = ({ sortedEntregadores, exportDisabled = false, exportFilters }) => {
+export const PrioridadeHeader: React.FC<PrioridadeHeaderProps> = ({ sortedEntregadores, exportDisabled = false, exportDisabledReason, exportFilters }) => {
     const [isExporting, setIsExporting] = useState(false);
     const exportarParaExcel = async () => {
         if (isExporting) return;
@@ -44,7 +45,7 @@ export const PrioridadeHeader: React.FC<PrioridadeHeaderProps> = ({ sortedEntreg
                     <Button
                         onClick={exportarParaExcel}
                         disabled={isExporting || exportDisabled || sortedEntregadores.length === 0}
-                        title={exportDisabled ? 'Aguarde a atualização dos dados antes de exportar.' : undefined}
+                        title={exportDisabledReason || (exportDisabled ? 'Aguarde a atualização dos dados antes de exportar.' : undefined)}
                         variant="outline"
                         className="h-11 shrink-0 gap-2 rounded-2xl border-slate-200/80 bg-white/90 px-4 shadow-[0_12px_24px_-22px_rgba(15,23,42,0.35)] transition-[border-color,background-color,box-shadow,transform] duration-200 motion-safe:hover:-translate-y-0.5 hover:border-sky-300 hover:bg-white dark:border-slate-800/80 dark:bg-slate-900/85 dark:hover:border-sky-500/40 dark:hover:bg-slate-900"
                     >

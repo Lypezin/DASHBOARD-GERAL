@@ -2,7 +2,7 @@ import { ValoresEntregador } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { IS_DEV } from '@/constants/environment';
-import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit, createExcelFilterRows } from '@/utils/excel/workbookStyle';
+import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit, createExcelFilterRows, writeWorkbookFile } from '@/utils/excel/workbookStyle';
 import type { FilterPayload } from '@/types/filters';
 
 export async function exportarValoresParaExcel(valoresData: ValoresEntregador[], filters?: FilterPayload): Promise<void> {
@@ -35,7 +35,7 @@ export async function exportarValoresParaExcel(valoresData: ValoresEntregador[],
         const dataHora = agora.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
         const nomeArquivo = `valores_entregadores_${dataHora}.xlsx`;
 
-        XLSX.writeFile(wb, nomeArquivo);
+        await writeWorkbookFile(XLSX, wb, nomeArquivo);
 
         if (IS_DEV) safeLog.info(`Valores exportados: ${nomeArquivo}`);
     } catch (error) {

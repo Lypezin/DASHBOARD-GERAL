@@ -5,7 +5,7 @@ import { formatarHorasParaHMS } from '@/utils/formatters';
 import { calcularTaxas } from '@/hooks/analise/useAnaliseTaxas';
 import { formatarNumero, gerarDadosFormatados, toAnaliseItem } from './excel/AnaliseExcelHelpers';
 import { IS_DEV } from '@/constants/environment';
-import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit, createExcelFilterRows } from '@/utils/excel/workbookStyle';
+import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit, createExcelFilterRows, writeWorkbookFile } from '@/utils/excel/workbookStyle';
 import type { FilterPayload } from '@/types/filters';
 
 export async function exportarAnaliseParaExcel(
@@ -100,7 +100,7 @@ export async function exportarAnaliseParaExcel(
     const dataHora = agora.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
     const nomeArquivo = `analise_taxas_${dataHora}.xlsx`;
 
-    XLSX.writeFile(wb, nomeArquivo);
+    await writeWorkbookFile(XLSX, wb, nomeArquivo);
 
     if (IS_DEV) safeLog.info(`Analise exportada: ${nomeArquivo}`);
   } catch (error) {

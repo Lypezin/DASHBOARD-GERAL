@@ -1,11 +1,11 @@
-import type * as XLSXType from 'xlsx';
+import type * as XLSXType from 'xlsx-js-style';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { DashboardResumoData, UtrData } from '@/types';
 import { getWeeklyHours, getMetricValue, getTimeMetric } from '@/utils/comparacao/metrics';
 import { converterHorasParaDecimal, formatarHorasParaHMS } from '@/utils/formatters';
 import { findDayData } from '@/utils/comparacao/dataLookup';
 import { DIAS_DA_SEMANA } from '@/constants/comparacao';
-import { assertExcelRowLimit, calculateColumnWidths } from '@/utils/excel/workbookStyle';
+import { appendStyledJsonSheet, assertExcelRowLimit, calculateColumnWidths, createExcelFilterRows, writeWorkbookFile } from '@/utils/excel/workbookStyle';
 import { extractUtrValue } from '@/utils/utr/extractUtrValue';
 
 type WorksheetTheme = 'blue' | 'green' | 'purple' | 'amber' | 'slate';
@@ -109,7 +109,7 @@ function getOfficialWeeklySeconds(dados: DashboardResumoData) {
 }
 
 function styleWorksheet(
-    xlsx: typeof import('xlsx'),
+    xlsx: typeof import('xlsx-js-style'),
     ws: XLSXType.WorkSheet,
     headers: string[],
     rows: any[][],
@@ -200,7 +200,7 @@ function styleWorksheet(
 }
 
 function createStyledSheet(
-    xlsx: typeof import('xlsx'),
+    xlsx: typeof import('xlsx-js-style'),
     headers: string[],
     rows: any[][],
     theme: WorksheetTheme,
@@ -225,7 +225,7 @@ function createStyledSheet(
     return ws;
 }
 
-function appendSheet(xlsx: typeof import('xlsx'), wb: XLSXType.WorkBook, ws: XLSXType.WorkSheet, name: string, color: string) {
+function appendSheet(xlsx: typeof import('xlsx-js-style'), wb: XLSXType.WorkBook, ws: XLSXType.WorkSheet, name: string, color: string) {
     xlsx.utils.book_append_sheet(wb, ws, name);
     const sheet = wb.Workbook?.Sheets?.find((item) => item.name === name);
     if (sheet) {
@@ -238,7 +238,8 @@ export async function exportComparacaoToExcel(
     utrComparacao: any[],
     semanasSelecionadas: string[],
     pracaSelecionada: string | null,
-    entregadoresComparativo?: any[]
+    entregadoresComparativo?: any[],
+    appliedFilters?: Record<string, unknown>
 ) {
     if (dadosComparacao.length !== 2 || semanasSelecionadas.length !== 2) {
         alert('A exportação comparativa precisa de exatamente duas semanas carregadas. Ajuste a seleção e tente novamente.');
@@ -247,7 +248,7 @@ export async function exportComparacaoToExcel(
 
     assertExcelRowLimit(entregadoresComparativo?.length || 0);
 
-    let XLSX: typeof import('xlsx');
+    let XLSX: typeof import('xlsx-js-style');
     try {
         XLSX = await loadXLSX();
     } catch {
@@ -450,7 +451,7 @@ export async function exportComparacaoToExcel(
         ['Relatório', `Comparativo Semana ${sem1} vs Semana ${sem2}`],
         ['Praça', pracaSelecionada || 'Todas as praças'],
         ['Gerado em', new Date().toLocaleString('pt-BR')],
-        ['Abas principais', entregadoresComparativo && entregadoresComparativo.length > 0 ? 8 : 7],
+        ['Abas principais', entregadoresComparativo && entregadoresComparativo.length > 0 ? 9 : 8],
     ];
 
     appendSheet(
@@ -460,6 +461,13 @@ export async function exportComparacaoToExcel(
         'Exportação',
         THEME_COLORS.slate
     );
+
+    appendStyledJsonSheet(XLSX, wb, createExcelFilterRows(appliedFilters), 'Filtros', {
+        title: 'Filtros aplicados',
+        subtitle: subtitleBase,
+        theme: 'slate',
+        highlightFirstColumn: true,
+    });
 
     appendSheet(XLSX, wb, createStyledSheet(XLSX, headersResumo, rowsResumo, 'blue', 'Resumo geral', subtitleBase), 'Resumo Geral', THEME_COLORS.blue);
     appendSheet(XLSX, wb, createStyledSheet(XLSX, headersDia, rowsDia, 'green', 'Aderência por dia', subtitleBase), 'Aderência por Dia', THEME_COLORS.green);
@@ -499,5 +507,5 @@ export async function exportComparacaoToExcel(
 
     const pracaLabel = pracaSelecionada ? `_${sanitizeFileNamePart(pracaSelecionada)}` : '_TodasPracas';
     const filename = `Comparativo_Semana${sem1}_vs_Semana${sem2}${pracaLabel}.xlsx`;
-    XLSX.writeFile(wb, filename);
+    await writeWorkbookFile(XLSX, wb, filename);
 }

@@ -22,6 +22,26 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
   const { data: tabData, loading, error, retry } = useTabData('prioridade', filterPayload, currentUser);
   const { prioridadeData } = useTabDataMapper({ activeTab: 'prioridade', tabData });
   const { state, actions } = usePrioridadeViewController(prioridadeData, loading);
+  const exportIntegrityError = React.useMemo(() => {
+    if (!prioridadeData) return null;
+
+    const rows = prioridadeData.entregadores;
+    const total = Number(prioridadeData.total);
+    if (!Array.isArray(rows) || !Number.isSafeInteger(total) || total !== rows.length) {
+      return 'A lista recebida está incompleta. Tente carregar os dados novamente antes de exportar.';
+    }
+
+    const ids = new Set<string>();
+    for (const row of rows) {
+      const id = String(row.id_entregador || '').trim();
+      if (!id || ids.has(id)) {
+        return 'A lista contém entregadores sem identificador ou repetidos. Tente carregar os dados novamente antes de exportar.';
+      }
+      ids.add(id);
+    }
+
+    return null;
+  }, [prioridadeData]);
 
   if (state.loading && (!state.entregadoresData || state.entregadoresData.entregadores.length === 0)) {
     return (
@@ -47,6 +67,17 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
     );
   }
 
+  if (exportIntegrityError && !loading) {
+    return (
+      <ViewTransition stateKey="prioridade-integrity-error">
+        <div role="alert" className="mx-auto flex max-w-3xl flex-col gap-4 rounded-2xl border border-amber-200/70 bg-amber-50/85 px-5 py-4 text-sm font-semibold text-amber-800 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
+          <span>{exportIntegrityError}</span>
+          <button type="button" onClick={retry} className="shrink-0 font-bold underline underline-offset-4">Tentar novamente</button>
+        </div>
+      </ViewTransition>
+    );
+  }
+
   if (state.entregadoresData.entregadores.length === 0) {
     return (
       <ViewTransition stateKey="prioridade-empty">
@@ -63,7 +94,7 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
         </div>
       ) : null}
       {state.loading ? (
-        <div className="mb-4 rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/25 dark:text-blue-200">
+      <div className="mb-4 rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/25 dark:text-blue-200">
           Atualizando prioridade com os filtros atuais...
         </div>
       ) : null}
@@ -77,7 +108,8 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
         sortDirection={state.sortDirection}
         searchTerm={state.searchTerm}
         isSearching={state.isSearching}
-        exportDisabled={loading || Boolean(error) || state.isSearching}
+        exportDisabled={loading || Boolean(error) || state.isSearching || Boolean(exportIntegrityError)}
+        exportDisabledReason={exportIntegrityError || undefined}
         exportFilters={{
           ...filterPayload,
           p_search: state.searchTerm || null,

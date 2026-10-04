@@ -19,6 +19,7 @@ interface ValoresTableProps {
     onSort: (field: keyof ValoresEntregador) => void;
     formatarReal: (valor: number | null | undefined) => string;
     isDetailed?: boolean;
+    isUpdating?: boolean;
     onLoadMore?: () => void;
     hasMore?: boolean;
     isLoadingMore?: boolean;
@@ -94,6 +95,7 @@ export const ValoresTable = React.memo(function ValoresTable({
     onSort,
     formatarReal,
     isDetailed,
+    isUpdating = false,
     onLoadMore,
     hasMore,
     isLoadingMore
@@ -151,6 +153,35 @@ export const ValoresTable = React.memo(function ValoresTable({
                                     </TableRow>
                                 ) : null}
                             </>
+                        ) : isUpdating ? (
+                            <TableRow>
+                                <TableCell colSpan={isDetailed ? 6 : 4} className="px-4 py-4">
+                                    <div role="status" aria-busy="true" aria-label="Atualizando valores" className="space-y-4">
+                                        {Array.from({ length: 4 }, (_, row) => (
+                                            <div
+                                                key={`loading-${row}`}
+                                                aria-hidden="true"
+                                                className="grid items-center gap-4"
+                                                style={{
+                                                    gridTemplateColumns: `repeat(${isDetailed ? 6 : 4}, minmax(0, 1fr))`,
+                                                }}
+                                            >
+                                                {(isDetailed
+                                                    ? ['62%', '54%', '58%', '46%', '42%', '44%']
+                                                    : ['62%', '48%', '43%', '46%']
+                                                ).map((width, column) => (
+                                                    <div
+                                                        key={column}
+                                                        className="h-4 max-w-full animate-pulse rounded bg-slate-100 motion-reduce:animate-none dark:bg-slate-800"
+                                                        style={{ width }}
+                                                    />
+                                                ))}
+                                            </div>
+                                        ))}
+                                        <span className="sr-only">Atualizando valores com os filtros atuais.</span>
+                                    </div>
+                                </TableCell>
+                            </TableRow>
                         ) : (
                             <TableRow>
                                 <TableCell colSpan={isDetailed ? 6 : 4} className="h-24 text-center">

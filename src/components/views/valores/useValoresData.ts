@@ -7,6 +7,7 @@ import { useDebouncedValue } from '@/hooks/ui/useDebouncedValue';
 import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
 import { createRequestKey } from '@/utils/request/createRequestKey';
 import { fetchValoresPage, type ValoresPageData } from '@/utils/tabData/fetchers/valoresFetcher';
+import { EXCEL_MAX_DATA_ROWS } from '@/utils/excel/workbookStyle';
 import { formatarReal } from './utils/formatters';
 import { useValoresSearch } from './hooks/useValoresSearch';
 import { useValoresSort } from './hooks/useValoresSort';
@@ -231,6 +232,103 @@ export function useValoresData(filterPayload: FilterPayload, currentUser: Curren
         }
     }, [accessScopeKey, normalizedSearchTerm, requestKey, sortDirection, sortField]);
 
+    const loadAllRows = useCallback(async () => {
+        const queryKey = requestKey;
+        const filterDefinition = stableFilterPayloadRef.current;
+        if (!filterDefinition || filterDefinition.key !== incomingFilterKey) {
+            throw new Error('Os filtros mudaram antes de iniciar a exportação. Tente novamente.');
+        }
+
+        const basePayload: FilterPayload = {
+            ...filterDefinition.payload,
+            detailed: false,
+            p_limit: PAGE_SIZE,
+            p_offset: 0,
+            p_search: normalizedSearchTerm || null,
+            p_sort_field: String(sortField),
+            p_sort_direction: sortDirection,
+        };
+        const firstCacheKey = getValoresPageCacheKey(accessScopeKey, queryKey, 0);
+        const firstPage = await requestValoresPage(
+            firstCacheKey,
+            basePayload,
+            forceRefreshKey === queryKey
+        );
+
+        if (firstPage.offset !== 0 || firstPage.limit !== PAGE_SIZE) {
+            throw new Error('A primeira página de valores veio incompleta. Atualize a consulta antes de exportar.');
+        }
+
+        const rows: ValoresEntregador[] = [];
+        const seenIds = new Set<string>();
+        const appendUniqueRows = (pageRows: ValoresEntregador[]) => {
+            for (const row of pageRows) {
+                const id = String(row.id_entregador || '').trim();
+                if (!id || seenIds.has(id)) {
+                    throw new Error('A exportação recebeu um entregador ausente ou repetido. Atualize a consulta antes de exportar.');
+                }
+                seenIds.add(id);
+            }
+            rows.push(...pageRows);
+        };
+        appendUniqueRows(firstPage.entregadores);
+
+        const expectedTotal = firstPage.total;
+        if (!Number.isSafeInteger(expectedTotal) || expectedTotal < 0 || rows.length > expectedTotal) {
+            throw new Error('A consulta retornou uma quantidade inválida de valores para exportação.');
+        }
+        if (expectedTotal > EXCEL_MAX_DATA_ROWS) {
+            throw new Error(`O relatório excede o limite do Excel de ${EXCEL_MAX_DATA_ROWS.toLocaleString('pt-BR')} linhas.`);
+        }
+
+        let currentPage = firstPage;
+        while (currentPage.has_more) {
+            if (activeRequestKeyRef.current !== queryKey) {
+                throw new Error('Os filtros mudaram durante a exportação. Gere o arquivo novamente.');
+            }
+            const offset = rows.length;
+            if (offset >= expectedTotal) {
+                throw new Error('A paginação dos valores retornou mais registros que o total informado.');
+            }
+
+            const pagePayload: FilterPayload = {
+                ...basePayload,
+                p_offset: offset,
+                p_snapshot: firstPage.snapshot,
+            };
+            const cacheKey = getValoresPageCacheKey(accessScopeKey, queryKey, offset, firstPage.snapshot);
+            const page = await requestValoresPage(cacheKey, pagePayload);
+
+            if (
+                page.offset !== offset
+                || page.limit !== PAGE_SIZE
+                || page.snapshot !== firstPage.snapshot
+                || page.total !== expectedTotal
+                || page.total_geral !== firstPage.total_geral
+                || page.total_corridas !== firstPage.total_corridas
+                || page.taxa_media_geral !== firstPage.taxa_media_geral
+                || page.entregadores.length === 0
+            ) {
+                throw new Error('Os valores mudaram ou uma página veio incompleta durante a exportação. Atualize a consulta.');
+            }
+
+            appendUniqueRows(page.entregadores);
+            if (page.has_more !== (rows.length < expectedTotal)) {
+                throw new Error('A paginação dos valores terminou antes ou depois do total informado. Atualize a consulta.');
+            }
+            currentPage = page;
+        }
+
+        if (rows.length !== expectedTotal) {
+            throw new Error('A exportação recebeu apenas parte dos valores. Atualize a consulta antes de tentar novamente.');
+        }
+        if (activeRequestKeyRef.current !== queryKey) {
+            throw new Error('Os filtros mudaram durante a exportação. Gere o arquivo novamente.');
+        }
+
+        return rows;
+    }, [accessScopeKey, forceRefreshKey, incomingFilterKey, normalizedSearchTerm, requestKey, sortDirection, sortField]);
+
     const retry = useCallback(() => {
         setErrorState(null);
         setForceRefreshKey(requestKey);
@@ -255,6 +353,7 @@ export function useValoresData(filterPayload: FilterPayload, currentUser: Curren
         handleSort,
         formatarReal,
         loadMore,
+        loadAllRows,
         hasMore,
         isLoadingMore,
         retry,

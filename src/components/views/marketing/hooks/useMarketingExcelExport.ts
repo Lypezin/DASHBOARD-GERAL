@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { getDateRangeFromWeek } from '@/utils/formatters/dateUtils';
-import { appendStyledJsonSheet, applyWorkbookMetadata, EXCEL_MAX_DATA_ROWS } from '@/utils/excel/workbookStyle';
+import { appendStyledJsonSheet, applyWorkbookMetadata, EXCEL_MAX_DATA_ROWS, writeWorkbookFile } from '@/utils/excel/workbookStyle';
 import type { EntregadorMarketing } from '@/types';
 
 interface UseMarketingExcelExportProps {
@@ -138,7 +138,7 @@ export function useMarketingExcelExport({ semanaIso, organizationId, activeTab, 
         theme: 'slate',
         highlightFirstColumn: true,
       });
-      XLSX.writeFile(wb, `Detalhes_${activeTab}_${semanaIso}.xlsx`);
+      await writeWorkbookFile(XLSX, wb, `Detalhes_${activeTab}_${semanaIso}.xlsx`);
     } catch (err) {
       safeLog.error('Erro ao exportar:', err);
       toast.error(err instanceof Error ? err.message : 'Não foi possível gerar o arquivo. Tente novamente.');

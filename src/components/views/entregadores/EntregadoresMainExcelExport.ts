@@ -5,7 +5,7 @@ import { calcularPercentualAceitas, calcularPercentualCompletadas } from './Entr
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { fetchEntregadoresFirstSeen, formatFirstSeenDate } from './fetchEntregadoresFirstSeen';
 import { IS_DEV } from '@/constants/environment';
-import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit, createExcelFilterRows } from '@/utils/excel/workbookStyle';
+import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit, createExcelFilterRows, writeWorkbookFile } from '@/utils/excel/workbookStyle';
 
 export async function exportarEntregadoresMainParaExcel(
     entregadores: Entregador[],
@@ -67,7 +67,7 @@ export async function exportarEntregadoresMainParaExcel(
         const dataHora = agora.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
         const nomeArquivo = `entregadores_operacional_${dataHora}.xlsx`;
 
-        XLSX.writeFile(wb, nomeArquivo);
+        await writeWorkbookFile(XLSX, wb, nomeArquivo);
 
         if (IS_DEV) safeLog.info(`Entregadores Operacional exportado: ${nomeArquivo}`);
     } catch (error) {

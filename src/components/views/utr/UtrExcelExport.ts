@@ -2,7 +2,7 @@ import { UtrData } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { IS_DEV } from '@/constants/environment';
-import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit, createExcelFilterRows } from '@/utils/excel/workbookStyle';
+import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit, createExcelFilterRows, writeWorkbookFile } from '@/utils/excel/workbookStyle';
 import type { FilterPayload } from '@/types/filters';
 
 function selectSectionRows<T>(primary: T[] | undefined, fallback: T[] | undefined): T[] {
@@ -75,7 +75,7 @@ export async function exportarUtrParaExcel(utrData: UtrData, filters?: FilterPay
         const dataHora = agora.toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
         const nomeArquivo = `utr_dashboard_${dataHora}.xlsx`;
 
-        XLSX.writeFile(wb, nomeArquivo);
+        await writeWorkbookFile(XLSX, wb, nomeArquivo);
 
         if (IS_DEV) safeLog.info(`UTR exportada: ${nomeArquivo}`);
     } catch (error) {
