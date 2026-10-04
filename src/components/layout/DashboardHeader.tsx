@@ -43,9 +43,10 @@ export function DashboardHeader() {
   const breadcrumb = BREADCRUMB_MAP[activeTab] || { group: 'Principal', label: 'Visão Geral' };
 
   return (
-    <header className="sticky top-0 z-40 flex h-14 w-full min-w-0 items-center justify-between border-b border-border bg-card/95 px-3 py-3 shadow-[0_1px_2px_0_rgba(0,0,0,0.03)] backdrop-blur transition-all duration-200 sm:px-6 lg:px-8">
+    <header className="sticky top-0 z-40 flex w-full min-w-0 flex-col border-b border-border bg-card/95 shadow-[0_1px_2px_0_rgba(0,0,0,0.03)] backdrop-blur transition-all duration-200">
+      <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] grid-rows-[3.5rem_2rem] items-center px-3 sm:px-6 lg:h-14 lg:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto] lg:grid-rows-1 lg:px-8">
       {/* Esquerda: Menu toggle + Breadcrumb */}
-      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+      <div className="col-start-1 row-start-1 flex h-14 min-w-0 items-center gap-2 sm:gap-3">
         {/* Toggle para Desktop / Mobile */}
         <Button
           variant="ghost"
@@ -77,13 +78,10 @@ export function DashboardHeader() {
         </nav>
       </div>
 
-      {/* Centro: Ticker de Cidades Sincronizadas Permanente em Desktop */}
-      <div className="hidden lg:flex flex-1 max-w-[40rem] xl:max-w-[62rem] mx-8 overflow-hidden">
-        <CityLastUpdatesTicker />
-      </div>
+      <CityLastUpdatesTicker className="col-span-2 row-start-2 px-0 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:mx-8 lg:max-w-[40rem] lg:px-0 xl:max-w-[62rem]" />
 
       {/* Direita: Conquistas + Tema + Perfil */}
-      <div className="flex items-center gap-1 sm:gap-2 shrink-0 pl-2 ml-auto">
+      <div className="col-start-2 row-start-1 ml-auto flex h-14 shrink-0 items-center gap-1 pl-2 sm:gap-2 lg:col-start-3">
         {/* Conquistas (Apenas se logado) */}
         {user && (
           <Button
@@ -113,6 +111,7 @@ export function DashboardHeader() {
 
         {/* Perfil dropdown */}
         <UserDropdown user={user} avatarUrl={avatarUrl} onLogout={handleLogout} />
+      </div>
       </div>
 
       {/* Modal Achievements */}

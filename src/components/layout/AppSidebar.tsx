@@ -7,7 +7,7 @@ import { useDashboardTabs } from '@/hooks/dashboard/useDashboardTabs';
 import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
 import { useHeaderAvatar } from '@/hooks/auth/useHeaderAvatar';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { SIDEBAR_GROUPS, SIDEBAR_LABELS } from '@/constants/navigation';
 import { TabType } from '@/types';
@@ -18,6 +18,7 @@ export function AppSidebar() {
   const { activeTab, handleTabChange } = useDashboardTabs();
   const { user } = useHeaderAuth();
   const avatarUrl = useHeaderAvatar(user);
+  const shouldReduceMotion = useReducedMotion();
 
   const handleItemClick = (value: TabType) => {
     handleTabChange(value);
@@ -29,13 +30,13 @@ export function AppSidebar() {
     return SIDEBAR_GROUPS.map((group) => (
       <div key={group.name} className="space-y-1.5 pt-4">
         {/* Rótulo do Grupo */}
-        <AnimatePresence mode="wait">
+        <AnimatePresence mode={shouldReduceMotion ? 'sync' : 'wait'}>
           {!collapsed ? (
             <motion.p
-              initial={{ opacity: 0, x: -10 }}
+              initial={{ opacity: 0, x: shouldReduceMotion ? 0 : -10 }}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              transition={{ duration: 0.15 }}
+              exit={{ opacity: 0, x: shouldReduceMotion ? 0 : -10 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.15 }}
               className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60"
             >
               {group.name}
@@ -72,7 +73,7 @@ export function AppSidebar() {
       {/* SIDEBAR DESKTOP */}
       <motion.aside
         animate={{ width: collapsed ? 64 : 256 }}
-        transition={{ type: 'spring', stiffness: 380, damping: 35 }}
+        transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 35 }}
         className={cn(
           'hidden md:flex h-screen flex-col border-r border-border bg-card shrink-0 select-none relative z-50 overflow-x-hidden'
         )}
@@ -132,7 +133,7 @@ export function AppSidebar() {
       </motion.aside>
 
       {/* OVERLAY MOBILE SIDEBAR */}
-      <AnimatePresence>
+      <AnimatePresence initial={!shouldReduceMotion}>
         {mobileOpen && (
           <>
             {/* Backdrop escuro */}
@@ -140,16 +141,17 @@ export function AppSidebar() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.5 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
               onClick={() => setMobileOpen(false)}
               className="fixed inset-0 z-50 bg-black md:hidden"
             />
 
             {/* Sidebar real flutuante */}
             <motion.aside
-              initial={{ x: '-100%' }}
+              initial={{ x: shouldReduceMotion ? 0 : '-100%' }}
               animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'tween', duration: 0.25, ease: 'easeOut' }}
+              exit={{ x: shouldReduceMotion ? 0 : '-100%' }}
+              transition={shouldReduceMotion ? { duration: 0 } : { type: 'tween', duration: 0.25, ease: 'easeOut' }}
               className="fixed bottom-0 top-0 left-0 z-50 flex w-72 flex-col bg-card border-r border-border shadow-2xl md:hidden"
             >
               {/* Header Mobile */}

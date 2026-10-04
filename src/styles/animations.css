@@ -47,8 +47,8 @@
 }
 
 @keyframes glow-pulse {
-  0%, 100% { filter: brightness(1); }
-  50% { filter: brightness(1.12); }
+  0%, 100% { opacity: 0.92; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
 }
 
 @keyframes count-in {
@@ -145,7 +145,6 @@
 .slide-animate > .slide-anim-header {
   opacity: 0;
   animation: slide-header-enter 0.38s cubic-bezier(0.22, 0.61, 0.36, 1) 0.06s forwards;
-  will-change: opacity, transform;
 }
 
 .slide-animate > header .h-1\.5,
@@ -154,7 +153,6 @@
   transform-origin: left center;
   animation: slide-bar-expand 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) 0.22s forwards;
   transform: scaleX(0);
-  will-change: transform;
 }
 
 /* Primary content blocks — tables, cards grids, main content */
@@ -162,7 +160,6 @@
 .slide-animate > .slide-anim-content {
   opacity: 0;
   animation: slide-content-fade-rise 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) 0.15s forwards;
-  will-change: opacity, transform;
 }
 
 /* Second-level children get staggered delays */
@@ -181,7 +178,6 @@
 .slide-animate > p {
   opacity: 0;
   animation: slide-content-fade-rise 0.36s cubic-bezier(0.22, 0.61, 0.36, 1) 0.12s forwards;
-  will-change: opacity, transform;
 }
 
 @media (prefers-reduced-motion: reduce) {

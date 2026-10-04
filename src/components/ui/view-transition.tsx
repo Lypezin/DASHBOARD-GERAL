@@ -29,11 +29,7 @@ export function ViewTransition({ stateKey, children, className }: ViewTransition
       };
 
   return (
-    <motion.div
-      layout={!shouldReduceMotion}
-      transition={{ layout: { duration: shouldReduceMotion ? 0 : 0.2, ease: [0.22, 1, 0.36, 1] } }}
-      className={cn('grid min-w-0 w-full', className)}
-    >
+    <div className={cn('grid min-w-0 w-full', className)}>
       <AnimatePresence mode="sync" initial={false}>
         <motion.div
           key={stateKey}
@@ -43,6 +39,6 @@ export function ViewTransition({ stateKey, children, className }: ViewTransition
           {children}
         </motion.div>
       </AnimatePresence>
-    </motion.div>
+    </div>
   );
 }

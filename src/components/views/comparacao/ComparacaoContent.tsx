@@ -38,7 +38,7 @@ export const ComparacaoContent = React.memo(function ComparacaoContent({
     }
 
     return (
-        <div className="space-y-6 motion-safe:animate-fade-in">
+        <div className="space-y-6">
             <Section show={sv.metricas}>
                 <ComparacaoMetrics dadosComparacao={data.dadosComparacao} />
             </Section>

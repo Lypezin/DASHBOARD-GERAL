@@ -41,17 +41,6 @@ export function useEvolucaoViewController({
 
     useEvolucaoUrlSync(viewMode, selectedMetrics);
 
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            safeLog.info('[DEBUG] useEvolucaoViewController params changed:', {
-                anoSelecionado,
-                viewMode,
-                mensalLength: evolucaoMensal?.length,
-                semanalLength: evolucaoSemanal?.length
-            });
-        }
-    }, [anoSelecionado, viewMode, evolucaoMensal, evolucaoSemanal]);
-
     const { dadosAtivos, baseLabels, dadosPorLabel } = useMemo(
         () => processEvolucaoData(viewMode, evolucaoMensal, evolucaoSemanal, anoSelecionado),
         [viewMode, evolucaoMensal, evolucaoSemanal, anoSelecionado]

@@ -21,10 +21,9 @@ const EvolucaoView = React.memo(function EvolucaoView({
   anoSelecionado: number;
   onAnoChange?: (ano: number) => void;
 }) {
-  const { evolucaoMensal, evolucaoSemanal, loading, error, refetch } = useDashboardEvolucao({
+  const { evolucaoMensal, evolucaoSemanal, hasCurrentData, loading, error, refetch } = useDashboardEvolucao({
     filterPayload,
-    anoEvolucao: anoSelecionado,
-    activeTab: 'evolucao'
+    anoEvolucao: anoSelecionado
   });
 
   const { state, actions } = useEvolucaoViewController({
@@ -33,13 +32,31 @@ const EvolucaoView = React.memo(function EvolucaoView({
     loading,
     anoSelecionado
   });
+  const showInitialLoading = loading && !hasCurrentData;
+  const showCurrentRequestError = Boolean(error && !hasCurrentData);
 
   return (
     <ViewContainer className="space-y-8">
-      <ViewTransition stateKey={state.loading && state.totalPeriodos === 0 ? 'evolucao-loading' : `evolucao-content-${state.viewMode}-${anoSelecionado}`}>
-        {state.loading && state.totalPeriodos === 0 ? (
+      <ViewTransition stateKey={showInitialLoading ? 'evolucao-loading' : showCurrentRequestError ? 'evolucao-error' : `evolucao-content-${state.viewMode}-${anoSelecionado}`}>
+        {showInitialLoading ? (
           <div className="min-w-0">
             <DashboardSkeleton contentOnly />
+          </div>
+        ) : showCurrentRequestError ? (
+          <div role="alert" className="flex flex-col gap-3 rounded-2xl border border-rose-200/80 bg-rose-50/85 px-4 py-8 text-center text-rose-900 shadow-sm dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-100 sm:px-8">
+            <div>
+              <p className="font-semibold">Não foi possível carregar a Evolução.</p>
+              <p className="mt-1 text-sm text-rose-700 dark:text-rose-200">{error?.message}</p>
+            </div>
+            <button
+              type="button"
+              onClick={refetch}
+              disabled={loading}
+              className="mx-auto inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-rose-300/80 bg-white px-4 py-2 font-semibold text-rose-800 transition-colors hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60 dark:border-rose-800 dark:bg-rose-950/70 dark:text-rose-100 dark:hover:bg-rose-900/60"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              Tentar novamente
+            </button>
           </div>
         ) : (
           <div className="min-w-0 space-y-8">

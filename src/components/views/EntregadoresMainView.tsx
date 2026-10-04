@@ -35,7 +35,6 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
   const normalizedServerSearch = serverSearch.trim();
   const isSearchSyncing = !isDedicado
     && normalizedSearchTerm !== normalizedServerSearch;
-  const [serverPage, setServerPage] = React.useState(1);
   const [serverSortField, setServerSortField] = React.useState<EntregadoresSortField>(() => {
     const sort = searchParams.get('ent_sort');
     return sort && VALID_SORT_FIELDS.includes(sort as EntregadoresSortField)
@@ -53,10 +52,20 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
 
   useUrlSearchSync('ent_search', searchTerm, 250, !isDedicado && shouldPromoteSearch);
 
+  const filterResetKey = React.useMemo(
+    () => createRequestKey({ filterPayload, search: normalizedServerSearch, isDedicado }),
+    [filterPayload, isDedicado, normalizedServerSearch]
+  );
+  const [serverPagination, setServerPagination] = React.useState(() => ({ scopeKey: filterResetKey, page: 1 }));
+  const serverPage = serverPagination.scopeKey === filterResetKey ? serverPagination.page : 1;
+  const setServerPage = React.useCallback((page: number) => {
+    setServerPagination({ scopeKey: filterResetKey, page });
+  }, [filterResetKey]);
+
   const handleSearchChange = React.useCallback((term: string) => {
     setSearchTerm(term);
     setServerPage(1);
-  }, []);
+  }, [setServerPage]);
 
   const handleServerViewChange = React.useCallback((view: {
     sortField: EntregadoresSortField;
@@ -67,16 +76,7 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
     setServerSortDirection(view.sortDirection);
     setShowInactiveOnly(view.showInactiveOnly);
     setServerPage(1);
-  }, []);
-
-  const filterResetKey = React.useMemo(
-    () => createRequestKey({ filterPayload, search: normalizedServerSearch, isDedicado }),
-    [filterPayload, isDedicado, normalizedServerSearch]
-  );
-
-  React.useEffect(() => {
-    setServerPage(1);
-  }, [filterResetKey]);
+  }, [setServerPage]);
 
   const dedicatedPayload = React.useMemo<FilterPayload>(() => {
     if (!isDedicado) {

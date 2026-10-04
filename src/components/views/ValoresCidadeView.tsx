@@ -42,7 +42,7 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
 
   return (
     <ViewTransition stateKey="valores-cidade-content">
-      <div className="space-y-6 motion-safe:animate-fade-in pb-8">
+      <div className="space-y-6 pb-8">
         {loading ? (
           <LoadingNotice
             tone="emerald"

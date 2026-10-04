@@ -7,7 +7,7 @@ import { RefreshCw } from 'lucide-react';
 
 import { useCityLastUpdates } from '@/hooks/data/useCityLastUpdates';
 
-export function CityLastUpdatesTicker() {
+export function CityLastUpdatesTicker({ className = '' }: { className?: string }) {
   const { data, loading } = useCityLastUpdates();
 
   const visibleItems = useMemo(() => {
@@ -25,17 +25,36 @@ export function CityLastUpdatesTicker() {
   }, [data]);
 
   if (visibleItems.length === 0) {
-    if (!loading) return null;
+    if (!loading) {
+      return (
+        <div
+          role="status"
+          className={`w-full flex h-8 items-center gap-3 overflow-hidden select-none pl-1 ${className}`}
+        >
+          <div className="flex items-center gap-1.5 shrink-0">
+            <div className="flex h-6 w-6 items-center justify-center rounded-md bg-muted/70">
+              <RefreshCw aria-hidden="true" className="h-3 w-3 text-muted-foreground" />
+            </div>
+            <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/75 whitespace-nowrap">
+              Sem atualização recente
+            </span>
+          </div>
+        </div>
+      );
+    }
 
     return (
       <div
         role="status"
         aria-label="Carregando atualização das cidades"
-        className="w-full flex h-8 items-center gap-3 overflow-hidden select-none pl-1"
+        className={`w-full flex h-8 items-center gap-3 overflow-hidden select-none pl-1 ${className}`}
       >
         <div className="flex items-center gap-1.5 shrink-0">
           <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/10 dark:bg-emerald-500/15">
-            <RefreshCw aria-hidden="true" className="h-3 w-3 text-emerald-500 animate-city-updates-spin" />
+            <RefreshCw
+              aria-hidden="true"
+              className={`h-3 w-3 text-emerald-500 ${loading ? 'animate-city-updates-spin' : ''}`}
+            />
           </div>
           <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground/75 whitespace-nowrap">
             Carregando cidades...
@@ -55,11 +74,14 @@ export function CityLastUpdatesTicker() {
   const marqueeItems = [...visibleItems, ...visibleItems, ...visibleItems, ...visibleItems];
 
   return (
-    <div className="w-full flex items-center gap-3 overflow-hidden select-none pl-1">
+    <div className={`w-full flex h-8 items-center gap-3 overflow-hidden select-none pl-1 ${className}`}>
       {/* Indicador de Status / Refresh sutil */}
       <div className="flex items-center gap-1.5 shrink-0">
         <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/10 dark:bg-emerald-500/15">
-          <RefreshCw className="h-3 w-3 text-emerald-500 animate-city-updates-spin" />
+          <RefreshCw
+            aria-hidden="true"
+            className={`h-3 w-3 text-emerald-500 ${loading ? 'animate-city-updates-spin' : ''}`}
+          />
         </div>
         <span className="hidden xl:inline text-[9px] font-bold uppercase tracking-wider text-muted-foreground/75 whitespace-nowrap">
           {loading ? 'Atualizando' : 'Sincronizado'}
@@ -74,10 +96,16 @@ export function CityLastUpdatesTicker() {
         <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-card to-transparent" />
 
         <div className="absolute inset-y-0 left-0 flex items-center overflow-visible">
-          <div className="flex items-center gap-4 w-max animate-marquee hover:[animation-play-state:paused]">
+          <div
+            role="list"
+            aria-label="Últimas atualizações por cidade"
+            className="flex items-center gap-4 w-max animate-marquee hover:[animation-play-state:paused]"
+          >
             {marqueeItems.map((item, index) => (
               <div
                 key={`${item.city}-${index}`}
+                role={index < visibleItems.length ? 'listitem' : undefined}
+                aria-hidden={index >= visibleItems.length}
                 className="flex items-center gap-2 shrink-0"
               >
                 <div className="h-1 w-1 rounded-full bg-emerald-500/80 shrink-0" />
