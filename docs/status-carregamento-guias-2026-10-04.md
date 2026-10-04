@@ -23,6 +23,12 @@ No maior escopo anual amostrado, o primeiro carregamento pelo serviço local res
 
 Esse resultado cobre um escopo anual e o serviço local. Não é uma medição de navegador, não mede todas as organizações/filtros e não invalida os timeouts observados nos logs remotos.
 
+## Comparação SQL de semana curta
+
+Uma checagem read-only no maior escopo da tabela incremental comparou as duas RPCs com as semanas ISO 39–40 de 2026: `page_v2` levou 756 ms e entregou 24 de 3.915 linhas; `fast_v1` levou 111 ms no banco, mas entregou as 3.915 linhas. Para a semana 40 isolada, `page_v2` levou 30 ms (24 de 498 linhas) e `fast_v1` 11 ms (498 linhas).
+
+Os caminhos retornaram os totais esperados, mas essa comparação mede somente o banco. O caminho rápido aumenta o volume de dados transferidos e o trabalho posterior do serviço. Não o ativei para semanas: os tempos da tela e o custo de transferir/processar todas as linhas ainda não foram comparados. Os três cancelamentos de 8,4 s dos Edge logs não se reproduziram nesses dois escopos; os logs não expõem filtros suficientes para atribuir os cancelamentos a uma semana ou período específico.
+
 ## Alterações e limite atual
 
 - O serviço reaproveita a fonte anual em cache para paginação, busca, inativos e ordenação de Entregadores.
