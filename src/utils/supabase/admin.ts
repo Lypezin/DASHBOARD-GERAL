@@ -38,6 +38,18 @@ function readServiceRoleKey() {
 }
 
 export function getServiceRoleConfigStatus() {
+    const { supabaseUrl, serviceRoleKey, missing } = readServiceRoleConfig();
+
+    return {
+        isConfigured: missing.length === 0,
+        supabaseUrl,
+        serviceRoleKeyConfigured: Boolean(serviceRoleKey),
+        missing,
+        acceptedServiceRoleEnvNames: [...SERVICE_ROLE_ENV_NAMES]
+    };
+}
+
+function readServiceRoleConfig() {
     const supabaseUrl = readEnv('NEXT_PUBLIC_SUPABASE_URL');
     const serviceRoleKey = readServiceRoleKey();
     const missing: string[] = [];
@@ -46,11 +58,9 @@ export function getServiceRoleConfigStatus() {
     if (!serviceRoleKey) missing.push(SERVICE_ROLE_ENV_NAMES.join(' or '));
 
     return {
-        isConfigured: missing.length === 0,
         supabaseUrl,
         serviceRoleKey,
-        missing,
-        acceptedServiceRoleEnvNames: [...SERVICE_ROLE_ENV_NAMES]
+        missing
     };
 }
 
@@ -72,7 +82,7 @@ export function getServiceRoleConfigErrorPayload() {
 }
 
 export function createServiceRoleClient() {
-    const { supabaseUrl, serviceRoleKey, missing } = getServiceRoleConfigStatus();
+    const { supabaseUrl, serviceRoleKey, missing } = readServiceRoleConfig();
 
     if (!supabaseUrl || !serviceRoleKey) {
         throw new ServiceRoleConfigError(missing);

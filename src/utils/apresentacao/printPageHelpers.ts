@@ -64,6 +64,9 @@ export function createFilterPayload(ano: number, semana: number, praca: string |
     p_sub_praca: null,
     p_origem: null,
     p_turno: null,
+    // The database still has a legacy overload; this argument selects the
+    // current dashboard_resumo signature for PostgREST RPC resolution.
+    p_filtro_modo: 'ano_semana',
   };
 }
 

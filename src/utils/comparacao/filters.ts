@@ -1,10 +1,16 @@
 import { CurrentUser } from '@/types';
+import type { FilterPayload } from '@/types/filters';
 import { buildFilterPayload } from '@/utils/helpers';
 
 export interface WeekInfo {
     semanaNumero: number;
     anoNumero: number;
 }
+
+export type ComparisonDimensionFilters = Pick<
+    FilterPayload,
+    'p_sub_praca' | 'p_origem' | 'p_turno' | 'p_sub_pracas' | 'p_origens' | 'p_turnos'
+>;
 
 export function parseWeekString(semana: string | number, defaultYear?: number): WeekInfo {
     let semanaNumero: number;
@@ -34,7 +40,8 @@ export function createComparisonFilter(
     pracaSelecionada: string | null,
     currentUser: CurrentUser | null,
     organizationId: string | null,
-    selectedYear?: number
+    selectedYear?: number,
+    dimensionFilters?: ComparisonDimensionFilters
 ) {
     const { semanaNumero, anoNumero } = parseWeekString(semana, selectedYear);
 
@@ -54,5 +61,8 @@ export function createComparisonFilter(
         dataFinal: null,
     };
 
-    return buildFilterPayload(filters, currentUser, organizationId);
+    return {
+        ...buildFilterPayload(filters, currentUser, organizationId),
+        ...(dimensionFilters || {}),
+    };
 }

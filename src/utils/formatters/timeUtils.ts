@@ -27,11 +27,19 @@ export function formatarHorasParaHMS(horasDecimais: string | number): string {
 
     const horas = typeof horasDecimais === 'string' ? parseFloat(horasDecimais) : horasDecimais;
 
-    if (isNaN(horas) || horas === 0) return '00:00:00';
+    if (!Number.isFinite(horas)) return '00:00:00';
 
-    const horasInteiras = Math.floor(horas), minutosDecimais = (horas - horasInteiras) * 60;
-    const minutosInteiros = Math.floor(minutosDecimais), segundos = Math.round((minutosDecimais - minutosInteiros) * 60);
-    return `${String(horasInteiras).padStart(2, '0')}:${String(minutosInteiros).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
+    // Round once before splitting the duration so floating-point values near
+    // a minute boundary cannot produce invalid output such as 01:12:60.
+    const totalSegundos = Math.round(Math.abs(horas) * 3600);
+    if (totalSegundos === 0) return '00:00:00';
+
+    const horasInteiras = Math.floor(totalSegundos / 3600);
+    const minutosInteiros = Math.floor((totalSegundos % 3600) / 60);
+    const segundos = totalSegundos % 60;
+    const sinal = horas < 0 ? '-' : '';
+
+    return `${sinal}${String(horasInteiras).padStart(2, '0')}:${String(minutosInteiros).padStart(2, '0')}:${String(segundos).padStart(2, '0')}`;
 }
 
 export function formatarHorasCompacta(horasDecimais: string | number): string {

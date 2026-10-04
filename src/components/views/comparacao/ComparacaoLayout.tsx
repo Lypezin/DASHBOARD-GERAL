@@ -192,6 +192,7 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                     semanasSelecionadas={state.semanasSelecionadas}
                     pracaSelecionada={state.pracaSelecionada}
                     anoSelecionado={state.anoSelecionado}
+                    dimensionFilters={data.dimensionFilters}
                     onClose={() => actions.setMostrarApresentacao(false)}
                     onPracaChange={actions.setPracaSelecionada}
                     onSemanasChange={actions.setSemanasSelecionadas}

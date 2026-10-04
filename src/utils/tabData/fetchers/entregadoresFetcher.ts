@@ -215,6 +215,10 @@ async function fetchEntregadoresByRpc(
 
     if (result.error) {
         if (options.pageMode) {
+            // A SQLSTATE 57014 is a database cancellation/timeout. Retrying it
+            // immediately repeats the same expensive scope aggregation and
+            // adds load while the user waits, so surface it with stale data.
+            if (isTimeoutError(result.error)) return { data: null, error: result.error };
             if (is500Error(result.error)) throw new Error('RETRY_500');
             if (isRateLimitError(result.error)) throw new Error('RETRY_RATE_LIMIT');
             return { data: null, error: result.error };
