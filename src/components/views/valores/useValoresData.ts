@@ -13,6 +13,7 @@ import { useValoresSearch } from './hooks/useValoresSearch';
 import { useValoresSort } from './hooks/useValoresSort';
 
 const PAGE_SIZE = 100;
+const PAGE_ENGINE_VERSION = 'annual-db-page-v1';
 const EMPTY_VALORES: ValoresEntregador[] = [];
 
 interface ValoresPageState extends ValoresPageData {
@@ -25,7 +26,7 @@ interface ValoresPageState extends ValoresPageData {
 const valoresPageRequests = new Map<string, Promise<ValoresPageData>>();
 
 function getValoresPageCacheKey(scopeKey: string, requestKey: string, offset: number, snapshot?: string) {
-    return `valores-page:${createRequestKey({ scopeKey, requestKey, offset, limit: PAGE_SIZE, snapshot: snapshot || null })}`;
+    return `valores-page:${createRequestKey({ engine: PAGE_ENGINE_VERSION, scopeKey, requestKey, offset, limit: PAGE_SIZE, snapshot: snapshot || null })}`;
 }
 
 async function requestValoresPage(cacheKey: string, filterPayload: FilterPayload, bypassCache = false) {
@@ -67,6 +68,7 @@ export function useValoresData(filterPayload: FilterPayload, currentUser: Curren
 
     const accessScopeKey = createAccessScopeKey(currentUser, filterPayload.p_organization_id);
     const requestKey = createRequestKey({
+        pageEngine: PAGE_ENGINE_VERSION,
         filterKey: incomingFilterKey,
         accessScopeKey,
         search: normalizedSearchTerm,
@@ -247,6 +249,7 @@ export function useValoresData(filterPayload: FilterPayload, currentUser: Curren
             p_search: normalizedSearchTerm || null,
             p_sort_field: String(sortField),
             p_sort_direction: sortDirection,
+            p_force_full_source: true,
         };
         const firstCacheKey = getValoresPageCacheKey(accessScopeKey, queryKey, 0);
         const firstPage = await requestValoresPage(

@@ -31,6 +31,7 @@ export async function fetchValoresPage(options: FetchOptions): Promise<{ data: V
     const allowedParams = [
         'p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final',
         'p_organization_id', 'p_limit', 'p_offset', 'p_search', 'p_sort_field', 'p_sort_direction', 'p_snapshot',
+        'p_force_full_source',
     ];
     const payload = buildFilterPayload(options.filterPayload, allowedParams, { expandImplicitSingleYear: false });
     if (!('p_limit' in payload)) payload.p_limit = 100;

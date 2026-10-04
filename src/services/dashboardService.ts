@@ -567,6 +567,13 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
       const sortField = VALORES_SORT_FIELDS.has(requestedSortField) ? requestedSortField : 'total_taxas';
       const sortDirection = source.p_sort_direction === 'asc' ? 'asc' : 'desc';
       const expectedSnapshot = typeof source.p_snapshot === 'string' ? source.p_snapshot : null;
+      const forceFullSource = source.p_force_full_source === true;
+      const useFastAnnualPageRpc = !forceFullSource
+          && search === ''
+          && canUseAggregatedValoresSource(valoresPayload)
+          && valoresPayload.p_semana == null
+          && sortField === 'total_taxas'
+          && sortDirection === 'desc';
       const pageCachePayload = {
           ...valoresPayload,
           p_limit: limit,
@@ -576,16 +583,36 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
           p_sort_direction: sortDirection,
           p_snapshot: expectedSnapshot,
       };
+      const versionedPageCachePayload = {
+          ...pageCachePayload,
+          p_page_engine: useFastAnnualPageRpc ? 'annual-db-page-v1' : 'memory-page-v1',
+          p_force_full_source: forceFullSource,
+      };
       const sourceCacheKey = createRequestKey({ mode: 'valores_source', payload: valoresPayload });
       const preparedCacheKey = createRequestKey({
           mode: 'valores_prepared',
+          snapshotVersion: 'jsonb-array-v1',
           ...valoresPayload,
           search,
           sortField,
           sortDirection,
       });
 
-      return resolveWithCache('valores_page', pageCachePayload, async () => {
+      return resolveWithCache('valores_page', versionedPageCachePayload, async () => {
+          if (useFastAnnualPageRpc) {
+              const { data, error } = await createServiceRoleClient().rpc(
+                  'listar_valores_entregadores_page_fast_v1',
+                  pageCachePayload,
+              );
+              if (error) {
+                  const rpcError = new Error(error.message) as Error & { code?: string };
+                  rpcError.name = 'DashboardRpcError';
+                  if (typeof error.code === 'string') rpcError.code = error.code;
+                  throw rpcError;
+              }
+              return data ?? null;
+          }
+
           const source = await resolveCachedValue(
               sourceValoresCache,
               inFlightSourceValores,
@@ -630,14 +657,9 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
                   let totalGeral = 0;
 
                   for (const row of rows) {
-                      snapshotHasher.update(row.id_entregador);
-                      snapshotHasher.update('\u0000');
-                      snapshotHasher.update(String(row.nome_entregador || ''));
-                      snapshotHasher.update('\u0000');
-                      snapshotHasher.update(String(row.total_taxas));
-                      snapshotHasher.update('\u0000');
-                      snapshotHasher.update(String(row.numero_corridas_aceitas));
-                      snapshotHasher.update('\n');
+                      const totalTaxas = Number(row.total_taxas) || 0;
+                      const corridasAceitas = Number(row.numero_corridas_aceitas) || 0;
+                      snapshotHasher.update(`[${JSON.stringify(row.id_entregador)}, ${JSON.stringify(row.nome_entregador || '')}, ${totalTaxas.toFixed(2)}, ${String(corridasAceitas)}]\n`);
                       totalCorridas += Number(row.numero_corridas_aceitas) || 0;
                       totalGeral += Number(row.total_taxas) || 0;
                   }
@@ -645,7 +667,7 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
                   return {
                       rows,
                       totalCorridas,
-                      totalGeral,
+                      totalGeral: Math.round(totalGeral * 100) / 100,
                       snapshot: snapshotHasher.digest('hex'),
                   };
               }
