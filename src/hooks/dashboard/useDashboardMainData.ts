@@ -67,6 +67,8 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
   const [aderenciaDiaOrigem, setAderenciaDiaOrigem] = useState<AderenciaDiaOrigem[]>(initialCache?.aderencia_dia_origem ?? []);
   const [dimensoes, setDimensoes] = useState<DimensoesDashboard | null>(initialCache?.dimensoes ?? null);
   const [resolvedPayloadKey, setResolvedPayloadKey] = useState<string | null>(initialCache ? payloadKey : null);
+  const [dataPayloadKey, setDataPayloadKey] = useState<string | null>(initialCache ? payloadKey : null);
+  const [hasSuccessfulData, setHasSuccessfulData] = useState(Boolean(initialCache));
   const [dataOrganizationId, setDataOrganizationId] = useState<string | null>(initialCache ? currentOrganizationId : null);
   const [dataScopeKey, setDataScopeKey] = useState<string | null>(initialCache ? accessScopeKey : null);
 
@@ -102,6 +104,8 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     pendingPayloadKeyRef,
     setDataOrganizationId,
     setDataScopeKey,
+    setDataPayloadKey,
+    setHasSuccessfulData,
     accessScopeKey,
     setters,
     setResolvedPayloadKey,
@@ -109,17 +113,24 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     shouldFetch: enabled && !isOrgLoading && hasOrganizationContext
   }, payloadKey);
 
-  const canShowCurrentScopeData = dataOrganizationId === currentOrganizationId && dataScopeKey === accessScopeKey;
+  const canShowCurrentPayloadData = dataPayloadKey === payloadKey
+    && dataOrganizationId === currentOrganizationId
+    && dataScopeKey === accessScopeKey;
+  const canKeepPreviousPayloadData = hasSuccessfulData
+    && dataOrganizationId === currentOrganizationId
+    && dataScopeKey === accessScopeKey;
+  const canShowData = canShowCurrentPayloadData || canKeepPreviousPayloadData;
 
   return {
-    totals: canShowCurrentScopeData ? totals : null,
-    aderenciaSemanal: canShowCurrentScopeData ? aderenciaSemanal : [],
-    aderenciaDia: canShowCurrentScopeData ? aderenciaDia : [],
-    aderenciaTurno: canShowCurrentScopeData ? aderenciaTurno : [],
-    aderenciaSubPraca: canShowCurrentScopeData ? aderenciaSubPraca : [],
-    aderenciaOrigem: canShowCurrentScopeData ? aderenciaOrigem : [],
-    aderenciaDiaOrigem: canShowCurrentScopeData ? aderenciaDiaOrigem : [],
-    dimensoes: canShowCurrentScopeData ? dimensoes : null,
+    totals: canShowData ? totals : null,
+    aderenciaSemanal: canShowData ? aderenciaSemanal : [],
+    aderenciaDia: canShowData ? aderenciaDia : [],
+    aderenciaTurno: canShowData ? aderenciaTurno : [],
+    aderenciaSubPraca: canShowData ? aderenciaSubPraca : [],
+    aderenciaOrigem: canShowData ? aderenciaOrigem : [],
+    aderenciaDiaOrigem: canShowData ? aderenciaDiaOrigem : [],
+    dimensoes: canShowData ? dimensoes : null,
+    hasSuccessfulData: canShowData && hasSuccessfulData,
     loading: enabled && (loading || isOrgLoading || !hasOrganizationContext || resolvedPayloadKey !== payloadKey),
     error: enabled && resolvedPayloadKey === payloadKey ? error : null,
     retryMainData,

@@ -90,6 +90,7 @@ export const renderActiveView = (activeTab: TabType, props: DashboardViewRenderP
                     origens={props.origens}
                     currentUser={props.currentUser}
                     anoSelecionado={props.filters?.ano ?? undefined}
+                    filterPayload={props.filterPayload}
                 />
             );
         case 'marketing_comparacao':

@@ -39,7 +39,7 @@ export const DashboardFiltersContainer = React.memo(function DashboardFiltersCon
   return (
     <div
       className={cn(
-        "sticky top-14 z-30 mb-6 rounded-2xl border border-slate-200/70 bg-white/90 p-3 shadow-[0_18px_48px_-38px_rgba(15,23,42,0.55)] ring-1 ring-white/70 transition-[background-color,border-color,box-shadow] duration-200 dark:border-slate-800/70 dark:bg-slate-950/80 dark:ring-white/5",
+        "sticky top-[5.5625rem] z-30 mb-6 rounded-2xl border border-slate-200/70 bg-white/90 p-3 shadow-[0_18px_48px_-38px_rgba(15,23,42,0.55)] ring-1 ring-white/70 transition-[background-color,border-color,box-shadow] duration-200 dark:border-slate-800/70 dark:bg-slate-950/80 dark:ring-white/5 lg:top-14",
         "supports-[backdrop-filter]:backdrop-blur-xl"
       )}
     >
@@ -53,6 +53,7 @@ export const DashboardFiltersContainer = React.memo(function DashboardFiltersCon
         origens={origens}
         turnos={turnos}
         currentUser={currentUser}
+        activeTab={activeTab}
         optionsLoading={optionsLoading}
         optionsError={optionsError}
       />

@@ -4,6 +4,7 @@ import { createComparisonFilter, parseWeekString } from '@/utils/comparacaoHelpe
 import { DashboardResumoData, CurrentUser } from '@/types';
 import { IS_DEV } from '@/constants/environment';
 import { parseDashboardResumoResponse } from '@/utils/dashboard/dashboardResumoValidation';
+import type { ComparisonDimensionFilters } from '@/utils/comparacao/filters';
 
 
 export async function fetchComparisonMetrics(
@@ -11,12 +12,13 @@ export async function fetchComparisonMetrics(
     pracaSelecionada: string | null,
     currentUser: CurrentUser | null,
     organizationId: string | null,
-    selectedYear?: number
+    selectedYear?: number,
+    dimensionFilters?: ComparisonDimensionFilters
 ): Promise<DashboardResumoData[]> {
     if (semanasSelecionadas.length < 2) return [];
 
     const promessasDados = semanasSelecionadas.map(async (semana) => {
-        const filtro = createComparisonFilter(semana, pracaSelecionada, currentUser, organizationId, selectedYear);
+        const filtro = createComparisonFilter(semana, pracaSelecionada, currentUser, organizationId, selectedYear, dimensionFilters);
         const { semanaNumero, anoNumero } = parseWeekString(semana, selectedYear);
 
         if (IS_DEV) {

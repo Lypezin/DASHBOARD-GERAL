@@ -21,6 +21,8 @@ interface UseDashboardDataEffectProps {
     pendingPayloadKeyRef: React.MutableRefObject<string>;
     setDataOrganizationId: (organizationId: string | null) => void;
     setDataScopeKey: (scopeKey: string) => void;
+    setDataPayloadKey: (payloadKey: string) => void;
+    setHasSuccessfulData: (hasData: boolean) => void;
     accessScopeKey: string;
     setters: {
         setTotals: (data: Totals | null) => void;
@@ -48,6 +50,8 @@ export function useDashboardDataEffect({
     pendingPayloadKeyRef,
     setDataOrganizationId,
     setDataScopeKey,
+    setDataPayloadKey,
+    setHasSuccessfulData,
     accessScopeKey,
     setters,
     setResolvedPayloadKey,
@@ -95,6 +99,8 @@ export function useDashboardDataEffect({
                 ? filterPayload.p_organization_id.trim()
                 : null);
             setDataScopeKey(accessScopeKey);
+            setDataPayloadKey(payloadKey);
+            setHasSuccessfulData(true);
             previousPayloadRef.current = payloadKey;
             isFirstExecutionRef.current = false;
             pendingPayloadKeyRef.current = '';
@@ -128,6 +134,8 @@ export function useDashboardDataEffect({
                     ? filterPayload.p_organization_id.trim()
                     : null);
                 setDataScopeKey(accessScopeKey);
+                setDataPayloadKey(currentPayloadKey);
+                setHasSuccessfulData(true);
                 previousPayloadRef.current = currentPayloadKey;
                 isFirstExecutionRef.current = false;
                 pendingPayloadKeyRef.current = '';
@@ -167,6 +175,8 @@ export function useDashboardDataEffect({
         pendingPayloadKeyRef,
         setDataOrganizationId,
         setDataScopeKey,
+        setDataPayloadKey,
+        setHasSuccessfulData,
         accessScopeKey,
         previousPayloadRef,
         setters,

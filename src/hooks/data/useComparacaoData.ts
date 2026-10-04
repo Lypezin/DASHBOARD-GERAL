@@ -7,6 +7,8 @@ import { fetchComparisonMetrics } from '@/hooks/comparacao/useComparisonMetrics'
 import { fetchComparisonUtr } from '@/hooks/comparacao/useComparisonUtr';
 import { createRequestKey } from '@/utils/request/createRequestKey';
 import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
+import type { ComparisonDimensionFilters } from '@/utils/comparacao/filters';
+import { getTimedCacheValue, setTimedCacheValue, type TimedCacheEntry } from '@/utils/cache/timedLruCache';
 
 interface UseComparacaoDataOptions {
   semanas: string[];
@@ -14,6 +16,7 @@ interface UseComparacaoDataOptions {
   pracaSelecionada: string | null;
   currentUser: CurrentUser | null;
   anoSelecionado?: number;
+  dimensionFilters?: ComparisonDimensionFilters;
 }
 
 interface ComparacaoDataResult {
@@ -24,7 +27,12 @@ interface ComparacaoDataResult {
 }
 
 const COMPARACAO_CACHE_TTL_MS = 5 * 60 * 1000;
-const comparacaoDataCache = new Map<string, { timestamp: number; data: ComparacaoDataResult }>();
+const MAX_COMPARACAO_CACHE_ENTRIES = 12;
+const COMPARACAO_CACHE_POLICY = {
+  ttlMs: COMPARACAO_CACHE_TTL_MS,
+  maxEntries: MAX_COMPARACAO_CACHE_ENTRIES,
+} as const;
+const comparacaoDataCache = new Map<string, TimedCacheEntry<ComparacaoDataResult>>();
 const comparacaoDataRequests = new Map<string, Promise<ComparacaoDataResult>>();
 
 function createComparacaoCacheKey(
@@ -32,27 +40,25 @@ function createComparacaoCacheKey(
   pracaSelecionada: string | null,
   accessScopeKey: string,
   organizationId: string | null,
-  anoSelecionado?: number
+  anoSelecionado: number | undefined,
+  dimensionFilters: ComparisonDimensionFilters
 ) {
   return createRequestKey({
     organizationId: organizationId || 'no-org',
     anoSelecionado: anoSelecionado || null,
     pracaSelecionada: pracaSelecionada || 'todas',
     semanasSelecionadas,
+    dimensionFilters,
     accessScopeKey,
   });
 }
 
 function getCachedComparacaoData(cacheKey: string) {
-  const cached = comparacaoDataCache.get(cacheKey);
-  if (!cached) return null;
+  return getTimedCacheValue(comparacaoDataCache, cacheKey, COMPARACAO_CACHE_POLICY);
+}
 
-  if (Date.now() - cached.timestamp > COMPARACAO_CACHE_TTL_MS) {
-    comparacaoDataCache.delete(cacheKey);
-    return null;
-  }
-
-  return cached.data;
+function cacheComparacaoData(cacheKey: string, data: ComparacaoDataResult) {
+  setTimedCacheValue(comparacaoDataCache, cacheKey, data, COMPARACAO_CACHE_POLICY);
 }
 
 async function fetchComparacaoDataWithDedupe(
@@ -62,20 +68,21 @@ async function fetchComparacaoDataWithDedupe(
   pracaSelecionada: string | null,
   currentUser: CurrentUser | null,
   organizationId: string | null,
-  anoSelecionado?: number
+  anoSelecionado: number | undefined,
+  dimensionFilters: ComparisonDimensionFilters
 ) {
   const activeRequest = comparacaoDataRequests.get(requestKey);
   if (activeRequest) return activeRequest;
 
   const request = (async () => {
     const [metricsResult, utrResult] = await Promise.all([
-      fetchComparisonMetrics(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado)
+      fetchComparisonMetrics(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado, dimensionFilters)
         .then((data) => ({ data, error: null as string | null }))
         .catch((error: unknown) => ({
           data: [] as DashboardResumoData[],
           error: getSafeErrorMessage(error) || 'Erro ao comparar semanas. Tente novamente.',
         })),
-      fetchComparisonUtr(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado),
+      fetchComparisonUtr(semanasSelecionadas, pracaSelecionada, currentUser, organizationId, anoSelecionado, dimensionFilters),
     ]);
 
     const result = {
@@ -85,10 +92,7 @@ async function fetchComparacaoDataWithDedupe(
       utrError: utrResult.error,
     };
     if (!result.error && !result.utrError) {
-      comparacaoDataCache.set(cacheKey, {
-        timestamp: Date.now(),
-        data: result,
-      });
+      cacheComparacaoData(cacheKey, result);
     }
 
     return result;
@@ -101,7 +105,7 @@ async function fetchComparacaoDataWithDedupe(
 }
 
 export function useComparacaoData(options: UseComparacaoDataOptions) {
-  const { semanasSelecionadas, pracaSelecionada, currentUser, semanas, anoSelecionado } = options;
+  const { semanasSelecionadas, pracaSelecionada, currentUser, semanas, anoSelecionado, dimensionFilters = {} } = options;
   const { organizationId, isLoading: isOrgLoading } = useOrganization();
   const currentOrganizationId = organizationId || currentUser?.organization_id || null;
   const accessScopeKey = createAccessScopeKey(currentUser, currentOrganizationId);
@@ -110,8 +114,9 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
     pracaSelecionada,
     accessScopeKey,
     currentOrganizationId,
-    anoSelecionado
-  ), [accessScopeKey, anoSelecionado, currentOrganizationId, pracaSelecionada, semanasSelecionadas]);
+    anoSelecionado,
+    dimensionFilters
+  ), [accessScopeKey, anoSelecionado, currentOrganizationId, dimensionFilters, pracaSelecionada, semanasSelecionadas]);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -128,7 +133,8 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
 
   const { todasSemanas, loadingSemanas, errorSemanas, retrySemanas } = useAllWeeks(semanas, anoSelecionado);
 
-  hasVisibleDataRef.current = dataOrganizationId === currentOrganizationId
+  hasVisibleDataRef.current = resolvedCacheKey === cacheKey
+    && dataOrganizationId === currentOrganizationId
     && dataAccessScopeKey === accessScopeKey
     && (dadosComparacao.length > 0 || utrComparacao.length > 0);
 
@@ -178,7 +184,8 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
           pracaSelecionada,
           currentUser,
           currentOrganizationId,
-          anoSelecionado
+          anoSelecionado,
+          dimensionFilters
         );
 
         if (!isMounted) return;
@@ -214,7 +221,7 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
     return () => {
       isMounted = false;
     };
-  }, [accessScopeKey, anoSelecionado, cacheKey, currentUser, currentOrganizationId, isOrgLoading, pracaSelecionada, retryNonce, semanasSelecionadas]);
+  }, [accessScopeKey, anoSelecionado, cacheKey, currentUser, currentOrganizationId, dimensionFilters, isOrgLoading, pracaSelecionada, retryNonce, semanasSelecionadas]);
 
   const retryData = useCallback(() => {
     comparacaoDataCache.delete(cacheKeyRef.current);
@@ -222,15 +229,19 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
   }, []);
 
   const hasValidComparisonSelection = Boolean(semanasSelecionadas && semanasSelecionadas.length === 2);
-  const canShowCurrentOrganizationData = dataOrganizationId === currentOrganizationId
+  const canShowCurrentRequestData = resolvedCacheKey === cacheKey
+    && dataOrganizationId === currentOrganizationId
     && dataAccessScopeKey === accessScopeKey;
 
   return {
     loading: loading || isOrgLoading || (hasValidComparisonSelection && resolvedCacheKey !== cacheKey),
     error: resolvedCacheKey === cacheKey ? error : null,
     utrError: resolvedCacheKey === cacheKey ? utrError : null,
-    dadosComparacao: canShowCurrentOrganizationData ? dadosComparacao : [],
-    utrComparacao: canShowCurrentOrganizationData ? utrComparacao : [],
+    // Never render the previous filter's figures under the new selection.
+    // The caller sees a loading skeleton while this key is unresolved, then
+    // either the matching result, a real empty state, or the matching error.
+    dadosComparacao: canShowCurrentRequestData ? dadosComparacao : [],
+    utrComparacao: canShowCurrentRequestData ? utrComparacao : [],
     todasSemanas,
     loadingSemanas,
     errorSemanas,

@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { FilterOption, CurrentUser } from '@/types';
+import type { FilterPayload } from '@/types/filters';
 import { useComparacaoViewController } from './comparacao/hooks/useComparacaoViewController';
 import { ComparacaoLayout } from './comparacao/ComparacaoLayout';
 
@@ -12,6 +13,7 @@ const ComparacaoView = React.memo(function ComparacaoView(props: {
   origens: FilterOption[];
   currentUser: CurrentUser | null;
   anoSelecionado?: number;
+  filterPayload: FilterPayload;
 }) {
   const { state, data, actions } = useComparacaoViewController(props);
 

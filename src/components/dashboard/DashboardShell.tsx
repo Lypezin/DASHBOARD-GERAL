@@ -12,6 +12,7 @@ import { LoadingNotice } from '@/components/ui/loading-notice';
 import { useDashboardPage } from '@/hooks/dashboard/useDashboardPage';
 import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
+import { getDimensionFilterSupport } from '@/utils/filters/dimensionFilterSupport';
 import { FaviconManager } from '@/components/layout/FaviconManager';
 
 const DeferredActivityTracker = dynamic(
@@ -56,7 +57,17 @@ function DashboardShellContent() {
     || data.aderenciaSubPraca.length > 0
     || data.aderenciaOrigem.length > 0
     || data.aderenciaDiaOrigem.length > 0;
-  const showInitialLoading = ui.loading && !hasMainData;
+  const viewFilterPayload = React.useMemo(() => {
+    const support = getDimensionFilterSupport(ui.activeTab);
+
+    return {
+      ...filters.payload,
+      ...(!support.subPraca ? { p_sub_praca: null, p_sub_pracas: null } : {}),
+      ...(!support.origem ? { p_origem: null, p_origens: null } : {}),
+      ...(!support.turno ? { p_turno: null, p_turnos: null } : {}),
+    };
+  }, [filters.payload, ui.activeTab]);
+  const showInitialLoading = ui.loading && !hasMainData && !data.hasSuccessfulData;
 
   if (auth.isCheckingAuth) return <DashboardAuthLoading />;
   if (auth.hasSessionWithoutProfile) {
@@ -89,9 +100,8 @@ function DashboardShellContent() {
 
       <div className="relative z-10 px-4 py-6 sm:px-6 lg:px-8">
         {showInitialLoading && <DashboardLoadingState />}
-        {ui.error && !hasMainData && <DashboardErrorState error={ui.error} />}
 
-        {!showInitialLoading && (!ui.error || hasMainData) && (
+        {!showInitialLoading && (
           <div className="space-y-6 motion-safe:animate-fade-in">
             {ui.error && hasMainData ? (
               <div role="alert" className="rounded-2xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm font-semibold text-amber-900 shadow-sm dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-100">
@@ -131,40 +141,44 @@ function DashboardShellContent() {
               {showLoginBadge ? <DeferredLoginStreakBadge className="self-start xl:self-auto shrink-0" /> : null}
             </div>
 
+            {ui.error && !hasMainData ? <DashboardErrorState error={ui.error} /> : null}
+
             {ui.loading ? (
               <LoadingNotice
                 tone="blue"
                 message="Atualizando indicadores com os filtros atuais"
-                detail="Mantendo o painel visivel enquanto os dados novos chegam."
+                detail="Mantendo os resultados anteriores visíveis até a resposta dos filtros atuais chegar."
               />
             ) : null}
 
-            <main className="min-w-0">
-              <DashboardViewsRenderer
-                activeTab={ui.activeTab}
-                chartReady={ui.chartReady}
-                currentUser={auth.currentUser}
-                filters={filters.state}
-                setFilters={filters.setState}
-                filterPayload={filters.payload}
-                anoEvolucao={anoEvolucao.valor}
-                onAnoChange={anoEvolucao.set}
-                semanas={filters.options.semanas}
-                pracas={filters.options.pracas}
-                subPracas={filters.options.subPracas}
-                origens={filters.options.origens}
-                totals={data.totals}
-                aderenciaSemanal={data.aderenciaSemanal}
-                aderenciaDia={data.aderenciaDia}
-                aderenciaTurno={data.aderenciaTurno}
-                aderenciaSubPraca={data.aderenciaSubPraca}
-                aderenciaOrigem={data.aderenciaOrigem}
-                aderenciaDiaOrigem={data.aderenciaDiaOrigem}
-                mainDataLoading={data.loading}
-                mainDataError={data.error}
-                retryMainData={data.retryMainData}
-              />
-            </main>
+            {!ui.error || hasMainData ? (
+              <main className="min-w-0">
+                <DashboardViewsRenderer
+                  activeTab={ui.activeTab}
+                  chartReady={ui.chartReady}
+                  currentUser={auth.currentUser}
+                  filters={filters.state}
+                  setFilters={filters.setState}
+                  filterPayload={viewFilterPayload}
+                  anoEvolucao={anoEvolucao.valor}
+                  onAnoChange={anoEvolucao.set}
+                  semanas={filters.options.semanas}
+                  pracas={filters.options.pracas}
+                  subPracas={filters.options.subPracas}
+                  origens={filters.options.origens}
+                  totals={data.totals}
+                  aderenciaSemanal={data.aderenciaSemanal}
+                  aderenciaDia={data.aderenciaDia}
+                  aderenciaTurno={data.aderenciaTurno}
+                  aderenciaSubPraca={data.aderenciaSubPraca}
+                  aderenciaOrigem={data.aderenciaOrigem}
+                  aderenciaDiaOrigem={data.aderenciaDiaOrigem}
+                  mainDataLoading={data.loading}
+                  mainDataError={data.error}
+                  retryMainData={data.retryMainData}
+                />
+              </main>
+            ) : null}
           </div>
         )}
       </div>

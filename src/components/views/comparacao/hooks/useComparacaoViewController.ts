@@ -4,12 +4,14 @@ import { FilterOption, CurrentUser } from '@/types';
 import { useComparacaoData } from '@/hooks/data/useComparacaoData';
 import { useComparacaoMemo } from './useComparacaoMemo';
 import { useComparacaoFilters, ViewMode, SecoesVisiveis } from './useComparacaoFilters';
+import type { FilterPayload } from '@/types/filters';
+import type { ComparisonDimensionFilters } from '@/utils/comparacao/filters';
 
-interface UseComparacaoViewControllerProps { semanas: string[]; pracas: FilterOption[]; subPracas: FilterOption[]; origens: FilterOption[]; currentUser: CurrentUser | null; anoSelecionado?: number; }
+interface UseComparacaoViewControllerProps { semanas: string[]; pracas: FilterOption[]; subPracas: FilterOption[]; origens: FilterOption[]; currentUser: CurrentUser | null; anoSelecionado?: number; filterPayload: FilterPayload; }
 
 export type { ViewMode, SecoesVisiveis };
 
-export function useComparacaoViewController({ semanas, currentUser, anoSelecionado }: UseComparacaoViewControllerProps) {
+export function useComparacaoViewController({ semanas, currentUser, anoSelecionado, filterPayload }: UseComparacaoViewControllerProps) {
     const {
         semanasSelecionadas, setSemanasSelecionadas, pracaSelecionada, setPracaSelecionada,
         mostrarApresentacao, setMostrarApresentacao, viewModeDetalhada, setViewModeDetalhada,
@@ -24,8 +26,24 @@ export function useComparacaoViewController({ semanas, currentUser, anoSeleciona
     );
 
     // Usar hook de dados
+    const dimensionFilters = useMemo<ComparisonDimensionFilters>(() => ({
+        p_sub_praca: filterPayload.p_sub_praca,
+        p_origem: filterPayload.p_origem,
+        p_turno: filterPayload.p_turno,
+        p_sub_pracas: filterPayload.p_sub_pracas,
+        p_origens: filterPayload.p_origens,
+        p_turnos: filterPayload.p_turnos,
+    }), [
+        filterPayload.p_origem,
+        filterPayload.p_origens,
+        filterPayload.p_sub_praca,
+        filterPayload.p_sub_pracas,
+        filterPayload.p_turno,
+        filterPayload.p_turnos,
+    ]);
+
     const { loading, dadosComparacao, utrComparacao, todasSemanas, error, utrError, loadingSemanas, errorSemanas, retrySemanas, retryData } = useComparacaoData({
-        semanas, semanasSelecionadas: selectedWeeksForCurrentYear, pracaSelecionada, currentUser, anoSelecionado
+        semanas, semanasSelecionadas: selectedWeeksForCurrentYear, pracaSelecionada, currentUser, anoSelecionado, dimensionFilters
     });
 
     useEffect(() => {
@@ -60,10 +78,11 @@ export function useComparacaoViewController({ semanas, currentUser, anoSeleciona
         dadosComparacao,
         utrComparacao: utrComparacaoNormalizada,
         utrError,
+        dimensionFilters,
         todasSemanas,
         origensDisponiveis,
         totalColunasOrigem
-    }), [dadosComparacao, utrComparacaoNormalizada, utrError, todasSemanas, origensDisponiveis, totalColunasOrigem]);
+    }), [dadosComparacao, utrComparacaoNormalizada, utrError, dimensionFilters, todasSemanas, origensDisponiveis, totalColunasOrigem]);
 
     const actions = useMemo(() => ({
             setPracaSelecionada, setMostrarApresentacao, setViewModeDetalhada, setViewModeDia,

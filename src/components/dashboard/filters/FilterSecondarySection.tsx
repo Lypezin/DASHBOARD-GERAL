@@ -3,6 +3,7 @@ import FiltroSelect from '@/components/shared/filters/FiltroSelect';
 import FiltroMultiSelect from '@/components/shared/filters/FiltroMultiSelect';
 import { Filters, FilterOption } from '@/types';
 import type { FiltroBarChangeHandler } from '@/hooks/ui/useFiltroBar';
+import type { DimensionFilterSupport } from '@/utils/filters/dimensionFilterSupport';
 
 interface FilterSecondarySectionProps {
     filters: Filters;
@@ -15,6 +16,7 @@ interface FilterSecondarySectionProps {
     shouldDisablePracaFilter: boolean;
     optionsLoading: boolean;
     optionsError: string | null;
+    dimensionSupport: DimensionFilterSupport;
 }
 
 export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
@@ -28,10 +30,12 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
     shouldDisablePracaFilter,
     optionsLoading,
     optionsError,
+    dimensionSupport,
 }) => {
     const isUnavailable = (options: FilterOption[]) => options.length === 0 && Boolean(optionsError);
     const isWaitingForOptions = (options: FilterOption[]) => options.length === 0 && optionsLoading;
-    const placeholderFor = (options: FilterOption[], allLabel: string) => {
+    const placeholderFor = (options: FilterOption[], allLabel: string, supported: boolean) => {
+        if (!supported) return 'Não usado nesta guia';
         if (isWaitingForOptions(options)) return 'Carregando opções...';
         if (isUnavailable(options)) return 'Opções indisponíveis';
         return allLabel;
@@ -43,32 +47,38 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
                 label="Praça"
                 value={filters.praca ?? ''}
                 options={pracas}
-                placeholder={placeholderFor(pracas, 'Todas')}
+                placeholder={placeholderFor(pracas, 'Todas', true)}
                 onChange={(value) => handleChange('praca', value)}
                 disabled={shouldDisablePracaFilter || isWaitingForOptions(pracas) || isUnavailable(pracas)}
             />
             <FiltroMultiSelect
                 label="Sub praça"
-                selected={filters.subPracas || []}
+                selected={dimensionSupport.subPraca
+                    ? (filters.subPracas?.length ? filters.subPracas : filters.subPraca ? [filters.subPraca] : [])
+                    : []}
                 options={subPracas}
-                placeholder={placeholderFor(subPracas, 'Todas')}
-                disabled={isWaitingForOptions(subPracas) || isUnavailable(subPracas)}
+                placeholder={placeholderFor(subPracas, 'Todas', dimensionSupport.subPraca)}
+                disabled={!dimensionSupport.subPraca || isWaitingForOptions(subPracas) || isUnavailable(subPracas)}
                 onSelectionChange={(values) => setFilters(prev => ({ ...prev, subPraca: values[0] || null, subPracas: values }))}
             />
             <FiltroMultiSelect
                 label="Origem"
-                selected={filters.origens || []}
+                selected={dimensionSupport.origem
+                    ? (filters.origens?.length ? filters.origens : filters.origem ? [filters.origem] : [])
+                    : []}
                 options={origens}
-                placeholder={placeholderFor(origens, 'Todas')}
-                disabled={isWaitingForOptions(origens) || isUnavailable(origens)}
+                placeholder={placeholderFor(origens, 'Todas', dimensionSupport.origem)}
+                disabled={!dimensionSupport.origem || isWaitingForOptions(origens) || isUnavailable(origens)}
                 onSelectionChange={(values) => setFilters(prev => ({ ...prev, origem: values[0] || null, origens: values }))}
             />
             <FiltroMultiSelect
                 label="Turno"
-                selected={filters.turnos || []}
+                selected={dimensionSupport.turno
+                    ? (filters.turnos?.length ? filters.turnos : filters.turno ? [filters.turno] : [])
+                    : []}
                 options={turnos}
-                placeholder={placeholderFor(turnos, 'Todos')}
-                disabled={isWaitingForOptions(turnos) || isUnavailable(turnos)}
+                placeholder={placeholderFor(turnos, 'Todos', dimensionSupport.turno)}
+                disabled={!dimensionSupport.turno || isWaitingForOptions(turnos) || isUnavailable(turnos)}
                 onSelectionChange={(values) => setFilters(prev => ({ ...prev, turno: values[0] || null, turnos: values }))}
             />
         </>

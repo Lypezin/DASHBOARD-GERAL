@@ -8,15 +8,17 @@ import { FilterPrimarySection } from '@/components/dashboard/filters/FilterPrima
 import { FilterSecondarySection } from '@/components/dashboard/filters/FilterSecondarySection';
 import { FilterClearButton } from '@/components/dashboard/filters/FilterClearButton';
 import { IS_DEV } from '@/constants/environment';
+import { getDimensionFilterSupport } from '@/utils/filters/dimensionFilterSupport';
 
 
 const FiltroBar = React.memo(function FiltroBar({
   filters, setFilters, anos, semanas, pracas, subPracas, origens, turnos, currentUser,
-  optionsLoading = false, optionsError = null,
+  activeTab, optionsLoading = false, optionsError = null,
 }: {
   filters: Filters; setFilters: React.Dispatch<React.SetStateAction<Filters>>;
   anos: number[]; semanas: string[]; pracas: FilterOption[]; subPracas: FilterOption[];
   origens: FilterOption[]; turnos: FilterOption[]; currentUser: CurrentUser | null;
+  activeTab: string;
   optionsLoading?: boolean; optionsError?: string | null;
 }) {
   const {
@@ -62,6 +64,35 @@ const FiltroBar = React.memo(function FiltroBar({
   }, [filters]);
 
   const { anosOptions, semanasOptions, loadingSemanas, errorSemanas, retrySemanas } = useFiltroBarOptions(anos, semanas, filters);
+  const dimensionSupport = getDimensionFilterSupport(activeTab);
+  const hasSubPracaFilter = Boolean(filters.subPracas?.length || filters.subPraca);
+  const hasOrigemFilter = Boolean(filters.origens?.length || filters.origem);
+  const unsupportedActiveFilters = [
+    !dimensionSupport.subPraca && hasSubPracaFilter ? 'Sub praça' : null,
+    !dimensionSupport.origem && hasOrigemFilter ? 'Origem' : null,
+    !dimensionSupport.turno && (filters.turnos?.length || filters.turno) ? 'Turno' : null,
+  ].filter((label): label is string => Boolean(label));
+  const hasUnsupportedSubPracaOriginCombination = dimensionSupport.subPraca
+    && dimensionSupport.origem
+    && hasSubPracaFilter
+    && hasOrigemFilter;
+
+  const clearUnsupportedDimensionFilters = useCallback(() => {
+    setFilters((prev) => ({
+      ...prev,
+      ...(dimensionSupport.subPraca ? {} : { subPraca: null, subPracas: [] }),
+      ...(dimensionSupport.origem ? {} : { origem: null, origens: [] }),
+      ...(dimensionSupport.turno ? {} : { turno: null, turnos: [] }),
+    }));
+  }, [dimensionSupport, setFilters]);
+
+  const clearSubPracaFilter = useCallback(() => {
+    setFilters((prev) => ({ ...prev, subPraca: null, subPracas: [] }));
+  }, [setFilters]);
+
+  const clearOrigemFilter = useCallback(() => {
+    setFilters((prev) => ({ ...prev, origem: null, origens: [] }));
+  }, [setFilters]);
 
   return (
     <div className="relative z-10 w-full">
@@ -97,6 +128,7 @@ const FiltroBar = React.memo(function FiltroBar({
             subPracas={subPracas}
             origens={origens}
             turnos={turnos}
+            dimensionSupport={dimensionSupport}
             handleChange={handleChange}
             shouldDisablePracaFilter={shouldDisablePracaFilter}
             optionsLoading={optionsLoading}
@@ -110,6 +142,35 @@ const FiltroBar = React.memo(function FiltroBar({
           </div>
         )}
       </div>
+      {unsupportedActiveFilters.length > 0 ? (
+        <div role="status" className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-100">
+          <span>
+            Os filtros {unsupportedActiveFilters.join(', ')} estão selecionados, mas esta guia não os aplica.
+          </span>
+          <button
+            type="button"
+            onClick={clearUnsupportedDimensionFilters}
+            className="font-bold underline underline-offset-2 hover:no-underline"
+          >
+            Limpar não aplicados
+          </button>
+        </div>
+      ) : null}
+      {hasUnsupportedSubPracaOriginCombination ? (
+        <div role="alert" className="mt-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-medium text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-100">
+          <span className="min-w-0 flex-1">
+            Sub praça e origem não têm cruzamento nos dados atuais. Com os dois filtros ativos, a consulta fica vazia. Escolha qual manter:
+          </span>
+          <div className="flex shrink-0 flex-wrap gap-3">
+            <button type="button" onClick={clearOrigemFilter} className="font-bold underline underline-offset-2 hover:no-underline">
+              Manter sub praça
+            </button>
+            <button type="button" onClick={clearSubPracaFilter} className="font-bold underline underline-offset-2 hover:no-underline">
+              Manter origem
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 });

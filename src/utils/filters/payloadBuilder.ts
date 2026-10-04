@@ -35,8 +35,11 @@ export const buildFilterPayload = (filters: Filters, currentUser?: CurrentUser |
 
     // Processar Ano/Semana
     let semana: number | null = null;
-    if (filters.semanas?.length) semana = Number(filters.semanas[0]);
-    else if (filters.semana != null) semana = Number(filters.semana);
+    if (filters.semanas?.length) {
+        if (filters.semanas.length === 1) semana = Number(filters.semanas[0]);
+    } else if (filters.semana != null) {
+        semana = Number(filters.semana);
+    }
     if (isNaN(semana!)) semana = null;
 
     let ano = filters.ano;

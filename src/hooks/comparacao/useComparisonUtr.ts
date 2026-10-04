@@ -5,6 +5,7 @@ import type { FilterPayload } from '@/types/filters';
 import { fetchUtrData } from '@/utils/tabData/fetchers/utrFetcher';
 import { extractUtrValue } from '@/utils/utr/extractUtrValue';
 import { getSafeErrorMessage } from '@/lib/errorHandler';
+import type { ComparisonDimensionFilters } from '@/utils/comparacao/filters';
 
 type ComparisonUtrItem = { semana: string | number; utr: UtrData | null };
 
@@ -18,7 +19,8 @@ export async function fetchComparisonUtr(
     pracaSelecionada: string | null,
     currentUser: CurrentUser | null,
     organizationId: string | null,
-    selectedYear?: number
+    selectedYear?: number,
+    dimensionFilters?: ComparisonDimensionFilters
 ): Promise<ComparisonUtrResult> {
     const errors: string[] = [];
     const promessasUtr = semanasSelecionadas.map(async (semana) => {
@@ -27,7 +29,8 @@ export async function fetchComparisonUtr(
             pracaSelecionada,
             currentUser,
             organizationId,
-            selectedYear
+            selectedYear,
+            dimensionFilters
         ) as FilterPayload;
 
         try {
