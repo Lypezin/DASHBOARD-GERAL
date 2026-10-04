@@ -6,6 +6,8 @@ import { Activity, FileSpreadsheet } from 'lucide-react';
 import { EntradaSaidaStatsCards } from './components/EntradaSaidaStatsCards';
 import { EntradaSaidaWeeklyGrid } from './components/EntradaSaidaWeeklyGrid';
 import { Button } from '@/components/ui/button';
+import { LoadingNotice } from '@/components/ui/loading-notice';
+import { ViewTransition } from '@/components/ui/view-transition';
 import { loadXLSX } from '@/lib/xlsxClient';
 import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit, writeWorkbookFile } from '@/utils/excel/workbookStyle';
 import { safeLog } from '@/lib/errorHandler';
@@ -78,51 +80,59 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
     };
 
     if (loading && !hasData) return (
-        <div className="flex h-80 items-center justify-center">
-            <div className="flex flex-col items-center gap-4">
-                <div className="relative">
-                    <div className="h-14 w-14 rounded-full border-4 border-sky-100 dark:border-sky-900/50"></div>
-                    <div className="absolute left-0 top-0 h-14 w-14 animate-spin rounded-full border-4 border-transparent border-t-sky-600"></div>
-                </div>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Carregando dados...</p>
+        <ViewTransition stateKey="marketing-entrada-saida-loading" className="min-h-[20rem]">
+            <div className="flex h-80 items-center justify-center px-4">
+                <LoadingNotice
+                    className="w-full max-w-lg"
+                    message="Carregando fluxo semanal"
+                    detail="Buscando entradas e saídas para o período e a praça selecionados."
+                    tone="sky"
+                />
             </div>
-        </div>
+        </ViewTransition>
     );
 
     if (error && !hasData) return (
-        <div className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-white p-8 text-center shadow-sm dark:border-rose-900/50 dark:from-rose-950/20 dark:to-slate-900">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-900/40">
-                <Activity className="h-7 w-7 text-rose-600 dark:text-rose-400" />
+        <ViewTransition stateKey="marketing-entrada-saida-error" className="min-h-[20rem]">
+            <div role="alert" className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-white p-8 text-center shadow-sm dark:border-rose-900/50 dark:from-rose-950/20 dark:to-slate-900">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-900/40">
+                    <Activity className="h-7 w-7 text-rose-600 dark:text-rose-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-rose-900 dark:text-rose-100">Erro ao carregar dados</h3>
+                <p className="mx-auto mt-2 max-w-md text-rose-700 dark:text-rose-300">
+                    Não foi possível carregar o fluxo para este período e estes filtros. {error}
+                </p>
             </div>
-            <h3 className="text-lg font-semibold text-rose-900 dark:text-rose-100">Erro ao carregar dados</h3>
-            <p className="mx-auto mt-2 max-w-md text-rose-700 dark:text-rose-300">
-                Não foi possível carregar o fluxo para este período e estes filtros. {error}
-            </p>
-        </div>
+        </ViewTransition>
     );
 
     if (!loading && !error && !hasData) return (
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
-            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800">
-                <Activity className="h-7 w-7 text-slate-500 dark:text-slate-400" />
+        <ViewTransition stateKey="marketing-entrada-saida-empty" className="min-h-[20rem]">
+            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800">
+                    <Activity className="h-7 w-7 text-slate-500 dark:text-slate-400" />
+                </div>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Nenhum dado neste período</h3>
+                <p className="mx-auto mt-2 max-w-md text-slate-600 dark:text-slate-400">
+                    Não há movimentação de entregadores para a praça e o intervalo selecionados.
+                </p>
             </div>
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Nenhum dado neste período</h3>
-            <p className="mx-auto mt-2 max-w-md text-slate-600 dark:text-slate-400">
-                Não há movimentação de entregadores para a praça e o intervalo selecionados.
-            </p>
-        </div>
+        </ViewTransition>
     );
 
     return (
-        <div className="mx-auto max-w-7xl space-y-8 motion-safe:animate-fade-in">
+        <ViewTransition stateKey="marketing-entrada-saida-data" className="space-y-8">
+        <div className="mx-auto max-w-7xl space-y-8">
             {loading ? (
-                <div className="rounded-2xl border border-sky-200/70 bg-sky-50/80 px-4 py-3 text-sm font-semibold text-sky-800 shadow-sm dark:border-sky-900/50 dark:bg-sky-950/25 dark:text-sky-200">
-                    Atualizando fluxo semanal com os filtros atuais...
-                </div>
+                <LoadingNotice
+                    message="Atualizando fluxo semanal com os filtros atuais"
+                    detail="Os dados anteriores continuam visíveis durante a atualização."
+                    tone="sky"
+                />
             ) : null}
 
             {error ? (
-                <div className="rounded-2xl border border-amber-200/70 bg-amber-50/85 px-4 py-3 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
+                <div role="alert" className="rounded-2xl border border-amber-200/70 bg-amber-50/85 px-4 py-3 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
                     {error}
                 </div>
             ) : null}
@@ -146,5 +156,6 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
                 praca={praca}
             />
         </div>
+        </ViewTransition>
     );
 };
