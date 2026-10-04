@@ -33,7 +33,7 @@ export function AppSidebar() {
         <AnimatePresence mode={shouldReduceMotion ? 'sync' : 'wait'}>
           {!collapsed ? (
             <motion.p
-              initial={{ opacity: 0, x: shouldReduceMotion ? 0 : -10 }}
+              initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: shouldReduceMotion ? 0 : -10 }}
               transition={{ duration: shouldReduceMotion ? 0 : 0.15 }}
