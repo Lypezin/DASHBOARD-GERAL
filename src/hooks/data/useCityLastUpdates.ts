@@ -4,16 +4,25 @@ import { getAppApiData } from '@/utils/app/fetchAppApi';
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { readJsonStorage, removeJsonStorage, writeJsonStorage } from '@/utils/storage/jsonStorage';
 import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
+import {
+  getTimedCacheValue,
+  rememberTimedCacheEntry,
+  setTimedCacheValue,
+  type TimedCacheEntry,
+} from '@/utils/cache/timedLruCache';
 
 interface CityUpdateInfo {
   city: string;
   last_update_date: string;
 }
 
-const globalCache = new Map<string, { data: CityUpdateInfo[]; timestamp: number }>();
+const CACHE_TTL = 30 * 60 * 1000;
+const CITY_UPDATES_STALE_TTL = 24 * 60 * 60 * 1000;
+const CITY_UPDATES_CACHE_POLICY = { ttlMs: CACHE_TTL, staleTtlMs: CITY_UPDATES_STALE_TTL, maxEntries: 12 } as const;
+const SESSION_CACHE_MAX_ENTRIES = 12;
+const globalCache = new Map<string, TimedCacheEntry<CityUpdateInfo[]>>();
 const globalPromises = new Map<string, Promise<CityUpdateInfo[] | null>>();
 
-const CACHE_TTL = 30 * 60 * 1000;
 const SESSION_CACHE_KEY_PREFIX = 'city_last_updates_cache_v4';
 
 function getSessionCacheKey(scopeKey: string) {
@@ -27,7 +36,8 @@ function readSessionCache(scopeKey: string) {
   const parsed = readJsonStorage<{ timestamp: number; data: CityUpdateInfo[] } | null>(sessionStorage, cacheKey, null);
   if (!parsed) return null;
 
-  if (Date.now() - parsed.timestamp > CACHE_TTL || !Array.isArray(parsed.data)) {
+  if (!Number.isFinite(parsed.timestamp) || !Array.isArray(parsed.data)
+    || Date.now() - parsed.timestamp > CITY_UPDATES_STALE_TTL) {
     removeJsonStorage(sessionStorage, cacheKey);
     return null;
   }
@@ -42,13 +52,44 @@ function writeSessionCache(scopeKey: string, data: CityUpdateInfo[]) {
     timestamp: Date.now(),
     data,
   });
+  pruneSessionCache();
+}
+
+function pruneSessionCache() {
+  if (typeof window === 'undefined') return;
+
+  try {
+    const validEntries: Array<{ key: string; timestamp: number }> = [];
+    for (let index = sessionStorage.length - 1; index >= 0; index -= 1) {
+      const key = sessionStorage.key(index);
+      if (!key?.startsWith(`${SESSION_CACHE_KEY_PREFIX}:`)) continue;
+
+      const entry = readJsonStorage<{ timestamp?: number; data?: unknown } | null>(sessionStorage, key, null);
+      if (!entry || !Number.isFinite(entry.timestamp) || !Array.isArray(entry.data)
+        || Date.now() - Number(entry.timestamp) > CITY_UPDATES_STALE_TTL) {
+        removeJsonStorage(sessionStorage, key);
+        continue;
+      }
+
+      validEntries.push({ key, timestamp: Number(entry.timestamp) });
+    }
+
+    validEntries.sort((a, b) => b.timestamp - a.timestamp);
+    for (const entry of validEntries.slice(SESSION_CACHE_MAX_ENTRIES)) {
+      removeJsonStorage(sessionStorage, entry.key);
+    }
+  } catch {
+    // Storage is optional; privacy/quota errors must not block the dashboard.
+  }
 }
 
 export function useCityLastUpdates() {
   const { hasResolved, isAuthenticated, profile, currentUser } = useAppBootstrap();
   const scopeKey = createAccessScopeKey(currentUser, profile?.organization_id) || 'no-user';
   const sessionCacheRef = useRef<{ scopeKey: string; value: ReturnType<typeof readSessionCache> } | null>(null);
-  const cachedEntry = globalCache.get(scopeKey);
+  const cachedData = getTimedCacheValue(globalCache, scopeKey, CITY_UPDATES_CACHE_POLICY);
+  const staleCachedData = cachedData
+    || getTimedCacheValue(globalCache, scopeKey, CITY_UPDATES_CACHE_POLICY, true);
   const sessionCache = sessionCacheRef.current?.scopeKey === scopeKey
     ? sessionCacheRef.current.value
     : readSessionCache(scopeKey);
@@ -57,11 +98,9 @@ export function useCityLastUpdates() {
     sessionCacheRef.current = { scopeKey, value: sessionCache };
   }
 
-  const initialCache = cachedEntry?.data || sessionCache?.data || [];
-  const hasFreshInitialCache = Boolean(
-    (cachedEntry && Date.now() - cachedEntry.timestamp < CACHE_TTL)
-    || sessionCache
-  );
+  const initialCache = staleCachedData || sessionCache?.data || [];
+  const hasFreshSessionCache = Boolean(sessionCache && Date.now() - sessionCache.timestamp <= CACHE_TTL);
+  const hasFreshInitialCache = Boolean(cachedData || hasFreshSessionCache);
 
   const [data, setData] = useState<CityUpdateInfo[]>(initialCache);
   const [dataScopeKey, setDataScopeKey] = useState<string | null>(hasFreshInitialCache ? scopeKey : null);
@@ -90,17 +129,21 @@ export function useCityLastUpdates() {
         ? sessionCacheRef.current.value
         : readSessionCache(scopeKey);
 
-      if (!globalCache.has(scopeKey) && currentSessionCache?.data) {
-        globalCache.set(scopeKey, {
+      let freshCache = getTimedCacheValue(globalCache, scopeKey, CITY_UPDATES_CACHE_POLICY);
+      let visibleCache = freshCache || getTimedCacheValue(globalCache, scopeKey, CITY_UPDATES_CACHE_POLICY, true);
+
+      if (currentSessionCache?.data && !visibleCache) {
+        rememberTimedCacheEntry(globalCache, scopeKey, {
           data: currentSessionCache.data,
           timestamp: currentSessionCache.timestamp,
-        });
+        }, CITY_UPDATES_CACHE_POLICY);
+        freshCache = getTimedCacheValue(globalCache, scopeKey, CITY_UPDATES_CACHE_POLICY);
+        visibleCache = freshCache || getTimedCacheValue(globalCache, scopeKey, CITY_UPDATES_CACHE_POLICY, true);
       }
 
-      const currentCache = globalCache.get(scopeKey);
-      if (currentCache && Date.now() - currentCache.timestamp < CACHE_TTL) {
+      if (freshCache) {
         if (mounted) {
-          setData(currentCache.data);
+          setData(freshCache);
           setDataScopeKey(scopeKey);
           setLoading(false);
         }
@@ -108,7 +151,7 @@ export function useCityLastUpdates() {
       }
 
       if (mounted) {
-        setData(currentCache?.data || []);
+        setData(visibleCache || currentSessionCache?.data || []);
         setDataScopeKey(scopeKey);
         setLoading(true);
       }
@@ -125,15 +168,12 @@ export function useCityLastUpdates() {
 
             if (data) {
               const nextData = data as CityUpdateInfo[];
-              globalCache.set(scopeKey, {
-                data: nextData,
-                timestamp: Date.now(),
-              });
+              setTimedCacheValue(globalCache, scopeKey, nextData, CITY_UPDATES_CACHE_POLICY);
               writeSessionCache(scopeKey, nextData);
             }
 
             globalPromises.delete(scopeKey);
-            return globalCache.get(scopeKey)?.data || null;
+            return getTimedCacheValue(globalCache, scopeKey, CITY_UPDATES_CACHE_POLICY);
           } catch (err: unknown) {
             safeLog.error('Unexpected error fetching updates:', err);
             globalPromises.delete(scopeKey);

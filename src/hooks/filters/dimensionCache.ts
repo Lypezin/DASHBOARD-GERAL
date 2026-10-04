@@ -4,6 +4,7 @@ import { readJsonStorage, removeJsonStorage, writeJsonStorage } from '@/utils/st
 const CACHE_DURATION = 1000 * 60 * 30;
 const MAX_DIMENSION_CACHE_ENTRIES = 24;
 export const dimensionMemoryCache = new Map<string, DimensionCacheEntry>();
+const dimensionRequests = new Map<string, Promise<DimensionCacheEntry>>();
 
 export interface DimensionCacheEntry {
     timestamp: number;
@@ -13,7 +14,48 @@ export interface DimensionCacheEntry {
 }
 
 export function isValidCacheEntry(entry?: DimensionCacheEntry | null): entry is DimensionCacheEntry {
-    return !!entry && Date.now() - entry.timestamp < CACHE_DURATION;
+    const now = Date.now();
+    return !!entry
+        && Number.isFinite(entry.timestamp)
+        && entry.timestamp <= now
+        && now - entry.timestamp < CACHE_DURATION;
+}
+
+function isValidCacheShape(value: unknown): value is DimensionCacheEntry {
+    if (!value || typeof value !== 'object') return false;
+    const entry = value as Partial<DimensionCacheEntry>;
+    const isOptionList = (options: unknown) => Array.isArray(options)
+        && options.every((option) => option
+            && typeof option === 'object'
+            && typeof (option as { value?: unknown }).value === 'string'
+            && typeof (option as { label?: unknown }).label === 'string');
+
+    return typeof entry.timestamp === 'number'
+        && Number.isFinite(entry.timestamp)
+        && entry.timestamp >= 0
+        && entry.timestamp <= Date.now()
+        && isOptionList(entry.subPracas)
+        && isOptionList(entry.origens)
+        && isOptionList(entry.turnos);
+}
+
+function touchDimensionCache(key: string, entry: DimensionCacheEntry) {
+    dimensionMemoryCache.delete(key);
+    dimensionMemoryCache.set(key, entry);
+}
+
+export function fetchDimensionOptionsWithDedupe(
+    key: string,
+    fetcher: () => Promise<DimensionCacheEntry>
+) {
+    const existing = dimensionRequests.get(key);
+    if (existing) return existing;
+
+    const request = fetcher().finally(() => {
+        if (dimensionRequests.get(key) === request) dimensionRequests.delete(key);
+    });
+    dimensionRequests.set(key, request);
+    return request;
 }
 
 export function getStorageKey(key: string) {
@@ -46,16 +88,18 @@ export function readCachedOptions(key: string, allowStale = false): DimensionCac
     cleanupDimensionCache(!allowStale);
 
     const memoryEntry = dimensionMemoryCache.get(key);
-    if (memoryEntry && (allowStale || isValidCacheEntry(memoryEntry))) return memoryEntry;
+    if (memoryEntry && isValidCacheShape(memoryEntry) && (allowStale || isValidCacheEntry(memoryEntry))) {
+        touchDimensionCache(key, memoryEntry);
+        return memoryEntry;
+    }
+    if (memoryEntry) dimensionMemoryCache.delete(key);
 
     if (typeof sessionStorage === 'undefined') return null;
 
     const entry = readJsonStorage<DimensionCacheEntry | null>(sessionStorage, getStorageKey(key), null);
-    const hasValidShape = !!entry && typeof entry.timestamp === 'number'
-        && Array.isArray(entry.subPracas) && Array.isArray(entry.origens) && Array.isArray(entry.turnos);
-
-    if (hasValidShape && (allowStale || isValidCacheEntry(entry))) {
-        dimensionMemoryCache.set(key, entry);
+    if (isValidCacheShape(entry) && (allowStale || isValidCacheEntry(entry))) {
+        touchDimensionCache(key, entry);
+        cleanupDimensionCache(!allowStale);
         return entry;
     }
 
@@ -66,7 +110,8 @@ export function readCachedOptions(key: string, allowStale = false): DimensionCac
 
 export function writeCachedOptions(key: string, entry: DimensionCacheEntry) {
     cleanupDimensionCache();
-    dimensionMemoryCache.set(key, entry);
+    touchDimensionCache(key, entry);
+    cleanupDimensionCache();
 
     if (typeof sessionStorage === 'undefined') return;
 

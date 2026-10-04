@@ -6,6 +6,7 @@ import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { safeLog } from '@/lib/errorHandler';
 import type { EvolucaoMensal, EvolucaoSemanal, UtrSemanal } from '@/types';
 import type { FilterPayload } from '@/types/filters';
+import { getTimedCacheValue, setTimedCacheValue, type TimedCacheEntry } from '@/utils/cache/timedLruCache';
 import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
 import { createRequestKey } from '@/utils/request/createRequestKey';
 import { fetchDashboardEvolucaoData } from './utils/fetchEvolucao';
@@ -13,7 +14,6 @@ import { fetchDashboardEvolucaoData } from './utils/fetchEvolucao';
 interface UseDashboardEvolucaoOptions {
   filterPayload: FilterPayload;
   anoEvolucao: number;
-  activeTab: string;
 }
 
 interface EvolucaoRequestData {
@@ -22,37 +22,11 @@ interface EvolucaoRequestData {
   utrData: UtrSemanal[];
 }
 
-interface EvolucaoCacheEntry extends EvolucaoRequestData {
-  cachedAt: number;
-}
-
-const evolucaoCache = new Map<string, EvolucaoCacheEntry>();
+const evolucaoCache = new Map<string, TimedCacheEntry<EvolucaoRequestData>>();
 const evolucaoInFlight = new Map<string, Promise<EvolucaoRequestData>>();
+const evolucaoCachePolicy = { ttlMs: CACHE.EVOLUCAO_TTL, maxEntries: 12 } as const;
 
-function pruneEvolucaoCache() {
-  const now = Date.now();
-
-  for (const [key, value] of evolucaoCache.entries()) {
-    if (now - value.cachedAt > CACHE.EVOLUCAO_TTL) {
-      evolucaoCache.delete(key);
-    }
-  }
-}
-
-function getCachedEvolucao(signature: string) {
-  const cached = evolucaoCache.get(signature);
-
-  if (!cached) return null;
-
-  if (Date.now() - cached.cachedAt > CACHE.EVOLUCAO_TTL) {
-    evolucaoCache.delete(signature);
-    return null;
-  }
-
-  return cached;
-}
-
-export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: UseDashboardEvolucaoOptions) {
+export function useDashboardEvolucao({ filterPayload, anoEvolucao }: UseDashboardEvolucaoOptions) {
   const [evolucaoMensal, setEvolucaoMensal] = useState<EvolucaoMensal[]>([]);
   const [evolucaoSemanal, setEvolucaoSemanal] = useState<EvolucaoSemanal[]>([]);
   const [utrSemanal, setUtrSemanal] = useState<UtrSemanal[]>([]);
@@ -62,8 +36,8 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
 
   const { organizationId, isLoading: isOrgLoading } = useOrganization();
   const { currentUser } = useAppBootstrap();
-  const lastFetchSignature = useRef<string | null>(null);
   const [resolvedSignature, setResolvedSignature] = useState<string | null>(null);
+  const [dataSignature, setDataSignature] = useState<string | null>(null);
   const [dataOrganizationId, setDataOrganizationId] = useState<string | null>(null);
   const [dataAccessScopeKey, setDataAccessScopeKey] = useState<string | null>(null);
   const stableFilterPayloadRef = useRef<{ key: string; payload: FilterPayload } | null>(null);
@@ -76,7 +50,6 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
     ? stableFilterPayload.p_organization_id.trim() || organizationId || null
     : organizationId || null;
   const accessScopeKey = createAccessScopeKey(currentUser, currentOrganizationId);
-  const needsEvolucao = activeTab === 'evolucao' || activeTab === 'dashboard' || activeTab === 'utr';
   const currentSignature = createRequestKey({
     filterPayload: stableFilterPayload,
     organizationId: currentOrganizationId,
@@ -87,15 +60,12 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
   useEffect(() => {
     if (isOrgLoading) return;
 
-    if (!needsEvolucao) return;
     if (!anoEvolucao) {
       setLoading(false);
       return;
     }
 
-    pruneEvolucaoCache();
-
-    const cachedData = getCachedEvolucao(currentSignature);
+    const cachedData = getTimedCacheValue(evolucaoCache, currentSignature, evolucaoCachePolicy);
 
     if (cachedData) {
       setEvolucaoMensal(cachedData.mensalData);
@@ -104,17 +74,9 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
       setError(null);
       setLoading(false);
       setResolvedSignature(currentSignature);
+      setDataSignature(currentSignature);
       setDataOrganizationId(currentOrganizationId);
       setDataAccessScopeKey(accessScopeKey);
-      lastFetchSignature.current = currentSignature;
-      return;
-    }
-
-    if (
-      lastFetchSignature.current === currentSignature &&
-      (evolucaoMensal.length > 0 || evolucaoSemanal.length > 0 || utrSemanal.length > 0)
-    ) {
-      setResolvedSignature(currentSignature);
       return;
     }
 
@@ -128,24 +90,21 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
         let request = evolucaoInFlight.get(currentSignature);
 
         if (!request) {
-          request = fetchDashboardEvolucaoData(stableFilterPayload, anoEvolucao, activeTab);
+          request = fetchDashboardEvolucaoData(stableFilterPayload, anoEvolucao);
           evolucaoInFlight.set(currentSignature, request);
         }
 
         const result = await request;
 
-        evolucaoCache.set(currentSignature, {
-          ...result,
-          cachedAt: Date.now()
-        });
+        setTimedCacheValue(evolucaoCache, currentSignature, result, evolucaoCachePolicy);
 
         if (!mounted) return;
 
         setEvolucaoMensal(result.mensalData);
         setEvolucaoSemanal(result.semanalData);
         setUtrSemanal(result.utrData);
-        lastFetchSignature.current = currentSignature;
         setResolvedSignature(currentSignature);
+        setDataSignature(currentSignature);
         setDataOrganizationId(currentOrganizationId);
         setDataAccessScopeKey(accessScopeKey);
       } catch (err: unknown) {
@@ -153,7 +112,6 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
           safeLog.error('[useDashboardEvolucao] Erro ao buscar evolucao:', err);
           setError(err instanceof Error ? err : new Error('Erro desconhecido'));
           setResolvedSignature(currentSignature);
-          setDataOrganizationId(currentOrganizationId);
         }
       } finally {
         evolucaoInFlight.delete(currentSignature);
@@ -161,7 +119,8 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
       }
     };
 
-    const hasVisibleData = dataOrganizationId === currentOrganizationId
+    const hasVisibleData = dataSignature === currentSignature
+      && dataOrganizationId === currentOrganizationId
       && dataAccessScopeKey === accessScopeKey
       && (evolucaoMensal.length > 0 || evolucaoSemanal.length > 0 || utrSemanal.length > 0);
     const timeoutId = setTimeout(fetchEvolucao, hasVisibleData ? DELAYS.DEBOUNCE : 0);
@@ -170,7 +129,7 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
       mounted = false;
       clearTimeout(timeoutId);
     };
-  }, [accessScopeKey, activeTab, anoEvolucao, currentOrganizationId, currentSignature, dataAccessScopeKey, dataOrganizationId, filterPayloadKey, isOrgLoading, needsEvolucao, refreshVersion, stableFilterPayload, evolucaoMensal.length, evolucaoSemanal.length, utrSemanal.length]);
+  }, [accessScopeKey, anoEvolucao, currentOrganizationId, currentSignature, dataAccessScopeKey, dataOrganizationId, dataSignature, filterPayloadKey, isOrgLoading, refreshVersion, stableFilterPayload, evolucaoMensal.length, evolucaoSemanal.length, utrSemanal.length]);
 
   const refetch = useCallback(() => {
     const payload = stableFilterPayloadRef.current?.payload || filterPayload;
@@ -179,21 +138,22 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao, activeTab }: 
       : organizationId || null;
     const signature = createRequestKey({ filterPayload: payload, organizationId: scopeOrganizationId, accessScopeKey, anoEvolucao });
     evolucaoCache.delete(signature);
-    lastFetchSignature.current = null;
     setResolvedSignature(null);
     setRefreshVersion((version) => version + 1);
   }, [accessScopeKey, anoEvolucao, filterPayload, organizationId]);
 
-  const canShowCurrentScopeData = dataOrganizationId === currentOrganizationId
-    && dataAccessScopeKey === accessScopeKey;
-  const isWaitingForCurrentRequest = needsEvolucao && Boolean(anoEvolucao)
+  const isWaitingForCurrentRequest = Boolean(anoEvolucao)
     && (isOrgLoading || resolvedSignature !== currentSignature);
+  const canShowCurrentRequestData = dataSignature === currentSignature
+    && dataOrganizationId === currentOrganizationId
+    && dataAccessScopeKey === accessScopeKey;
 
   return {
-    evolucaoMensal: canShowCurrentScopeData ? evolucaoMensal : [],
-    evolucaoSemanal: canShowCurrentScopeData ? evolucaoSemanal : [],
-    utrSemanal: canShowCurrentScopeData ? utrSemanal : [],
-    loading: (needsEvolucao && loading) || isWaitingForCurrentRequest,
+    evolucaoMensal: canShowCurrentRequestData ? evolucaoMensal : [],
+    evolucaoSemanal: canShowCurrentRequestData ? evolucaoSemanal : [],
+    utrSemanal: canShowCurrentRequestData ? utrSemanal : [],
+    hasCurrentData: canShowCurrentRequestData,
+    loading: loading || isWaitingForCurrentRequest,
     error: resolvedSignature === currentSignature ? error : null,
     refetch
   };

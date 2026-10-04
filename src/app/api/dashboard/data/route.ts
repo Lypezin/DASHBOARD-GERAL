@@ -110,6 +110,13 @@ export async function POST(request: Request) {
         }
 
         const message = error instanceof Error ? error.message : 'Erro ao consultar dados do dashboard.';
-        return NextResponse.json({ data: null, error: message }, { status: 500 });
+        const errorCode = error && typeof error === 'object' && 'code' in error
+            ? (error as { code?: unknown }).code
+            : null;
+        const sqlState = typeof errorCode === 'string' && /^[0-9A-Z]{5}$/.test(errorCode)
+            ? errorCode
+            : undefined;
+
+        return NextResponse.json({ data: null, error: message, ...(sqlState ? { code: sqlState } : {}) }, { status: 500 });
     }
 }

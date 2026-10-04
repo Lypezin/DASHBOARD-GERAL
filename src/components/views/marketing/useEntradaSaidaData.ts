@@ -6,11 +6,20 @@ import { processFluxoData, FluxoEntregadores } from './utils/processFluxoData';
 import { readJsonStorage, removeJsonStorage, writeJsonStorage } from '@/utils/storage/jsonStorage';
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
+import {
+    getTimedCacheValue,
+    rememberTimedCacheEntry,
+    setTimedCacheValue,
+    type TimedCacheEntry,
+} from '@/utils/cache/timedLruCache';
 
-const CACHE_TTL_MS = 1000 * 60 * 15;
-const STALE_CACHE_TTL_MS = 1000 * 60 * 60;
+const FLUXO_CACHE_POLICY = {
+    ttlMs: 1000 * 60 * 15,
+    staleTtlMs: 1000 * 60 * 60,
+    maxEntries: 12,
+} as const;
 const STORAGE_CACHE_KEY = 'marketing_fluxo_cache_v2';
-const fluxoCache = new Map<string, { timestamp: number; data: FluxoEntregadores[] }>();
+const fluxoCache = new Map<string, TimedCacheEntry<FluxoEntregadores[]>>();
 const inFlightRequests = new Map<string, Promise<FluxoEntregadores[]>>();
 
 interface UseEntradaSaidaDataProps {
@@ -122,7 +131,7 @@ export function useEntradaSaidaData({
                 if (cancelled) return;
 
                 safeLog.error('Erro ao buscar fluxo de entregadores:', err);
-                const fallback = fluxoCache.get(cacheKey)?.data;
+                const fallback = readFluxoCache(cacheKey, true);
 
                 if (fallback) {
                     setData(fallback);
@@ -177,18 +186,14 @@ function getCachedFluxo(cacheKey: string) {
 }
 
 function readFluxoCache(cacheKey: string, allowStale: boolean) {
-    const cached = fluxoCache.get(cacheKey) || readPersistedFluxo(cacheKey);
-    if (!cached) return null;
+    const cached = getTimedCacheValue(fluxoCache, cacheKey, FLUXO_CACHE_POLICY, allowStale);
+    if (cached) return cached;
 
-    const maxAge = allowStale ? STALE_CACHE_TTL_MS : CACHE_TTL_MS;
-    if (Date.now() - cached.timestamp > maxAge) {
-        fluxoCache.delete(cacheKey);
-        removePersistedFluxo(cacheKey);
-        return null;
-    }
+    const persisted = readPersistedFluxo(cacheKey);
+    if (!persisted) return null;
 
-    fluxoCache.set(cacheKey, cached);
-    return cached.data;
+    rememberTimedCacheEntry(fluxoCache, cacheKey, persisted, FLUXO_CACHE_POLICY);
+    return getTimedCacheValue(fluxoCache, cacheKey, FLUXO_CACHE_POLICY, allowStale);
 }
 
 type FluxoFetchParams = {
@@ -215,10 +220,7 @@ async function fetchFluxo(cacheKey: string, params: FluxoFetchParams) {
     const rawData = await fetchFluxoSemanal(params);
     const filteredData = processFluxoData(rawData);
 
-    fluxoCache.set(cacheKey, {
-        timestamp: Date.now(),
-        data: filteredData
-    });
+    setTimedCacheValue(fluxoCache, cacheKey, filteredData, FLUXO_CACHE_POLICY);
     writePersistedFluxo(cacheKey, filteredData);
 
     return filteredData;
@@ -227,17 +229,24 @@ async function fetchFluxo(cacheKey: string, params: FluxoFetchParams) {
 function getPersistedFluxoCache() {
     if (typeof sessionStorage === 'undefined') return {};
 
-    return readJsonStorage<Record<string, { timestamp: number; data: FluxoEntregadores[] }>>(
+    const cached = readJsonStorage<Record<string, TimedCacheEntry<FluxoEntregadores[]>>>(
         sessionStorage,
         STORAGE_CACHE_KEY,
         {}
     ) || {};
+
+    return typeof cached === 'object' && !Array.isArray(cached) ? cached : {};
 }
 
 function readPersistedFluxo(cacheKey: string) {
     const cache = getPersistedFluxoCache();
     const entry = cache[cacheKey];
     if (!entry || !Array.isArray(entry.data) || typeof entry.timestamp !== 'number') {
+        return null;
+    }
+
+    if (Date.now() - entry.timestamp > FLUXO_CACHE_POLICY.staleTtlMs) {
+        removePersistedFluxo(cacheKey);
         return null;
     }
 
@@ -251,8 +260,12 @@ function writePersistedFluxo(cacheKey: string, data: FluxoEntregadores[]) {
     cache[cacheKey] = { timestamp: Date.now(), data };
 
     const entries = Object.entries(cache)
+        .filter(([, entry]) => entry
+            && Array.isArray(entry.data)
+            && typeof entry.timestamp === 'number'
+            && Date.now() - entry.timestamp <= FLUXO_CACHE_POLICY.staleTtlMs)
         .sort(([, a], [, b]) => b.timestamp - a.timestamp)
-        .slice(0, 12);
+        .slice(0, FLUXO_CACHE_POLICY.maxEntries);
 
     writeJsonStorage(sessionStorage, STORAGE_CACHE_KEY, Object.fromEntries(entries));
 }
@@ -264,5 +277,12 @@ function removePersistedFluxo(cacheKey: string) {
     if (!(cacheKey in cache)) return;
 
     delete cache[cacheKey];
-    writeJsonStorage(sessionStorage, STORAGE_CACHE_KEY, cache);
+    const entries = Object.entries(cache)
+        .filter(([, entry]) => entry
+            && Array.isArray(entry.data)
+            && typeof entry.timestamp === 'number'
+            && Date.now() - entry.timestamp <= FLUXO_CACHE_POLICY.staleTtlMs)
+        .sort(([, a], [, b]) => b.timestamp - a.timestamp)
+        .slice(0, FLUXO_CACHE_POLICY.maxEntries);
+    writeJsonStorage(sessionStorage, STORAGE_CACHE_KEY, Object.fromEntries(entries));
 }

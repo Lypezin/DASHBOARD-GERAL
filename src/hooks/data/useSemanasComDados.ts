@@ -3,10 +3,12 @@ import { safeLog } from '@/lib/errorHandler';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { IS_DEV } from '@/constants/environment';
+import { getTimedCacheValue, setTimedCacheValue, type TimedCacheEntry } from '@/utils/cache/timedLruCache';
 
 const WEEKS_CACHE_TTL_MS = 5 * 60 * 1000;
+const WEEKS_CACHE_POLICY = { ttlMs: WEEKS_CACHE_TTL_MS, maxEntries: 12 } as const;
 
-const weeksCache = new Map<string, { data: number[]; expiresAt: number }>();
+const weeksCache = new Map<string, TimedCacheEntry<number[]>>();
 const weeksRequests = new Map<string, Promise<number[]>>();
 
 /**
@@ -90,21 +92,12 @@ export function useSemanasComDados(ano: number | null) {
 
 function getCachedAvailableWeeks(ano: number, organizationId?: string | null) {
     const cacheKey = `${organizationId || 'no-org'}:${ano}`;
-    const cached = weeksCache.get(cacheKey);
-
-    if (cached && cached.expiresAt > Date.now()) {
-        return cached.data;
-    }
-
-    return null;
+    return getTimedCacheValue(weeksCache, cacheKey, WEEKS_CACHE_POLICY);
 }
 async function fetchAvailableWeeks(ano: number, organizationId?: string | null) {
     const cacheKey = `${organizationId || 'no-org'}:${ano}`;
-    const cached = weeksCache.get(cacheKey);
-
-    if (cached && cached.expiresAt > Date.now()) {
-        return cached.data;
-    }
+    const cached = getTimedCacheValue(weeksCache, cacheKey, WEEKS_CACHE_POLICY);
+    if (cached) return cached;
 
     const activeRequest = weeksRequests.get(cacheKey);
     if (activeRequest) return activeRequest;
@@ -137,10 +130,7 @@ async function fetchAvailableWeeks(ano: number, organizationId?: string | null) 
 
         const uniqueWeeks = Array.from(new Set(semanasOtimizadas)).sort((a, b) => a - b);
 
-        weeksCache.set(cacheKey, {
-            data: uniqueWeeks,
-            expiresAt: Date.now() + WEEKS_CACHE_TTL_MS,
-        });
+        setTimedCacheValue(weeksCache, cacheKey, uniqueWeeks, WEEKS_CACHE_POLICY);
 
         return uniqueWeeks;
     })().finally(() => {

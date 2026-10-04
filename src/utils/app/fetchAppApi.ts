@@ -6,9 +6,14 @@ type ApiErrorShape = {
     code?: string | null;
 };
 
-const inFlightGetRequests = new Map<string, Promise<{ data: unknown | null; error: string | null }>>();
+type AppApiGetResult = { data: unknown | null; error: string | null };
+type InFlightGetRequest = {
+    promise: Promise<AppApiGetResult> | null;
+    invalidated: boolean;
+};
+
+const inFlightGetRequests = new Map<string, InFlightGetRequest>();
 const completedGetCache = new Map<string, { data: unknown | null; expiresAt: number }>();
-const getCacheEpochByPath = new Map<string, number>();
 const COMPLETED_GET_CACHE_TTL_MS = 10_000;
 const MAX_COMPLETED_GET_CACHE_ENTRIES = 128;
 const CURRENT_USER_PROFILE_PATH = '/api/app/current-user-profile';
@@ -30,9 +35,6 @@ function invalidateCachedGetPaths(paths: string[]) {
     if (paths.length === 0) return;
 
     const pathsToInvalidate = new Set(paths.map((path) => path.split('?')[0]));
-    for (const path of pathsToInvalidate) {
-        getCacheEpochByPath.set(path, (getCacheEpochByPath.get(path) || 0) + 1);
-    }
 
     for (const cacheKey of completedGetCache.keys()) {
         const separatorIndex = cacheKey.indexOf('\u001f');
@@ -45,7 +47,7 @@ function invalidateCachedGetPaths(paths: string[]) {
         }
     }
 
-    for (const cacheKey of inFlightGetRequests.keys()) {
+    for (const [cacheKey, request] of inFlightGetRequests) {
         const separatorIndex = cacheKey.indexOf('\u001f');
         const cachedPath = separatorIndex >= 0
             ? cacheKey.slice(separatorIndex + 1).split('?')[0]
@@ -54,6 +56,7 @@ function invalidateCachedGetPaths(paths: string[]) {
         if (pathsToInvalidate.has(cachedPath)) {
             // Let the old caller receive its response, but keep later callers
             // from joining it or allowing it to repopulate the fresh cache.
+            request.invalidated = true;
             inFlightGetRequests.delete(cacheKey);
         }
     }
@@ -131,12 +134,12 @@ export async function getAppApiData<T>(
 
     const existingRequest = cacheKey ? inFlightGetRequests.get(cacheKey) : null;
 
-    if (existingRequest) {
-        return existingRequest as Promise<{ data: T | null; error: string | null }>;
+    if (existingRequest?.promise) {
+        return existingRequest.promise as Promise<{ data: T | null; error: string | null }>;
     }
 
     const normalizedPath = path.split('?')[0];
-    const cacheEpochAtStart = getCacheEpochByPath.get(normalizedPath) || 0;
+    const requestState: InFlightGetRequest = { promise: null, invalidated: false };
     const request = (async (): Promise<{ data: T | null; error: string | null }> => {
         const response = await fetch(path, {
             method: 'GET',
@@ -165,7 +168,7 @@ export async function getAppApiData<T>(
         }
 
         const data = (payload?.data ?? null) as T | null;
-        if (cacheKey && (getCacheEpochByPath.get(normalizedPath) || 0) === cacheEpochAtStart) {
+        if (cacheKey && !requestState.invalidated) {
             pruneCompletedGetCache(Date.now(), true);
             completedGetCache.set(cacheKey, {
                 data,
@@ -175,13 +178,14 @@ export async function getAppApiData<T>(
 
         return { data, error: null };
     })().finally(() => {
-        if (cacheKey && inFlightGetRequests.get(cacheKey) === request) {
+        if (cacheKey && inFlightGetRequests.get(cacheKey) === requestState) {
             inFlightGetRequests.delete(cacheKey);
         }
     });
 
     if (cacheKey) {
-        inFlightGetRequests.set(cacheKey, request as Promise<{ data: unknown | null; error: string | null }>);
+        requestState.promise = request as Promise<AppApiGetResult>;
+        inFlightGetRequests.set(cacheKey, requestState);
     }
     return request;
 }

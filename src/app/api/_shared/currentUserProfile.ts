@@ -2,6 +2,7 @@ import { loadAuthenticatedUser } from './authenticatedUser';
 import { createServiceRoleClient } from '@/utils/supabase/admin';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { safeLog } from '@/lib/errorHandler';
+import { getTimedCacheValue, setTimedCacheValue, type TimedCacheEntry } from '@/utils/cache/timedLruCache';
 
 export type CurrentUserProfile = {
   id?: string;
@@ -38,7 +39,8 @@ type LoadCurrentUserProfileResult =
 
 const PROFILE_SELECT = 'id, email, full_name, role, is_admin, is_approved, organization_id, assigned_pracas, avatar_url, created_at, updated_at';
 const PROFILE_CACHE_TTL_MS = 10_000;
-const profileCache = new Map<string, { profile: CurrentUserProfile; expiresAt: number }>();
+const PROFILE_CACHE_POLICY = { ttlMs: PROFILE_CACHE_TTL_MS, maxEntries: 512 } as const;
+const profileCache = new Map<string, TimedCacheEntry<CurrentUserProfile>>();
 const inFlightProfileRequests = new Map<string, Promise<{ profile: CurrentUserProfile | null; error: unknown }>>();
 
 function createSessionProfileClient(accessToken: string) {
@@ -132,11 +134,9 @@ export async function loadCurrentUserProfile(
     return { failure: auth.failure };
   }
 
-  const cachedProfile = profileCache.get(auth.user.id);
-
-  if (cachedProfile && cachedProfile.expiresAt > Date.now()) {
-    const profile = cachedProfile.profile;
-
+  const cachedProfile = getTimedCacheValue(profileCache, auth.user.id, PROFILE_CACHE_POLICY);
+  if (cachedProfile) {
+    const profile = cachedProfile;
     if (requireApproved && profile.is_approved !== true) {
       return {
         failure: {
@@ -156,10 +156,6 @@ export async function loadCurrentUserProfile(
     }
 
     return { profile };
-  }
-
-  if (cachedProfile) {
-    profileCache.delete(auth.user.id);
   }
 
   const existingProfileRequest = inFlightProfileRequests.get(auth.user.id);
@@ -294,10 +290,7 @@ export async function loadCurrentUserProfile(
     };
   }
 
-  profileCache.set(auth.user.id, {
-    profile,
-    expiresAt: Date.now() + PROFILE_CACHE_TTL_MS,
-  });
+  setTimedCacheValue(profileCache, auth.user.id, profile, PROFILE_CACHE_POLICY);
 
   return { profile };
 }

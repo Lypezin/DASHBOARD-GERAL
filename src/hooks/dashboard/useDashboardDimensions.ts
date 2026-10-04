@@ -8,6 +8,7 @@ import { scheduleIdleTask } from '@/utils/scheduling/idleTask';
 
 const CACHE_KEY = 'dashboard_dimensions_cache_v8';
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hora
+const MAX_DIMENSION_SESSION_ENTRIES = 12;
 export const DEFAULT_YEARS = buildFallbackYears();
 const EMPTY_DIMENSIONS: DimensoesDashboard = {
   anos: DEFAULT_YEARS,
@@ -179,37 +180,40 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
   }, [cacheScopeKey, fetchRemote, organizationId, retryIndex]);
 
   const hasCurrentScope = resolvedCacheScopeKey === cacheScopeKey;
+  const hasCurrentScopeError = dimensionsError?.scopeKey === cacheScopeKey;
 
   return {
     anosDisponiveis: hasCurrentScope ? anosDisponiveis : DEFAULT_YEARS,
     semanasDisponiveis: hasCurrentScope ? semanasDisponiveis : [],
     dimensoes: hasCurrentScope ? outrasDimensoes : null,
-    loadingDimensions: loading || !hasCurrentScope,
-    dimensionsError: dimensionsError?.scopeKey === cacheScopeKey ? dimensionsError.message : null,
+    // A scope that failed its initial request cannot become "resolved", but
+    // it must also stop reporting an endless loading state. Keep new scopes
+    // loading until their request settles; expose a settled error for this one.
+    loadingDimensions: loading || (!hasCurrentScope && !hasCurrentScopeError),
+    dimensionsError: hasCurrentScopeError ? dimensionsError.message : null,
     retryDimensions: retry,
   };
 }
 
 function readCachedDimensions(cacheScopeKey: string): { data: DimensoesDashboard; isFresh: boolean } | null {
   if (typeof sessionStorage === 'undefined') return null;
+  pruneStoredDimensions();
 
-  const cached = readJsonStorage<{ timestamp?: number; data?: Partial<DimensoesDashboard> } | null>(
+  const cached = readJsonStorage<unknown | null>(
     sessionStorage,
     `${CACHE_KEY}:${cacheScopeKey}`,
     null
   );
   if (!cached) return null;
 
-  const data = cached.data;
-  const hasValidTimestamp = typeof cached.timestamp === 'number' && cached.timestamp > 0;
-
-  if (hasValidTimestamp && data?.anos?.length && Array.isArray(data.pracas)) {
+  if (isStoredDimensionsEntry(cached)) {
+    const age = Date.now() - cached.timestamp;
     return {
-      isFresh: Date.now() - cached.timestamp! < CACHE_DURATION,
+      isFresh: age >= 0 && age < CACHE_DURATION,
       data: {
-      ...(data as DimensoesDashboard),
-      anos: resolveAvailableYears(Array.isArray(data.anos) ? data.anos : [])
-      }
+        ...cached.data,
+        anos: resolveAvailableYears(cached.data.anos),
+      },
     };
   }
 
@@ -217,11 +221,57 @@ function readCachedDimensions(cacheScopeKey: string): { data: DimensoesDashboard
   return null;
 }
 
+function isStoredDimensionsEntry(value: unknown): value is { timestamp: number; data: DimensoesDashboard } {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+
+  const entry = value as { timestamp?: unknown; data?: unknown };
+  if (typeof entry.timestamp !== 'number' || !Number.isFinite(entry.timestamp) || entry.timestamp <= 0) return false;
+  if (!entry.data || typeof entry.data !== 'object' || Array.isArray(entry.data)) return false;
+
+  const data = entry.data as Partial<DimensoesDashboard>;
+  return Array.isArray(data.anos) && data.anos.length > 0
+    && Array.isArray(data.semanas)
+    && Array.isArray(data.pracas)
+    && Array.isArray(data.sub_pracas)
+    && Array.isArray(data.origens)
+    && Array.isArray(data.turnos);
+}
+
+function pruneStoredDimensions() {
+  if (typeof sessionStorage === 'undefined') return;
+
+  try {
+    const validEntries: Array<{ key: string; timestamp: number }> = [];
+    const keyPrefix = `${CACHE_KEY}:`;
+
+    for (let index = sessionStorage.length - 1; index >= 0; index -= 1) {
+      const key = sessionStorage.key(index);
+      if (!key?.startsWith(keyPrefix)) continue;
+
+      const entry = readJsonStorage<unknown | null>(sessionStorage, key, null);
+      if (!isStoredDimensionsEntry(entry)) {
+        removeJsonStorage(sessionStorage, key);
+        continue;
+      }
+
+      validEntries.push({ key, timestamp: entry.timestamp });
+    }
+
+    validEntries.sort((a, b) => b.timestamp - a.timestamp);
+    for (const entry of validEntries.slice(MAX_DIMENSION_SESSION_ENTRIES)) {
+      removeJsonStorage(sessionStorage, entry.key);
+    }
+  } catch {
+    // O cache persistido é opcional; falhas de armazenamento não devem bloquear a tela.
+  }
+}
+
 export function writeCachedDimensions(data: DimensoesDashboard, cacheScopeKey = 'global') {
   if (typeof sessionStorage === 'undefined') return;
 
   try {
     writeJsonStorage(sessionStorage, `${CACHE_KEY}:${cacheScopeKey.trim() || 'global'}`, { timestamp: Date.now(), data });
+    pruneStoredDimensions();
   } catch {
     // Cache em sessionStorage e uma otimizaÃ§Ã£o opcional; falhas nao devem afetar o dashboard.
   }

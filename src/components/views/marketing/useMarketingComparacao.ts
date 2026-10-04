@@ -3,6 +3,7 @@ import type { CurrentUser } from '@/types';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { safeLog } from '@/lib/errorHandler';
 import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
+import { getTimedCacheValue, setTimedCacheValue, type TimedCacheEntry } from '@/utils/cache/timedLruCache';
 
 export interface MarketingComparisonData {
   semana_iso: string;
@@ -22,8 +23,8 @@ export interface MarketingComparisonData {
   entregadores_mkt: number;
 }
 
-const CACHE_TTL_MS = 5 * 60 * 1000;
-const comparisonCache = new Map<string, { timestamp: number; data: MarketingComparisonData[] }>();
+const COMPARISON_CACHE_POLICY = { ttlMs: 5 * 60 * 1000, maxEntries: 12 } as const;
+const comparisonCache = new Map<string, TimedCacheEntry<MarketingComparisonData[]>>();
 const comparisonRequests = new Map<string, Promise<MarketingComparisonData[]>>();
 
 function buildCacheKey(dataInicial: string, dataFinal: string, organizationId: string, praca: string | null, accessScopeKey: string) {
@@ -31,15 +32,7 @@ function buildCacheKey(dataInicial: string, dataFinal: string, organizationId: s
 }
 
 function getCachedValue(cacheKey: string) {
-  const cached = comparisonCache.get(cacheKey);
-  if (!cached) return null;
-
-  if (Date.now() - cached.timestamp > CACHE_TTL_MS) {
-    comparisonCache.delete(cacheKey);
-    return null;
-  }
-
-  return cached.data;
+  return getTimedCacheValue(comparisonCache, cacheKey, COMPARISON_CACHE_POLICY);
 }
 
 async function fetchMarketingComparison(cacheKey: string, params: Record<string, unknown>) {
@@ -62,10 +55,7 @@ async function fetchMarketingComparison(cacheKey: string, params: Record<string,
     }
 
     const normalized = result;
-    comparisonCache.set(cacheKey, {
-      timestamp: Date.now(),
-      data: normalized,
-    });
+    setTimedCacheValue(comparisonCache, cacheKey, normalized, COMPARISON_CACHE_POLICY);
 
     return normalized;
   })().finally(() => {

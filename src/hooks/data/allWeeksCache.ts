@@ -1,9 +1,18 @@
 import { safeRpc } from '@/lib/rpcWrapper';
 import { readJsonStorage, removeJsonStorage, writeJsonStorage } from '@/utils/storage/jsonStorage';
+import {
+  getTimedCacheValue,
+  rememberTimedCacheEntry,
+  setTimedCacheValue,
+  type TimedCacheEntry,
+} from '@/utils/cache/timedLruCache';
 
 const ALL_WEEKS_STORAGE_KEY = 'dashboard_all_weeks_cache_v2';
 const ALL_WEEKS_CACHE_TTL_MS = 1000 * 60 * 60;
-const allWeeksCache = new Map<string, { weeks: string[]; timestamp: number }>();
+const MAX_ALL_WEEKS_CACHE_ENTRIES = 12;
+const MAX_ALL_WEEKS_SESSION_ENTRIES = 12;
+const ALL_WEEKS_CACHE_POLICY = { ttlMs: ALL_WEEKS_CACHE_TTL_MS, maxEntries: MAX_ALL_WEEKS_CACHE_ENTRIES } as const;
+const allWeeksCache = new Map<string, TimedCacheEntry<string[]>>();
 const allWeeksRequests = new Map<string, Promise<string[]>>();
 
 function getAllWeeksCacheKey(organizationId?: string | null) {
@@ -28,14 +37,19 @@ function readStoredAllWeeks(organizationId?: string | null) {
   );
   if (!parsed) return null;
 
-  if (!parsed.timestamp || Date.now() - parsed.timestamp > ALL_WEEKS_CACHE_TTL_MS) {
+  if (!Number.isFinite(parsed.timestamp) || Date.now() - Number(parsed.timestamp) > ALL_WEEKS_CACHE_TTL_MS) {
     removeJsonStorage(sessionStorage, getStoredAllWeeksKey(organizationId));
     return null;
   }
 
   if (!Array.isArray(parsed.weeks)) return null;
   const weeks = parsed.weeks.map(String).filter(Boolean);
-  allWeeksCache.set(getAllWeeksCacheKey(organizationId), { weeks, timestamp: parsed.timestamp });
+  rememberTimedCacheEntry(
+    allWeeksCache,
+    getAllWeeksCacheKey(organizationId),
+    { data: weeks, timestamp: Number(parsed.timestamp) },
+    ALL_WEEKS_CACHE_POLICY
+  );
   return weeks;
 }
 
@@ -46,6 +60,35 @@ function writeStoredAllWeeks(weeks: string[], organizationId?: string | null) {
     timestamp: Date.now(),
     weeks,
   });
+  pruneStoredAllWeeks();
+}
+
+function pruneStoredAllWeeks() {
+  if (typeof sessionStorage === 'undefined') return;
+
+  try {
+    const validEntries: Array<{ key: string; timestamp: number }> = [];
+    for (let index = sessionStorage.length - 1; index >= 0; index -= 1) {
+      const key = sessionStorage.key(index);
+      if (!key?.startsWith(`${ALL_WEEKS_STORAGE_KEY}:`)) continue;
+
+      const entry = readJsonStorage<{ timestamp?: number; weeks?: unknown } | null>(sessionStorage, key, null);
+      if (!entry || !Number.isFinite(entry.timestamp) || !Array.isArray(entry.weeks)
+        || Date.now() - Number(entry.timestamp) > ALL_WEEKS_CACHE_TTL_MS) {
+        removeJsonStorage(sessionStorage, key);
+        continue;
+      }
+
+      validEntries.push({ key, timestamp: Number(entry.timestamp) });
+    }
+
+    validEntries.sort((a, b) => b.timestamp - a.timestamp);
+    for (const entry of validEntries.slice(MAX_ALL_WEEKS_SESSION_ENTRIES)) {
+      removeJsonStorage(sessionStorage, entry.key);
+    }
+  } catch {
+    // Storage is optional; privacy/quota errors must not block the dashboard.
+  }
 }
 
 function normalizeAllWeeks(data: unknown): string[] {
@@ -96,20 +139,19 @@ function normalizeAllWeeks(data: unknown): string[] {
 
 export function primeAllWeeksCache(weeks: string[], organizationId?: string | null) {
   if (Array.isArray(weeks)) {
-    allWeeksCache.set(getAllWeeksCacheKey(organizationId), { weeks, timestamp: Date.now() });
+    setTimedCacheValue(allWeeksCache, getAllWeeksCacheKey(organizationId), weeks, ALL_WEEKS_CACHE_POLICY);
     writeStoredAllWeeks(weeks, organizationId);
   }
 }
 
 export function getAllWeeksCache(requireYearQualified = false, organizationId?: string | null) {
   const cacheKey = getAllWeeksCacheKey(organizationId);
-  const cached = allWeeksCache.get(cacheKey);
-  if (cached && Date.now() - cached.timestamp <= ALL_WEEKS_CACHE_TTL_MS) {
-    if (requireYearQualified && !hasYearQualifiedWeeks(cached.weeks)) return null;
-    return cached.weeks;
+  const cached = getTimedCacheValue(allWeeksCache, cacheKey, ALL_WEEKS_CACHE_POLICY);
+  if (cached) {
+    if (requireYearQualified && !hasYearQualifiedWeeks(cached)) return null;
+    return cached;
   }
 
-  if (cached) allWeeksCache.delete(cacheKey);
   const stored = readStoredAllWeeks(organizationId);
   if (!stored) return null;
   if (requireYearQualified && !hasYearQualifiedWeeks(stored)) return null;

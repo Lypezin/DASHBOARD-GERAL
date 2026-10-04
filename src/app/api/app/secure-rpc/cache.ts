@@ -37,6 +37,7 @@ export function getSecureRpcCacheKey(functionName: string, params: Record<string
     scope: {
       id: profile.id,
       role: profile.role,
+      is_admin: profile.is_admin === true,
       organization_id: profile.organization_id,
       assigned_pracas: normalizeAssignedPracas(profile),
     },
@@ -62,6 +63,19 @@ export function cleanupSecureRpcCache(now: number) {
   }
 }
 
+function touchSecureRpcCache(key: string, entry: SecureRpcCacheEntry) {
+  secureRpcCache.delete(key);
+  secureRpcCache.set(key, entry);
+}
+
+function setSecureRpcCache(key: string, data: unknown, functionName: string) {
+  touchSecureRpcCache(key, {
+    data,
+    expiresAt: Date.now() + getSecureRpcCacheTtl(functionName),
+  });
+  cleanupSecureRpcCache(Date.now());
+}
+
 export async function resolveSecureRpcWithCache(
   functionName: string,
   params: Record<string, unknown>,
@@ -73,20 +87,19 @@ export async function resolveSecureRpcWithCache(
   const cached = secureRpcCache.get(cacheKey);
 
   if (cached && cached.expiresAt > now) {
+    touchSecureRpcCache(cacheKey, cached);
     return { data: cached.data, cached: true, stale: false };
   }
 
   if (cached && allowsStaleCache(functionName) && cached.expiresAt + SECURE_RPC_STALE_CACHE_TTL_MS > now) {
+    touchSecureRpcCache(cacheKey, cached);
     const existingRequest = inFlightSecureRpc.get(cacheKey);
     if (!existingRequest) {
       const request = fetcher();
       inFlightSecureRpc.set(cacheKey, request);
       void request
         .then((data) => {
-          secureRpcCache.set(cacheKey, {
-            data,
-            expiresAt: Date.now() + getSecureRpcCacheTtl(functionName),
-          });
+          setSecureRpcCache(cacheKey, data, functionName);
         })
         .catch(() => undefined)
         .finally(() => {
@@ -115,10 +128,7 @@ export async function resolveSecureRpcWithCache(
 
   try {
     const data = await request;
-    secureRpcCache.set(cacheKey, {
-      data,
-      expiresAt: Date.now() + getSecureRpcCacheTtl(functionName),
-    });
+    setSecureRpcCache(cacheKey, data, functionName);
     return { data, cached: false, stale: false };
   } finally {
     inFlightSecureRpc.delete(cacheKey);

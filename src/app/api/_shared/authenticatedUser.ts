@@ -1,5 +1,6 @@
 import { createClient } from '@/utils/supabase/server';
 import { headers } from 'next/headers';
+import { getTimedCacheValue, setTimedCacheValue, type TimedCacheEntry } from '@/utils/cache/timedLruCache';
 
 export type AuthenticatedUser = {
   id: string;
@@ -17,7 +18,8 @@ type LoadAuthenticatedUserResult =
   | { failure: AuthenticatedUserFailure };
 
 const AUTHENTICATED_USER_CACHE_TTL_MS = 10_000;
-const authenticatedUserCache = new Map<string, { user: AuthenticatedUser; expiresAt: number }>();
+const AUTHENTICATED_USER_CACHE_POLICY = { ttlMs: AUTHENTICATED_USER_CACHE_TTL_MS, maxEntries: 512 } as const;
+const authenticatedUserCache = new Map<string, TimedCacheEntry<AuthenticatedUser>>();
 const inFlightAuthenticatedUserRequests = new Map<string, Promise<AuthenticatedUser | null>>();
 
 function getBearerToken() {
@@ -41,15 +43,8 @@ export async function loadAuthenticatedUser(
   const bearerToken = getBearerToken();
 
   if (bearerToken) {
-    const cached = authenticatedUserCache.get(bearerToken);
-
-    if (cached && cached.expiresAt > Date.now()) {
-      return { user: cached.user, accessToken: bearerToken };
-    }
-
-    if (cached) {
-      authenticatedUserCache.delete(bearerToken);
-    }
+    const cached = getTimedCacheValue(authenticatedUserCache, bearerToken, AUTHENTICATED_USER_CACHE_POLICY);
+    if (cached) return { user: cached, accessToken: bearerToken };
 
     const existingRequest = inFlightAuthenticatedUserRequests.get(bearerToken);
     const user = existingRequest
@@ -72,10 +67,7 @@ export async function loadAuthenticatedUser(
       })();
 
     if (user) {
-      authenticatedUserCache.set(bearerToken, {
-        user,
-        expiresAt: Date.now() + AUTHENTICATED_USER_CACHE_TTL_MS,
-      });
+      setTimedCacheValue(authenticatedUserCache, bearerToken, user, AUTHENTICATED_USER_CACHE_POLICY);
 
       return {
         user,

@@ -5,6 +5,7 @@ import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { MarketingDateFilter, ValoresCidadeDateFilter, ValoresCidadePorCidade } from '@/types';
 import { createRequestKey } from '@/utils/request/createRequestKey';
 import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
+import { getTimedCacheValue, setTimedCacheValue, type TimedCacheEntry } from '@/utils/cache/timedLruCache';
 
 interface ValoresCidadeResumoRow {
   cidade: string;
@@ -15,7 +16,9 @@ interface ValoresCidadeResumoRow {
 }
 
 const CACHE_TTL_MS = 5 * 60 * 1000;
-const valoresCidadeCache = new Map<string, { timestamp: number; data: ValoresCidadeResumoRow[] }>();
+const MAX_VALORES_CIDADE_CACHE_ENTRIES = 12;
+const VALORES_CIDADE_CACHE_POLICY = { ttlMs: CACHE_TTL_MS, maxEntries: MAX_VALORES_CIDADE_CACHE_ENTRIES } as const;
+const valoresCidadeCache = new Map<string, TimedCacheEntry<ValoresCidadeResumoRow[]>>();
 const valoresCidadeRequests = new Map<string, Promise<ValoresCidadeResumoRow[]>>();
 
 function buildCacheKey(
@@ -35,15 +38,7 @@ function buildCacheKey(
 }
 
 function getCachedResumo(cacheKey: string) {
-  const cached = valoresCidadeCache.get(cacheKey);
-  if (!cached) return null;
-
-  if (Date.now() - cached.timestamp > CACHE_TTL_MS) {
-    valoresCidadeCache.delete(cacheKey);
-    return null;
-  }
-
-  return cached.data;
+  return getTimedCacheValue(valoresCidadeCache, cacheKey, VALORES_CIDADE_CACHE_POLICY);
 }
 
 async function fetchValoresCidadeResumo(cacheKey: string, params: Record<string, unknown>) {
@@ -62,10 +57,7 @@ async function fetchValoresCidadeResumo(cacheKey: string, params: Record<string,
     }
 
     const normalized = data;
-    valoresCidadeCache.set(cacheKey, {
-      timestamp: Date.now(),
-      data: normalized,
-    });
+    setTimedCacheValue(valoresCidadeCache, cacheKey, normalized, VALORES_CIDADE_CACHE_POLICY);
 
     return normalized;
   })().finally(() => {

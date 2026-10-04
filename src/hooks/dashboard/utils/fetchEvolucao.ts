@@ -41,10 +41,12 @@ function canUseOrgYearFastPath(filterPayload: FilterPayload) {
 
 export async function fetchDashboardEvolucaoData(
     filterPayload: FilterPayload,
-    anoEvolucao: number,
-    _activeTab: string
+    anoEvolucao: number
 ): Promise<DashboardEvolucaoDataResult> {
     const useFastPath = canUseOrgYearFastPath(filterPayload);
+    const selectedSubPracas = hasValues(filterPayload.p_sub_pracas);
+    const selectedOrigens = hasValues(filterPayload.p_origens);
+    const selectedTurnos = hasValues(filterPayload.p_turnos);
     const params = useFastPath ? {
         p_ano: anoEvolucao,
         p_organization_id: filterPayload.p_organization_id,
@@ -54,9 +56,11 @@ export async function fetchDashboardEvolucaoData(
         p_semana: filterPayload.p_semana,
         p_semanas: filterPayload.p_semanas,
         p_praca: filterPayload.p_praca,
-        p_sub_praca: filterPayload.p_sub_praca,
-        p_origem: filterPayload.p_origem,
-        p_turno: filterPayload.p_turno,
+        // The RPC applies the legacy text fields and typed arrays with AND.
+        // Send only one representation so multi-select keeps every selected value.
+        p_sub_praca: selectedSubPracas ? null : filterPayload.p_sub_praca,
+        p_origem: selectedOrigens ? null : filterPayload.p_origem,
+        p_turno: selectedTurnos ? null : filterPayload.p_turno,
         p_sub_pracas: filterPayload.p_sub_pracas,
         p_origens: filterPayload.p_origens,
         p_turnos: filterPayload.p_turnos,
