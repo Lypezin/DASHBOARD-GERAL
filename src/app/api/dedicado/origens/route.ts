@@ -91,6 +91,8 @@ async function resolveDedicadoWithCache(
     const cached = dedicadoCache.get(cacheKey);
 
     if (cached && cached.expiresAt > now) {
+        dedicadoCache.delete(cacheKey);
+        dedicadoCache.set(cacheKey, cached);
         return { data: cached.data, cached: true };
     }
 
@@ -114,6 +116,7 @@ async function resolveDedicadoWithCache(
             data,
             expiresAt: Date.now() + (mode === 'entregador' ? DEDICADO_DETAIL_CACHE_TTL_MS : DEDICADO_CACHE_TTL_MS),
         });
+        cleanupDedicadoCache(Date.now());
         return { data, cached: false };
     } finally {
         inFlightDedicado.delete(cacheKey);

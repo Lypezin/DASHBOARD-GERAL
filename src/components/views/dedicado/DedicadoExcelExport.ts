@@ -14,7 +14,7 @@ import {
 import type { Entregador } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 import { fetchDedicadoApi } from '@/utils/dedicado/fetchDedicadoApi';
-import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit } from '@/utils/excel/workbookStyle';
+import { appendStyledJsonSheet, applyWorkbookMetadata, assertExcelRowLimit, createExcelFilterRows, writeWorkbookFile } from '@/utils/excel/workbookStyle';
 
 interface DedicadoExportPayload {
   totais?: {
@@ -64,19 +64,6 @@ function buildRankingRows(entregadores: Entregador[]) {
     }));
 }
 
-function formatFilters(payload: Record<string, unknown>) {
-  return [
-    { Filtro: 'Organiza\u00e7\u00e3o', Valor: payload.p_organization_id || 'Todas' },
-    { Filtro: 'Ano', Valor: payload.p_ano || 'Todos' },
-    { Filtro: 'Semana', Valor: payload.p_semana === 0 ? 'Todas' : payload.p_semana || 'Todas' },
-    { Filtro: 'Semanas selecionadas', Valor: Array.isArray(payload.p_semanas) && payload.p_semanas.length > 0 ? payload.p_semanas.join(', ') : 'Todas' },
-    { Filtro: 'Pra\u00e7a', Valor: payload.p_praca || 'Todas' },
-    { Filtro: 'Sub-pra\u00e7a', Valor: payload.p_sub_praca || 'Todas' },
-    { Filtro: 'Data inicial', Valor: payload.p_data_inicial || '-' },
-    { Filtro: 'Data final', Valor: payload.p_data_final || '-' },
-  ];
-}
-
 function hasFiniteNumber(value: unknown) {
   if (typeof value === 'number') return Number.isFinite(value);
   return typeof value === 'string' && value.trim() !== '' && Number.isFinite(Number(value));
@@ -90,6 +77,25 @@ function assertNumericFields(row: Record<string, unknown>, fields: string[], lab
 
 function assertRowsHaveNumericFields(rows: Array<Record<string, unknown>>, fields: string[], label: string) {
   rows.forEach((row) => assertNumericFields(row, fields, label));
+}
+
+function assertUniqueDriverIds(entregadores: Entregador[]) {
+  const ids = new Set<string>();
+
+  for (const entregador of entregadores) {
+    const rawId: unknown = entregador?.id_entregador;
+    const id = typeof rawId === 'string'
+      ? rawId.trim()
+      : typeof rawId === 'number' && Number.isFinite(rawId)
+        ? String(rawId)
+        : '';
+
+    if (!id || ids.has(id)) {
+      throw new Error('A lista de entregadores do DEDICADO contém IDs ausentes ou repetidos. Gere o arquivo novamente.');
+    }
+
+    ids.add(id);
+  }
 }
 
 function appendSheet(XLSX: typeof import('xlsx-js-style'), workbook: import('xlsx-js-style').WorkBook, data: Record<string, unknown>[], sheetName: string) {
@@ -139,6 +145,7 @@ export async function exportarDedicadoParaExcel(filterPayload: FilterPayload, re
     if (totalEntregadoresResumo !== totalEntregadores) {
       throw new Error('O resumo e a lista de entregadores retornaram totais diferentes. Gere o Excel novamente.');
     }
+    assertUniqueDriverIds(entregadores);
     [origemRows, diaOrigemRows, entregadores].forEach((rows) => assertExcelRowLimit(rows.length));
 
     assertNumericFields(totals as Record<string, unknown>, [
@@ -212,10 +219,10 @@ export async function exportarDedicadoParaExcel(filterPayload: FilterPayload, re
       ['Ader\u00eancia']: normalizeMetricNumber(row.segundos_planejados) > 0 ? calculateHourlyAderencia(row.segundos_realizados, row.segundos_planejados) : 0,
     })), 'Dia x Origem');
 
-    appendSheet(XLSX, workbook, formatFilters(rpcPayload), 'Filtros');
+    appendSheet(XLSX, workbook, createExcelFilterRows(rpcPayload), 'Filtros');
 
     const dataHora = new Date().toISOString().slice(0, 19).replace(/[:-]/g, '').replace('T', '_');
-    XLSX.writeFile(workbook, `dedicado_${dataHora}.xlsx`);
+    await writeWorkbookFile(XLSX, workbook, `dedicado_${dataHora}.xlsx`);
   } catch (error) {
     safeLog.error('Erro ao exportar DEDICADO para Excel:', error);
     throw error instanceof Error ? error : new Error('Falha ao gerar Excel do DEDICADO.');

@@ -2,6 +2,7 @@ import React from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { fetchDedicadoApi } from '@/utils/dedicado/fetchDedicadoApi';
 import { createRequestKey } from '@/utils/request/createRequestKey';
+import { getTimedCacheValue, setTimedCacheValue, type TimedCacheEntry } from '@/utils/cache/timedLruCache';
 import type { AderenciaDiaOrigem, AderenciaOrigem } from '@/types';
 
 export type DedicadoOrigemRow = AderenciaOrigem & {
@@ -32,19 +33,20 @@ export interface DedicadoOrigensPayload {
 }
 
 const DEDICADO_ORIGENS_CACHE_TTL_MS = 5 * 60 * 1000;
-const dedicadoOrigensCache = new Map<string, { timestamp: number; data: DedicadoOrigensPayload }>();
+const MAX_DEDICADO_ORIGENS_CACHE_ENTRIES = 12;
+const DEDICADO_ORIGENS_CACHE_POLICY = {
+  ttlMs: DEDICADO_ORIGENS_CACHE_TTL_MS,
+  maxEntries: MAX_DEDICADO_ORIGENS_CACHE_ENTRIES,
+} as const;
+const dedicadoOrigensCache = new Map<string, TimedCacheEntry<DedicadoOrigensPayload>>();
 const dedicadoOrigensRequests = new Map<string, Promise<DedicadoOrigensPayload>>();
 
 function getCachedDedicadoOrigens(cacheKey: string) {
-  const cached = dedicadoOrigensCache.get(cacheKey);
-  if (!cached) return null;
+  return getTimedCacheValue(dedicadoOrigensCache, cacheKey, DEDICADO_ORIGENS_CACHE_POLICY);
+}
 
-  if (Date.now() - cached.timestamp > DEDICADO_ORIGENS_CACHE_TTL_MS) {
-    dedicadoOrigensCache.delete(cacheKey);
-    return null;
-  }
-
-  return cached.data;
+function cacheDedicadoOrigens(cacheKey: string, data: DedicadoOrigensPayload) {
+  setTimedCacheValue(dedicadoOrigensCache, cacheKey, data, DEDICADO_ORIGENS_CACHE_POLICY);
 }
 
 async function fetchDedicadoOrigensWithDedupe(
@@ -70,10 +72,7 @@ async function fetchDedicadoOrigensWithDedupe(
       periodo_resolvido: data?.periodo_resolvido,
     };
 
-    dedicadoOrigensCache.set(cacheKey, {
-      timestamp: Date.now(),
-      data: normalized,
-    });
+    cacheDedicadoOrigens(cacheKey, normalized);
 
     return normalized;
   })().finally(() => {
@@ -103,6 +102,7 @@ export function useDedicadoOrigensData({
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [resolvedRequestKey, setResolvedRequestKey] = React.useState<string | null>(null);
+  const [dataRequestKey, setDataRequestKey] = React.useState<string | null>(null);
   const [dataOrganizationId, setDataOrganizationId] = React.useState<string | null>(null);
   const [dataAccessScopeKey, setDataAccessScopeKey] = React.useState<string | null>(null);
   const [retryNonce, setRetryNonce] = React.useState(0);
@@ -129,6 +129,7 @@ export function useDedicadoOrigensData({
         setLoading(false);
         setError('Selecione uma organização para carregar os dados do DEDICADO.');
         setData({ origem: [], dia_origem: [] });
+        setDataRequestKey(null);
         setDataOrganizationId(null);
         setDataAccessScopeKey(null);
         setResolvedRequestKey(currentRequestKey);
@@ -150,6 +151,7 @@ export function useDedicadoOrigensData({
           dia_origem: shouldLoadDiaOrigem && Array.isArray(resolvedData?.dia_origem) ? resolvedData.dia_origem : [],
           periodo_resolvido: resolvedData?.periodo_resolvido,
         });
+        setDataRequestKey(currentRequestKey);
         setDataOrganizationId(origemOrganizationId);
         setDataAccessScopeKey(accessScopeKey);
         setResolvedRequestKey(currentRequestKey);
@@ -174,11 +176,15 @@ export function useDedicadoOrigensData({
 
   const retry = React.useCallback(() => setRetryNonce((current) => current + 1), []);
 
-  const visibleData = dataOrganizationId === origemOrganizationId && dataAccessScopeKey === accessScopeKey
-    ? data
-    : { origem: [], dia_origem: [] };
   const waitingForCurrentRequest = isEnabled && Boolean(origemOrganizationId)
     && resolvedRequestKey !== currentRequestKey;
+  const isCurrentDataScope = dataOrganizationId === origemOrganizationId
+    && dataAccessScopeKey === accessScopeKey;
+  const isCurrentDataRequest = dataRequestKey === currentRequestKey;
+  const canKeepPreviousDataWhileRefreshing = loading || waitingForCurrentRequest;
+  const visibleData = isCurrentDataScope && (isCurrentDataRequest || canKeepPreviousDataWhileRefreshing)
+    ? data
+    : { origem: [], dia_origem: [] };
   const visibleError = (resolvedRequestKey === currentRequestKey ? error : null)
     || (isEnabled && !origemOrganizationId
       ? 'Selecione uma organização para carregar os dados do DEDICADO.'
