@@ -5,7 +5,7 @@ import {
   isServiceRoleConfigError,
 } from '@/utils/supabase/admin';
 import { createRequestKey } from '@/utils/request/createRequestKey';
-import type { ValoresEntregador } from '@/types';
+import type { Entregador, EntregadoresSortField, ValoresEntregador } from '@/types';
 import { normalizeValoresEntregadores } from '@/utils/valores/normalizeValoresEntregadores';
 import { filterAndSortValores } from '@/utils/valores/filterAndSortValores';
 
@@ -24,6 +24,19 @@ const VALORES_SORT_FIELDS = new Set<keyof ValoresEntregador>([
   'turno',
   'sub_praca',
 ]);
+const ENTREGADORES_PAGE_SORT_FIELDS = new Set<EntregadoresSortField>([
+  'id_entregador',
+  'nome_entregador',
+  'corridas_ofertadas',
+  'corridas_aceitas',
+  'corridas_rejeitadas',
+  'corridas_completadas',
+  'aderencia_percentual',
+  'rejeicao_percentual',
+  'total_segundos',
+  'percentual_aceitas',
+  'percentual_completadas',
+]);
 
 export type DashboardDataMode = 'utr' | 'entregadores' | 'entregadores_page' | 'valores' | 'valores_page' | 'valores_detalhados' | 'resumo_local';
 
@@ -37,10 +50,20 @@ const CACHE_TTL_BY_MODE_MS: Record<DashboardDataMode, number> = {
   resumo_local: 5 * 60_000,
 };
 const MAX_CACHE_ENTRIES = 120;
+const MAX_CACHE_ENTRIES_BY_MODE: Partial<Record<DashboardDataMode, number>> = {
+  // Unpaged Entregadores responses can be several megabytes per organization/filter.
+  entregadores: 4,
+  // Values pages keep a second normalized copy for pagination/search/sort.
+  // Bound the raw response cache too, so filter churn cannot retain many full lists.
+  valores: 4,
+};
 const PREPARED_VALORES_CACHE_TTL_MS = 60_000;
-const MAX_PREPARED_VALORES_CACHE_ENTRIES = 12;
+const SOURCE_VALORES_CACHE_TTL_MS = 60_000;
+const MAX_SOURCE_VALORES_CACHE_ENTRIES = 4;
+const MAX_PREPARED_VALORES_CACHE_ENTRIES = 8;
 
 type DashboardDataCacheEntry = {
+  mode: DashboardDataMode;
   data: unknown;
   expiresAt: number;
 };
@@ -55,12 +78,18 @@ type PreparedValoresData = {
   snapshot: string;
 };
 
-type PreparedValoresCacheEntry = {
-  data: PreparedValoresData;
+type TimedCacheEntry<T> = {
+  data: T;
   expiresAt: number;
 };
 
-const preparedValoresCache = new Map<string, PreparedValoresCacheEntry>();
+type SourceValoresData = {
+  rows: ValoresEntregador[];
+};
+
+const sourceValoresCache = new Map<string, TimedCacheEntry<SourceValoresData>>();
+const inFlightSourceValores = new Map<string, Promise<SourceValoresData>>();
+const preparedValoresCache = new Map<string, TimedCacheEntry<PreparedValoresData>>();
 const inFlightPreparedValores = new Map<string, Promise<PreparedValoresData>>();
 
 function getCacheKey(mode: DashboardDataMode, payload: Record<string, unknown>) {
@@ -72,6 +101,8 @@ function getCachedData(cacheKey: string) {
   const now = Date.now();
 
   if (entry && entry.expiresAt > now) {
+      dashboardDataCache.delete(cacheKey);
+      dashboardDataCache.set(cacheKey, entry);
       return entry.data;
   }
 
@@ -100,9 +131,34 @@ function getCachedData(cacheKey: string) {
 }
 
 function setCachedData(cacheKey: string, mode: DashboardDataMode, data: unknown) {
+  const now = Date.now();
+  const modeLimit = MAX_CACHE_ENTRIES_BY_MODE[mode];
+  dashboardDataCache.delete(cacheKey);
+
+  if (modeLimit) {
+      let entriesForMode = 0;
+
+      for (const [key, entry] of dashboardDataCache.entries()) {
+          if (entry.expiresAt <= now) {
+              dashboardDataCache.delete(key);
+              continue;
+          }
+          if (entry.mode === mode) entriesForMode++;
+      }
+
+      while (entriesForMode >= modeLimit) {
+          const oldestKeyForMode = Array.from(dashboardDataCache.entries())
+              .find(([, entry]) => entry.mode === mode)?.[0];
+          if (!oldestKeyForMode) break;
+          dashboardDataCache.delete(oldestKeyForMode);
+          entriesForMode--;
+      }
+  }
+
   dashboardDataCache.set(cacheKey, {
+      mode,
       data,
-      expiresAt: Date.now() + CACHE_TTL_BY_MODE_MS[mode],
+      expiresAt: now + CACHE_TTL_BY_MODE_MS[mode],
   });
 }
 
@@ -175,45 +231,72 @@ function normalizePositiveInteger(value: unknown, fallback: number, max: number)
   return Math.min(Math.trunc(parsed), max);
 }
 
-async function resolvePreparedValores(
-  payload: Record<string, unknown>,
-  fetcher: () => Promise<PreparedValoresData>,
-) {
-  const cacheKey = createRequestKey({ mode: 'valores_prepared', payload });
+async function resolveCachedValue<T>(
+  cache: Map<string, TimedCacheEntry<T>>,
+  inFlight: Map<string, Promise<T>>,
+  cacheKey: string,
+  ttlMs: number,
+  maxEntries: number,
+  fetcher: () => Promise<T>,
+): Promise<T> {
   const now = Date.now();
-  const cached = preparedValoresCache.get(cacheKey);
+  const cached = cache.get(cacheKey);
 
   if (cached && cached.expiresAt > now) {
-      preparedValoresCache.delete(cacheKey);
-      preparedValoresCache.set(cacheKey, cached);
+      cache.delete(cacheKey);
+      cache.set(cacheKey, cached);
       return cached.data;
   }
 
-  if (cached) preparedValoresCache.delete(cacheKey);
+  if (cached) cache.delete(cacheKey);
 
-  const existingRequest = inFlightPreparedValores.get(cacheKey);
+  const existingRequest = inFlight.get(cacheKey);
   if (existingRequest) return existingRequest;
 
   const request = fetcher();
-  inFlightPreparedValores.set(cacheKey, request);
+  inFlight.set(cacheKey, request);
 
   try {
       const data = await request;
-      while (preparedValoresCache.size >= MAX_PREPARED_VALORES_CACHE_ENTRIES) {
-          const oldestKey = preparedValoresCache.keys().next().value as string | undefined;
+      while (cache.size >= maxEntries) {
+          const oldestKey = cache.keys().next().value as string | undefined;
           if (!oldestKey) break;
-          preparedValoresCache.delete(oldestKey);
+          cache.delete(oldestKey);
       }
-      preparedValoresCache.set(cacheKey, {
+      cache.set(cacheKey, {
           data,
-          expiresAt: Date.now() + PREPARED_VALORES_CACHE_TTL_MS,
+          expiresAt: Date.now() + ttlMs,
       });
       return data;
   } finally {
-      if (inFlightPreparedValores.get(cacheKey) === request) {
-          inFlightPreparedValores.delete(cacheKey);
+      if (inFlight.get(cacheKey) === request) {
+          inFlight.delete(cacheKey);
       }
   }
+}
+
+function filterPreparedValoresRows(
+  rows: ValoresEntregador[],
+  search: string,
+  sortField: keyof ValoresEntregador,
+  sortDirection: 'asc' | 'desc',
+) {
+  // normalizeValoresEntregadores already orders rows by total_taxas DESC with
+  // the same stable name/ID tie-breakers. Filtering preserves that order, so
+  // the common default view does not need another O(n log n) sort.
+  if (sortField === 'total_taxas' && sortDirection === 'desc') {
+      const normalizedSearch = search.trim().toLowerCase();
+      if (!normalizedSearch) return rows;
+      return rows.filter((row) =>
+          `${row.nome_entregador || ''} ${row.id_entregador || ''}`.toLowerCase().includes(normalizedSearch)
+      );
+  }
+
+  return filterAndSortValores(rows, {
+      searchTerm: search,
+      sortField,
+      sortDirection,
+  });
 }
 
 function isUnfilteredValue(value: unknown) {
@@ -241,6 +324,212 @@ function canUseAggregatedValoresSource(payload: Record<string, unknown>) {
       && isUnfilteredValue(payload.p_praca)
       && isUnfilteredValue(payload.p_sub_praca)
       && isUnfilteredValue(payload.p_origem);
+}
+
+function canUseInMemoryEntregadoresPage(payload: Record<string, unknown>) {
+  if (
+      !UUID_RE.test(String(payload.p_organization_id || ''))
+      || payload.p_only_dedicados === true
+      || Number(payload.p_semana || 0) !== 0
+      || (Array.isArray(payload.p_semanas) && payload.p_semanas.length > 0)
+  ) return false;
+
+  const hasStartDate = payload.p_data_inicial !== null && payload.p_data_inicial !== undefined;
+  const hasEndDate = payload.p_data_final !== null && payload.p_data_final !== undefined;
+  if (hasStartDate !== hasEndDate) return false;
+
+  if (!hasStartDate) {
+      const year = Number(payload.p_ano);
+      return Number.isInteger(year) && year >= 2000 && year <= 2100;
+  }
+
+  const start = Date.parse(`${String(payload.p_data_inicial)}T00:00:00Z`);
+  const end = Date.parse(`${String(payload.p_data_final)}T00:00:00Z`);
+  const days = (end - start) / 86_400_000;
+  return Number.isFinite(start) && Number.isFinite(end) && days >= 0 && days <= 366;
+}
+
+function normalizeEntregadoresRows(value: unknown): Entregador[] {
+  let rawRows: unknown[] | null = null;
+  let declaredTotal: number | null = null;
+  let sourceData = value;
+
+  if (Array.isArray(sourceData) && sourceData.length > 0) sourceData = sourceData[0];
+  if (sourceData && typeof sourceData === 'object' && !Array.isArray(sourceData)) {
+      const wrapped = sourceData as Record<string, unknown>;
+      if ('listar_entregadores_dashboard_fast_v1' in wrapped) {
+          sourceData = wrapped.listar_entregadores_dashboard_fast_v1;
+      }
+  }
+
+  if (Array.isArray(sourceData)) {
+      rawRows = sourceData;
+  } else if (sourceData && typeof sourceData === 'object') {
+      const result = sourceData as Record<string, unknown>;
+      rawRows = Array.isArray(result.entregadores) ? result.entregadores : null;
+      const total = Number(result.total);
+      if (Number.isSafeInteger(total) && total >= 0) declaredTotal = total;
+  }
+
+  if (!rawRows) throw new Error('A RPC de Entregadores respondeu em um formato inválido.');
+
+  const seenIds = new Set<string>();
+  const rows = rawRows.map((rawRow) => {
+      if (!rawRow || typeof rawRow !== 'object' || Array.isArray(rawRow)) {
+          throw new Error('A RPC de Entregadores retornou uma linha inválida.');
+      }
+
+      const row = rawRow as Record<string, unknown>;
+      const id = String(row.id_entregador ?? '').trim();
+      if (!id || seenIds.has(id)) {
+          throw new Error('A RPC de Entregadores retornou um identificador ausente ou repetido.');
+      }
+      seenIds.add(id);
+
+      const toNumber = (field: string) => {
+          const rawNumber = row[field];
+          if (rawNumber === null || rawNumber === undefined || rawNumber === '') return 0;
+          const parsed = Number(rawNumber);
+          if (!Number.isFinite(parsed)) throw new Error('A RPC de Entregadores retornou uma métrica inválida.');
+          return parsed;
+      };
+
+      return {
+          ...row,
+          id_entregador: id,
+          nome_entregador: String(row.nome_entregador || id).trim() || id,
+          corridas_ofertadas: toNumber('corridas_ofertadas'),
+          corridas_aceitas: toNumber('corridas_aceitas'),
+          corridas_rejeitadas: toNumber('corridas_rejeitadas'),
+          corridas_completadas: toNumber('corridas_completadas'),
+          total_segundos: toNumber('total_segundos'),
+          aderencia_percentual: toNumber('aderencia_percentual'),
+          rejeicao_percentual: toNumber('rejeicao_percentual'),
+          primeira_data_aparicao: typeof row.primeira_data_aparicao === 'string' ? row.primeira_data_aparicao : null,
+      } as Entregador;
+  });
+
+  if (declaredTotal !== null && declaredTotal !== rows.length) {
+      throw new Error('A RPC de Entregadores retornou uma lista incompleta.');
+  }
+
+  return rows;
+}
+
+function compareText(left: string, right: string) {
+  return left < right ? -1 : left > right ? 1 : 0;
+}
+
+function getEntregadorSortValue(row: Entregador, field: EntregadoresSortField) {
+  if (field === 'percentual_aceitas') {
+      return row.corridas_ofertadas > 0 ? (row.corridas_aceitas * 100) / row.corridas_ofertadas : 0;
+  }
+  if (field === 'percentual_completadas') {
+      return row.corridas_aceitas > 0 ? (row.corridas_completadas * 100) / row.corridas_aceitas : 0;
+  }
+  return row[field] ?? 0;
+}
+
+function sortEntregadoresRows(
+  rows: Entregador[],
+  field: EntregadoresSortField,
+  direction: 'asc' | 'desc',
+) {
+  const sign = direction === 'asc' ? 1 : -1;
+
+  return [...rows].sort((left, right) => {
+      if (field === 'id_entregador') {
+          const leftId = left.id_entregador;
+          const rightId = right.id_entregador;
+          const leftNumeric = /^\d+$/.test(leftId);
+          const rightNumeric = /^\d+$/.test(rightId);
+          if (leftNumeric !== rightNumeric) return leftNumeric ? -1 : 1;
+          if (leftNumeric && rightNumeric) {
+              const a = BigInt(leftId);
+              const b = BigInt(rightId);
+              return (a < b ? -1 : a > b ? 1 : 0) * sign || compareText(leftId, rightId);
+          }
+          return compareText(leftId.toLowerCase(), rightId.toLowerCase()) * sign || compareText(leftId, rightId);
+      }
+
+      const leftValue = getEntregadorSortValue(left, field);
+      const rightValue = getEntregadorSortValue(right, field);
+      const primary = typeof leftValue === 'string' && typeof rightValue === 'string'
+          ? compareText(leftValue.toLowerCase(), rightValue.toLowerCase())
+          : Number(leftValue) - Number(rightValue);
+      return primary * sign || compareText(left.id_entregador, right.id_entregador);
+  });
+}
+
+function buildEntregadoresPage(
+  sourceValue: unknown,
+  payload: Record<string, unknown>,
+) {
+  const allRows = normalizeEntregadoresRows(sourceValue);
+  const search = typeof payload.p_search === 'string' ? payload.p_search.trim().toLowerCase() : '';
+  const filteredRows = allRows.filter((row) =>
+      (!search || `${row.nome_entregador} ${row.id_entregador}`.toLowerCase().includes(search))
+      && (payload.p_only_inactive !== true || row.corridas_completadas === 0)
+  );
+  const total = filteredRows.length;
+  const requestedLimit = Number(payload.p_limit);
+  const limit = Number.isInteger(requestedLimit) ? requestedLimit : -1;
+  const page = normalizePositiveInteger(payload.p_page, 1, 1_000_000) || 1;
+  const pageSize = limit === -1
+      ? total > 1_000 ? 24 : total > 400 ? 35 : 50
+      : limit;
+  const requestedField = typeof payload.p_sort_field === 'string'
+      ? payload.p_sort_field as EntregadoresSortField
+      : 'aderencia_percentual';
+  const sortField = ENTREGADORES_PAGE_SORT_FIELDS.has(requestedField) ? requestedField : 'aderencia_percentual';
+  const sortDirection = payload.p_sort_direction === 'asc' ? 'asc' : 'desc';
+  const sortedRows = sortEntregadoresRows(filteredRows, sortField, sortDirection);
+  const pageRows = limit === 0 ? sortedRows : sortedRows.slice((page - 1) * pageSize, page * pageSize);
+  const sum = (field: 'corridas_completadas' | 'total_segundos') => filteredRows.reduce((totalValue, row) => totalValue + row[field], 0);
+  const average = (field: 'aderencia_percentual' | 'rejeicao_percentual') =>
+      total > 0 ? filteredRows.reduce((totalValue, row) => totalValue + row[field], 0) / total : 0;
+  const performers = (
+      field: 'aderencia_percentual' | 'corridas_completadas' | 'total_segundos' | 'rejeicao_percentual',
+      bottomFirst = false,
+  ) => {
+      const direction = bottomFirst ? 'asc' : 'desc';
+      const ordered = [...filteredRows].sort((left, right) =>
+          (left[field] - right[field]) * (direction === 'asc' ? 1 : -1)
+          || compareText(left.id_entregador, right.id_entregador)
+      );
+      return { top: ordered.slice(0, 10), bottom: ordered.slice(-10).reverse() };
+  };
+
+  const sourceData = sourceValue && typeof sourceValue === 'object' && !Array.isArray(sourceValue)
+      ? sourceValue as Record<string, unknown>
+      : {};
+  const resolvedPeriod = sourceData.periodo_resolvido && typeof sourceData.periodo_resolvido === 'object'
+      ? sourceData.periodo_resolvido
+      : {};
+
+  return {
+      entregadores: pageRows,
+      total,
+      page,
+      page_size: pageSize,
+      periodo_resolvido: {
+          ...resolvedPeriod,
+          search: search.length >= 3 ? search : null,
+      },
+      summary: {
+          total_entregadores: total,
+          aderencia_media: average('aderencia_percentual'),
+          rejeicao_media: average('rejeicao_percentual'),
+          corridas_completadas: sum('corridas_completadas'),
+          total_segundos: sum('total_segundos'),
+      },
+      performers_by_metric: {
+          aderencia: performers('aderencia_percentual'),
+          completadas: performers('corridas_completadas'),
+          horas: performers('total_segundos'),
+          rejeicao: performers('rejeicao_percentual', true),
+      },
+  };
 }
 
 function normalizePracas(value: unknown) {
@@ -287,65 +576,80 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
           p_sort_direction: sortDirection,
           p_snapshot: expectedSnapshot,
       };
-      const preparedPayload = {
+      const sourceCacheKey = createRequestKey({ mode: 'valores_source', payload: valoresPayload });
+      const preparedCacheKey = createRequestKey({
+          mode: 'valores_prepared',
           ...valoresPayload,
-          p_search: search,
-          p_sort_field: sortField,
-          p_sort_direction: sortDirection,
-      };
+          search,
+          sortField,
+          sortDirection,
+      });
 
       return resolveWithCache('valores_page', pageCachePayload, async () => {
-          const prepared = await resolvePreparedValores(preparedPayload, async () => {
-              const fullResult = await fetchDashboardData('valores', valoresPayload, organizationId) as { data?: unknown };
-              let rawData = fullResult?.data;
+          const source = await resolveCachedValue(
+              sourceValoresCache,
+              inFlightSourceValores,
+              sourceCacheKey,
+              SOURCE_VALORES_CACHE_TTL_MS,
+              MAX_SOURCE_VALORES_CACHE_ENTRIES,
+              async () => {
+                  const fullResult = await fetchDashboardData('valores', valoresPayload, organizationId) as { data?: unknown };
+                  let rawData = fullResult?.data;
 
-              if (Array.isArray(rawData) && rawData.length > 0) rawData = rawData[0];
-              if (rawData && typeof rawData === 'object' && 'listar_valores_entregadores' in rawData) {
-                  rawData = (rawData as { listar_valores_entregadores?: unknown }).listar_valores_entregadores;
+                  if (Array.isArray(rawData) && rawData.length > 0) rawData = rawData[0];
+                  if (rawData && typeof rawData === 'object' && 'listar_valores_entregadores' in rawData) {
+                      rawData = (rawData as { listar_valores_entregadores?: unknown }).listar_valores_entregadores;
+                  }
+
+                  const rawRows = Array.isArray(rawData)
+                      ? rawData
+                      : rawData && typeof rawData === 'object' && Array.isArray((rawData as { entregadores?: unknown }).entregadores)
+                          ? (rawData as { entregadores: unknown[] }).entregadores
+                          : rawData && typeof rawData === 'object' && Array.isArray((rawData as { valores?: unknown }).valores)
+                              ? (rawData as { valores: unknown[] }).valores
+                              : null;
+
+                  if (!rawRows) {
+                      throw new Error('A consulta de valores respondeu em um formato inválido.');
+                  }
+
+                  return { rows: normalizeValoresEntregadores(rawRows as ValoresEntregador[]) };
               }
+          );
 
-              const rawRows = Array.isArray(rawData)
-                  ? rawData
-                  : rawData && typeof rawData === 'object' && Array.isArray((rawData as { entregadores?: unknown }).entregadores)
-                      ? (rawData as { entregadores: unknown[] }).entregadores
-                      : rawData && typeof rawData === 'object' && Array.isArray((rawData as { valores?: unknown }).valores)
-                          ? (rawData as { valores: unknown[] }).valores
-                          : null;
+          const prepared = await resolveCachedValue(
+              preparedValoresCache,
+              inFlightPreparedValores,
+              preparedCacheKey,
+              PREPARED_VALORES_CACHE_TTL_MS,
+              MAX_PREPARED_VALORES_CACHE_ENTRIES,
+              async () => {
+                  const rows = filterPreparedValoresRows(source.rows, search, sortField, sortDirection);
+                  const snapshotHasher = createHash('sha256');
+                  let totalCorridas = 0;
+                  let totalGeral = 0;
 
-              if (!rawRows) {
-                  throw new Error('A consulta de valores respondeu em um formato inválido.');
+                  for (const row of rows) {
+                      snapshotHasher.update(row.id_entregador);
+                      snapshotHasher.update('\u0000');
+                      snapshotHasher.update(String(row.nome_entregador || ''));
+                      snapshotHasher.update('\u0000');
+                      snapshotHasher.update(String(row.total_taxas));
+                      snapshotHasher.update('\u0000');
+                      snapshotHasher.update(String(row.numero_corridas_aceitas));
+                      snapshotHasher.update('\n');
+                      totalCorridas += Number(row.numero_corridas_aceitas) || 0;
+                      totalGeral += Number(row.total_taxas) || 0;
+                  }
+
+                  return {
+                      rows,
+                      totalCorridas,
+                      totalGeral,
+                      snapshot: snapshotHasher.digest('hex'),
+                  };
               }
-
-              const normalizedRows = normalizeValoresEntregadores(rawRows as ValoresEntregador[]);
-              const rows = filterAndSortValores(normalizedRows, {
-                  searchTerm: search,
-                  sortField,
-                  sortDirection,
-              });
-              const snapshotHasher = createHash('sha256');
-              let totalCorridas = 0;
-              let totalGeral = 0;
-
-              for (const row of rows) {
-                  snapshotHasher.update(row.id_entregador);
-                  snapshotHasher.update('\u0000');
-                  snapshotHasher.update(String(row.nome_entregador || ''));
-                  snapshotHasher.update('\u0000');
-                  snapshotHasher.update(String(row.total_taxas));
-                  snapshotHasher.update('\u0000');
-                  snapshotHasher.update(String(row.numero_corridas_aceitas));
-                  snapshotHasher.update('\n');
-                  totalCorridas += Number(row.numero_corridas_aceitas) || 0;
-                  totalGeral += Number(row.total_taxas) || 0;
-              }
-
-              return {
-                  rows,
-                  totalCorridas,
-                  totalGeral,
-                  snapshot: snapshotHasher.digest('hex'),
-              };
-          });
+          );
 
           if (expectedSnapshot && expectedSnapshot !== prepared.snapshot) {
               throw new Error('Os valores mudaram enquanto a lista era carregada. Atualize a consulta para evitar linhas repetidas ou ausentes.');
@@ -433,6 +737,20 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
       payload.p_only_inactive = payload.p_only_inactive === true;
   }
 
+  if (mode === 'entregadores_page' && canUseInMemoryEntregadoresPage(payload)) {
+      const sourcePayload = pickPayload(source, ENTREGADORES_ALLOWED_PARAMS);
+      sourcePayload.p_organization_id = organizationId;
+      delete sourcePayload.p_search;
+
+      return resolveWithCache(mode, payload, async () => {
+          const fullResult = await fetchDashboardData('entregadores', sourcePayload, organizationId) as { data?: unknown };
+          if (fullResult?.data === null || fullResult?.data === undefined) {
+              throw new Error('A consulta de Entregadores não retornou dados.');
+          }
+          return buildEntregadoresPage(fullResult.data, payload);
+      });
+  }
+
   const rpcName = mode === 'utr'
       ? 'calcular_utr_completo'
       : mode === 'entregadores_page'
@@ -448,7 +766,10 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
   return resolveWithCache(mode, payload, async () => {
       const { data: rpcData, error } = await admin.rpc(rpcName, payload);
       if (error) {
-          throw new Error(error.message);
+          const rpcError = new Error(error.message) as Error & { code?: string };
+          rpcError.name = 'DashboardRpcError';
+          if (typeof error.code === 'string') rpcError.code = error.code;
+          throw rpcError;
       }
       return rpcData ?? null;
   });
