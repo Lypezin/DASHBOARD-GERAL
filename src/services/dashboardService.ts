@@ -50,6 +50,7 @@ const CACHE_TTL_BY_MODE_MS: Record<DashboardDataMode, number> = {
   resumo_local: 5 * 60_000,
 };
 const MAX_CACHE_ENTRIES = 120;
+const MAX_BROAD_IN_MEMORY_ENTREGADORES_RANGE_DAYS = 3660;
 const MAX_CACHE_ENTRIES_BY_MODE: Partial<Record<DashboardDataMode, number>> = {
   // Unpaged Entregadores responses can be several megabytes per organization/filter.
   entregadores: 4,
@@ -346,7 +347,16 @@ function canUseInMemoryEntregadoresPage(payload: Record<string, unknown>) {
   const start = Date.parse(`${String(payload.p_data_inicial)}T00:00:00Z`);
   const end = Date.parse(`${String(payload.p_data_final)}T00:00:00Z`);
   const days = (end - start) / 86_400_000;
-  return Number.isFinite(start) && Number.isFinite(end) && days >= 0 && days <= 366;
+  if (!Number.isFinite(start) || !Number.isFinite(end) || days < 0) return false;
+  if (days <= 366) return true;
+
+  // Broad all-years requests can reuse the cached aggregate source and do the
+  // page/search/sort work in memory. Keep dimension-filtered broad ranges on
+  // the database page RPC, where the smaller filtered result is more suitable.
+  return days <= MAX_BROAD_IN_MEMORY_ENTREGADORES_RANGE_DAYS
+      && isUnfilteredValue(payload.p_praca)
+      && isUnfilteredValue(payload.p_sub_praca)
+      && isUnfilteredValue(payload.p_origem);
 }
 
 function normalizeEntregadoresRows(value: unknown): Entregador[] {
