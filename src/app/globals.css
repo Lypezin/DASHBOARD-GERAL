@@ -211,6 +211,15 @@
   animation: marquee 30s linear infinite;
 }
 
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -223,5 +232,9 @@
 
   .animate-marquee {
     animation: none;
+  }
+
+  .animate-marquee[data-motion-opt-in='true'] {
+    animation: marquee 30s linear infinite !important;
   }
 }

@@ -1,16 +1,39 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useReducedMotion } from 'framer-motion';
-import { RefreshCw } from 'lucide-react';
+import { Pause, Play, RefreshCw } from 'lucide-react';
 
 import { useCityLastUpdates } from '@/hooks/data/useCityLastUpdates';
 
+const CITY_TICKER_MOTION_STORAGE_KEY = 'dashboard_city_ticker_motion_enabled';
+
 export function CityLastUpdatesTicker({ className = '' }: { className?: string }) {
   const { data, loading } = useCityLastUpdates();
-  const prefersReducedMotion = useReducedMotion() ?? true;
+  const motionPreference = useReducedMotion();
+  const prefersReducedMotion = motionPreference ?? true;
+  const [tickerMotionEnabled, setTickerMotionEnabled] = useState(false);
+  const shouldAnimateTicker = !prefersReducedMotion || tickerMotionEnabled;
+
+  useEffect(() => {
+    try {
+      setTickerMotionEnabled(window.localStorage.getItem(CITY_TICKER_MOTION_STORAGE_KEY) === 'true');
+    } catch {
+      // Keep the in-memory preference when browser storage is unavailable.
+    }
+  }, []);
+
+  const toggleTickerMotion = () => {
+    const nextEnabled = !tickerMotionEnabled;
+    setTickerMotionEnabled(nextEnabled);
+    try {
+      window.localStorage.setItem(CITY_TICKER_MOTION_STORAGE_KEY, String(nextEnabled));
+    } catch {
+      // The control still works for this session when browser storage is unavailable.
+    }
+  };
 
   const visibleItems = useMemo(() => {
     if (!data || data.length === 0) return [];
@@ -72,11 +95,11 @@ export function CityLastUpdatesTicker({ className = '' }: { className?: string }
     );
   }
 
-  // Duplicates make the marquee loop seamless. Reduced-motion users get one
-  // accessible, manually scrollable list instead of four static copies.
-  const marqueeItems = prefersReducedMotion
-    ? visibleItems
-    : [...visibleItems, ...visibleItems, ...visibleItems, ...visibleItems];
+  // Duplicates make the marquee loop seamless. Reduced-motion users can opt
+  // into the motion or keep one accessible, manually scrollable list.
+  const marqueeItems = shouldAnimateTicker
+    ? [...visibleItems, ...visibleItems, ...visibleItems, ...visibleItems]
+    : visibleItems;
 
   return (
     <div className={`w-full flex h-8 items-center gap-3 overflow-hidden select-none pl-1 ${className}`}>
@@ -88,6 +111,22 @@ export function CityLastUpdatesTicker({ className = '' }: { className?: string }
             className={`h-3 w-3 text-emerald-500 ${loading ? 'animate-city-updates-spin' : ''}`}
           />
         </div>
+        {motionPreference === true && (
+          <button
+            type="button"
+            onClick={toggleTickerMotion}
+            aria-label={shouldAnimateTicker
+              ? 'Pausar rolagem automática das cidades'
+              : 'Ativar rolagem automática das cidades'}
+            aria-pressed={shouldAnimateTicker}
+            title={shouldAnimateTicker ? 'Pausar rolagem automática' : 'Ativar rolagem automática'}
+            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+          >
+            {shouldAnimateTicker
+              ? <Pause aria-hidden="true" className="h-3 w-3" />
+              : <Play aria-hidden="true" className="h-3 w-3" />}
+          </button>
+        )}
         <span className="hidden xl:inline text-[9px] font-bold uppercase tracking-wider text-muted-foreground/75 whitespace-nowrap">
           {loading ? 'Atualizando' : 'Sincronizado'}
         </span>
@@ -100,9 +139,9 @@ export function CityLastUpdatesTicker({ className = '' }: { className?: string }
         role="region"
         aria-label="Atualizações recentes das cidades"
         tabIndex={0}
-        className={`group relative h-6 flex-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500/50 focus-visible:rounded-sm ${prefersReducedMotion ? 'overflow-x-auto overscroll-x-contain' : 'overflow-hidden focus-within:overflow-x-auto'}`}
+        className={`group relative h-6 flex-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500/50 focus-visible:rounded-sm ${shouldAnimateTicker ? 'overflow-hidden focus-within:overflow-x-auto' : 'no-scrollbar overflow-x-auto overscroll-x-contain'}`}
       >
-        {!prefersReducedMotion ? (
+        {shouldAnimateTicker ? (
           <>
             <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-card to-transparent" />
             <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-card to-transparent" />
@@ -112,7 +151,8 @@ export function CityLastUpdatesTicker({ className = '' }: { className?: string }
         <div
           role="list"
           aria-label="Últimas atualizações por cidade"
-          className={`flex h-full w-max items-center gap-4 ${prefersReducedMotion ? '' : 'animate-marquee group-hover:[animation-play-state:paused] group-focus-within:[animation-play-state:paused]'}`}
+          data-motion-opt-in={prefersReducedMotion && tickerMotionEnabled ? 'true' : undefined}
+          className={`flex h-full w-max items-center gap-4 ${shouldAnimateTicker ? 'animate-marquee group-hover:[animation-play-state:paused] group-focus-within:[animation-play-state:paused]' : ''}`}
         >
           {marqueeItems.map((item, index) => (
             <div

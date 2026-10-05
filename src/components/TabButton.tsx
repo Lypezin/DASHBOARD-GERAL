@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 
 interface TabButtonProps {
   label: string;
@@ -25,15 +25,21 @@ const TabButton = React.memo(({ label, active, onClick, onFocus, onMouseEnter }:
           : 'text-slate-600 hover:-translate-y-0.5 hover:text-slate-900 hover:bg-white/55 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700/55'
         }`}
     >
-      {active && (
-        <motion.div
-          layoutId="marketing-subtab-active-background"
-          transition={shouldReduceMotion
-            ? { duration: 0 }
-            : { type: 'spring', stiffness: 520, damping: 42, mass: 0.75 }}
-          className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-tr from-blue-50/65 to-indigo-50/55 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.45)] ring-1 ring-black/5 dark:from-blue-900/20 dark:to-indigo-900/20 dark:ring-white/10"
-        />
-      )}
+      <AnimatePresence initial={false}>
+        {active && (
+          <motion.div
+            key="marketing-subtab-active-background"
+            layoutId={shouldReduceMotion ? undefined : 'marketing-subtab-active-background'}
+            initial={shouldReduceMotion ? { opacity: 0 } : false}
+            animate={{ opacity: 1 }}
+            exit={shouldReduceMotion ? { opacity: 0 } : undefined}
+            transition={shouldReduceMotion
+              ? { duration: 0.12, ease: 'easeOut' }
+              : { type: 'spring', stiffness: 520, damping: 42, mass: 0.75 }}
+            className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-tr from-blue-50/65 to-indigo-50/55 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.45)] ring-1 ring-black/5 dark:from-blue-900/20 dark:to-indigo-900/20 dark:ring-white/10"
+          />
+        )}
+      </AnimatePresence>
       <span className="relative z-10 flex items-center gap-2">
         {label}
       </span>

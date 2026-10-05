@@ -27,10 +27,10 @@ export function ViewTransition({
   };
   const motionProps: MotionStateProps = shouldReduceMotion
     ? {
-        initial: { opacity: 1 },
+        initial: { opacity: 0 },
         animate: { opacity: 1 },
-        exit: { opacity: 1, ...(preventExitInteraction ? { pointerEvents: 'none' as const } : {}) },
-        transition: { duration: 0 },
+        exit: { opacity: 0, ...(preventExitInteraction ? { pointerEvents: 'none' as const } : {}) },
+        transition: { duration: 0.12, ease: 'easeOut' },
       }
     : {
         initial: { opacity: 0, y: 8 },
