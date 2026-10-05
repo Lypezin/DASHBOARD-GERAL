@@ -49,24 +49,24 @@ export function AppLayoutShell({ children }: { children: React.ReactNode }) {
             <SidebarProvider>
               {shouldMountActivityTracker ? <UserActivityTracker /> : null}
 
-              <div className="flex min-h-screen w-full bg-background font-sans text-foreground antialiased transition-colors duration-200">
+              <div className="flex h-dvh min-h-0 w-full overflow-hidden bg-background font-sans text-foreground antialiased transition-colors duration-200">
                 {/* Grade de fundo discreta Linear/Vercel */}
                 <div className="grid-pattern" />
 
                 {/* Sidebar colapsável protegida com React.Suspense para evitar erro de SSR do useSearchParams */}
-                <React.Suspense fallback={<div className="hidden md:block w-16 shrink-0 border-r border-border bg-card h-screen" />}>
+                <React.Suspense fallback={<div className="hidden md:block h-dvh w-16 shrink-0 border-r border-border bg-card" />}>
                   <AppSidebar />
                 </React.Suspense>
 
                 {/* Área de Conteúdo à direita */}
-                <div className="flex flex-1 flex-col min-w-0">
+                <div className="flex min-h-0 min-w-0 flex-1 flex-col">
                   {/* Header compacto protegido com React.Suspense para evitar erro de SSR do useSearchParams */}
                   <React.Suspense fallback={<div className="h-14 border-b border-border bg-card/95 w-full shrink-0 animate-pulse" />}>
                     <DashboardHeader />
                   </React.Suspense>
 
                   {/* Container principal */}
-                  <main className="flex-1 min-w-0 overflow-y-auto">
+                  <main className="min-h-0 min-w-0 flex-1 overflow-y-auto">
                     {children}
                   </main>
                 </div>

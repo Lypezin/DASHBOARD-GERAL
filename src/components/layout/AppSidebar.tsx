@@ -78,7 +78,7 @@ export function AppSidebar() {
           ? { duration: 0 }
           : { type: 'tween', duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
         className={cn(
-          'hidden md:flex sticky top-0 h-screen flex-col border-r border-border bg-card shrink-0 select-none z-50 overflow-x-hidden'
+          'hidden md:flex sticky top-0 h-dvh flex-col border-r border-border bg-card shrink-0 select-none z-50 overflow-x-hidden'
         )}
       >
         {/* Header da Sidebar */}
