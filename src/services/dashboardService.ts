@@ -437,6 +437,7 @@ function compareText(left: string, right: string) {
 
 const DAY_MS = 86_400_000;
 const ENTREGADORES_RANGE_CHUNK_CONCURRENCY = 3;
+const MAX_SINGLE_YEAR_ENTREGADORES_CHUNK_DAYS = 30;
 
 function splitEntregadoresDateRange(payload: Record<string, unknown>) {
   if (typeof payload.p_data_inicial !== 'string' || typeof payload.p_data_final !== 'string') return [];
@@ -445,12 +446,36 @@ function splitEntregadoresDateRange(payload: Record<string, unknown>) {
   const start = Date.parse(`${payload.p_data_inicial}T00:00:00.000Z`);
   const end = Date.parse(`${payload.p_data_final}T00:00:00.000Z`);
   const days = (end - start) / DAY_MS;
-  if (!Number.isFinite(start) || !Number.isFinite(end) || days <= 366 || days > MAX_BROAD_IN_MEMORY_ENTREGADORES_RANGE_DAYS) {
+  if (!Number.isFinite(start) || !Number.isFinite(end) || days <= MAX_SINGLE_YEAR_ENTREGADORES_CHUNK_DAYS || days > MAX_BROAD_IN_MEMORY_ENTREGADORES_RANGE_DAYS) {
       return [];
   }
 
   const chunks: Array<{ start: string; end: string }> = [];
   let cursor = start;
+  const startYear = new Date(start).getUTCFullYear();
+  const endYear = new Date(end).getUTCFullYear();
+
+  // A full calendar year can still be a single expensive RPC. Split ranges
+  // within one year by month so indexed date scopes stay smaller and a
+  // transient timeout does not fail the entire Entregadores page.
+  if (startYear === endYear) {
+      while (cursor <= end) {
+          const current = new Date(cursor);
+          const year = current.getUTCFullYear();
+          const lastDayOfMonth = Date.UTC(year, current.getUTCMonth() + 1, 0);
+          const chunkEnd = Math.min(lastDayOfMonth, end);
+          chunks.push({
+              start: new Date(cursor).toISOString().slice(0, 10),
+              end: new Date(chunkEnd).toISOString().slice(0, 10),
+          });
+          cursor = chunkEnd + DAY_MS;
+      }
+
+      return chunks.length > 1 ? chunks : [];
+  }
+
+  // Preserve the existing calendar-year chunks for multi-year scopes.
+  if (days <= 366) return [];
 
   while (cursor <= end) {
       const year = new Date(cursor).getUTCFullYear();
