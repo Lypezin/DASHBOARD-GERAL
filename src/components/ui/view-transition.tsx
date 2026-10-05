@@ -8,23 +8,34 @@ type ViewTransitionProps = {
   stateKey: React.Key;
   children: React.ReactNode;
   className?: string;
+  preventExitInteraction?: boolean;
 };
 
 type MotionStateProps = Pick<HTMLMotionProps<'div'>, 'initial' | 'animate' | 'exit' | 'transition'>;
 
-export function ViewTransition({ stateKey, children, className }: ViewTransitionProps) {
+export function ViewTransition({
+  stateKey,
+  children,
+  className,
+  preventExitInteraction = false,
+}: ViewTransitionProps) {
   const shouldReduceMotion = useReducedMotion();
+  const exitState = {
+    opacity: 0,
+    y: shouldReduceMotion ? 0 : -4,
+    ...(preventExitInteraction ? { pointerEvents: 'none' as const } : {}),
+  };
   const motionProps: MotionStateProps = shouldReduceMotion
     ? {
         initial: { opacity: 1 },
         animate: { opacity: 1 },
-        exit: { opacity: 1 },
+        exit: { opacity: 1, ...(preventExitInteraction ? { pointerEvents: 'none' as const } : {}) },
         transition: { duration: 0 },
       }
     : {
         initial: { opacity: 0, y: 8 },
         animate: { opacity: 1, y: 0 },
-        exit: { opacity: 0, y: -4 },
+        exit: exitState,
         transition: { duration: 0.15, ease: [0.22, 1, 0.36, 1] },
       };
 

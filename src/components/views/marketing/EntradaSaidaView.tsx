@@ -80,7 +80,7 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
     };
 
     if (loading && !hasData) return (
-        <ViewTransition stateKey="marketing-entrada-saida-loading" className="min-h-[20rem]">
+        <ViewTransition stateKey="marketing-entrada-saida-loading" className="min-h-[20rem]" preventExitInteraction>
             <div className="flex h-80 items-center justify-center px-4">
                 <LoadingNotice
                     className="w-full max-w-lg"
@@ -93,7 +93,7 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
     );
 
     if (error && !hasData) return (
-        <ViewTransition stateKey="marketing-entrada-saida-error" className="min-h-[20rem]">
+        <ViewTransition stateKey="marketing-entrada-saida-error" className="min-h-[20rem]" preventExitInteraction>
             <div role="alert" className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-white p-8 text-center shadow-sm dark:border-rose-900/50 dark:from-rose-950/20 dark:to-slate-900">
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-900/40">
                     <Activity className="h-7 w-7 text-rose-600 dark:text-rose-400" />
@@ -107,7 +107,7 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
     );
 
     if (!loading && !error && !hasData) return (
-        <ViewTransition stateKey="marketing-entrada-saida-empty" className="min-h-[20rem]">
+        <ViewTransition stateKey="marketing-entrada-saida-empty" className="min-h-[20rem]" preventExitInteraction>
             <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
                 <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800">
                     <Activity className="h-7 w-7 text-slate-500 dark:text-slate-400" />
@@ -121,7 +121,7 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
     );
 
     return (
-        <ViewTransition stateKey="marketing-entrada-saida-data" className="space-y-8">
+        <ViewTransition stateKey="marketing-entrada-saida-data" className="space-y-8" preventExitInteraction>
         <div className="mx-auto max-w-7xl space-y-8">
             {loading ? (
                 <LoadingNotice

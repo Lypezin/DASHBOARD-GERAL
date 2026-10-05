@@ -109,7 +109,7 @@ const MarketingView = React.memo(function MarketingView() {
         </div>
       </div>
 
-      <ViewTransition stateKey={activeSubTab}>
+      <ViewTransition stateKey={activeSubTab} preventExitInteraction>
         <div className="min-w-0">{content}</div>
       </ViewTransition>
     </ViewContainer>

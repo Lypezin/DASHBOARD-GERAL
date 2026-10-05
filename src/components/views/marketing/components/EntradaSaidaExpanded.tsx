@@ -53,7 +53,7 @@ export const EntradaSaidaExpanded: React.FC<Props> = ({
     organizationId,
     praca,
 }) => {
-    const shouldReduceMotion = useReducedMotion();
+    const shouldReduceMotion = useReducedMotion() ?? true;
 
     return (
         <motion.div

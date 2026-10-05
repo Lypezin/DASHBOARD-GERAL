@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { formatWeekLabel } from '@/utils/formatters/dateUtils';
 import { ArrowUpRight, ArrowDownRight, RotateCcw, ChevronDown, Calendar } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import { WeeklyData } from './EntradaSaidaCard';
 import { EntradaSaidaRowStat, ENTRADA_SAIDA_COLORS } from './EntradaSaidaRowStat';
 import { EntradaSaidaExpanded } from './EntradaSaidaExpanded';
@@ -29,7 +29,7 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = React.memo(functi
     const retomadaOps = totalRetomada - (item.retomada_marketing || 0);
 
     return (
-        <motion.div className={`group relative rounded-2xl border bg-white transition-all duration-300 hover:shadow-lg dark:bg-slate-900 ${isFirst ? 'border-sky-100 shadow-md ring-1 ring-sky-50 dark:border-sky-900/40 dark:ring-sky-900/20' : 'border-slate-100 shadow-sm hover:border-sky-100 dark:border-slate-800 dark:hover:border-sky-900/30'}`}>
+        <div className={`group relative rounded-2xl border bg-white transition-[border-color,box-shadow] duration-200 hover:shadow-lg dark:bg-slate-900 ${isFirst ? 'border-sky-100 shadow-md ring-1 ring-sky-50 dark:border-sky-900/40 dark:ring-sky-900/20' : 'border-slate-100 shadow-sm hover:border-sky-100 dark:border-slate-800 dark:hover:border-sky-900/30'}`}>
             <div
                 className="relative z-10 flex cursor-pointer flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-6 sm:p-5"
                 onClick={() => setIsExpanded(!isExpanded)}
@@ -124,6 +124,6 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = React.memo(functi
                     />
                 ) : null}
             </AnimatePresence>
-        </motion.div>
+        </div>
     );
 });
