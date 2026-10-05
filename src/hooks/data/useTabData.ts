@@ -289,7 +289,11 @@ export function useTabData(
 
     setLoading(true);
     setError(null);
-    const networkDelay = hasCurrentDataRef.current ? DELAYS.DEBOUNCE : 0;
+    // Entregadores already debounces its search input; delaying its server
+    // page/filter request again adds latency without reducing duplicate work.
+    const networkDelay = hasCurrentDataRef.current && activeTab !== 'entregadores'
+      ? DELAYS.DEBOUNCE
+      : 0;
     debounceRef.current = setTimeout(() => {
       void fetchData(activeTab, payload, filterPayloadStr, currentFetchId);
     }, networkDelay);

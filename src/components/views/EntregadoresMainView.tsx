@@ -29,6 +29,7 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
   const searchParams = useSearchParams();
   const searchFromUrl = searchParams.get('ent_search') || '';
   const [searchTerm, setSearchTerm] = React.useState(searchFromUrl);
+  const pendingUrlSearchEchoRef = React.useRef<string | null>(null);
   const normalizedSearchTerm = searchTerm.trim();
   const shouldPromoteSearch = normalizedSearchTerm.length >= 3 || normalizedSearchTerm.length === 0;
   const serverSearch = useDebouncedValue(searchTerm, 350);
@@ -47,10 +48,16 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
   const [showInactiveOnly, setShowInactiveOnly] = React.useState(false);
 
   React.useEffect(() => {
+    if (pendingUrlSearchEchoRef.current === searchFromUrl) {
+      pendingUrlSearchEchoRef.current = null;
+      return;
+    }
+    pendingUrlSearchEchoRef.current = null;
     setSearchTerm(searchFromUrl);
   }, [searchFromUrl]);
 
-  useUrlSearchSync('ent_search', searchTerm, 250, !isDedicado && shouldPromoteSearch);
+  const urlSearchTerm = shouldPromoteSearch ? normalizedSearchTerm : '';
+  useUrlSearchSync('ent_search', urlSearchTerm, 250, !isDedicado);
 
   const filterResetKey = React.useMemo(
     () => createRequestKey({ filterPayload, search: normalizedServerSearch, isDedicado }),
@@ -64,8 +71,15 @@ const EntregadoresMainView = React.memo(function EntregadoresMainView({
 
   const handleSearchChange = React.useCallback((term: string) => {
     setSearchTerm(term);
+    const normalizedTerm = term.trim();
+    const nextUrlSearch = !isDedicado && (normalizedTerm.length >= 3 || normalizedTerm.length === 0)
+      ? normalizedTerm
+      : '';
+    pendingUrlSearchEchoRef.current = !isDedicado && nextUrlSearch !== searchFromUrl
+      ? nextUrlSearch
+      : null;
     setServerPage(1);
-  }, [setServerPage]);
+  }, [isDedicado, searchFromUrl, setServerPage]);
 
   const handleServerViewChange = React.useCallback((view: {
     sortField: EntregadoresSortField;
