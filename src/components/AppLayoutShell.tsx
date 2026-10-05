@@ -66,7 +66,7 @@ export function AppLayoutShell({ children }: { children: React.ReactNode }) {
                   </React.Suspense>
 
                   {/* Container principal */}
-                  <main className="min-h-0 min-w-0 flex-1 overflow-y-auto">
+                  <main id="dashboard-content-scroll" className="min-h-0 min-w-0 flex-1 overflow-y-auto">
                     {children}
                   </main>
                 </div>

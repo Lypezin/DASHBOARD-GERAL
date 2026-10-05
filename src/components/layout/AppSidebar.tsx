@@ -20,6 +20,20 @@ export function AppSidebar() {
   const avatarUrl = useHeaderAvatar(user);
   const shouldReduceMotion = useReducedMotion() ?? true;
 
+  React.useEffect(() => {
+    if (!mobileOpen) return;
+
+    const contentScroll = document.getElementById('dashboard-content-scroll');
+    if (!contentScroll) return;
+
+    const previousOverflowY = contentScroll.style.overflowY;
+    contentScroll.style.overflowY = 'hidden';
+
+    return () => {
+      contentScroll.style.overflowY = previousOverflowY;
+    };
+  }, [mobileOpen]);
+
   const handleItemClick = (value: TabType) => {
     handleTabChange(value);
     setMobileOpen(false); // Fecha o menu no mobile ao clicar
@@ -89,7 +103,7 @@ export function AppSidebar() {
           ? { duration: 0 }
           : { type: 'tween', duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
         className={cn(
-          'hidden md:flex fixed inset-y-0 left-0 h-dvh flex-col border-r border-border bg-card shrink-0 select-none z-50 overflow-x-hidden'
+          'hidden md:flex fixed inset-y-0 left-0 h-dvh flex-col border-r border-border bg-card shrink-0 select-none z-50 overflow-hidden overscroll-contain'
         )}
       >
         {/* Header da Sidebar */}
@@ -132,7 +146,7 @@ export function AppSidebar() {
         </div>
 
         {/* Itens de Navegação (Scrollable) */}
-        <div className="flex-1 overflow-y-auto px-2 py-4 space-y-4 subtle-scrollbar">
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-4 space-y-4 subtle-scrollbar">
           {renderNavItems()}
         </div>
 
@@ -169,7 +183,7 @@ export function AppSidebar() {
               animate={{ x: 0 }}
               exit={{ x: shouldReduceMotion ? 0 : '-100%' }}
               transition={shouldReduceMotion ? { duration: 0 } : { type: 'tween', duration: 0.25, ease: 'easeOut' }}
-              className="fixed bottom-0 top-0 left-0 z-50 flex w-72 flex-col bg-card border-r border-border shadow-2xl md:hidden"
+              className="fixed bottom-0 top-0 left-0 z-50 flex w-72 flex-col overflow-hidden overscroll-contain bg-card border-r border-border shadow-2xl md:hidden"
             >
               {/* Header Mobile */}
               <div className="flex h-14 items-center justify-between border-b border-border px-4">
@@ -195,7 +209,7 @@ export function AppSidebar() {
               </div>
 
               {/* Navegação Mobile */}
-              <div className="flex-1 overflow-y-auto px-3 py-4 space-y-4">
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 space-y-4">
                 {/* Aqui os itens são sempre expandidos (collapsed = false) */}
                 {SIDEBAR_GROUPS.map((group) => (
                   <div key={`mobile-${group.name}`} className="space-y-1.5 pt-2">
