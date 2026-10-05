@@ -1,12 +1,36 @@
 import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
 import { SLIDE_HEIGHT, SLIDE_WIDTH, slideDimensionsStyle } from '../constants';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence, useIsPresent, useReducedMotion, type HTMLMotionProps } from 'framer-motion';
 
 interface PresentationViewportProps {
     slides: Array<{ key: string; render: (visible: boolean) => React.ReactNode }>;
     currentSlide: number;
     onNext?: () => void;
     onPrev?: () => void;
+}
+
+type SlideMotionProps = Pick<HTMLMotionProps<'div'>, 'custom' | 'variants' | 'initial' | 'animate' | 'exit' | 'transition' | 'style'>;
+
+function TransitionSlidePanel({ children, motionProps }: { children: React.ReactNode; motionProps: SlideMotionProps }) {
+    const isPresent = useIsPresent();
+    const setPanelRef = React.useCallback((panel: HTMLDivElement | null) => {
+        if (!panel) return;
+        (panel as HTMLDivElement & { inert: boolean }).inert = !isPresent;
+    }, [isPresent]);
+
+    return (
+        <motion.div
+            ref={setPanelRef}
+            {...motionProps}
+            aria-hidden={isPresent ? undefined : true}
+            style={{
+                ...motionProps.style,
+                ...(isPresent ? {} : { pointerEvents: 'none' }),
+            }}
+        >
+            {children}
+        </motion.div>
+    );
 }
 
 export const PresentationViewport: React.FC<PresentationViewportProps> = React.memo(({
@@ -176,27 +200,29 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = React.m
                             Nenhum dado disponível para visualização.
                         </motion.div>
                     ) : activeSlide ? (
-                        <motion.div
+                        <TransitionSlidePanel
                             key={activeSlide.key}
-                            custom={direction}
-                            variants={slideVariants}
-                            initial="enter"
-                            animate="center"
-                            exit="exit"
-                            transition={{
-                                x: shouldReduceMotion ? { duration: 0.01 } : { type: 'spring', stiffness: 280, damping: 34, mass: 0.75 },
-                                opacity: { duration: shouldReduceMotion ? 0.01 : 0.16 },
-                                scale: { duration: shouldReduceMotion ? 0.01 : 0.16 }
-                            }}
-                            style={{
-                                ...slideDimensionsStyle,
-                                position: 'absolute',
-                                top: 0,
-                                left: 0,
+                            motionProps={{
+                                custom: direction,
+                                variants: slideVariants,
+                                initial: 'enter',
+                                animate: 'center',
+                                exit: 'exit',
+                                transition: {
+                                    x: shouldReduceMotion ? { duration: 0.01 } : { type: 'spring', stiffness: 280, damping: 34, mass: 0.75 },
+                                    opacity: { duration: shouldReduceMotion ? 0.01 : 0.16 },
+                                    scale: { duration: shouldReduceMotion ? 0.01 : 0.16 },
+                                },
+                                style: {
+                                    ...slideDimensionsStyle,
+                                    position: 'absolute',
+                                    top: 0,
+                                    left: 0,
+                                },
                             }}
                         >
                             {renderedSlide}
-                        </motion.div>
+                        </TransitionSlidePanel>
                     ) : null}
                 </AnimatePresence>
             </div>
