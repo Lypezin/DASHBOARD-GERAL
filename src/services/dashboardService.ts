@@ -364,83 +364,6 @@ function canUseInMemoryEntregadoresPage(payload: Record<string, unknown>) {
   return days <= MAX_BROAD_IN_MEMORY_ENTREGADORES_RANGE_DAYS;
 }
 
-function parseIsoCalendarDate(value: unknown) {
-  if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
-
-  const timestamp = Date.parse(`${value}T00:00:00.000Z`);
-  if (!Number.isFinite(timestamp) || new Date(timestamp).toISOString().slice(0, 10) !== value) return null;
-  return timestamp;
-}
-
-function buildFastEntregadoresPagePayload(payload: Record<string, unknown>, organizationId: string) {
-  if (
-      !UUID_RE.test(organizationId)
-      || payload.p_only_dedicados === true
-      || (typeof payload.p_search === 'string' && payload.p_search.trim() !== '')
-  ) return null;
-
-  const requestedWeek = Number(payload.p_semana ?? 0);
-  const selectedWeeks = Array.isArray(payload.p_semanas) ? payload.p_semanas : [];
-  if (requestedWeek !== 0 || selectedWeeks.length > 0) return null;
-
-  const hasStartDate = payload.p_data_inicial !== null && payload.p_data_inicial !== undefined;
-  const hasEndDate = payload.p_data_final !== null && payload.p_data_final !== undefined;
-  if (hasStartDate !== hasEndDate) return null;
-
-  let startDate: string;
-  let endDate: string;
-  let year: number | null = null;
-
-  if (hasStartDate && hasEndDate) {
-      startDate = String(payload.p_data_inicial);
-      endDate = String(payload.p_data_final);
-      const start = parseIsoCalendarDate(startDate);
-      const end = parseIsoCalendarDate(endDate);
-      if (start === null || end === null || end < start || (end - start) / DAY_MS > 366) return null;
-
-      const requestedYear = Number(payload.p_ano);
-      if (Number.isInteger(requestedYear) && requestedYear >= 2000 && requestedYear <= 2100) {
-          year = requestedYear;
-      }
-  } else {
-      const requestedYear = Number(payload.p_ano);
-      if (!Number.isInteger(requestedYear) || requestedYear < 2000 || requestedYear > 2100) return null;
-      year = requestedYear;
-      startDate = `${requestedYear}-01-01`;
-      endDate = `${requestedYear}-12-31`;
-  }
-
-  const requestedLimit = Number(payload.p_limit);
-  const limit = requestedLimit === -1
-      ? -1
-      : Number.isInteger(requestedLimit) && requestedLimit >= 1 && requestedLimit <= 200
-          ? requestedLimit
-          : null;
-  const page = Number(payload.p_page);
-  if (limit === null || !Number.isInteger(page) || page < 1 || page > 1_000_000) return null;
-
-  const requestedSortField = typeof payload.p_sort_field === 'string'
-      ? payload.p_sort_field as EntregadoresSortField
-      : 'aderencia_percentual';
-
-  return {
-      p_ano: year,
-      p_organization_id: organizationId,
-      p_data_inicial: startDate,
-      p_data_final: endDate,
-      p_praca: typeof payload.p_praca === 'string' ? payload.p_praca.trim() || null : null,
-      p_sub_praca: typeof payload.p_sub_praca === 'string' ? payload.p_sub_praca.trim() || null : null,
-      p_origem: typeof payload.p_origem === 'string' ? payload.p_origem.trim() || null : null,
-      p_limit: limit,
-      p_page: page,
-      p_sort_field: ENTREGADORES_PAGE_SORT_FIELDS.has(requestedSortField)
-          ? requestedSortField
-          : 'aderencia_percentual',
-      p_sort_direction: payload.p_sort_direction === 'asc' ? 'asc' : 'desc',
-      p_only_inactive: payload.p_only_inactive === true,
-  };
-}
-
 function normalizeEntregadoresRows(value: unknown): Entregador[] {
   let rawRows: unknown[] | null = null;
   let declaredTotal: number | null = null;
@@ -1011,26 +934,10 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
       payload.p_only_inactive = payload.p_only_inactive === true;
   }
 
-  if (mode === 'entregadores_page') {
-      const fastPagePayload = buildFastEntregadoresPagePayload(payload, organizationId);
-      if (fastPagePayload) {
-          const fastPageCachePayload = {
-              ...fastPagePayload,
-              p_page_engine: 'relational-fast-page-v1',
-          };
-
-          return resolveWithCache(mode, fastPageCachePayload, async () => {
-              const { data, error } = await admin.rpc(
-                  'listar_entregadores_dashboard_page_fast_v1',
-                  fastPagePayload,
-              );
-              if (error) throw toDashboardRpcError(error);
-              return data ?? null;
-          });
-      }
-  }
-
   if (mode === 'entregadores_page' && canUseInMemoryEntregadoresPage(payload)) {
+      // Reuse a cached aggregate source for search, sorting, filters and page
+      // changes. The direct SQL page RPC re-aggregates and ranks the whole
+      // annual scope on every request and can exceed the database timeout.
       const sourcePayload = pickPayload(source, ENTREGADORES_ALLOWED_PARAMS);
       sourcePayload.p_organization_id = organizationId;
       delete sourcePayload.p_search;

@@ -65,9 +65,9 @@ export function buildFilterQueryParams(filters: Filters, currentParams: URLSearc
     update('subPraca', subPracas[0] || null);
     update('origem', origens[0] || null);
     update('turno', turnos[0] || null);
-    update('subPracas', subPracas.length > 0 ? subPracas.join(',') : null);
-    update('origens', origens.length > 0 ? origens.join(',') : null);
-    update('turnos', turnos.length > 0 ? turnos.join(',') : null);
+    update('subPracas', subPracas.length > 0 ? JSON.stringify(subPracas) : null);
+    update('origens', origens.length > 0 ? JSON.stringify(origens) : null);
+    update('turnos', turnos.length > 0 ? JSON.stringify(turnos) : null);
     update('semanas', !isAllYears && filters.semanas.length > 0 ? filters.semanas.join(',') : null);
 
     if (filters.filtroModo !== 'ano_semana') params.set('filtroModo', filters.filtroModo);

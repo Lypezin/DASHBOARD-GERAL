@@ -5,6 +5,23 @@
 
 export const parseArrayParam = (param: string | null): string[] => {
     if (!param) return [];
+
+    // New links encode selected dimensions as JSON so names containing commas
+    // remain a single value. Keep accepting comma-separated links already in use.
+    const trimmed = param.trim();
+    if (trimmed.startsWith('[')) {
+        try {
+            const parsed: unknown = JSON.parse(trimmed);
+            if (Array.isArray(parsed)) {
+                return parsed
+                    .filter((value): value is string => typeof value === 'string')
+                    .filter(Boolean);
+            }
+        } catch {
+            // Fall through to the legacy comma-separated format.
+        }
+    }
+
     return param.split(',').filter(Boolean);
 };
 

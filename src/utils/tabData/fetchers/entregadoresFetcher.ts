@@ -207,9 +207,18 @@ async function fetchEntregadoresByRpc(
     options: { fallbackOnError: boolean; pageMode?: boolean }
 ): Promise<{ data: EntregadoresData | null; error: RpcError | null }> {
     const allowedParams = options.pageMode
-        ? ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_only_dedicados', 'p_search', 'p_limit', 'p_page', 'p_sort_field', 'p_sort_direction', 'p_only_inactive']
-        : ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_origem', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_only_dedicados', 'p_search'];
+        ? ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_origem', 'p_origens', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_only_dedicados', 'p_search', 'p_limit', 'p_page', 'p_sort_field', 'p_sort_direction', 'p_only_inactive']
+        : ['p_ano', 'p_semana', 'p_semanas', 'p_praca', 'p_sub_praca', 'p_origem', 'p_origens', 'p_data_inicial', 'p_data_final', 'p_organization_id', 'p_only_dedicados', 'p_search'];
     const listarEntregadoresPayload = buildFilterPayload(filterPayload, allowedParams);
+    const selectedOrigins = Array.isArray(listarEntregadoresPayload.p_origens)
+        ? listarEntregadoresPayload.p_origens.filter((value): value is string => typeof value === 'string' && Boolean(value.trim()))
+        : [];
+    if (selectedOrigins.length > 0) {
+        // The Entregadores RPC historically parses p_origem as comma-separated
+        // text. Tagged JSON preserves commas within a single origin name.
+        listarEntregadoresPayload.p_origem = `__DASHBOARD_ORIGENS_JSON_V1__:${JSON.stringify(selectedOrigins)}`;
+    }
+    delete listarEntregadoresPayload.p_origens;
 
     const result = await fetchDashboardDataApi<any>(options.pageMode ? 'entregadores_page' : 'entregadores', listarEntregadoresPayload);
 
