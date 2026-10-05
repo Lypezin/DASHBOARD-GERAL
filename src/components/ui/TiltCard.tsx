@@ -41,15 +41,10 @@ export const TiltCard: React.FC<TiltCardProps> = ({ children, className }) => {
         <motion.div
             onMouseMove={handleMouseMove}
             onMouseLeave={handleMouseLeave}
-            style={{
-                rotateX,
-                rotateY,
-                transformStyle: 'preserve-3d',
-                willChange: 'transform'
-            }}
+            style={shouldReduceMotion ? undefined : { rotateX, rotateY, transformStyle: 'preserve-3d' }}
             className={className}
         >
-            <div style={{ transform: 'translateZ(50px)', transformStyle: 'preserve-3d' }}>
+            <div style={shouldReduceMotion ? undefined : { transform: 'translateZ(50px)', transformStyle: 'preserve-3d' }}>
                 {children}
             </div>
         </motion.div>
