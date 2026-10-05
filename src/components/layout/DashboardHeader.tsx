@@ -78,10 +78,10 @@ export function DashboardHeader() {
         </nav>
       </div>
 
-      <CityLastUpdatesTicker className="col-span-2 row-start-2 min-w-0 px-0 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:mx-8 lg:max-w-[40rem] lg:px-0 xl:max-w-[62rem]" />
+      <CityLastUpdatesTicker className="col-span-2 row-start-2 min-w-0 px-0 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:max-w-[40rem] lg:px-4 xl:max-w-[62rem] xl:px-6" />
 
       {/* Direita: Conquistas + Tema + Perfil */}
-      <div className="col-start-2 row-start-1 ml-auto flex h-14 shrink-0 items-center gap-1 pl-2 sm:gap-2 lg:col-start-3">
+      <div className="relative z-10 isolate col-start-2 row-start-1 ml-auto flex h-14 shrink-0 items-center gap-1 bg-card/95 pl-2 sm:gap-2 lg:col-start-3">
         {/* Conquistas (Apenas se logado) */}
         {user && (
           <Button

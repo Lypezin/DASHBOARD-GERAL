@@ -126,7 +126,7 @@ export function CityLastUpdatesTicker({ className = '' }: { className?: string }
           role="list"
           aria-label="Últimas atualizações por cidade"
           data-motion-opt-in={prefersReducedMotion && tickerMotionEnabled ? 'true' : undefined}
-          className={`flex h-full w-max items-center gap-4 ${shouldAnimateTicker ? 'animate-marquee group-hover:[animation-play-state:paused] group-focus-within:[animation-play-state:paused]' : ''}`}
+          className={`flex h-full w-max items-center gap-4 ${shouldAnimateTicker ? 'animate-marquee group-focus-within:[animation-play-state:paused]' : ''}`}
         >
           {marqueeItems.map((item, index) => (
             <div
