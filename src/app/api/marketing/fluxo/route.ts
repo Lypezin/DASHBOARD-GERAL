@@ -3,6 +3,8 @@ import {
     hasElevatedRole,
     loadCurrentUserProfile,
 } from '@/app/api/_shared/currentUserProfile';
+import { normalizeAssignedPracas } from '@/app/api/app/secure-rpc/cache';
+import { hasFullCityAccess, normalizePracaKey, splitPracas, uniquePracas } from '@/app/api/app/secure-rpc/utils';
 import {
     createServiceRoleClient,
     getServiceRoleConfigErrorPayload,
@@ -118,12 +120,6 @@ export async function POST(request: Request) {
             return NextResponse.json({ data: null, error: auth.failure.message }, { status: auth.failure.status });
         }
 
-        const role = String(auth.profile.role || '').toLowerCase();
-        const hasFullCityAccess = hasElevatedRole(auth.profile) || role === 'marketing';
-        if (!hasFullCityAccess) {
-            return NextResponse.json({ data: null, error: 'Usuario sem permissao para esta consulta.' }, { status: 403 });
-        }
-
         const body = await request.json().catch(() => null) as FluxoRequestBody | null;
         const dataInicial = normalizeDate(body?.dataInicial);
         const dataFinal = normalizeDate(body?.dataFinal);
@@ -133,7 +129,22 @@ export async function POST(request: Request) {
                 : null;
         const profileOrganizationId = auth.profile.organization_id || null;
         const organizationId = requestedOrganizationId || profileOrganizationId;
-        const praca = normalizePraca(body?.praca);
+        const requestedPracas = uniquePracas(splitPracas(normalizePraca(body?.praca)));
+        let scopedPracas = requestedPracas;
+        if (!hasFullCityAccess(auth.profile)) {
+            const assigned = uniquePracas(normalizeAssignedPracas(auth.profile));
+            if (assigned.length === 0) {
+                return NextResponse.json({ data: null, error: 'Nenhuma praça foi atribuída a este usuário.' }, { status: 403 });
+            }
+            const allowed = new Map(assigned.map((item) => [normalizePracaKey(item), item]));
+            if (requestedPracas.some((item) => !allowed.has(normalizePracaKey(item)))) {
+                return NextResponse.json({ data: null, error: 'Praça não permitida para este usuário.' }, { status: 403 });
+            }
+            scopedPracas = requestedPracas.length > 0
+                ? requestedPracas.map((item) => allowed.get(normalizePracaKey(item))!)
+                : assigned;
+        }
+        const praca = scopedPracas.length > 0 ? scopedPracas.join(',') : null;
         const includeNames = body?.includeNames === true;
 
         if (!dataInicial || !dataFinal) {

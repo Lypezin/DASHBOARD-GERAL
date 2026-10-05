@@ -436,8 +436,26 @@ function compareText(left: string, right: string) {
 }
 
 const DAY_MS = 86_400_000;
-const ENTREGADORES_RANGE_CHUNK_CONCURRENCY = 3;
+const ENTREGADORES_RANGE_CHUNK_CONCURRENCY = 1;
 const MAX_SINGLE_YEAR_ENTREGADORES_CHUNK_DAYS = 30;
+const ENTREGADORES_SHARED_CACHE_TABLE = 'dashboard_entregadores_month_cache';
+
+function getEntregadoresMonthCacheKey(payload: Record<string, unknown>) {
+  return createHash('sha256')
+      .update(createRequestKey({ version: 1, mode: 'entregadores_month', payload }))
+      .digest('hex');
+}
+
+function getEntregadoresMonthCacheTtl(endDate: string) {
+  const today = new Date().toISOString().slice(0, 10);
+  return endDate >= today ? 5 * 60_000 : 24 * 60 * 60_000;
+}
+
+function canUseStaleEntregadoresCache(expiresAt: string, endDate: string) {
+  const today = new Date().toISOString().slice(0, 10);
+  const staleTtl = endDate >= today ? 30 * 60_000 : 24 * 60 * 60_000;
+  return Date.parse(expiresAt) + staleTtl > Date.now();
+}
 
 function splitEntregadoresDateRange(payload: Record<string, unknown>) {
   if (typeof payload.p_data_inicial !== 'string' || typeof payload.p_data_final !== 'string') return [];
@@ -446,8 +464,12 @@ function splitEntregadoresDateRange(payload: Record<string, unknown>) {
   const start = Date.parse(`${payload.p_data_inicial}T00:00:00.000Z`);
   const end = Date.parse(`${payload.p_data_final}T00:00:00.000Z`);
   const days = (end - start) / DAY_MS;
-  if (!Number.isFinite(start) || !Number.isFinite(end) || days <= MAX_SINGLE_YEAR_ENTREGADORES_CHUNK_DAYS || days > MAX_BROAD_IN_MEMORY_ENTREGADORES_RANGE_DAYS) {
+  if (!Number.isFinite(start) || !Number.isFinite(end) || days < 0 || days > MAX_BROAD_IN_MEMORY_ENTREGADORES_RANGE_DAYS) {
       return [];
+  }
+
+  if (days <= MAX_SINGLE_YEAR_ENTREGADORES_CHUNK_DAYS) {
+      return [{ start: String(payload.p_data_inicial), end: String(payload.p_data_final) }];
   }
 
   const chunks: Array<{ start: string; end: string }> = [];
@@ -545,13 +567,45 @@ function mergeChunkedEntregadoresResults(results: unknown[], payload: Record<str
       entregadores,
       total: entregadores.length,
       periodo_resolvido: {
-          ano: null,
+          ano: typeof payload.p_ano === 'number' ? payload.p_ano : null,
           semana: null,
           semanas: [],
           auto_semana: false,
           search: typeof payload.p_search === 'string' ? payload.p_search.trim() || null : null,
       },
   };
+}
+
+async function fetchEntregadoresChunkResilient(
+  admin: ReturnType<typeof createServiceRoleClient>,
+  payload: Record<string, unknown>,
+  splitDepth = 0,
+): Promise<{ data: unknown; error: { message: string; code?: string } | null }> {
+  const { data, error } = await admin.rpc('listar_entregadores_dashboard_fast_v1', payload);
+  if (!error) return { data: data ?? null, error: null };
+
+  const start = Date.parse(`${String(payload.p_data_inicial)}T00:00:00.000Z`);
+  const end = Date.parse(`${String(payload.p_data_final)}T00:00:00.000Z`);
+  const days = (end - start) / DAY_MS;
+  if (error.code === '57014' && Number.isFinite(days) && days >= 2 && splitDepth < 4) {
+      // A few dense periods exceed PostgREST's statement timeout even when
+      // monthly requests run alone. Split only that period, then add metrics
+      // per driver so the visible totals are identical to the broad scope.
+      const leftEnd = start + Math.floor(days / 2) * DAY_MS;
+      const left = await fetchEntregadoresChunkResilient(admin, {
+          ...payload,
+          p_data_final: new Date(leftEnd).toISOString().slice(0, 10),
+      }, splitDepth + 1);
+      if (left.error) return left;
+      const right = await fetchEntregadoresChunkResilient(admin, {
+          ...payload,
+          p_data_inicial: new Date(leftEnd + DAY_MS).toISOString().slice(0, 10),
+      }, splitDepth + 1);
+      if (right.error) return right;
+      return { data: mergeChunkedEntregadoresResults([left.data, right.data], payload), error: null };
+  }
+
+  return { data: null, error };
 }
 
 async function fetchEntregadoresInDateChunks(
@@ -562,25 +616,63 @@ async function fetchEntregadoresInDateChunks(
   const results = new Array<unknown>(chunks.length);
   const failures: Error[] = [];
   let nextChunkIndex = 0;
+  const chunkPayloads = chunks.map((chunk) => ({
+      ...payload,
+      p_data_inicial: chunk.start,
+      p_data_final: chunk.end,
+      p_semana: null,
+      p_semanas: null,
+  }));
+  const cacheKeys = chunkPayloads.map(getEntregadoresMonthCacheKey);
+  const cacheEntries = new Map<string, { data: unknown; expires_at: string }>();
+  const { data: cachedRows, error: cacheReadError } = await admin
+      .from(ENTREGADORES_SHARED_CACHE_TABLE)
+      .select('cache_key,data,expires_at')
+      .in('cache_key', cacheKeys);
+  if (cacheReadError) {
+      console.warn('Cache compartilhado de Entregadores indisponível:', cacheReadError.message);
+  } else {
+      for (const row of cachedRows || []) {
+          cacheEntries.set(row.cache_key, { data: row.data, expires_at: row.expires_at });
+      }
+  }
+  const now = Date.now();
+  for (let index = 0; index < chunks.length; index++) {
+      const entry = cacheEntries.get(cacheKeys[index]);
+      if (entry && Date.parse(entry.expires_at) > now) results[index] = entry.data;
+  }
 
   const worker = async () => {
       while (failures.length === 0) {
           const chunkIndex = nextChunkIndex++;
           if (chunkIndex >= chunks.length) return;
+          if (results[chunkIndex] !== undefined) continue;
 
-          const chunkPayload = {
-              ...payload,
-              p_data_inicial: chunks[chunkIndex].start,
-              p_data_final: chunks[chunkIndex].end,
-              p_semana: null,
-              p_semanas: null,
-          };
-          const { data, error } = await admin.rpc('listar_entregadores_dashboard_fast_v1', chunkPayload);
+          const { data, error } = await fetchEntregadoresChunkResilient(admin, chunkPayloads[chunkIndex]);
           if (error) {
+              const stale = cacheEntries.get(cacheKeys[chunkIndex]);
+              if (stale && canUseStaleEntregadoresCache(stale.expires_at, chunks[chunkIndex].end)) {
+                  console.warn('Entregadores: usando mês em cache após falha na atualização:', error.code || error.message);
+                  results[chunkIndex] = stale.data;
+                  continue;
+              }
               failures.push(toDashboardRpcError(error));
               return;
           }
           results[chunkIndex] = data ?? null;
+          if (!cacheReadError && data !== null && data !== undefined) {
+              const { error: cacheWriteError } = await admin
+                  .from(ENTREGADORES_SHARED_CACHE_TABLE)
+                  .upsert({
+                      cache_key: cacheKeys[chunkIndex],
+                      data,
+                      expires_at: new Date(Date.now() + getEntregadoresMonthCacheTtl(chunks[chunkIndex].end)).toISOString(),
+                      updated_at: new Date().toISOString(),
+                  });
+              if (cacheWriteError) {
+                  console.warn('Falha ao atualizar cache compartilhado de Entregadores:', cacheWriteError.message);
+              }
+          }
       }
   };
 
@@ -592,7 +684,65 @@ async function fetchEntregadoresInDateChunks(
   );
 
   if (failures.length > 0) throw failures[0];
+  if (results.length === 1) return results[0];
   return mergeChunkedEntregadoresResults(results, payload);
+}
+
+async function fetchEntregadoresWithSharedCache(
+  admin: ReturnType<typeof createServiceRoleClient>,
+  payload: Record<string, unknown>,
+) {
+  const fetchSource = async () => {
+      const chunks = splitEntregadoresDateRange(payload);
+      if (chunks.length > 0) return fetchEntregadoresInDateChunks(admin, payload, chunks);
+      const { data, error } = await admin.rpc('listar_entregadores_dashboard_fast_v1', payload);
+      if (error) throw toDashboardRpcError(error);
+      return data ?? null;
+  };
+
+  const start = Date.parse(`${String(payload.p_data_inicial)}T00:00:00.000Z`);
+  const end = Date.parse(`${String(payload.p_data_final)}T00:00:00.000Z`);
+  const days = (end - start) / DAY_MS;
+  if (!Number.isFinite(days) || days < 0 || days > 366 || payload.p_semana != null || payload.p_semanas != null) {
+      return fetchSource();
+  }
+
+  const cacheKey = createHash('sha256')
+      .update(createRequestKey({ version: 1, mode: 'entregadores_scope', payload }))
+      .digest('hex');
+  const { data: cachedRow, error: cacheReadError } = await admin
+      .from(ENTREGADORES_SHARED_CACHE_TABLE)
+      .select('data,expires_at')
+      .eq('cache_key', cacheKey)
+      .maybeSingle();
+  if (!cacheReadError && cachedRow && Date.parse(cachedRow.expires_at) > Date.now()) {
+      return cachedRow.data;
+  }
+
+  let data: unknown;
+  try {
+      data = await fetchSource();
+  } catch (error) {
+      if (cachedRow && canUseStaleEntregadoresCache(cachedRow.expires_at, String(payload.p_data_final))) {
+          return cachedRow.data;
+      }
+      throw error;
+  }
+
+  if (!cacheReadError && data !== null && data !== undefined) {
+      const { error: cacheWriteError } = await admin
+          .from(ENTREGADORES_SHARED_CACHE_TABLE)
+          .upsert({
+              cache_key: cacheKey,
+              data,
+              expires_at: new Date(Date.now() + getEntregadoresMonthCacheTtl(String(payload.p_data_final))).toISOString(),
+              updated_at: new Date().toISOString(),
+          });
+      if (cacheWriteError) {
+          console.warn('Falha ao armazenar consolidado de Entregadores:', cacheWriteError.message);
+      }
+  }
+  return data;
 }
 
 function getEntregadorSortValue(row: Entregador, field: EntregadoresSortField) {
@@ -965,10 +1115,7 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
 
   return resolveWithCache(mode, payload, async () => {
       if (mode === 'entregadores') {
-          const chunks = splitEntregadoresDateRange(payload);
-          if (chunks.length > 1) {
-              return fetchEntregadoresInDateChunks(admin, payload, chunks);
-          }
+          return fetchEntregadoresWithSharedCache(admin, payload);
       }
 
       const { data: rpcData, error } = await admin.rpc(rpcName, payload);
