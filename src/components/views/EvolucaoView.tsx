@@ -34,10 +34,16 @@ const EvolucaoView = React.memo(function EvolucaoView({
   });
   const showInitialLoading = loading && !hasCurrentData;
   const showCurrentRequestError = Boolean(error && !hasCurrentData);
+  const viewStateKey = showInitialLoading
+    ? 'evolucao-loading'
+    : showCurrentRequestError
+      ? 'evolucao-error'
+      : 'evolucao-content';
+  const chartStateKey = `evolucao-chart-${state.viewMode}-${anoSelecionado}`;
 
   return (
     <ViewContainer className="space-y-8">
-      <ViewTransition stateKey={showInitialLoading ? 'evolucao-loading' : showCurrentRequestError ? 'evolucao-error' : `evolucao-content-${state.viewMode}-${anoSelecionado}`} preventExitInteraction>
+      <ViewTransition stateKey={viewStateKey} preventExitInteraction>
         {showInitialLoading ? (
           <div className="min-w-0">
             <DashboardSkeleton contentOnly />
@@ -91,21 +97,25 @@ const EvolucaoView = React.memo(function EvolucaoView({
               onMetricsChange={actions.setSelectedMetrics}
             />
 
-            <EvolucaoChart
-              chartData={state.chartData}
-              chartOptions={state.chartOptions}
-              chartError={state.chartError}
-              anoSelecionado={anoSelecionado}
-              selectedMetrics={state.selectedMetrics}
-              viewMode={state.viewMode}
-              dadosAtivosLength={state.totalPeriodos}
-            />
+            <ViewTransition stateKey={chartStateKey} preventExitInteraction>
+              <div className="min-w-0 space-y-8">
+                <EvolucaoChart
+                  chartData={state.chartData}
+                  chartOptions={state.chartOptions}
+                  chartError={state.chartError}
+                  anoSelecionado={anoSelecionado}
+                  selectedMetrics={state.selectedMetrics}
+                  viewMode={state.viewMode}
+                  dadosAtivosLength={state.totalPeriodos}
+                />
 
-            <EvolucaoStatsCards
-              dadosAtivos={state.dadosAtivos}
-              viewMode={state.viewMode}
-              anoSelecionado={anoSelecionado}
-            />
+                <EvolucaoStatsCards
+                  dadosAtivos={state.dadosAtivos}
+                  viewMode={state.viewMode}
+                  anoSelecionado={anoSelecionado}
+                />
+              </div>
+            </ViewTransition>
           </div>
         )}
       </ViewTransition>
