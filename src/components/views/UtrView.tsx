@@ -2,11 +2,11 @@
 
 import React from 'react';
 import { Activity, AlertCircle, RotateCcw } from 'lucide-react';
-import { TableSkeleton } from '@/components/skeletons/TableSkeleton';
 import { Button } from '@/components/ui/button';
 import { useTabData } from '@/hooks/data/useTabData';
 import { useTabDataMapper } from '@/hooks/data/useTabDataMapper';
 import { ViewTransition } from '@/components/ui/view-transition';
+import { FilterRefreshIndicator, FilteredDataTransition, UtrLoading } from '@/components/dashboard/OperationalLoading';
 import type { CurrentUser } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 import { UtrHeader } from './utr/UtrHeader';
@@ -37,11 +37,7 @@ const UtrView = React.memo(function UtrView({
 
   if (loading && (!utrData || !utrData.geral)) {
     stateKey = 'utr-loading';
-    content = (
-      <div className="mx-auto w-full max-w-[1600px] space-y-5 px-4 pt-4 sm:px-6 lg:px-8">
-        <TableSkeleton rows={6} columns={4} />
-      </div>
-    );
+    content = <UtrLoading />;
   } else if (error && (!utrData || !utrData.geral)) {
     stateKey = 'utr-error';
     content = (
@@ -86,11 +82,7 @@ const UtrView = React.memo(function UtrView({
           totalSlices={totalSlices}
         />
 
-        {loading ? (
-          <div className="rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/25 dark:text-blue-200">
-            Atualizando UTR com os filtros atuais...
-          </div>
-        ) : null}
+        {loading ? <FilterRefreshIndicator isLoading={loading} viewName="a UTR" /> : null}
 
         {error ? (
           <div role="alert" className="rounded-2xl border border-amber-200/70 bg-amber-50/85 px-4 py-3 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
@@ -98,13 +90,15 @@ const UtrView = React.memo(function UtrView({
           </div>
         ) : null}
 
-        <UtrContent
-          utrData={utrData}
-          porPraca={porPraca}
-          porSubPraca={porSubPraca}
-          porOrigem={porOrigem}
-          porTurno={porTurno}
-        />
+        <FilteredDataTransition isUpdating={loading}>
+          <UtrContent
+            utrData={utrData}
+            porPraca={porPraca}
+            porSubPraca={porSubPraca}
+            porOrigem={porOrigem}
+            porTurno={porTurno}
+          />
+        </FilteredDataTransition>
       </ViewContainer>
     );
   }

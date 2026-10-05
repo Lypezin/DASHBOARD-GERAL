@@ -4,7 +4,7 @@ import { DashboardDailyPerformance } from './dashboard/DashboardDailyPerformance
 import { DashboardOperationalDetail } from './dashboard/DashboardOperationalDetail';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
 import { ViewContainer } from '@/components/layout/ViewContainer';
-import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+import { DashboardOverviewLoading, FilteredDataTransition } from '@/components/dashboard/OperationalLoading';
 import { DashboardDataStatus } from '@/components/dashboard/DashboardDataStatus';
 import type {
   DashboardFilters,
@@ -46,7 +46,7 @@ const DashboardView = React.memo(function DashboardView({
   const hasResolvedData = totals !== null || aderenciaSemanal.length > 0 || aderenciaDia.length > 0
     || aderenciaTurno.length > 0 || aderenciaSubPraca.length > 0 || aderenciaOrigem.length > 0;
 
-  if (mainDataLoading && !hasResolvedData) return <DashboardSkeleton contentOnly />;
+  if (mainDataLoading && !hasResolvedData) return <DashboardOverviewLoading />;
   if (mainDataError && !hasResolvedData) {
     return <div className="mx-auto w-full max-w-[1600px] px-4 pt-5 sm:px-6 lg:px-8"><DashboardDataStatus hasPreviousData={false} onRetry={retryMainData} /></div>;
   }
@@ -54,34 +54,38 @@ const DashboardView = React.memo(function DashboardView({
   return (
     <ViewContainer className="space-y-9 pb-16 pt-5">
       {mainDataError ? <DashboardDataStatus hasPreviousData={hasResolvedData} onRetry={retryMainData} /> : null}
-      <section className="space-y-4">
-        <DashboardSectionHeader
-          title="Resumo Operacional"
-          description="Indicadores consolidados de aderência e métricas críticas de entrega."
-        />
-        <DashboardGeneralStats aderenciaGeral={aderenciaGeral} aderenciaDia={aderenciaDia} />
-      </section>
+      <FilteredDataTransition isUpdating={mainDataLoading}>
+        <div className="space-y-9">
+          <section className="space-y-4">
+            <DashboardSectionHeader
+              title="Resumo Operacional"
+              description="Indicadores consolidados de aderência e métricas críticas de entrega."
+            />
+            <DashboardGeneralStats aderenciaGeral={aderenciaGeral} aderenciaDia={aderenciaDia} />
+          </section>
 
-      <section className="space-y-4">
-        <DashboardSectionHeader
-          title="Evolução diária"
-          description="Acompanhamento rápido da aderência por dia no período filtrado."
-        />
-        <DashboardDailyPerformance aderenciaDia={aderenciaDia} />
-      </section>
+          <section className="space-y-4">
+            <DashboardSectionHeader
+              title="Evolução diária"
+              description="Acompanhamento rápido da aderência por dia no período filtrado."
+            />
+            <DashboardDailyPerformance aderenciaDia={aderenciaDia} />
+          </section>
 
-      <section className="space-y-4">
-        <DashboardSectionHeader
-          title="Detalhamento Operacional"
-          description="Quebra por turno, sub-praça, origem e dia para investigar desvios."
-        />
-        <DashboardOperationalDetail
-          aderenciaTurno={aderenciaTurno}
-          aderenciaSubPraca={aderenciaSubPraca}
-          aderenciaOrigem={aderenciaOrigem}
-          aderenciaDia={aderenciaDia}
-        />
-      </section>
+          <section className="space-y-4">
+            <DashboardSectionHeader
+              title="Detalhamento Operacional"
+              description="Quebra por turno, sub-praça, origem e dia para investigar desvios."
+            />
+            <DashboardOperationalDetail
+              aderenciaTurno={aderenciaTurno}
+              aderenciaSubPraca={aderenciaSubPraca}
+              aderenciaOrigem={aderenciaOrigem}
+              aderenciaDia={aderenciaDia}
+            />
+          </section>
+        </div>
+      </FilteredDataTransition>
     </ViewContainer>
   );
 });

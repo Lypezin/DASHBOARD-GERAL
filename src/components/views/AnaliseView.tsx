@@ -11,7 +11,7 @@ import type {
 import type { FilterPayload } from '@/types/filters';
 import { safeLog } from '@/lib/errorHandler';
 import { ViewContainer } from '@/components/layout/ViewContainer';
-import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+import { AnalysisLoading, FilteredDataTransition } from '@/components/dashboard/OperationalLoading';
 import { DashboardDataStatus } from '@/components/dashboard/DashboardDataStatus';
 
 const AnaliseView = React.memo(function AnaliseView({
@@ -111,7 +111,7 @@ const AnaliseView = React.memo(function AnaliseView({
   const hasResolvedData = totals !== null || aderenciaDia.length > 0 || aderenciaTurno.length > 0
     || aderenciaSubPraca.length > 0 || aderenciaOrigem.length > 0 || aderenciaDiaOrigem.length > 0;
 
-  if (mainDataLoading && !hasResolvedData) return <DashboardSkeleton contentOnly />;
+  if (mainDataLoading && !hasResolvedData) return <AnalysisLoading />;
   if (mainDataError && !hasResolvedData) {
     return <div className="mx-auto w-full max-w-[1600px] px-4 pt-5 sm:px-6 lg:px-8"><DashboardDataStatus hasPreviousData={false} onRetry={retryMainData} /></div>;
   }
@@ -119,25 +119,29 @@ const AnaliseView = React.memo(function AnaliseView({
   return (
     <ViewContainer className="flex flex-col gap-8 pb-16 pt-4">
       {mainDataError ? <DashboardDataStatus hasPreviousData={hasResolvedData} onRetry={retryMainData} /> : null}
-      <AnaliseMetricCards
-        totals={totals || { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }}
-        taxaAceitacao={taxaAceitacao}
-        taxaCompletude={taxaCompletude}
-        taxaRejeicao={taxaRejeicao}
-        totalHorasEntregues={totalHoras}
-      />
+      <FilteredDataTransition isUpdating={mainDataLoading}>
+        <div className="flex flex-col gap-8">
+          <AnaliseMetricCards
+            totals={totals || { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }}
+            taxaAceitacao={taxaAceitacao}
+            taxaCompletude={taxaCompletude}
+            taxaRejeicao={taxaRejeicao}
+            totalHorasEntregues={totalHoras}
+          />
 
-      <AnaliseDetailedCard
-        activeTable={activeTable}
-        onTableChange={handleTableChange}
-        tableData={tableData}
-        labelColumn={labelColumn}
-        isExporting={isExporting}
-        exportDisabled={exportDisabled}
-        onExport={handleExport}
-        aderenciaDiaOrigem={aderenciaDiaOrigem || []}
-        dayDateMap={dayDateMap}
-      />
+          <AnaliseDetailedCard
+            activeTable={activeTable}
+            onTableChange={handleTableChange}
+            tableData={tableData}
+            labelColumn={labelColumn}
+            isExporting={isExporting}
+            exportDisabled={exportDisabled}
+            onExport={handleExport}
+            aderenciaDiaOrigem={aderenciaDiaOrigem || []}
+            dayDateMap={dayDateMap}
+          />
+        </div>
+      </FilteredDataTransition>
     </ViewContainer>
   );
 });

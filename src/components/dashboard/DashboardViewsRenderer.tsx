@@ -67,8 +67,22 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
   }, [activeTab, registerInteraction]);
 
   const needsChart = needsChartReady(activeTab);
+  const hasMainResult = props.totals !== null
+    || props.aderenciaSemanal.length > 0
+    || props.aderenciaDia.length > 0
+    || props.aderenciaTurno.length > 0
+    || props.aderenciaSubPraca.length > 0
+    || props.aderenciaOrigem.length > 0
+    || props.aderenciaDiaOrigem.length > 0;
+  const isFirstDashboardLoad = (activeTab === 'dashboard' || activeTab === 'analise')
+    && props.mainDataLoading
+    && !hasMainResult;
 
-  const viewStateKey = needsChart && !chartReady ? `chart-loading-${activeTab}` : activeTab;
+  const viewStateKey = needsChart && !chartReady
+    ? `chart-loading-${activeTab}`
+    : isFirstDashboardLoad
+      ? `${activeTab}-initial-loading`
+      : activeTab;
 
   return (
     <ErrorBoundary>
