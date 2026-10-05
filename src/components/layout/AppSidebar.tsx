@@ -18,7 +18,7 @@ export function AppSidebar() {
   const { activeTab, handleTabChange } = useDashboardTabs();
   const { user } = useHeaderAuth();
   const avatarUrl = useHeaderAvatar(user);
-  const shouldReduceMotion = useReducedMotion();
+  const shouldReduceMotion = useReducedMotion() ?? true;
 
   const handleItemClick = (value: TabType) => {
     handleTabChange(value);
@@ -58,6 +58,7 @@ export function AppSidebar() {
                 item={item}
                 isActive={isActive}
                 collapsed={collapsed}
+                reducedMotion={shouldReduceMotion}
                 displayLabel={displayLabel}
                 onClick={handleItemClick}
               />
@@ -73,7 +74,9 @@ export function AppSidebar() {
       {/* SIDEBAR DESKTOP */}
       <motion.aside
         animate={{ width: collapsed ? 64 : 256 }}
-        transition={shouldReduceMotion ? { duration: 0 } : { type: 'spring', stiffness: 380, damping: 35 }}
+        transition={shouldReduceMotion
+          ? { duration: 0 }
+          : { type: 'tween', duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
         className={cn(
           'hidden md:flex h-screen flex-col border-r border-border bg-card shrink-0 select-none relative z-50 overflow-x-hidden'
         )}
@@ -196,6 +199,7 @@ export function AppSidebar() {
                             item={item}
                             isActive={isActive}
                             collapsed={false}
+                            reducedMotion={shouldReduceMotion}
                             displayLabel={displayLabel}
                             onClick={handleItemClick}
                           />

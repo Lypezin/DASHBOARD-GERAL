@@ -15,6 +15,7 @@ interface SidebarMenuItemProps {
   };
   isActive: boolean;
   collapsed: boolean;
+  reducedMotion: boolean;
   displayLabel: string;
   onClick: (value: TabType) => void;
 }
@@ -23,6 +24,7 @@ export const SidebarMenuItem = React.memo(function SidebarMenuItem({
   item,
   isActive,
   collapsed,
+  reducedMotion,
   displayLabel,
   onClick,
 }: SidebarMenuItemProps) {
@@ -45,10 +47,9 @@ export const SidebarMenuItem = React.memo(function SidebarMenuItem({
       
       {!collapsed && (
         <motion.span
-          initial={{ opacity: 0, width: 0 }}
+          initial={reducedMotion ? false : { opacity: 0, width: 0 }}
           animate={{ opacity: 1, width: 'auto' }}
-          exit={{ opacity: 0, width: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={reducedMotion ? { duration: 0 } : { duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
           className="truncate"
         >
           {displayLabel}

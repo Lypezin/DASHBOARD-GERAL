@@ -3,12 +3,14 @@
 import React, { useMemo } from 'react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useReducedMotion } from 'framer-motion';
 import { RefreshCw } from 'lucide-react';
 
 import { useCityLastUpdates } from '@/hooks/data/useCityLastUpdates';
 
 export function CityLastUpdatesTicker({ className = '' }: { className?: string }) {
   const { data, loading } = useCityLastUpdates();
+  const prefersReducedMotion = useReducedMotion() ?? true;
 
   const visibleItems = useMemo(() => {
     if (!data || data.length === 0) return [];
@@ -70,8 +72,11 @@ export function CityLastUpdatesTicker({ className = '' }: { className?: string }
     );
   }
 
-  // Repete os itens 4 vezes para garantir que preencha toda a tela mesmo em monitores ultrawide
-  const marqueeItems = [...visibleItems, ...visibleItems, ...visibleItems, ...visibleItems];
+  // Duplicates make the marquee loop seamless. Reduced-motion users get one
+  // accessible, manually scrollable list instead of four static copies.
+  const marqueeItems = prefersReducedMotion
+    ? visibleItems
+    : [...visibleItems, ...visibleItems, ...visibleItems, ...visibleItems];
 
   return (
     <div className={`w-full flex h-8 items-center gap-3 overflow-hidden select-none pl-1 ${className}`}>
@@ -91,35 +96,42 @@ export function CityLastUpdatesTicker({ className = '' }: { className?: string }
       <div className="h-4 w-px bg-border shrink-0" />
 
       {/* Marquee de Cidades e Datas */}
-      <div className="relative flex-1 overflow-hidden h-6">
-        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-card to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-card to-transparent" />
+      <div
+        role="region"
+        aria-label="Atualizações recentes das cidades"
+        tabIndex={0}
+        className={`group relative h-6 flex-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-emerald-500/50 focus-visible:rounded-sm ${prefersReducedMotion ? 'overflow-x-auto overscroll-x-contain' : 'overflow-hidden focus-within:overflow-x-auto'}`}
+      >
+        {!prefersReducedMotion ? (
+          <>
+            <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-0 z-10 w-6 bg-gradient-to-r from-card to-transparent" />
+            <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 right-0 z-10 w-6 bg-gradient-to-l from-card to-transparent" />
+          </>
+        ) : null}
 
-        <div className="absolute inset-y-0 left-0 flex items-center overflow-visible">
-          <div
-            role="list"
-            aria-label="Últimas atualizações por cidade"
-            className="flex items-center gap-4 w-max animate-marquee hover:[animation-play-state:paused]"
-          >
-            {marqueeItems.map((item, index) => (
-              <div
-                key={`${item.city}-${index}`}
-                role={index < visibleItems.length ? 'listitem' : undefined}
-                aria-hidden={index >= visibleItems.length}
-                className="flex items-center gap-2 shrink-0"
-              >
-                <div className="h-1 w-1 rounded-full bg-emerald-500/80 shrink-0" />
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-                  <span className="text-foreground/90 font-bold whitespace-nowrap font-outfit">
-                    {item.city}
-                  </span>
-                  <span className="text-[10px] font-mono font-extrabold text-emerald-600 dark:text-emerald-400 opacity-100 whitespace-nowrap bg-emerald-500/10 dark:bg-emerald-500/15 px-1.5 py-0.5 rounded shadow-sm">
-                    {item.formattedDate}
-                  </span>
-                </div>
+        <div
+          role="list"
+          aria-label="Últimas atualizações por cidade"
+          className={`flex h-full w-max items-center gap-4 ${prefersReducedMotion ? '' : 'animate-marquee group-hover:[animation-play-state:paused] group-focus-within:[animation-play-state:paused]'}`}
+        >
+          {marqueeItems.map((item, index) => (
+            <div
+              key={`${item.city}-${index}`}
+              role={index < visibleItems.length ? 'listitem' : undefined}
+              aria-hidden={index >= visibleItems.length}
+              className="flex items-center gap-2 shrink-0"
+            >
+              <div className="h-1 w-1 rounded-full bg-emerald-500/80 shrink-0" />
+              <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                <span className="text-foreground/90 font-bold whitespace-nowrap font-outfit">
+                  {item.city}
+                </span>
+                <span className="text-[10px] font-mono font-extrabold text-emerald-600 dark:text-emerald-400 opacity-100 whitespace-nowrap bg-emerald-500/10 dark:bg-emerald-500/15 px-1.5 py-0.5 rounded shadow-sm">
+                  {item.formattedDate}
+                </span>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
       </div>
 
