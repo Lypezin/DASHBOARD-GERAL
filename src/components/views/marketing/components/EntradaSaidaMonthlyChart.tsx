@@ -15,6 +15,7 @@ import {
 import { BarChart3 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { processMonthlyData, createChartData, getChartOptions } from './utils/chartUtils';
+import { useChartAnimation } from '@/hooks/ui/useChartAnimation';
 
 ChartJS.register(
     CategoryScale,
@@ -38,7 +39,8 @@ export const EntradaSaidaMonthlyChart: React.FC<EntradaSaidaMonthlyChartProps> =
         return createChartData(sortedData);
     }, [data]);
 
-    const options = useMemo(() => getChartOptions(), []);
+    const animation = useChartAnimation();
+    const options = useMemo(() => ({ ...getChartOptions(), animation }), [animation]);
 
     return (
         <Card className="overflow-hidden border-0 shadow-xl shadow-slate-200/50 dark:border dark:border-slate-800 dark:shadow-none">

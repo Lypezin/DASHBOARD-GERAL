@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import { DashboardResumoData } from '@/types';
+import { useChartAnimation } from '@/hooks/ui/useChartAnimation';
 
 const CHART_COLORS = [
     { bg: 'rgba(147, 51, 234, 0.2)', border: 'rgb(147, 51, 234)' },
@@ -55,13 +56,11 @@ export const ComparacaoChartSubPraca = React.memo(function ComparacaoChartSubPra
         }),
     }), [semanasSelecionadas, subPracaMaps, subPracas]);
 
+    const animation = useChartAnimation();
     const options = useMemo(() => ({
         responsive: true,
         maintainAspectRatio: true,
-        animation: {
-            duration: 800,
-            easing: 'easeOutQuart' as const
-        },
+        animation,
         interaction: {
             mode: 'index' as const,
             intersect: false,
@@ -95,7 +94,7 @@ export const ComparacaoChartSubPraca = React.memo(function ComparacaoChartSubPra
                 ticks: { font: { size: 10 }, maxRotation: 45, minRotation: 45 }
             }
         }
-    }), []);
+    }), [animation]);
 
     return (
         <div className="p-6">

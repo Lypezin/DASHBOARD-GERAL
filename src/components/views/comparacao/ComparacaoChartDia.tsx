@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import { DashboardResumoData } from '@/types';
 import { findDayData, getMetricValue } from '@/utils/comparacaoHelpers';
+import { useChartAnimation } from '@/hooks/ui/useChartAnimation';
 
 const DIAS_CHART = ['Segunda', 'TerÃ§a', 'Quarta', 'Quinta', 'Sexta', 'SÃ¡bado', 'Domingo'];
 const CHART_COLORS = [
@@ -43,13 +44,11 @@ export const ComparacaoChartDia = React.memo(function ComparacaoChartDia({
         }),
     }), [dadosComparacao, semanasSelecionadas]);
 
+    const animation = useChartAnimation();
     const options = useMemo(() => ({
         responsive: true,
         maintainAspectRatio: true,
-        animation: {
-            duration: 800,
-            easing: 'easeOutQuart' as const
-        },
+        animation,
         interaction: {
             mode: 'index' as const,
             intersect: false,
@@ -83,7 +82,7 @@ export const ComparacaoChartDia = React.memo(function ComparacaoChartDia({
                 ticks: { font: { size: 11 } }
             }
         }
-    }), []);
+    }), [animation]);
 
     return (
         <div className="p-6">

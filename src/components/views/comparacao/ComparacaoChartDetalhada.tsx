@@ -3,6 +3,7 @@ import { Bar } from 'react-chartjs-2';
 import { DashboardResumoData } from '@/types';
 import { createComparacaoChartOptions } from '@/config/charts/comparacao/detalhada';
 import { getPedidosAceitosConcluidosTotal } from '@/utils/comparisonDemandMetrics';
+import { useChartAnimation } from '@/hooks/ui/useChartAnimation';
 
 interface ComparacaoChartDetalhadaProps {
     dadosComparacao: DashboardResumoData[];
@@ -13,7 +14,11 @@ export const ComparacaoChartDetalhada = React.memo(function ComparacaoChartDetal
     dadosComparacao,
     semanasSelecionadas,
 }: ComparacaoChartDetalhadaProps) {
-    const options = useMemo(() => createComparacaoChartOptions(), []);
+    const animation = useChartAnimation();
+    const options = useMemo(
+        () => ({ ...createComparacaoChartOptions(), animation }),
+        [animation]
+    );
 
     const data = useMemo(() => ({
         labels: semanasSelecionadas.map(s => `Semana ${s}`),

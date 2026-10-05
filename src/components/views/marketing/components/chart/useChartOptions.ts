@@ -1,13 +1,13 @@
 import { useMemo } from 'react';
+import { useChartAnimation } from '@/hooks/ui/useChartAnimation';
 
 export const useChartOptions = () => {
+    const animation = useChartAnimation();
+
     return useMemo(() => ({
         responsive: true,
         maintainAspectRatio: false,
-        animation: {
-            duration: 800,
-            easing: 'easeOutQuart' as const
-        },
+        animation,
         interaction: {
             mode: 'index' as const,
             intersect: false,
@@ -91,5 +91,5 @@ export const useChartOptions = () => {
                 }
             }
         }
-    }), []);
+    }), [animation]);
 };

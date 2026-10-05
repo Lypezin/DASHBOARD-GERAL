@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useMemo } from 'react';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -14,6 +14,7 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { useTheme } from '@/contexts/ThemeContext';
+import { useChartAnimation } from '@/hooks/ui/useChartAnimation';
 
 ChartJS.register(
   CategoryScale,
@@ -57,8 +58,9 @@ const customDataLabels = {
 export const EvolucaoSlideChart: React.FC<EvolucaoSlideChartProps> = ({ evolutionData }) => {
     const { theme } = useTheme();
     const isDark = theme === 'dark';
+    const animation = useChartAnimation(350);
 
-    const chartData = {
+    const chartData = useMemo(() => ({
         labels: evolutionData.map(d => {
             const date = new Date(d.data + 'T12:00:00');
             return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
@@ -91,16 +93,17 @@ export const EvolucaoSlideChart: React.FC<EvolucaoSlideChartProps> = ({ evolutio
                 fill: true,
             },
         ],
-    };
+    }), [evolutionData, isDark]);
 
-    const chartOptions = {
+    const chartOptions = useMemo(() => ({
         responsive: true,
         maintainAspectRatio: false,
-        animation: {
-            duration: 350,
-            easing: 'easeOutQuart' as const,
-            onComplete: () => window.dispatchEvent(new Event('marketing-chart-ready')),
-        },
+        animation: animation === false
+            ? false as const
+            : {
+                ...animation,
+                onComplete: () => window.dispatchEvent(new Event('marketing-chart-ready')),
+            },
         plugins: {
             legend: {
                 position: 'top' as const,
@@ -146,7 +149,16 @@ export const EvolucaoSlideChart: React.FC<EvolucaoSlideChartProps> = ({ evolutio
                 }
             }
         },
-    };
+    }), [animation, chartData.labels, isDark]);
+
+    useEffect(() => {
+        if (animation !== false) return;
+
+        const frameId = window.requestAnimationFrame(() => {
+            window.dispatchEvent(new Event('marketing-chart-ready'));
+        });
+        return () => window.cancelAnimationFrame(frameId);
+    }, [animation]);
 
     return (
         <div className={`flex-[1.5] min-h-[250px] mb-6 rounded-3xl p-6 border transition-all duration-500 ${

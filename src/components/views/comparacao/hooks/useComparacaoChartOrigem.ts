@@ -1,12 +1,14 @@
 import { useMemo } from 'react';
 import { DashboardResumoData } from '@/types';
 import { getPedidosAceitosConcluidosBreakdown } from '@/utils/comparisonDemandMetrics';
+import { useChartAnimation } from '@/hooks/ui/useChartAnimation';
 
 export function useComparacaoChartOrigem(
     dadosComparacao: DashboardResumoData[],
     semanasSelecionadas: string[],
     origensDisponiveis: string[]
 ) {
+    const animation = useChartAnimation();
     const origemMaps = useMemo(() => (
         dadosComparacao.map((dadosSemana) => {
             const map = new Map<string, NonNullable<DashboardResumoData['aderencia_origem']>[number]>();
@@ -65,10 +67,7 @@ export function useComparacaoChartOrigem(
     const origemChartOptions = useMemo(() => ({
         responsive: true,
         maintainAspectRatio: false,
-        animation: {
-            duration: 800,
-            easing: 'easeOutQuart' as const
-        },
+        animation,
         interaction: { mode: 'index' as const, intersect: false },
         plugins: {
             legend: { position: 'top' as const },
@@ -93,7 +92,7 @@ export function useComparacaoChartOrigem(
             },
             x: { grid: { display: false } }
         },
-    }), []);
+    }), [animation]);
 
     return { origemChartData, origemChartOptions };
 }
