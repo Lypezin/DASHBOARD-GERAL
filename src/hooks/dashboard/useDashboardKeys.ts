@@ -24,15 +24,22 @@ export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentU
         dataInicial,
         dataFinal
     } = initialFilters;
-    const subPracasKey = subPracas.join('|');
-    const origensKey = origens.join('|');
-    const turnosKey = turnos.join('|');
-    const semanasKey = semanas.join('|');
+    // Location values may contain `|` themselves. JSON keeps these keys
+    // lossless when the arrays are stabilized below.
+    const subPracasKey = createRequestKey(subPracas);
+    const origensKey = createRequestKey(origens);
+    const turnosKey = createRequestKey(turnos);
+    const semanasKey = createRequestKey(semanas);
     const currentUserId = currentUser?.id || '';
     const isCurrentUserAdmin = currentUser?.is_admin ?? false;
     const currentUserRole = currentUser?.role;
     const currentUserOrganizationId = currentUser?.organization_id ?? null;
-    const assignedPracasKey = currentUser?.assigned_pracas?.join('|') || '';
+    const assignedPracasKey = createRequestKey(currentUser?.assigned_pracas || []);
+    const stableSubPracas = useMemo(() => JSON.parse(subPracasKey) as string[], [subPracasKey]);
+    const stableOrigens = useMemo(() => JSON.parse(origensKey) as string[], [origensKey]);
+    const stableTurnos = useMemo(() => JSON.parse(turnosKey) as string[], [turnosKey]);
+    const stableSemanas = useMemo(() => JSON.parse(semanasKey) as number[], [semanasKey]);
+    const stableAssignedPracas = useMemo(() => JSON.parse(assignedPracasKey) as string[], [assignedPracasKey]);
 
     const filtersKey = useMemo(() => {
         return createRequestKey({
@@ -86,23 +93,21 @@ export function useDashboardKeys(initialFilters: Filters, currentUser?: CurrentU
         subPraca,
         origem,
         turno,
-        subPracas: subPracasKey ? subPracasKey.split('|') : [],
-        origens: origensKey ? origensKey.split('|') : [],
-        turnos: turnosKey ? turnosKey.split('|') : [],
-        semanas: (semanasKey ? semanasKey.split('|') : [])
-            .map((value): number => Number(value))
-            .filter((value): value is number => Number.isFinite(value)),
+        subPracas: stableSubPracas,
+        origens: stableOrigens,
+        turnos: stableTurnos,
+        semanas: stableSemanas,
         filtroModo,
         dataInicial,
         dataFinal
-    }), [ano, dataFinal, dataInicial, filtroModo, origem, origensKey, praca, semana, semanasKey, subPraca, subPracasKey, turno, turnosKey]);
+    }), [ano, dataFinal, dataInicial, filtroModo, origem, praca, semana, stableOrigens, stableSemanas, stableSubPracas, stableTurnos, subPraca, turno]);
     const stableCurrentUser = useMemo(() => currentUserKey !== 'null' ? ({
         id: currentUserId,
         is_admin: isCurrentUserAdmin,
-        assigned_pracas: assignedPracasKey ? assignedPracasKey.split('|') : [],
+        assigned_pracas: stableAssignedPracas,
         role: currentUserRole,
         organization_id: currentUserOrganizationId
-    }) : null, [assignedPracasKey, currentUserId, currentUserKey, currentUserOrganizationId, currentUserRole, isCurrentUserAdmin]);
+    }) : null, [currentUserId, currentUserKey, currentUserOrganizationId, currentUserRole, isCurrentUserAdmin, stableAssignedPracas]);
 
     const filterPayload = useMemo(() => {
         if (IS_DEV) {
