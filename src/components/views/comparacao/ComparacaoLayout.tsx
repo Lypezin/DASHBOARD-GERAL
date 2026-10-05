@@ -89,7 +89,7 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                 onRetrySemanas={actions.retrySemanas}
             />
 
-            <ViewTransition stateKey={comparisonStateKey}>
+            <ViewTransition stateKey={comparisonStateKey} preventExitInteraction>
                 {state.loading && !hasComparisonData ? (
                     <div className="min-w-0">
                         <DashboardSkeleton contentOnly />

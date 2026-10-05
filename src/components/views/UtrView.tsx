@@ -109,7 +109,7 @@ const UtrView = React.memo(function UtrView({
     );
   }
 
-  return <ViewTransition stateKey={stateKey}>{content}</ViewTransition>;
+  return <ViewTransition stateKey={stateKey} preventExitInteraction>{content}</ViewTransition>;
 });
 
 UtrView.displayName = 'UtrView';

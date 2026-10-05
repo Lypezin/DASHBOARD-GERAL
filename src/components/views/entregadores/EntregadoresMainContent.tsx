@@ -214,14 +214,14 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
 
   if (loading && !hasEntregadores) {
     return (
-      <ViewTransition stateKey={`${variant}-loading`}>
+      <ViewTransition stateKey={`${variant}-loading`} preventExitInteraction={!isDedicado}>
         <DashboardSkeleton contentOnly />
       </ViewTransition>
     );
   }
 
   return (
-    <ViewTransition stateKey={`${variant}-content`}>
+    <ViewTransition stateKey={`${variant}-content`} preventExitInteraction={!isDedicado}>
       <ViewContainer className="space-y-6">
         <EntregadoresHeader
           onExport={handleExport}

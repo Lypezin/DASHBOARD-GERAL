@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 
 interface TabButtonProps {
   label: string;
@@ -11,18 +12,27 @@ interface TabButtonProps {
 }
 
 const TabButton = React.memo(({ label, active, onClick, onFocus, onMouseEnter }: TabButtonProps) => {
+  const shouldReduceMotion = useReducedMotion() ?? true;
+
   return (
     <button
       onClick={onClick}
       onFocus={onFocus}
       onMouseEnter={onMouseEnter}
+      aria-current={active ? 'page' : undefined}
       className={`group relative z-10 flex shrink-0 items-center justify-center gap-2 overflow-hidden whitespace-nowrap rounded-2xl px-3.5 py-2.5 text-sm font-bold transition-[background-color,color,box-shadow,transform] duration-200 md:px-4 ${active
-          ? 'bg-white text-blue-600 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.45)] ring-1 ring-black/5 dark:bg-slate-800 dark:text-blue-300 dark:ring-white/10'
+          ? 'text-blue-600 dark:text-blue-300'
           : 'text-slate-600 hover:-translate-y-0.5 hover:text-slate-900 hover:bg-white/55 dark:text-slate-400 dark:hover:text-slate-200 dark:hover:bg-slate-700/55'
         }`}
     >
       {active && (
-        <div className="absolute inset-0 bg-gradient-to-tr from-blue-50/65 to-indigo-50/55 dark:from-blue-900/20 dark:to-indigo-900/20 opacity-100 transition-opacity" />
+        <motion.div
+          layoutId="marketing-subtab-active-background"
+          transition={shouldReduceMotion
+            ? { duration: 0 }
+            : { type: 'spring', stiffness: 520, damping: 42, mass: 0.75 }}
+          className="pointer-events-none absolute inset-0 rounded-2xl bg-gradient-to-tr from-blue-50/65 to-indigo-50/55 shadow-[0_10px_24px_-18px_rgba(15,23,42,0.45)] ring-1 ring-black/5 dark:from-blue-900/20 dark:to-indigo-900/20 dark:ring-white/10"
+        />
       )}
       <span className="relative z-10 flex items-center gap-2">
         {label}

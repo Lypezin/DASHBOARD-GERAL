@@ -73,7 +73,7 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
   return (
     <ErrorBoundary>
       <Suspense fallback={<DashboardSkeleton contentOnly />}>
-        <ViewTransition stateKey={viewStateKey}>
+        <ViewTransition stateKey={viewStateKey} preventExitInteraction={activeTab !== 'dedicado'}>
           {needsChart && !chartReady ? (
             <div className="min-w-0 w-full">
               <DashboardSkeleton contentOnly />

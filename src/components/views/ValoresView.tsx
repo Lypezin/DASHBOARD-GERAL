@@ -58,7 +58,7 @@ const ValoresView = React.memo(function ValoresView({
 
   if (loading && !hasResolvedData) {
     return (
-      <ViewTransition stateKey="valores-loading">
+      <ViewTransition stateKey="valores-loading" preventExitInteraction>
         <DashboardSkeleton contentOnly />
       </ViewTransition>
     );
@@ -66,7 +66,7 @@ const ValoresView = React.memo(function ValoresView({
 
   if (error && !hasResolvedData) {
     return (
-      <ViewTransition stateKey="valores-error">
+      <ViewTransition stateKey="valores-error" preventExitInteraction>
         <ValoresError error={error} onRetry={retry} />
       </ViewTransition>
     );
@@ -74,14 +74,14 @@ const ValoresView = React.memo(function ValoresView({
 
   if (!hasResolvedData) {
     return (
-      <ViewTransition stateKey="valores-loading">
+      <ViewTransition stateKey="valores-loading" preventExitInteraction>
         <DashboardSkeleton contentOnly />
       </ViewTransition>
     );
   }
 
   return (
-    <ViewTransition stateKey="valores-content">
+    <ViewTransition stateKey="valores-content" preventExitInteraction>
       <ViewContainer className="space-y-6 pb-10">
         {loading ? (
           <LoadingNotice

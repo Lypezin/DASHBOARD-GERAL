@@ -30,10 +30,10 @@ export function AppSidebar() {
     return SIDEBAR_GROUPS.map((group) => (
       <div key={group.name} className="space-y-1.5 pt-4">
         {/* Rótulo do Grupo */}
-        <AnimatePresence mode={shouldReduceMotion ? 'sync' : 'wait'}>
+        <AnimatePresence initial={!shouldReduceMotion} mode={shouldReduceMotion ? 'sync' : 'wait'}>
           {!collapsed ? (
             <motion.p
-              initial={{ opacity: 0, x: -10 }}
+              initial={shouldReduceMotion ? false : { opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: shouldReduceMotion ? 0 : -10 }}
               transition={{ duration: shouldReduceMotion ? 0 : 0.15 }}
@@ -99,21 +99,24 @@ export function AppSidebar() {
               )}
             />
             
-            {!collapsed && (
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="flex flex-col min-w-0"
-              >
-                <span className="truncate text-sm font-black tracking-tight text-foreground">
-                  Dashboard Geral
-                </span>
-                <span className="text-[9px] font-bold uppercase tracking-wider text-primary">
-                  OPERACIONAL
-                </span>
-              </motion.div>
-            )}
+            <AnimatePresence initial={!shouldReduceMotion}>
+              {!collapsed ? (
+                <motion.div
+                  initial={shouldReduceMotion ? false : { opacity: 0, x: -4 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: shouldReduceMotion ? 0 : -4 }}
+                  transition={{ duration: shouldReduceMotion ? 0 : 0.15, ease: [0.22, 1, 0.36, 1] }}
+                  className="flex min-w-0 flex-col"
+                >
+                  <span className="truncate text-sm font-black tracking-tight text-foreground">
+                    Dashboard Geral
+                  </span>
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-primary">
+                    OPERACIONAL
+                  </span>
+                </motion.div>
+              ) : null}
+            </AnimatePresence>
           </div>
         </div>
 

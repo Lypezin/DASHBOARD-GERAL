@@ -37,7 +37,7 @@ const EvolucaoView = React.memo(function EvolucaoView({
 
   return (
     <ViewContainer className="space-y-8">
-      <ViewTransition stateKey={showInitialLoading ? 'evolucao-loading' : showCurrentRequestError ? 'evolucao-error' : `evolucao-content-${state.viewMode}-${anoSelecionado}`}>
+      <ViewTransition stateKey={showInitialLoading ? 'evolucao-loading' : showCurrentRequestError ? 'evolucao-error' : `evolucao-content-${state.viewMode}-${anoSelecionado}`} preventExitInteraction>
         {showInitialLoading ? (
           <div className="min-w-0">
             <DashboardSkeleton contentOnly />

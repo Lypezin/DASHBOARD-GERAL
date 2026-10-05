@@ -24,7 +24,7 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
 
   if (!isAuthenticated) {
     return (
-      <ViewTransition stateKey={authLoading ? 'valores-cidade-auth-loading' : 'valores-cidade-auth'}>
+      <ViewTransition stateKey={authLoading ? 'valores-cidade-auth-loading' : 'valores-cidade-auth'} preventExitInteraction>
         <ValoresCidadeAuth loading={authLoading} errorMessage={errorMessage} />
       </ViewTransition>
     );
@@ -34,14 +34,14 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
 
   if ((loading || error) && !hasCityData) {
     return (
-      <ViewTransition stateKey={loading ? 'valores-cidade-loading' : 'valores-cidade-error'}>
+      <ViewTransition stateKey={loading ? 'valores-cidade-loading' : 'valores-cidade-error'} preventExitInteraction>
         <ValoresCidadeFeedback loading={loading} error={error} />
       </ViewTransition>
     );
   }
 
   return (
-    <ViewTransition stateKey="valores-cidade-content">
+    <ViewTransition stateKey="valores-cidade-content" preventExitInteraction>
       <div className="space-y-6 pb-8">
         {loading ? (
           <LoadingNotice

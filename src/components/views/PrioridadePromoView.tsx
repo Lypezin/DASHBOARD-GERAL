@@ -45,7 +45,7 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
 
   if (state.loading && (!state.entregadoresData || state.entregadoresData.entregadores.length === 0)) {
     return (
-      <ViewTransition stateKey="prioridade-loading">
+      <ViewTransition stateKey="prioridade-loading" preventExitInteraction>
         <DashboardSkeleton contentOnly />
       </ViewTransition>
     );
@@ -53,7 +53,7 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
 
   if (error && (!state.entregadoresData || state.entregadoresData.entregadores.length === 0)) {
     return (
-      <ViewTransition stateKey="prioridade-error">
+      <ViewTransition stateKey="prioridade-error" preventExitInteraction>
         <PrioridadeErrorState onRetry={retry} />
       </ViewTransition>
     );
@@ -61,7 +61,7 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
 
   if (!state.entregadoresData) {
     return (
-      <ViewTransition stateKey="prioridade-error">
+      <ViewTransition stateKey="prioridade-error" preventExitInteraction>
         <PrioridadeErrorState onRetry={retry} />
       </ViewTransition>
     );
@@ -69,7 +69,7 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
 
   if (exportIntegrityError && !loading) {
     return (
-      <ViewTransition stateKey="prioridade-integrity-error">
+      <ViewTransition stateKey="prioridade-integrity-error" preventExitInteraction>
         <div role="alert" className="mx-auto flex max-w-3xl flex-col gap-4 rounded-2xl border border-amber-200/70 bg-amber-50/85 px-5 py-4 text-sm font-semibold text-amber-800 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
           <span>{exportIntegrityError}</span>
           <button type="button" onClick={retry} className="shrink-0 font-bold underline underline-offset-4">Tentar novamente</button>
@@ -80,14 +80,14 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
 
   if (state.entregadoresData.entregadores.length === 0) {
     return (
-      <ViewTransition stateKey="prioridade-empty">
+      <ViewTransition stateKey="prioridade-empty" preventExitInteraction>
         <PrioridadeEmptyState />
       </ViewTransition>
     );
   }
 
   return (
-    <ViewTransition stateKey="prioridade-content" className="w-full">
+    <ViewTransition stateKey="prioridade-content" className="w-full" preventExitInteraction>
       {error ? (
         <div role="alert" className="mb-4 rounded-2xl border border-amber-200/70 bg-amber-50/85 px-4 py-3 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
           Não foi possível atualizar a Prioridade. Exibindo a resposta válida anterior.
