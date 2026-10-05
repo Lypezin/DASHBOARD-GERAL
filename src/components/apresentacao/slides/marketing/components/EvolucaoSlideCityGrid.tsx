@@ -14,7 +14,7 @@ interface EvolucaoSlideCityGridProps {
 export const EvolucaoSlideCityGrid: React.FC<EvolucaoSlideCityGridProps> = React.memo(({ citiesData }) => {
     const { theme } = useTheme();
     const isDark = theme === 'dark';
-    const shouldReduceMotion = useReducedMotion();
+    const shouldReduceMotion = useReducedMotion() ?? true;
 
     return (
         <div className="mt-auto">

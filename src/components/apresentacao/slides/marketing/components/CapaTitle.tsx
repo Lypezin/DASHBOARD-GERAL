@@ -16,7 +16,7 @@ export const CapaTitle: React.FC<CapaTitleProps> = ({
     periodo, 
     isDark 
 }) => {
-    const shouldReduceMotion = useReducedMotion();
+    const shouldReduceMotion = useReducedMotion() ?? true;
 
     return (
         <motion.div 

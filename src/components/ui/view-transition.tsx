@@ -49,7 +49,7 @@ export function ViewTransition({
   className,
   preventExitInteraction = false,
 }: ViewTransitionProps) {
-  const shouldReduceMotion = useReducedMotion();
+  const shouldReduceMotion = useReducedMotion() ?? true;
   const exitState = {
     opacity: 0,
     y: shouldReduceMotion ? 0 : -4,

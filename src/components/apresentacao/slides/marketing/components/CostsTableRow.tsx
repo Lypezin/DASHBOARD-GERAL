@@ -11,7 +11,7 @@ interface CostsTableRowProps {
 }
 
 export const CostsTableRow: React.FC<CostsTableRowProps> = ({ row, idx, isDark }) => {
-    const shouldReduceMotion = useReducedMotion();
+    const shouldReduceMotion = useReducedMotion() ?? true;
     const numConversa = row.conversas || 0;
     const cpc = numConversa > 0 ? row.valorUsado / numConversa : 0;
     const cpl = row.liberado > 0 ? row.valorUsado / row.liberado : 0;

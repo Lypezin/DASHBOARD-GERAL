@@ -23,7 +23,7 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = React.m
     const animationFrameRef = useRef<number | null>(null);
     const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
     const [isCompactViewport, setIsCompactViewport] = useState(false);
-    const shouldReduceMotion = useReducedMotion();
+    const shouldReduceMotion = useReducedMotion() ?? true;
 
     const renderedSlide = useMemo(() => {
         if (!activeSlide) return null;
@@ -147,7 +147,7 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = React.m
             className="bg-slate-100 dark:bg-slate-950 flex-1 w-full h-full overflow-hidden relative flex items-start justify-center p-2 pt-4 sm:items-center sm:p-3"
         >
             <div
-                className="relative shadow-2xl transition-transform duration-200 ease-out will-change-transform"
+                className="relative shadow-2xl transition-transform duration-200 ease-out"
                 style={{
                     ...slideDimensionsStyle,
                     position: 'absolute',

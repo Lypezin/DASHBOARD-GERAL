@@ -9,7 +9,7 @@ interface CostsHeaderProps {
 }
 
 export const CostsHeader: React.FC<CostsHeaderProps> = ({ titulo, isDark }) => {
-    const shouldReduceMotion = useReducedMotion();
+    const shouldReduceMotion = useReducedMotion() ?? true;
 
     return (
         <>

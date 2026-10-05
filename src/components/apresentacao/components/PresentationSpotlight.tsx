@@ -11,7 +11,7 @@ export const PresentationSpotlight: React.FC = () => {
     const springConfig = { damping: 25, stiffness: 200 };
     const springX = useSpring(mouseX, springConfig);
     const springY = useSpring(mouseY, springConfig);
-    const shouldReduceMotion = useReducedMotion();
+    const shouldReduceMotion = useReducedMotion() ?? true;
     const background = useMotionTemplate`radial-gradient(600px circle at ${springX}px ${springY}px, rgba(59, 130, 246, 0.04), transparent 80%)`;
 
     useEffect(() => {

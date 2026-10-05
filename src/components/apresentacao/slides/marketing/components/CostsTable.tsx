@@ -19,7 +19,7 @@ interface CostsTableProps {
 }
 
 export const CostsTable: React.FC<CostsTableProps> = ({ data, totals, isDark }) => {
-    const shouldReduceMotion = useReducedMotion();
+    const shouldReduceMotion = useReducedMotion() ?? true;
 
     return (
         <div className="flex-1 flex flex-col justify-center max-w-7xl mx-auto w-full">

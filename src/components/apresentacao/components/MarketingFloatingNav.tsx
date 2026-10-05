@@ -19,7 +19,7 @@ const navItems: NavItem[] = [
 ];
 
 export const MarketingFloatingNav: React.FC = () => {
-    const shouldReduceMotion = useReducedMotion();
+    const shouldReduceMotion = useReducedMotion() ?? true;
     const scrollToSection = (id: string) => {
         const element = document.getElementById(id);
         if (element) {
