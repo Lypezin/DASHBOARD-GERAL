@@ -203,7 +203,9 @@
     transform: translateX(0%);
   }
   100% {
-    transform: translateX(-50%);
+    /* The ticker repeats its items four times with a 1rem flex gap.
+       Move half the track minus half a gap so the repeated segment aligns at loop. */
+    transform: translateX(calc(-50% + 0.5rem));
   }
 }
 

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { AnimatePresence, motion, useReducedMotion, type HTMLMotionProps } from 'framer-motion';
+import { AnimatePresence, motion, useIsPresent, useReducedMotion, type HTMLMotionProps } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 type ViewTransitionProps = {
@@ -12,6 +12,36 @@ type ViewTransitionProps = {
 };
 
 type MotionStateProps = Pick<HTMLMotionProps<'div'>, 'initial' | 'animate' | 'exit' | 'transition'>;
+
+type TransitionPanelProps = {
+  children: React.ReactNode;
+  motionProps: MotionStateProps;
+  preventExitInteraction: boolean;
+};
+
+function TransitionPanel({ children, motionProps, preventExitInteraction }: TransitionPanelProps) {
+  const isPresent = useIsPresent();
+  const isExiting = preventExitInteraction && !isPresent;
+
+  // Keep the fading view out of keyboard navigation and assistive technology.
+  // The inert property is set through the DOM because the installed React 18
+  // typings do not yet expose it on HTML attributes.
+  const setPanelRef = React.useCallback((panel: HTMLDivElement | null) => {
+    if (!panel || !preventExitInteraction) return;
+    (panel as HTMLDivElement & { inert: boolean }).inert = !isPresent;
+  }, [isPresent, preventExitInteraction]);
+
+  return (
+    <motion.div
+      ref={setPanelRef}
+      {...motionProps}
+      aria-hidden={isExiting ? true : undefined}
+      className="col-start-1 row-start-1 min-w-0 w-full"
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 export function ViewTransition({
   stateKey,
@@ -42,13 +72,13 @@ export function ViewTransition({
   return (
     <div className={cn('grid min-w-0 w-full', className)}>
       <AnimatePresence mode="sync" initial={false}>
-        <motion.div
+        <TransitionPanel
           key={stateKey}
-          {...motionProps}
-          className="col-start-1 row-start-1 min-w-0 w-full"
+          motionProps={motionProps}
+          preventExitInteraction={preventExitInteraction}
         >
           {children}
-        </motion.div>
+        </TransitionPanel>
       </AnimatePresence>
     </div>
   );
