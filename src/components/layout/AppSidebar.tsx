@@ -71,6 +71,17 @@ export function AppSidebar() {
 
   return (
     <>
+      {/* Espaçador mantém o conteúdo alinhado à largura do menu fixo. */}
+      <motion.div
+        aria-hidden="true"
+        initial={false}
+        animate={{ width: collapsed ? 64 : 256 }}
+        transition={shouldReduceMotion
+          ? { duration: 0 }
+          : { type: 'tween', duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
+        className="hidden md:block h-dvh shrink-0"
+      />
+
       {/* SIDEBAR DESKTOP */}
       <motion.aside
         animate={{ width: collapsed ? 64 : 256 }}
@@ -78,7 +89,7 @@ export function AppSidebar() {
           ? { duration: 0 }
           : { type: 'tween', duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
         className={cn(
-          'hidden md:flex sticky top-0 h-dvh flex-col border-r border-border bg-card shrink-0 select-none z-50 overflow-x-hidden'
+          'hidden md:flex fixed inset-y-0 left-0 h-dvh flex-col border-r border-border bg-card shrink-0 select-none z-50 overflow-x-hidden'
         )}
       >
         {/* Header da Sidebar */}
