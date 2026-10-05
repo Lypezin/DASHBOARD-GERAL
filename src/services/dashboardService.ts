@@ -359,12 +359,9 @@ function canUseInMemoryEntregadoresPage(payload: Record<string, unknown>) {
   if (days <= 366) return true;
 
   // Broad all-years requests can reuse the cached aggregate source and do the
-  // page/search/sort work in memory. Keep dimension-filtered broad ranges on
-  // the database page RPC, where the smaller filtered result is more suitable.
-  return days <= MAX_BROAD_IN_MEMORY_ENTREGADORES_RANGE_DAYS
-      && isUnfilteredValue(payload.p_praca)
-      && isUnfilteredValue(payload.p_sub_praca)
-      && isUnfilteredValue(payload.p_origem);
+  // page/search/sort work in memory. Long ranges are fetched in indexed yearly
+  // slices below, including when a dimension filter narrows each slice.
+  return days <= MAX_BROAD_IN_MEMORY_ENTREGADORES_RANGE_DAYS;
 }
 
 function normalizeEntregadoresRows(value: unknown): Entregador[] {
@@ -436,6 +433,141 @@ function normalizeEntregadoresRows(value: unknown): Entregador[] {
 
 function compareText(left: string, right: string) {
   return left < right ? -1 : left > right ? 1 : 0;
+}
+
+const DAY_MS = 86_400_000;
+const ENTREGADORES_RANGE_CHUNK_CONCURRENCY = 3;
+
+function splitEntregadoresDateRange(payload: Record<string, unknown>) {
+  if (typeof payload.p_data_inicial !== 'string' || typeof payload.p_data_final !== 'string') return [];
+  if (payload.p_semana != null || (Array.isArray(payload.p_semanas) && payload.p_semanas.length > 0)) return [];
+
+  const start = Date.parse(`${payload.p_data_inicial}T00:00:00.000Z`);
+  const end = Date.parse(`${payload.p_data_final}T00:00:00.000Z`);
+  const days = (end - start) / DAY_MS;
+  if (!Number.isFinite(start) || !Number.isFinite(end) || days <= 366 || days > MAX_BROAD_IN_MEMORY_ENTREGADORES_RANGE_DAYS) {
+      return [];
+  }
+
+  const chunks: Array<{ start: string; end: string }> = [];
+  let cursor = start;
+
+  while (cursor <= end) {
+      const year = new Date(cursor).getUTCFullYear();
+      const lastDayOfYear = Date.UTC(year, 11, 31);
+      const chunkEnd = Math.min(lastDayOfYear, end);
+      chunks.push({
+          start: new Date(cursor).toISOString().slice(0, 10),
+          end: new Date(chunkEnd).toISOString().slice(0, 10),
+      });
+      cursor = chunkEnd + DAY_MS;
+  }
+
+  return chunks.length > 1 ? chunks : [];
+}
+
+function toDashboardRpcError(error: { message: string; code?: string }) {
+  const rpcError = new Error(error.message) as Error & { code?: string };
+  rpcError.name = 'DashboardRpcError';
+  if (typeof error.code === 'string') rpcError.code = error.code;
+  return rpcError;
+}
+
+function chooseChunkedEntregadorName(current: string, next: string) {
+  const currentIsMojibake = /[\u00C2\u00C3]/.test(current);
+  const nextIsMojibake = /[\u00C2\u00C3]/.test(next);
+  if (currentIsMojibake && !nextIsMojibake) return next;
+  if (!currentIsMojibake && nextIsMojibake) return current;
+  return next.length > current.length ? next : current;
+}
+
+function mergeChunkedEntregadoresResults(results: unknown[], payload: Record<string, unknown>) {
+  const rowsById = new Map<string, Entregador>();
+
+  for (const result of results) {
+      for (const row of normalizeEntregadoresRows(result)) {
+          const current = rowsById.get(row.id_entregador);
+          if (!current) {
+              rowsById.set(row.id_entregador, { ...row });
+              continue;
+          }
+
+          current.nome_entregador = chooseChunkedEntregadorName(current.nome_entregador, row.nome_entregador);
+          current.corridas_ofertadas += row.corridas_ofertadas;
+          current.corridas_aceitas += row.corridas_aceitas;
+          current.corridas_rejeitadas += row.corridas_rejeitadas;
+          current.corridas_completadas += row.corridas_completadas;
+          current.total_segundos += row.total_segundos;
+          if (row.primeira_data_aparicao && (!current.primeira_data_aparicao || row.primeira_data_aparicao < current.primeira_data_aparicao)) {
+              current.primeira_data_aparicao = row.primeira_data_aparicao;
+          }
+          current.aderencia_percentual = current.corridas_ofertadas > 0
+              ? Number(((current.corridas_aceitas / current.corridas_ofertadas) * 100).toFixed(2))
+              : 0;
+          current.rejeicao_percentual = current.corridas_ofertadas > 0
+              ? Number(((current.corridas_rejeitadas / current.corridas_ofertadas) * 100).toFixed(2))
+              : 0;
+      }
+  }
+
+  const entregadores = Array.from(rowsById.values());
+  entregadores.sort((left, right) =>
+      right.corridas_completadas - left.corridas_completadas
+      || compareText(left.id_entregador, right.id_entregador)
+  );
+
+  return {
+      entregadores,
+      total: entregadores.length,
+      periodo_resolvido: {
+          ano: null,
+          semana: null,
+          semanas: [],
+          auto_semana: false,
+          search: typeof payload.p_search === 'string' ? payload.p_search.trim() || null : null,
+      },
+  };
+}
+
+async function fetchEntregadoresInDateChunks(
+  admin: ReturnType<typeof createServiceRoleClient>,
+  payload: Record<string, unknown>,
+  chunks: Array<{ start: string; end: string }>,
+) {
+  const results = new Array<unknown>(chunks.length);
+  const failures: Error[] = [];
+  let nextChunkIndex = 0;
+
+  const worker = async () => {
+      while (failures.length === 0) {
+          const chunkIndex = nextChunkIndex++;
+          if (chunkIndex >= chunks.length) return;
+
+          const chunkPayload = {
+              ...payload,
+              p_data_inicial: chunks[chunkIndex].start,
+              p_data_final: chunks[chunkIndex].end,
+              p_semana: null,
+              p_semanas: null,
+          };
+          const { data, error } = await admin.rpc('listar_entregadores_dashboard_fast_v1', chunkPayload);
+          if (error) {
+              failures.push(toDashboardRpcError(error));
+              return;
+          }
+          results[chunkIndex] = data ?? null;
+      }
+  };
+
+  await Promise.all(
+      Array.from(
+          { length: Math.min(ENTREGADORES_RANGE_CHUNK_CONCURRENCY, chunks.length) },
+          () => worker()
+      )
+  );
+
+  if (failures.length > 0) throw failures[0];
+  return mergeChunkedEntregadoresResults(results, payload);
 }
 
 function getEntregadorSortValue(row: Entregador, field: EntregadoresSortField) {
@@ -804,12 +936,16 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
               : 'listar_valores_entregadores';
 
   return resolveWithCache(mode, payload, async () => {
+      if (mode === 'entregadores') {
+          const chunks = splitEntregadoresDateRange(payload);
+          if (chunks.length > 1) {
+              return fetchEntregadoresInDateChunks(admin, payload, chunks);
+          }
+      }
+
       const { data: rpcData, error } = await admin.rpc(rpcName, payload);
       if (error) {
-          const rpcError = new Error(error.message) as Error & { code?: string };
-          rpcError.name = 'DashboardRpcError';
-          if (typeof error.code === 'string') rpcError.code = error.code;
-          throw rpcError;
+          throw toDashboardRpcError(error);
       }
       return rpcData ?? null;
   });
