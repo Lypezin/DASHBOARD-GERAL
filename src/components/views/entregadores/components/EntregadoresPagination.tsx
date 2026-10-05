@@ -8,6 +8,7 @@ interface EntregadoresPaginationProps {
     totalPages: number;
     totalItems: number;
     itemsPerPage: number;
+    isUpdating?: boolean;
     onPageChange: (page: number) => void;
 }
 
@@ -16,6 +17,7 @@ export const EntregadoresPagination: React.FC<EntregadoresPaginationProps> = ({
     totalPages,
     totalItems,
     itemsPerPage,
+    isUpdating = false,
     onPageChange,
 }) => {
     if (totalPages <= 1) return null;
@@ -35,7 +37,7 @@ export const EntregadoresPagination: React.FC<EntregadoresPaginationProps> = ({
                     variant="outline"
                     size="sm"
                     onClick={() => onPageChange(Math.max(1, currentPage - 1))}
-                    disabled={currentPage === 1}
+                    disabled={isUpdating || currentPage === 1}
                     className="rounded-xl"
                 >
                     <ChevronLeft className="mr-1 h-4 w-4" />
@@ -48,7 +50,7 @@ export const EntregadoresPagination: React.FC<EntregadoresPaginationProps> = ({
                     variant="outline"
                     size="sm"
                     onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-                    disabled={currentPage === totalPages}
+                    disabled={isUpdating || currentPage === totalPages}
                     className="rounded-xl"
                 >
                     Proxima

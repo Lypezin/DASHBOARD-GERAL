@@ -188,6 +188,12 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
       }
     : stats;
   const hasEntregadores = (entregadoresData?.entregadores.length || 0) > 0;
+  const pageResultIsStale = Boolean(
+    serverPage
+    && typeof entregadoresData?.page === 'number'
+    && entregadoresData.page !== serverPage.currentPage
+  );
+  const isUpdatingResults = loading || isRefreshing || isFilteringDeferred || pageResultIsStale;
   const performerCount = Math.max(Number(displayStats.totalEntregadores) || 0, sortedEntregadores.length);
   const hasPerformers = performerCount >= 5;
   const showPerformers = useDeferredMount({
@@ -278,7 +284,7 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
 
         {error && !hasEntregadores ? null : (
           <FilteredDataTransition
-            isUpdating={loading || isRefreshing || isFilteringDeferred}
+            isUpdating={isUpdatingResults}
             className="space-y-5"
           >
             <EntregadoresMainStatsCards
@@ -298,11 +304,11 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
               onSearchChange={handleSearchChange}
               showInactiveOnly={showInactiveOnly}
               onShowInactiveOnlyChange={setShowInactiveOnly}
-              isSearching={loading || isRefreshing || isFilteringDeferred}
+              isSearching={isUpdatingResults}
             />
 
             <FilterRefreshIndicator
-              isLoading={loading || isRefreshing || isFilteringDeferred}
+              isLoading={isUpdatingResults}
               viewName="a lista de entregadores"
             />
 
@@ -313,8 +319,10 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
               onSort={handleSort}
               searchTerm={effectiveSearchTerm}
               onRowClick={handleRowClick}
+              isUpdating={isUpdatingResults}
               serverPagination={serverPage ? {
                 ...serverPage,
+                loadedPage: entregadoresData?.page,
                 totalItems: entregadoresData?.total ?? 0,
               } : undefined}
             />
