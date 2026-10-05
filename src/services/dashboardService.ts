@@ -331,13 +331,21 @@ function canUseInMemoryEntregadoresPage(payload: Record<string, unknown>) {
   if (
       !UUID_RE.test(String(payload.p_organization_id || ''))
       || payload.p_only_dedicados === true
-      || Number(payload.p_semana || 0) !== 0
-      || (Array.isArray(payload.p_semanas) && payload.p_semanas.length > 0)
   ) return false;
+
+  const requestedWeek = Number(payload.p_semana || 0);
+  const selectedWeeks = Array.isArray(payload.p_semanas) ? payload.p_semanas : [];
+  const hasWeekSelection = requestedWeek !== 0 || selectedWeeks.length > 0;
+  const hasValidWeekSelection =
+      (requestedWeek === 0 || (Number.isInteger(requestedWeek) && requestedWeek >= 1 && requestedWeek <= 53))
+      && selectedWeeks.every((week) => {
+          const number = Number(week);
+          return Number.isInteger(number) && number >= 1 && number <= 53;
+      });
 
   const hasStartDate = payload.p_data_inicial !== null && payload.p_data_inicial !== undefined;
   const hasEndDate = payload.p_data_final !== null && payload.p_data_final !== undefined;
-  if (hasStartDate !== hasEndDate) return false;
+  if (hasStartDate !== hasEndDate || (hasStartDate && hasWeekSelection) || !hasValidWeekSelection) return false;
 
   if (!hasStartDate) {
       const year = Number(payload.p_ano);

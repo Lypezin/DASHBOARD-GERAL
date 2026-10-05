@@ -201,6 +201,57 @@ export function UtrLoading() {
   );
 }
 
+export function EntregadoresLoading() {
+  const metricWidths = ['w-28', 'w-24', 'w-32', 'w-24', 'w-20'];
+
+  return (
+    <div className="mx-auto w-full max-w-[1600px] space-y-5 pb-8" aria-label="Carregando entregadores" aria-busy="true">
+      <LoadingHeading
+        title="Preparando os entregadores"
+        description="Carregando indicadores e a lista da frota para o período selecionado."
+      />
+
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-5">
+        {metricWidths.map((width, index) => (
+          <MetricSkeletonCard key={index} className="min-h-[142px]" />
+        ))}
+      </div>
+
+      <section className={cn(panelClass, 'overflow-hidden')}>
+        <div className="flex flex-col gap-3 border-b border-slate-200/60 p-4 dark:border-slate-800/70 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+          <Shimmer className="h-10 w-full rounded-xl sm:max-w-sm" />
+          <Shimmer className="h-9 w-36 rounded-xl" />
+        </div>
+        <div className="subtle-scrollbar overflow-x-auto">
+          <div className="min-w-[760px]">
+            <div className="grid grid-cols-[minmax(200px,1.7fr)_repeat(7,minmax(68px,1fr))] gap-3 border-b border-slate-200/60 bg-slate-50/70 px-4 py-3 dark:border-slate-800/70 dark:bg-slate-900/35 sm:px-5">
+              {Array.from({ length: 8 }, (_, index) => (
+                <Shimmer key={index} className="h-3 w-14 max-w-full rounded-full" />
+              ))}
+            </div>
+            <div className="divide-y divide-slate-200/50 dark:divide-slate-800/60">
+              {Array.from({ length: 8 }, (_, row) => (
+                <div key={row} className="grid grid-cols-[minmax(200px,1.7fr)_repeat(7,minmax(68px,1fr))] items-center gap-3 px-4 py-4 sm:px-5">
+                  <div className="flex min-w-0 items-center gap-3">
+                    <Shimmer className="h-8 w-8 shrink-0 rounded-full" />
+                    <div className="min-w-0 flex-1 space-y-2">
+                      <Shimmer className="h-3 w-40 max-w-full rounded-full" />
+                      <Shimmer className="h-2.5 w-28 max-w-full rounded-full" />
+                    </div>
+                  </div>
+                  {Array.from({ length: 7 }, (_, column) => (
+                    <Shimmer key={column} className="h-3 w-12 max-w-full justify-self-end rounded-full" />
+                  ))}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 export function FilterRefreshIndicator({
   isLoading,
   viewName,

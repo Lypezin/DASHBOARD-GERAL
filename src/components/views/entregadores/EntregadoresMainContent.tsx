@@ -5,7 +5,6 @@ import dynamic from 'next/dynamic';
 import { EntregadoresMainStatsCards } from './EntregadoresMainStatsCards';
 import { EntregadoresMainSearch } from './EntregadoresMainSearch';
 import { EntregadoresMainTable } from './EntregadoresMainTable';
-import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { ViewContainer } from '@/components/layout/ViewContainer';
 import { useEntregadoresMainSort } from './hooks/useEntregadoresMainSort';
 import { useEntregadoresMainStats } from './hooks/useEntregadoresMainStats';
@@ -15,13 +14,13 @@ import { useEntregadorProfile } from './hooks/useEntregadorProfile';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
 import { ViewTransition } from '@/components/ui/view-transition';
-import { LoadingNotice } from '@/components/ui/loading-notice';
 import { AlertTriangle } from 'lucide-react';
 import type { EntregadoresData, EntregadoresSortField } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 import { resolveEntregadoresDescription } from './utils/entregadoresHelpers';
 import { fetchEntregadoresData } from '@/utils/tabData/fetchers/entregadoresFetcher';
 import { filterAndSortEntregadores } from './hooks/useEntregadoresMainSort';
+import { EntregadoresLoading, FilteredDataTransition, FilterRefreshIndicator } from '@/components/dashboard/OperationalLoading';
 
 function TopBottomPerformersSkeleton({ rows = 10 }: { rows?: number }) {
   return (
@@ -215,7 +214,7 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
   if (loading && !hasEntregadores) {
     return (
       <ViewTransition stateKey={`${variant}-loading`} preventExitInteraction={!isDedicado}>
-        <DashboardSkeleton contentOnly />
+        <EntregadoresLoading />
       </ViewTransition>
     );
   }
@@ -278,7 +277,10 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
         ) : null}
 
         {error && !hasEntregadores ? null : (
-          <>
+          <FilteredDataTransition
+            isUpdating={loading || isRefreshing || isFilteringDeferred}
+            className="space-y-5"
+          >
             <EntregadoresMainStatsCards
               totalEntregadores={displayStats.totalEntregadores}
               aderenciaMedia={displayStats.aderenciaMedia}
@@ -299,13 +301,10 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
               isSearching={loading || isRefreshing || isFilteringDeferred}
             />
 
-            {loading || isRefreshing || isFilteringDeferred ? (
-              <LoadingNotice
-                tone={loading || isRefreshing ? 'emerald' : 'sky'}
-                message={loading || isRefreshing ? 'Atualizando entregadores com os filtros atuais' : 'Aplicando busca e ordenação sem travar a tela'}
-                detail={loading || isRefreshing ? 'Os dados anteriores continuam visíveis durante a atualização.' : 'A lista responde primeiro e finaliza o processamento em segundo plano.'}
-              />
-            ) : null}
+            <FilterRefreshIndicator
+              isLoading={loading || isRefreshing || isFilteringDeferred}
+              viewName="a lista de entregadores"
+            />
 
             <EntregadoresMainTable
               sortedEntregadores={sortedEntregadores}
@@ -341,7 +340,7 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
                 requestScopeKey={requestScopeKey}
               />
             ) : null}
-          </>
+          </FilteredDataTransition>
         )}
       </ViewContainer>
     </ViewTransition>
