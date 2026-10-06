@@ -22,7 +22,7 @@ export const FilterClearButton: React.FC<FilterClearButtonProps> = ({ onClear, c
           "hover:-translate-y-0.5 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 hover:shadow-md",
           "dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-rose-900 dark:hover:bg-rose-950/20 dark:hover:text-rose-400",
           "focus:outline-none focus:ring-2 focus:ring-rose-500/20",
-          appearance === 'quiet' && "h-[38px] rounded-lg border-transparent bg-transparent px-2 text-[#315c49] shadow-none hover:translate-y-0 hover:border-transparent hover:bg-[#eef1ec] hover:text-[#274a3a] hover:shadow-none dark:bg-transparent dark:text-emerald-200 dark:hover:bg-emerald-950/30"
+          appearance === 'quiet' && "h-[38px] rounded-lg border-transparent bg-transparent px-2 text-[#276887] shadow-none hover:translate-y-0 hover:border-transparent hover:bg-[#eaf4f9] hover:text-[#155d8b] hover:shadow-none dark:bg-transparent dark:text-sky-200 dark:hover:bg-sky-950/40"
         )}
         data-filter-trigger="clear"
       >

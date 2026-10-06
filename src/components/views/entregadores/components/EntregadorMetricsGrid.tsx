@@ -19,16 +19,16 @@ export const EntregadorMetricsGrid = React.memo(function EntregadorMetricsGrid({
   const percentualCompletadas = calcularPercentualCompletadas(entregador);
 
   const metrics = [
-    { label: 'Primeira aparição', value: firstSeenLabel, icon: CalendarDays, color: 'text-violet-600' },
-    { label: 'Horas online', value: formatarHorasParaHMS((entregador.total_segundos || 0) / 3600), icon: Clock, color: 'text-blue-600' },
-    { label: 'Aderência', value: `${entregador.aderencia_percentual.toFixed(1)}%`, icon: Target, color: 'text-emerald-600' },
-    { label: 'Ofertadas', value: entregador.corridas_ofertadas.toLocaleString('pt-BR'), icon: Hash, color: 'text-slate-600' },
-    { label: 'Aceitas', value: entregador.corridas_aceitas.toLocaleString('pt-BR'), icon: CheckCircle2, color: 'text-emerald-600' },
-    { label: 'Rejeitadas', value: entregador.corridas_rejeitadas.toLocaleString('pt-BR'), icon: XCircle, color: 'text-rose-600' },
-    { label: 'Completadas', value: entregador.corridas_completadas.toLocaleString('pt-BR'), icon: Activity, color: 'text-sky-600' },
-    { label: '% Aceitação', value: `${percentualAceitas.toFixed(1)}%`, icon: Percent, color: 'text-emerald-600' },
-    { label: '% Completude', value: `${percentualCompletadas.toFixed(1)}%`, icon: Percent, color: 'text-blue-600' },
-    { label: '% Rejeição', value: `${entregador.rejeicao_percentual.toFixed(1)}%`, icon: Percent, color: 'text-rose-600' },
+    { label: 'Primeira aparição', value: firstSeenLabel, icon: CalendarDays, color: 'text-violet-600 dark:text-violet-300' },
+    { label: 'Horas online', value: formatarHorasParaHMS((entregador.total_segundos || 0) / 3600), icon: Clock, color: 'text-blue-600 dark:text-blue-300' },
+    { label: 'Aderência', value: `${entregador.aderencia_percentual.toFixed(1)}%`, icon: Target, color: 'text-emerald-600 dark:text-emerald-300' },
+    { label: 'Ofertadas', value: entregador.corridas_ofertadas.toLocaleString('pt-BR'), icon: Hash, color: 'text-slate-600 dark:text-slate-300' },
+    { label: 'Aceitas', value: entregador.corridas_aceitas.toLocaleString('pt-BR'), icon: CheckCircle2, color: 'text-emerald-600 dark:text-emerald-300' },
+    { label: 'Rejeitadas', value: entregador.corridas_rejeitadas.toLocaleString('pt-BR'), icon: XCircle, color: 'text-rose-600 dark:text-rose-300' },
+    { label: 'Completadas', value: entregador.corridas_completadas.toLocaleString('pt-BR'), icon: Activity, color: 'text-sky-600 dark:text-sky-300' },
+    { label: '% Aceitação', value: `${percentualAceitas.toFixed(1)}%`, icon: Percent, color: 'text-emerald-600 dark:text-emerald-300' },
+    { label: '% Completude', value: `${percentualCompletadas.toFixed(1)}%`, icon: Percent, color: 'text-blue-600 dark:text-blue-300' },
+    { label: '% Rejeição', value: `${entregador.rejeicao_percentual.toFixed(1)}%`, icon: Percent, color: 'text-rose-600 dark:text-rose-300' },
   ];
 
   return (

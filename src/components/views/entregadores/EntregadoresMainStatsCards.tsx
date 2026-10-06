@@ -66,7 +66,7 @@ export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainSt
                 initial={reduceMotion ? false : 'hidden'}
                 animate={reduceMotion ? undefined : 'visible'}
                 variants={reduceMotion ? undefined : containerVariants}
-                className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-[#d8e4eb] bg-[#d8e4eb] shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-700 dark:bg-slate-700 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
+                className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-[#d8e4eb] bg-[#d8e4eb] shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800 dark:bg-slate-800 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
             >
                 {metrics.map((metric) => (
                     <EntregadoresOverviewMetric key={metric.label} {...metric} reduceMotion={reduceMotion} />

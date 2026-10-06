@@ -22,11 +22,11 @@ export const FilterModeSwitch: React.FC<FilterModeSwitchProps> = ({ isModoInterv
         "flex h-10 w-full items-center gap-2 rounded-xl border border-slate-200/80 bg-white px-3 text-xs shadow-sm transition-[border-color,background-color,box-shadow] duration-200 hover:border-blue-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500/50 sm:w-auto",
         appearance === 'quiet' && "rounded-none border-0 bg-transparent px-0 shadow-none hover:border-transparent dark:bg-transparent"
       )} data-filter-role="period-control">
-        <CalendarRange className={cn("h-4 w-4 text-blue-500", appearance === 'quiet' && "text-[#526f82] dark:text-sky-200")} />
+        <CalendarRange className={cn("h-4 w-4 text-blue-500", appearance === 'quiet' && "text-[#347ca3] dark:text-sky-200")} />
         <span className={cn(
           "whitespace-nowrap font-semibold transition-colors duration-200",
           !isModoIntervalo
-            ? appearance === 'quiet' ? "text-emerald-800 dark:text-emerald-300" : "text-blue-600 dark:text-blue-400"
+            ? appearance === 'quiet' ? "text-[#155d8b] dark:text-sky-200" : "text-blue-600 dark:text-blue-400"
             : "text-slate-500 dark:text-slate-400"
         )}>
           Ano/Semana
@@ -38,7 +38,7 @@ export const FilterModeSwitch: React.FC<FilterModeSwitchProps> = ({ isModoInterv
           className={cn(
             "relative inline-flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20",
             isModoIntervalo
-              ? appearance === 'quiet' ? "bg-emerald-700 dark:bg-emerald-400" : "bg-blue-600"
+              ? appearance === 'quiet' ? "bg-[#17638d] dark:bg-sky-500" : "bg-blue-600"
               : "bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600"
           )}
           role="switch"
@@ -56,7 +56,7 @@ export const FilterModeSwitch: React.FC<FilterModeSwitchProps> = ({ isModoInterv
         <span className={cn(
           "whitespace-nowrap font-semibold transition-colors duration-200",
           isModoIntervalo
-            ? appearance === 'quiet' ? "text-emerald-800 dark:text-emerald-300" : "text-blue-600 dark:text-blue-400"
+            ? appearance === 'quiet' ? "text-[#155d8b] dark:text-sky-200" : "text-blue-600 dark:text-blue-400"
             : "text-slate-500 dark:text-slate-400"
         )}>
           Intervalo

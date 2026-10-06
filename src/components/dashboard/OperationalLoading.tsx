@@ -14,16 +14,16 @@ function Shimmer({ className }: { className: string }) {
 function LoadingHeading({ title, description, appearance = 'default' }: { title: string; description: string; appearance?: 'default' | 'quiet' }) {
   const quiet = appearance === 'quiet';
   return (
-    <div role="status" aria-live="polite" className="flex min-w-0 items-center justify-between gap-4 py-1">
+    <div role="status" aria-live="polite" className={cn('flex min-w-0 items-center justify-between gap-4 py-1', quiet && 'rounded-xl border border-[#164d70] bg-[#174d70] px-5 py-5 sm:px-7 sm:py-6')}>
       <div className="min-w-0">
-        <p className="text-sm font-bold tracking-tight text-slate-800 dark:text-slate-100">{title}</p>
-        <p className="mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400">{description}</p>
+        <p className={cn('text-sm font-bold tracking-tight text-slate-800 dark:text-slate-100', quiet && 'text-white')}>{title}</p>
+        <p className={cn('mt-0.5 text-xs font-medium text-slate-500 dark:text-slate-400', quiet && 'text-sky-100/85')}>{description}</p>
       </div>
       <span className={quiet
-        ? 'inline-flex shrink-0 items-center gap-2 text-xs font-medium text-[#626f66] dark:text-slate-400'
+        ? 'inline-flex shrink-0 items-center gap-2 text-xs font-medium text-sky-100/90'
         : 'inline-flex shrink-0 items-center gap-2 rounded-full border border-blue-200/70 bg-blue-50/80 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/35 dark:text-blue-300'}>
         {quiet ? (
-          <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-[#315c49] dark:bg-emerald-200" />
+          <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-sky-300" />
         ) : (
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-50 motion-safe:animate-ping" />
@@ -212,7 +212,7 @@ export function EntregadoresLoading({ appearance = 'default' }: { appearance?: '
   const metricWidths = ['w-28', 'w-24', 'w-32', 'w-24', 'w-20'];
 
   if (appearance === 'quiet') {
-    const tableGrid = 'grid-cols-[58px_minmax(230px,1.8fr)_110px_90px_90px_95px_110px_105px_100px]';
+    const tableGrid = 'grid-cols-[minmax(250px,2fr)_105px_88px_88px_96px_108px_110px_132px]';
     return (
       <div className="mx-auto w-full max-w-[1600px] space-y-6 pb-8" aria-label="Carregando entregadores" aria-busy="true">
         <LoadingHeading
@@ -222,10 +222,10 @@ export function EntregadoresLoading({ appearance = 'default' }: { appearance?: '
         />
 
         <section className="space-y-3">
-          <h2 className="text-sm font-semibold text-[#242b26] dark:text-slate-100">Resumo da frota</h2>
-          <div className="grid grid-cols-1 gap-x-5 gap-y-4 border-y border-[#d6dcd5] py-3 dark:border-slate-700 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 xl:divide-x xl:divide-[#e8ece7] dark:xl:divide-slate-700">
+          <h2 className="text-[15px] font-semibold text-[#183f58] dark:text-slate-100">Visão da frota</h2>
+          <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-[#d8e4eb] bg-[#d8e4eb] dark:border-slate-800 dark:bg-slate-800 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
             {metricWidths.map((width, index) => (
-              <div key={index} className="min-w-0 space-y-2 px-3 py-2 xl:px-4">
+              <div key={index} className="min-w-0 space-y-2 border-t-[3px] border-t-[#9ac8de] bg-white px-4 py-3 dark:border-t-sky-700 dark:bg-slate-900 xl:px-5">
                 <Shimmer className="h-3 w-24 max-w-full rounded" />
                 <Shimmer className={cn('h-7', width, 'max-w-full rounded')} />
               </div>
@@ -233,13 +233,13 @@ export function EntregadoresLoading({ appearance = 'default' }: { appearance?: '
           </div>
         </section>
 
-        <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
-          <Shimmer className="h-10 w-full rounded-lg" />
-          <Shimmer className="h-10 w-full rounded-lg lg:w-36" />
+        <div className="flex flex-col gap-2 rounded-xl border border-[#dce7ed] bg-white p-3 dark:border-slate-700 dark:bg-slate-900 lg:flex-row lg:items-center">
+          <Shimmer className="h-10 w-full rounded-md" />
+          <Shimmer className="h-10 w-full rounded-md lg:w-36" />
         </div>
 
-        <section className="overflow-hidden rounded-lg border border-[#d6dcd5] bg-[#fbfcf9] dark:border-slate-700 dark:bg-slate-900">
-          <div className="flex min-h-14 items-center justify-between gap-4 border-b border-[#e8ece7] px-4 py-3 dark:border-slate-700">
+        <section className="overflow-hidden rounded-xl border border-[#d3e0e9] bg-white shadow-[0_12px_36px_-28px_rgba(14,55,82,0.45)] dark:border-slate-700 dark:bg-slate-900">
+          <div className="flex min-h-14 items-center justify-between gap-4 border-b border-[#e2ebf0] bg-white px-5 py-4 dark:border-slate-700 dark:bg-slate-900 sm:px-6">
             <div className="space-y-2">
               <Shimmer className="h-3.5 w-28 rounded" />
               <Shimmer className="h-2.5 w-52 max-w-full rounded" />
@@ -247,16 +247,15 @@ export function EntregadoresLoading({ appearance = 'default' }: { appearance?: '
             <Shimmer className="h-3 w-24 shrink-0 rounded" />
           </div>
           <div className="subtle-scrollbar overflow-x-auto">
-            <div className="min-w-[1180px]">
-              <div className={cn('grid', tableGrid, 'gap-3 border-b border-[#d6dcd5] bg-[#eef1ec] px-4 py-2.5 dark:border-slate-700 dark:bg-slate-800')}>
-                {Array.from({ length: 9 }, (_, index) => (
+            <div className="min-w-[1080px]">
+              <div className={cn('grid', tableGrid, 'items-center gap-3 border-b border-[#d5e1e9] bg-[#f2f7fa] px-5 py-3 dark:border-slate-700 dark:bg-slate-800')}>
+                {Array.from({ length: 8 }, (_, index) => (
                   <Shimmer key={index} className="h-3 w-12 max-w-full rounded" />
                 ))}
               </div>
-              <div className="divide-y divide-[#e8ece7] dark:divide-slate-700">
+              <div className="divide-y divide-[#e7eef3] dark:divide-slate-800/80">
                 {Array.from({ length: 8 }, (_, row) => (
-                  <div key={row} className={cn('grid', tableGrid, 'min-h-[54px] items-center gap-3 px-4 py-2')}>
-                    <Shimmer className="h-6 w-6 justify-self-center rounded-md" />
+                  <div key={row} className={cn('grid', tableGrid, 'min-h-[68px] items-center gap-3 px-5 py-2.5')}>
                     <div className="min-w-0 space-y-2">
                       <Shimmer className="h-3 w-36 max-w-full rounded" />
                       <Shimmer className="h-2.5 w-24 max-w-full rounded" />
@@ -362,7 +361,7 @@ export function FilterRefreshIndicator({
         >
           {appearance === 'quiet' ? (
             <>
-              <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#315c49] motion-safe:animate-pulse dark:bg-emerald-200" />
+              <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-sky-600 motion-safe:animate-pulse dark:bg-sky-300" />
               <p className="min-w-0 truncate">Atualizando {viewName}; os resultados atuais continuam visíveis.</p>
             </>
           ) : (

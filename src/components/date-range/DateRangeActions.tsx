@@ -31,7 +31,7 @@ export const DateRangeActions: React.FC<DateRangeActionsProps> = ({
           disabled={!canApply}
           className={cn(
             "h-[38px] flex-1 bg-primary text-primary-foreground hover:bg-primary/90 sm:min-w-[80px] sm:flex-none rounded-lg text-xs font-bold shadow-sm",
-            quiet && 'h-10 rounded-lg border border-[#315c49] bg-[#315c49] font-semibold text-white shadow-none hover:border-[#274a3a] hover:bg-[#274a3a] dark:border-emerald-200 dark:bg-emerald-200 dark:text-[#19221c] dark:hover:bg-emerald-100'
+            quiet && 'h-10 rounded-lg border border-sky-700 bg-sky-700 font-semibold text-white shadow-none hover:border-sky-800 hover:bg-sky-800 dark:border-sky-400 dark:bg-sky-400 dark:text-slate-950 dark:hover:border-sky-300 dark:hover:bg-sky-300'
           )}
           title={canApply ? 'Aplicar filtro de datas' : 'Nenhuma alteração para aplicar'}
         >
@@ -44,7 +44,7 @@ export const DateRangeActions: React.FC<DateRangeActionsProps> = ({
             onClick={onClear}
             className={cn(
               'h-[38px] flex-1 rounded-lg text-xs font-bold sm:min-w-[80px] sm:flex-none',
-              quiet && 'h-10 border-[#d6dcd5] bg-transparent font-semibold text-[#4f5c53] hover:bg-[#f2f5f1] dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800'
+              quiet && 'h-10 border-[#d3e1e9] bg-white font-semibold text-slate-600 hover:bg-sky-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800'
             )}
             title="Limpar filtro de datas"
           >

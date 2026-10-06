@@ -48,11 +48,11 @@ export const EntregadoresMainSearch = React.memo(function EntregadoresMainSearch
                         value={searchTerm}
                         onChange={(e) => onSearchChange(e.target.value)}
                         className={isEntregadores
-                            ? 'h-10 w-full rounded-md border border-[#d7e2e8] bg-white py-2 pl-10 pr-4 text-[13px] font-normal text-slate-800 shadow-sm transition-[background-color,border-color,box-shadow] duration-150 placeholder:text-slate-400 focus:border-sky-600/60 focus:outline-none focus:ring-2 focus:ring-sky-600/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-sky-300/60'
+                            ? 'h-10 w-full rounded-md border border-[#d7e2e8] bg-white py-2 pl-10 pr-4 text-[13px] font-normal text-slate-800 shadow-sm transition-[background-color,border-color,box-shadow] duration-150 placeholder:text-slate-400 focus:border-sky-600/60 focus:outline-none focus:ring-2 focus:ring-sky-600/10 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-sky-300/60'
                             : 'h-12 w-full rounded-2xl border border-slate-200/80 bg-slate-50/80 py-2 pl-11 pr-4 text-sm font-semibold text-slate-900 shadow-sm transition-[background-color,border-color,box-shadow] duration-150 placeholder:text-slate-400 focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/15 dark:border-slate-800/80 dark:bg-slate-900/65 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-900'}
                     />
                     {isSearching ? (
-                        <span className="mt-1 block text-right text-xs font-bold text-emerald-600 dark:text-emerald-300 lg:absolute lg:right-4 lg:top-1/2 lg:mt-0 lg:-translate-y-1/2">
+                        <span className={`mt-1 block text-right text-xs font-bold lg:absolute lg:right-4 lg:top-1/2 lg:mt-0 lg:-translate-y-1/2 ${isEntregadores ? 'text-sky-700 dark:text-sky-300' : 'text-emerald-600 dark:text-emerald-300'}`}>
                             Atualizando...
                         </span>
                     ) : null}

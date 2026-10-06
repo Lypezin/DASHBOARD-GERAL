@@ -64,10 +64,10 @@ export const EntregadoresMainTableHeader = React.memo(function EntregadoresMainT
                 type="button"
                 onClick={() => onSort(field)}
                 aria-pressed={isActive}
-                className={`${baseClass} ${alignClass} flex items-center gap-1.5 rounded-lg ${isEntregadores ? 'px-1.5 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/40' : 'px-1 py-1'} transition-colors ${isEntregadores
+                className={`${baseClass} ${alignClass} flex items-center gap-1.5 rounded-lg ${isEntregadores ? 'px-1.5 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40' : 'px-1 py-1'} transition-colors ${isEntregadores
                     ? isActive
-                        ? 'bg-emerald-50/80 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300'
-                        : 'text-slate-500 hover:text-emerald-700 dark:text-slate-400 dark:hover:text-emerald-300'
+                        ? 'bg-sky-100/80 text-[#155d8b] dark:bg-sky-950/50 dark:text-sky-300'
+                        : 'text-slate-500 hover:text-[#155d8b] dark:text-slate-400 dark:hover:text-sky-300'
                     : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100'
                     }`}
                 title={`Ordenar por ${label}`}

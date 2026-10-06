@@ -23,7 +23,7 @@ export const EntregadorProfileHeader = React.memo(function EntregadorProfileHead
         <HealthBadge grade={grade} score={score} size="md" />
         <div className="min-w-0">
           <p className="truncate text-lg font-bold">{nome}</p>
-          <p className="truncate text-xs text-slate-500">{id}</p>
+          <p className="truncate text-xs text-slate-500 dark:text-slate-400">{id}</p>
         </div>
       </DialogTitle>
       <DialogDescription className="sr-only">
