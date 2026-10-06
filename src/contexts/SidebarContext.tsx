@@ -30,12 +30,12 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
-  const setCollapsed = (val: boolean) => {
+  const setCollapsed = React.useCallback((val: boolean) => {
     setCollapsedState(val);
     if (typeof window !== 'undefined') {
       writeStorage(localStorage, SIDEBAR_COLLAPSED_KEY, String(val));
     }
-  };
+  }, []);
 
   const toggleSidebar = React.useCallback(() => {
     setCollapsedState((prev) => {

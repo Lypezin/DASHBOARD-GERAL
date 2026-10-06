@@ -2,23 +2,33 @@
 
 import React from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useDashboardTabs } from '@/hooks/dashboard/useDashboardTabs';
 import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
 import { useHeaderAvatar } from '@/hooks/auth/useHeaderAvatar';
 import { cn } from '@/lib/utils';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { ChevronLeft, ChevronRight, Search, X } from 'lucide-react';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Input } from '@/components/ui/input';
 import { SIDEBAR_GROUPS, SIDEBAR_LABELS } from '@/constants/navigation';
 import { TabType } from '@/types';
 import { SidebarMenuItem } from './SidebarMenuItem';
 
 export function AppSidebar() {
-  const { collapsed, toggleSidebar, mobileOpen, setMobileOpen } = useSidebar();
+  const { collapsed, setCollapsed, toggleSidebar, mobileOpen, setMobileOpen } = useSidebar();
   const { activeTab, handleTabChange } = useDashboardTabs();
   const { user } = useHeaderAuth();
   const avatarUrl = useHeaderAvatar(user);
   const shouldReduceMotion = useReducedMotion() ?? true;
+  const [search, setSearch] = React.useState('');
+  const [searchShortcut, setSearchShortcut] = React.useState('Ctrl K');
+  const searchRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (/Mac|iPhone|iPad/.test(navigator.platform)) setSearchShortcut('⌘ K');
+  }, []);
 
   React.useEffect(() => {
     if (!mobileOpen) return;
@@ -34,198 +44,234 @@ export function AppSidebar() {
     };
   }, [mobileOpen]);
 
+  React.useEffect(() => {
+    const handleSearchShortcut = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (mobileOpen) {
+          setMobileOpen(false);
+          return;
+        }
+
+        if (document.activeElement === searchRef.current && search) {
+          setSearch('');
+          searchRef.current?.blur();
+        }
+      }
+
+      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'k') {
+        event.preventDefault();
+        setCollapsed(false);
+        window.setTimeout(() => searchRef.current?.focus(), shouldReduceMotion ? 0 : 180);
+      }
+    };
+
+    window.addEventListener('keydown', handleSearchShortcut);
+    return () => window.removeEventListener('keydown', handleSearchShortcut);
+  }, [mobileOpen, search, setCollapsed, setMobileOpen, shouldReduceMotion]);
+
+  const normalizedSearch = search.trim().toLocaleLowerCase('pt-BR');
+  const visibleGroups = React.useMemo(() => SIDEBAR_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => {
+      const label = SIDEBAR_LABELS[item.value] || item.label;
+      return label.toLocaleLowerCase('pt-BR').includes(normalizedSearch);
+    }),
+  })).filter((group) => group.items.length > 0), [normalizedSearch]);
+
   const handleItemClick = (value: TabType) => {
     handleTabChange(value);
-    setMobileOpen(false); // Fecha o menu no mobile ao clicar
+    setMobileOpen(false);
   };
 
-  // Renderizador dos itens de navegação comuns
-  const renderNavItems = () => {
-    return SIDEBAR_GROUPS.map((group) => (
-      <div key={group.name} className="space-y-1.5 pt-4">
-        {/* Rótulo do Grupo */}
-        <AnimatePresence initial={!shouldReduceMotion} mode={shouldReduceMotion ? 'sync' : 'wait'}>
-          {!collapsed ? (
-            <motion.p
-              initial={shouldReduceMotion ? false : { opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: shouldReduceMotion ? 0 : -10 }}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.15 }}
-              className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60"
-            >
-              {group.name}
-            </motion.p>
-          ) : (
-            <div className="h-4 border-b border-border/20 my-1 mx-3" />
-          )}
-        </AnimatePresence>
-
-        {/* Itens */}
-        <div className="space-y-0.5">
-          {group.items.map((item) => {
-            const isActive = activeTab === item.value;
-            const displayLabel = SIDEBAR_LABELS[item.value] || item.label;
-
-            return (
-              <SidebarMenuItem
-                key={item.value}
-                item={item}
-                isActive={isActive}
-                collapsed={collapsed}
-                reducedMotion={shouldReduceMotion}
-                displayLabel={displayLabel}
-                onClick={handleItemClick}
-              />
-            );
-          })}
-        </div>
-      </div>
-    ));
-  };
-
-  return (
-    <>
-      {/* SIDEBAR DESKTOP: a coluna fica ancorada ao topo enquanto o conteúdo rola ao lado. */}
-      <motion.aside
-        animate={{ width: collapsed ? 64 : 256 }}
-        transition={shouldReduceMotion
-          ? { duration: 0 }
-          : { type: 'tween', duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
-        className={cn(
-          'hidden md:flex sticky top-0 h-dvh flex-col border-r border-border bg-card shrink-0 select-none z-50 overflow-hidden overscroll-contain'
+  const renderNavItems = (isMobile = false) => visibleGroups.map((group) => (
+    <section key={`${isMobile ? 'mobile-' : ''}${group.name}`} className="space-y-1.5">
+      <div className={cn(
+        'flex h-5 items-center gap-2 px-2.5 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground/70',
+        collapsed && !isMobile && 'justify-center px-0'
+      )}>
+        {!collapsed || isMobile ? <span className="truncate">{group.name}</span> : null}
+        {collapsed && !isMobile ? (
+          <span className="h-px w-7 bg-border" aria-hidden="true" />
+        ) : (
+          <span className="h-px min-w-3 flex-1 bg-border/70" aria-hidden="true" />
         )}
-      >
-        {/* Header da Sidebar */}
-        <div className={cn(
-          "flex h-14 items-center border-b border-border shrink-0 transition-all duration-150",
-          collapsed ? "justify-center px-0 w-full" : "justify-between px-3"
-        )}>
-          <div className={cn("flex items-center min-w-0 transition-all duration-150", collapsed ? "justify-center gap-0 w-full" : "gap-3")}>
-            {/* Logo GO Itaim */}
-            <Image
-              src="/logo.png"
-              alt="GO Itaim Logo"
-              width={36}
-              height={36}
-              className={cn(
-                "h-9 w-9 shrink-0 rounded-lg object-contain border border-border/40 shadow-sm transition-all duration-150",
-                collapsed ? "mx-auto" : ""
-              )}
+      </div>
+
+      <div className="space-y-0.5">
+        {group.items.map((item) => {
+          const isActive = activeTab === item.value;
+          const displayLabel = SIDEBAR_LABELS[item.value] || item.label;
+
+          return (
+            <SidebarMenuItem
+              key={item.value}
+              item={item}
+              isActive={isActive}
+              collapsed={collapsed && !isMobile}
+              reducedMotion={shouldReduceMotion}
+              displayLabel={displayLabel}
+              onClick={handleItemClick}
             />
-            
-            <AnimatePresence initial={!shouldReduceMotion}>
-              {!collapsed ? (
-                <motion.div
-                  initial={shouldReduceMotion ? false : { opacity: 0, x: -4 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: shouldReduceMotion ? 0 : -4 }}
-                  transition={{ duration: shouldReduceMotion ? 0 : 0.15, ease: [0.22, 1, 0.36, 1] }}
-                  className="flex min-w-0 flex-col"
-                >
-                  <span className="truncate text-sm font-black tracking-tight text-foreground">
-                    Dashboard Geral
-                  </span>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-primary">
-                    OPERACIONAL
-                  </span>
-                </motion.div>
-              ) : null}
-            </AnimatePresence>
-          </div>
-        </div>
+          );
+        })}
+      </div>
+    </section>
+  ));
 
-        {/* Itens de Navegação (Scrollable) */}
-        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 py-4 space-y-4 subtle-scrollbar">
-          {renderNavItems()}
-        </div>
+  const sidebarContent = (isMobile = false) => (
+    <>
+      <div className={cn(
+        'relative flex h-[68px] shrink-0 items-center border-b border-border/80 px-3.5',
+        collapsed && !isMobile ? 'justify-center px-0' : 'justify-between gap-2.5'
+      )}>
+        <Link
+          href="/"
+          aria-label="Dashboard Geral — início"
+          className={cn('flex min-w-0 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', collapsed && !isMobile && 'justify-center')}
+        >
+          <Image
+            src="/logo.png"
+            alt="GO Itaim"
+            width={38}
+            height={38}
+            priority
+            className="h-[38px] w-[38px] shrink-0 rounded-xl border border-border/50 bg-card object-contain shadow-sm"
+          />
+          <AnimatePresence initial={false}>
+            {(!collapsed || isMobile) && (
+              <motion.span
+                initial={shouldReduceMotion ? false : { opacity: 0, x: -5 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: shouldReduceMotion ? 0 : -5 }}
+                transition={{ duration: shouldReduceMotion ? 0 : 0.14 }}
+                className="flex min-w-0 flex-col"
+              >
+                <span className="truncate text-[13px] font-bold tracking-[-0.025em] text-foreground">Dashboard Geral</span>
+                <span className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.13em] text-primary">Operação · Itaim</span>
+              </motion.span>
+            )}
+          </AnimatePresence>
+        </Link>
 
-        {/* Rodapé da Sidebar */}
-        <div className="border-t border-border p-2 shrink-0 flex flex-col gap-2">
-          {/* Botão para colapsar */}
+        {isMobile ? (
           <button
+            type="button"
+            onClick={() => setMobileOpen(false)}
+            className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            aria-label="Fechar menu de navegação"
+          >
+            <X className="h-[18px] w-[18px]" />
+          </button>
+        ) : (
+          <button
+            type="button"
             onClick={toggleSidebar}
-            className="flex w-full items-center justify-center rounded-lg p-2 text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-            title={collapsed ? 'Expandir Menu' : 'Recolher Menu'}
+            className={cn(
+              'grid h-8 w-8 shrink-0 place-items-center rounded-lg text-muted-foreground transition-[background-color,color,transform] duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              collapsed && 'absolute -right-3 z-10 h-7 w-7 border border-border bg-card shadow-sm hover:bg-muted'
+            )}
+            title={collapsed ? 'Expandir menu' : 'Recolher menu'}
+            aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
+            aria-expanded={!collapsed}
           >
             {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
           </button>
-        </div>
+        )}
+      </div>
+
+      <div className={cn('min-h-0 flex-1 overflow-y-auto overscroll-contain subtle-scrollbar', collapsed && !isMobile ? 'px-2 py-3.5' : 'px-3 py-3.5')}>
+        {(!collapsed || isMobile) && (
+          <div className="relative mb-4">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/75" aria-hidden="true" />
+            <Input
+              ref={searchRef}
+              type="search"
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Buscar guia..."
+              aria-label="Buscar guia no menu"
+              className="h-9 rounded-[10px] border-border/80 bg-background/80 pl-9 pr-[4.6rem] text-xs shadow-none placeholder:text-muted-foreground/75 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/15"
+            />
+            <kbd className="pointer-events-none absolute right-2.5 top-1/2 inline-flex h-[19px] -translate-y-1/2 items-center gap-0.5 rounded border border-border bg-card px-1.5 font-sans text-[9px] font-medium text-muted-foreground shadow-[0_1px_0_hsl(var(--border))]">
+              {searchShortcut}
+            </kbd>
+          </div>
+        )}
+
+        <nav aria-label="Guias do dashboard" className="space-y-5">
+          {visibleGroups.length > 0 ? renderNavItems(isMobile) : (
+            <p className={cn('px-2.5 py-3 text-xs text-muted-foreground', collapsed && !isMobile && 'sr-only')}>
+              Nenhuma guia encontrada.
+            </p>
+          )}
+        </nav>
+      </div>
+
+      <div className={cn('shrink-0 border-t border-border/80', collapsed && !isMobile ? 'p-2' : 'p-3')}>
+        {user ? (
+          <Link
+            href="/perfil"
+            onClick={() => isMobile && setMobileOpen(false)}
+            className={cn(
+              'group flex min-w-0 items-center gap-2.5 rounded-[10px] p-1.5 transition-colors hover:bg-muted/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              collapsed && !isMobile && 'justify-center p-1'
+            )}
+            title={collapsed && !isMobile ? user.full_name : undefined}
+          >
+            <Avatar className="h-8 w-8 shrink-0 border border-border shadow-sm transition-transform duration-150 group-hover:scale-[1.04]">
+              <AvatarImage src={avatarUrl || user.avatar_url || undefined} alt="" />
+              <AvatarFallback className="bg-primary/10 text-[10px] font-bold text-primary">
+                {user.full_name?.trim().charAt(0).toUpperCase() || 'U'}
+              </AvatarFallback>
+            </Avatar>
+            {(!collapsed || isMobile) && (
+              <span className="flex min-w-0 flex-1 flex-col">
+                <span className="truncate text-[11px] font-semibold text-foreground">{user.full_name || 'Usuário'}</span>
+                <span className="truncate text-[10px] text-muted-foreground">{user.is_admin ? 'Administrador' : user.email}</span>
+              </span>
+            )}
+          </Link>
+        ) : null}
+      </div>
+    </>
+  );
+
+  return (
+    <>
+      <motion.aside
+        initial={false}
+        animate={{ width: collapsed ? 76 : 264 }}
+        transition={shouldReduceMotion
+          ? { duration: 0 }
+          : { type: 'tween', duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
+        className="sticky top-0 z-50 hidden h-dvh shrink-0 select-none flex-col overflow-hidden border-r border-border/80 bg-card md:flex"
+        aria-label="Menu lateral"
+      >
+        {sidebarContent()}
       </motion.aside>
 
-      {/* OVERLAY MOBILE SIDEBAR */}
-      <AnimatePresence initial={!shouldReduceMotion}>
+      <AnimatePresence initial={false}>
         {mobileOpen && (
           <>
-            {/* Backdrop escuro */}
-            <motion.div
+            <motion.button
+              type="button"
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
+              animate={{ opacity: 0.46 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.2 }}
+              transition={{ duration: shouldReduceMotion ? 0 : 0.18 }}
               onClick={() => setMobileOpen(false)}
-              className="fixed inset-0 z-50 bg-black md:hidden"
+              className="fixed inset-0 z-50 cursor-default bg-slate-950 md:hidden"
+              aria-label="Fechar menu de navegação"
             />
-
-            {/* Sidebar real flutuante */}
             <motion.aside
               initial={{ x: shouldReduceMotion ? 0 : '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: shouldReduceMotion ? 0 : '-100%' }}
-              transition={shouldReduceMotion ? { duration: 0 } : { type: 'tween', duration: 0.25, ease: 'easeOut' }}
-              className="fixed bottom-0 top-0 left-0 z-50 flex w-72 flex-col overflow-hidden overscroll-contain bg-card border-r border-border shadow-2xl md:hidden"
+              transition={shouldReduceMotion ? { duration: 0 } : { type: 'tween', duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+              className="fixed inset-y-0 left-0 z-50 flex w-[min(18rem,88vw)] flex-col overflow-hidden border-r border-border bg-card shadow-2xl md:hidden"
+              aria-label="Menu de navegação"
             >
-              {/* Header Mobile */}
-              <div className="flex h-14 items-center justify-between border-b border-border px-4">
-                <div className="flex items-center gap-3">
-                  <Image
-                    src="/logo.png"
-                    alt="GO Itaim Logo"
-                    width={32}
-                    height={32}
-                    className="h-8 w-8 shrink-0 rounded-lg object-contain border border-border/30"
-                  />
-                  <div className="flex flex-col">
-                    <span className="text-sm font-black text-foreground">Dashboard Geral</span>
-                    <span className="text-[8px] font-bold uppercase tracking-wider text-primary">OPERACIONAL</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setMobileOpen(false)}
-                  className="rounded-lg p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground"
-                >
-                  <X className="h-5 w-5" />
-                </button>
-              </div>
-
-              {/* Navegação Mobile */}
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 space-y-4">
-                {/* Aqui os itens são sempre expandidos (collapsed = false) */}
-                {SIDEBAR_GROUPS.map((group) => (
-                  <div key={`mobile-${group.name}`} className="space-y-1.5 pt-2">
-                    <p className="px-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/60">
-                      {group.name}
-                    </p>
-                    <div className="space-y-0.5">
-                      {group.items.map((item) => {
-                        const isActive = activeTab === item.value;
-                        const displayLabel = SIDEBAR_LABELS[item.value] || item.label;
-
-                        return (
-                          <SidebarMenuItem
-                            key={`mobile-${item.value}`}
-                            item={item}
-                            isActive={isActive}
-                            collapsed={false}
-                            reducedMotion={shouldReduceMotion}
-                            displayLabel={displayLabel}
-                            onClick={handleItemClick}
-                          />
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {sidebarContent(true)}
             </motion.aside>
           </>
         )}
