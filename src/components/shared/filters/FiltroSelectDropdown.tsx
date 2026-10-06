@@ -6,6 +6,7 @@ import { useFloatingDropdownPosition } from '@/hooks/ui/useFloatingDropdownPosit
 import { FilterOption } from './FiltroSelect';
 
 interface FiltroSelectDropdownProps {
+  appearance?: 'default' | 'quiet';
   isOpen: boolean;
   disabled?: boolean;
   options: FilterOption[];
@@ -17,7 +18,7 @@ interface FiltroSelectDropdownProps {
 }
 
 export const FiltroSelectDropdown: React.FC<FiltroSelectDropdownProps> = ({
-  isOpen, disabled, options, value, placeholder, onSelect, dropdownRef, anchorRef
+  appearance = 'default', isOpen, disabled, options, value, placeholder, onSelect, dropdownRef, anchorRef
 }) => {
   const position = useFloatingDropdownPosition({
     isOpen,
@@ -41,7 +42,9 @@ export const FiltroSelectDropdown: React.FC<FiltroSelectDropdownProps> = ({
         bottom: position.bottom,
         width: position.width,
       }}
-      className="fixed z-[100000] overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-[0_24px_80px_-34px_rgba(15,23,42,0.45)] animate-in fade-in-0 zoom-in-95 slide-in-from-top-1 duration-150 supports-[backdrop-filter]:backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-950/95 dark:shadow-black/50"
+      className={appearance === 'quiet'
+        ? 'fixed z-[100000] overflow-hidden rounded-lg border border-[#d6dcd5] bg-[#fbfcf9] shadow-[0_8px_18px_-12px_rgba(20,32,24,0.22)] animate-in fade-in-0 slide-in-from-top-1 duration-150 dark:border-slate-700 dark:bg-slate-900 dark:shadow-black/30'
+        : 'fixed z-[100000] overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-[0_24px_80px_-34px_rgba(15,23,42,0.45)] animate-in fade-in-0 zoom-in-95 slide-in-from-top-1 duration-150 supports-[backdrop-filter]:backdrop-blur-xl dark:border-slate-700/80 dark:bg-slate-950/95 dark:shadow-black/50'}
     >
       <ul
         className="subtle-scrollbar overflow-y-auto p-1.5"
@@ -50,6 +53,7 @@ export const FiltroSelectDropdown: React.FC<FiltroSelectDropdownProps> = ({
         <DropdownOption
           selected={!value}
           label={placeholder || 'Todos'}
+          appearance={appearance}
           onClick={() => onSelect(null)}
         />
 
@@ -58,6 +62,7 @@ export const FiltroSelectDropdown: React.FC<FiltroSelectDropdownProps> = ({
             key={option.value}
             selected={value === option.value}
             label={option.label}
+            appearance={appearance}
             onClick={() => onSelect(option.value)}
           />
         ))}
@@ -67,13 +72,14 @@ export const FiltroSelectDropdown: React.FC<FiltroSelectDropdownProps> = ({
   );
 };
 
-function DropdownOption({ selected, label, onClick }: { selected: boolean; label: string; onClick: () => void }) {
+function DropdownOption({ selected, label, onClick, appearance = 'default' }: { selected: boolean; label: string; onClick: () => void; appearance?: 'default' | 'quiet' }) {
   return (
     <li
       className={cn(
-        "mb-0.5 flex cursor-pointer items-center rounded-lg p-2.5 last:mb-0",
-        "transition-[background-color,color] duration-150 hover:bg-blue-50/80 dark:hover:bg-blue-950/30",
-        selected ? "bg-blue-50/80 text-blue-700 dark:bg-blue-900/20 dark:text-blue-300" : "text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-slate-100"
+        "mb-0.5 flex cursor-pointer items-center rounded-lg p-2.5 last:mb-0 transition-[background-color,color] duration-150",
+        appearance === 'quiet'
+          ? selected ? 'bg-[#315c49]/10 text-[#315c49] dark:bg-emerald-950/50 dark:text-emerald-100' : 'text-[#4f5c53] hover:bg-[#eef1ec] hover:text-[#242b26] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100'
+          : selected ? 'bg-blue-50/80 text-blue-700 hover:bg-blue-50/80 dark:bg-blue-900/20 dark:text-blue-300 dark:hover:bg-blue-900/20' : 'text-slate-700 hover:bg-blue-50/80 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-blue-950/30 dark:hover:text-slate-100'
       )}
       onClick={onClick}
       title={label}
@@ -81,7 +87,9 @@ function DropdownOption({ selected, label, onClick }: { selected: boolean; label
       <div className="flex min-w-0 flex-1 items-center">
         <div className={cn(
           "mr-3 flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors",
-          selected ? "border-blue-600 bg-blue-600 text-white" : "border-slate-300 bg-transparent dark:border-slate-600"
+          selected
+            ? appearance === 'quiet' ? 'border-[#315c49] bg-[#315c49] text-white dark:border-emerald-200 dark:bg-emerald-200 dark:text-[#19221c]' : 'border-blue-600 bg-blue-600 text-white'
+            : 'border-slate-300 bg-transparent dark:border-slate-600'
         )}>
           {selected && <Check className="h-3 w-3" strokeWidth={3} />}
         </div>

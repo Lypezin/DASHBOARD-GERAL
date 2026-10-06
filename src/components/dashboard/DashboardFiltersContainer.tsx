@@ -38,9 +38,12 @@ export const DashboardFiltersContainer = React.memo(function DashboardFiltersCon
 
   return (
     <div
+      data-dashboard-filter-tab={activeTab}
       className={cn(
-        "sticky top-[5.5625rem] z-30 mb-6 rounded-2xl border border-slate-200/70 bg-white/90 p-3 shadow-[0_18px_48px_-38px_rgba(15,23,42,0.55)] ring-1 ring-white/70 transition-[background-color,border-color,box-shadow] duration-200 dark:border-slate-800/70 dark:bg-slate-950/80 dark:ring-white/5 lg:top-14",
-        "supports-[backdrop-filter]:backdrop-blur-xl"
+        "sticky top-[5.5625rem] z-30 mb-6 transition-[background-color,border-color,box-shadow] duration-200 lg:top-14",
+        activeTab === 'entregadores'
+          ? "dashboard-filters--entregadores rounded-none border-x-0 border-t-0 border-b border-[#d6dcd5] bg-[#f4f5f1] px-2 py-3 shadow-none ring-0 dark:border-[#3b453d] dark:bg-[#191e1a]"
+          : "rounded-2xl border border-slate-200/70 bg-white/90 p-3 shadow-[0_18px_48px_-38px_rgba(15,23,42,0.55)] ring-1 ring-white/70 dark:border-slate-800/70 dark:bg-slate-950/80 dark:ring-white/5 supports-[backdrop-filter]:backdrop-blur-xl"
       )}
     >
       <FiltroBar

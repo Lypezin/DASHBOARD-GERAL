@@ -259,14 +259,17 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
   if (loading && !hasEntregadores) {
     return (
       <ViewTransition stateKey={`${variant}-loading`} preventExitInteraction={!isDedicado}>
-        <EntregadoresLoading />
+        <EntregadoresLoading appearance={isDedicado ? 'default' : 'quiet'} />
       </ViewTransition>
     );
   }
 
   return (
     <ViewTransition stateKey={`${variant}-content`} preventExitInteraction={!isDedicado}>
-      <ViewContainer className={isDedicado ? 'space-y-6' : 'space-y-5'}>
+      <ViewContainer
+        data-entregadores-design={isDedicado ? undefined : 'v4'}
+        className={isDedicado ? 'space-y-5' : 'space-y-5'}
+      >
         <EntregadoresHeader
           onExport={handleExport}
           isExporting={isExporting}
@@ -352,6 +355,7 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
             <FilterRefreshIndicator
               isLoading={isUpdatingResults}
               viewName="a lista de entregadores"
+              appearance={isDedicado ? 'default' : 'quiet'}
             />
 
             <EntregadoresMainTable

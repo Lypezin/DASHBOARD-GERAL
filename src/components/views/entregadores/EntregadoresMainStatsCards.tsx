@@ -53,14 +53,14 @@ export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainSt
 
     return (
         <section aria-labelledby="entregadores-resumo-title" className="space-y-3">
-            <h2 id="entregadores-resumo-title" className="text-base font-semibold tracking-tight text-slate-800 dark:text-slate-100">
+            <h2 id="entregadores-resumo-title" className="text-sm font-semibold tracking-tight text-[#242b26] dark:text-slate-100">
                 Resumo da frota
             </h2>
             <motion.dl
                 initial={reduceMotion ? false : 'hidden'}
                 animate={reduceMotion ? undefined : 'visible'}
                 variants={reduceMotion ? undefined : containerVariants}
-                className="grid grid-cols-1 gap-x-5 gap-y-4 rounded-[1.35rem] border border-slate-200/75 bg-white/90 p-4 shadow-[0_12px_38px_-30px_rgba(15,23,42,0.4)] dark:border-slate-800/75 dark:bg-slate-950/80 sm:grid-cols-2 sm:p-5 lg:grid-cols-3 xl:grid-cols-5"
+                className="grid grid-cols-1 gap-x-5 gap-y-4 border-y border-[#d6dcd5] py-3 dark:border-slate-700 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 xl:divide-x xl:divide-[#e8ece7] dark:xl:divide-slate-700"
             >
                 {metrics.map((metric) => (
                     <EntregadoresOverviewMetric key={metric.label} {...metric} reduceMotion={reduceMotion} />

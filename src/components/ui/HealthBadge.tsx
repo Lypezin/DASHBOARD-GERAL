@@ -41,16 +41,25 @@ interface HealthBadgeProps {
     grade: HealthGrade;
     score: number;
     size?: 'sm' | 'md';
+    appearance?: 'default' | 'quiet';
 }
 
-export const HealthBadge = React.memo(function HealthBadge({ grade, score, size = 'sm' }: HealthBadgeProps) {
+const quietGradeStyles: Record<HealthGrade, string> = {
+    A: 'border border-[#315c49]/20 bg-[#315c49]/[0.08] text-[#315c49] dark:border-emerald-300/20 dark:bg-emerald-950/40 dark:text-emerald-200',
+    B: 'border border-[#526f82]/20 bg-[#526f82]/[0.08] text-[#526f82] dark:border-sky-300/20 dark:bg-sky-950/40 dark:text-sky-200',
+    C: 'border border-[#806b48]/20 bg-[#806b48]/[0.08] text-[#806b48] dark:border-amber-300/20 dark:bg-amber-950/40 dark:text-amber-200',
+    D: 'border border-[#936653]/20 bg-[#936653]/[0.08] text-[#936653] dark:border-rose-300/20 dark:bg-rose-950/40 dark:text-rose-200',
+};
+
+export const HealthBadge = React.memo(function HealthBadge({ grade, score, size = 'sm', appearance = 'default' }: HealthBadgeProps) {
     const config = gradeConfig[grade];
     const sizeClass = size === 'sm' ? 'w-6 h-6 text-xs' : 'w-8 h-8 text-sm';
+    const appearanceClass = appearance === 'quiet' ? quietGradeStyles[grade] : config.bg + ' ' + config.text;
 
     return (
         <Tooltip>
             <TooltipTrigger asChild>
-                <span className={`inline-flex items-center justify-center rounded-full font-bold ${sizeClass} ${config.bg} ${config.text} cursor-help`}>
+                <span className={'inline-flex items-center justify-center ' + shapeClass + ' ' + sizeClass + ' ' + appearanceClass + ' cursor-help'}>
                     {grade}
                 </span>
             </TooltipTrigger>

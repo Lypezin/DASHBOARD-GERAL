@@ -8,6 +8,7 @@ interface DateRangeInputsProps {
   onChangeDataFinal: (e: React.ChangeEvent<HTMLInputElement>) => void;
   minDate: string;
   maxDate: string;
+  appearance?: 'default' | 'quiet';
 }
 
 export const DateRangeInputs: React.FC<DateRangeInputsProps> = ({
@@ -17,12 +18,14 @@ export const DateRangeInputs: React.FC<DateRangeInputsProps> = ({
   onChangeDataFinal,
   minDate,
   maxDate,
+  appearance = 'default',
 }) => {
+  const quiet = appearance === 'quiet';
   return (
     <div className="grid min-w-0 flex-1 grid-cols-1 gap-3 sm:grid-cols-2">
       <div className="min-w-0 flex flex-col gap-1">
-        <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">
-          Data Inicial
+        <label className={cn('block pl-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80', quiet && 'text-[11px] font-medium normal-case tracking-normal text-[#4f5c53] dark:text-slate-300')}>
+          {quiet ? 'Data inicial' : 'Data Inicial'}
         </label>
         <input
           type="date"
@@ -33,13 +36,14 @@ export const DateRangeInputs: React.FC<DateRangeInputsProps> = ({
           className={cn(
             "w-full min-w-0 h-[38px] rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all duration-150",
             "hover:border-primary/50 hover:bg-muted/30 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20",
-            "dark:hover:bg-slate-800/50"
+            "dark:hover:bg-slate-800/50",
+            quiet && "h-10 rounded-lg border-[#d6dcd5] bg-white font-normal text-[#242b26] shadow-none hover:border-[#315c49]/50 hover:bg-white focus:border-[#315c49] focus:ring-[#315c49]/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-900"
           )}
         />
       </div>
       <div className="min-w-0 flex flex-col gap-1">
-        <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80 pl-1">
-          Data Final
+        <label className={cn('block pl-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground/80', quiet && 'text-[11px] font-medium normal-case tracking-normal text-[#4f5c53] dark:text-slate-300')}>
+          {quiet ? 'Data final' : 'Data Final'}
         </label>
         <input
           type="date"
@@ -50,7 +54,8 @@ export const DateRangeInputs: React.FC<DateRangeInputsProps> = ({
           className={cn(
             "w-full min-w-0 h-[38px] rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-semibold text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.02)] transition-all duration-150",
             "hover:border-primary/50 hover:bg-muted/30 focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20",
-            "dark:hover:bg-slate-800/50"
+            "dark:hover:bg-slate-800/50",
+            quiet && "h-10 rounded-lg border-[#d6dcd5] bg-white font-normal text-[#242b26] shadow-none hover:border-[#315c49]/50 hover:bg-white focus:border-[#315c49] focus:ring-[#315c49]/10 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:hover:bg-slate-900"
           )}
         />
       </div>

@@ -68,11 +68,16 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
     const pageContentKey = `${currentPage}:${sortField}:${sortDirection}:${searchTerm}:${currentItems.map((item) => item.id_entregador).join('|')}`;
 
     return (
-        <div aria-busy={isUpdating} className="overflow-hidden rounded-[2rem] border border-slate-200/75 bg-white/90 shadow-[0_18px_48px_-40px_rgba(15,23,42,0.52)] ring-1 ring-slate-100/80 dark:border-slate-800/75 dark:bg-slate-950/80 dark:ring-slate-800/50">
-            <EntregadoresMainTableHeaderCard variant={variant} />
+        <div
+            aria-busy={isUpdating}
+            className={variant === 'entregadores'
+                ? 'overflow-hidden rounded-lg border border-[#d6dcd5] bg-[#fbfcf9] dark:border-slate-700 dark:bg-slate-900'
+                : 'overflow-hidden rounded-[2rem] border border-slate-200/75 bg-white/90 shadow-[0_18px_48px_-40px_rgba(15,23,42,0.52)] ring-1 ring-slate-100/80 dark:border-slate-800/75 dark:bg-slate-950/80 dark:ring-slate-800/50'}
+        >
+            <EntregadoresMainTableHeaderCard variant={variant} totalItems={totalItems} />
 
             <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
-                <div className="min-w-[1320px]">
+                <div className={variant === 'entregadores' ? 'min-w-[1180px]' : 'min-w-[1320px]'}>
                     <EntregadoresMainTableHeader
                         sortField={sortField}
                         sortDirection={sortDirection}
@@ -80,7 +85,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                         variant={variant}
                     />
 
-                    <div className="subtle-scrollbar max-h-[640px] overflow-y-auto">
+                    <div className={`subtle-scrollbar overflow-y-auto ${variant === 'entregadores' ? 'max-h-[510px]' : 'max-h-[640px]'}`}>
                         <AnimatePresence mode="wait" initial={false}>
                             {currentItems.length > 0 ? (
                                 <motion.div
@@ -130,6 +135,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                 totalItems={totalItems}
                 itemsPerPage={pageSize}
                 isUpdating={isUpdating}
+                variant={variant}
                 onPageChange={serverPagination?.onPageChange ?? setLocalCurrentPage}
             />
         </div>

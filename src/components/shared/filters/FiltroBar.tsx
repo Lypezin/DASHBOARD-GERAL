@@ -95,12 +95,13 @@ const FiltroBar = React.memo(function FiltroBar({
   }, [setFilters]);
 
   return (
-    <div className="relative z-10 w-full">
+    <div className="relative z-10 w-full" data-filter-view={activeTab}>
       <div className="flex w-full flex-col gap-3 xl:flex-row xl:items-end">
         <div className="w-full shrink-0 sm:w-auto">
           <FilterModeSwitch
             isModoIntervalo={showDateRangeFilters}
             onToggle={handleModeToggle}
+            appearance={activeTab === 'entregadores' ? 'quiet' : 'default'}
           />
         </div>
 
@@ -119,6 +120,7 @@ const FiltroBar = React.memo(function FiltroBar({
             errorSemanas={errorSemanas}
             onRetrySemanas={retrySemanas}
             handleChange={handleChange}
+            appearance={activeTab === 'entregadores' ? 'quiet' : 'default'}
           />
 
           <FilterSecondarySection
@@ -133,12 +135,16 @@ const FiltroBar = React.memo(function FiltroBar({
             shouldDisablePracaFilter={shouldDisablePracaFilter}
             optionsLoading={optionsLoading}
             optionsError={optionsError}
+            appearance={activeTab === 'entregadores' ? 'quiet' : 'default'}
           />
         </div>
 
         {hasActiveFilters && (
           <div className="w-full shrink-0 sm:w-auto">
-            <FilterClearButton onClear={handleClearFiltersClick} />
+            <FilterClearButton
+              onClear={handleClearFiltersClick}
+              appearance={activeTab === 'entregadores' ? 'quiet' : 'default'}
+            />
           </div>
         )}
       </div>

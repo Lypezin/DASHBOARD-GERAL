@@ -6,6 +6,7 @@ import type { FiltroBarChangeHandler } from '@/hooks/ui/useFiltroBar';
 import type { DimensionFilterSupport } from '@/utils/filters/dimensionFilterSupport';
 
 interface FilterSecondarySectionProps {
+    appearance?: 'default' | 'quiet';
     filters: Filters;
     setFilters: React.Dispatch<React.SetStateAction<Filters>>;
     pracas: FilterOption[];
@@ -20,6 +21,7 @@ interface FilterSecondarySectionProps {
 }
 
 export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
+    appearance = 'default',
     filters,
     setFilters,
     pracas,
@@ -44,6 +46,7 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
     return (
         <>
             <FiltroSelect
+                appearance={appearance}
                 label="Praça"
                 value={filters.praca ?? ''}
                 options={pracas}
@@ -52,6 +55,7 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
                 disabled={shouldDisablePracaFilter || isWaitingForOptions(pracas) || isUnavailable(pracas)}
             />
             <FiltroMultiSelect
+                appearance={appearance}
                 label="Sub praça"
                 selected={dimensionSupport.subPraca
                     ? (filters.subPracas?.length ? filters.subPracas : filters.subPraca ? [filters.subPraca] : [])
@@ -62,6 +66,7 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
                 onSelectionChange={(values) => setFilters(prev => ({ ...prev, subPraca: values[0] || null, subPracas: values }))}
             />
             <FiltroMultiSelect
+                appearance={appearance}
                 label="Origem"
                 selected={dimensionSupport.origem
                     ? (filters.origens?.length ? filters.origens : filters.origem ? [filters.origem] : [])
@@ -72,6 +77,7 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
                 onSelectionChange={(values) => setFilters(prev => ({ ...prev, origem: values[0] || null, origens: values }))}
             />
             <FiltroMultiSelect
+                appearance={appearance}
                 label="Turno"
                 selected={dimensionSupport.turno
                     ? (filters.turnos?.length ? filters.turnos : filters.turno ? [filters.turno] : [])

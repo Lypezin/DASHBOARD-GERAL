@@ -4,6 +4,7 @@ import { DateRangeActions } from '@/components/date-range/DateRangeActions';
 import { useDateRangeLogic } from '@/components/date-range/useDateRangeLogic';
 
 interface FiltroDateRangeProps {
+  appearance?: 'default' | 'quiet';
   dataInicial: string | null;
   dataFinal: string | null;
   onRangeApply: (dataInicial: string | null, dataFinal: string | null) => void;
@@ -26,7 +27,7 @@ const FiltroDateRange: React.FC<FiltroDateRangeProps> = (props) => {
   const dataMinima = '2020-01-01';
 
   return (
-    <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end">
+    <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-end" data-filter-role="range">
       <DateRangeInputs
         tempDataInicial={tempDataInicial}
         tempDataFinal={tempDataFinal}
@@ -34,6 +35,7 @@ const FiltroDateRange: React.FC<FiltroDateRangeProps> = (props) => {
         onChangeDataFinal={handleDataFinalChange}
         minDate={dataMinima}
         maxDate={hoje}
+        appearance={props.appearance}
       />
 
       <DateRangeActions
@@ -41,6 +43,7 @@ const FiltroDateRange: React.FC<FiltroDateRangeProps> = (props) => {
         onClear={handleLimpar}
         canApply={temAlteracao}
         hasFilter={!!temFiltro}
+        appearance={props.appearance}
       />
     </div>
   );

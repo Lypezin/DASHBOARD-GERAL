@@ -6,6 +6,7 @@ import { Filters } from '@/types';
 import type { FiltroBarChangeHandler } from '@/hooks/ui/useFiltroBar';
 
 interface FilterPrimarySectionProps {
+    appearance?: 'default' | 'quiet';
     isModoIntervalo: boolean;
     filters: Filters;
     setFilters: React.Dispatch<React.SetStateAction<Filters>>;
@@ -18,6 +19,7 @@ interface FilterPrimarySectionProps {
 }
 
 export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
+    appearance = 'default',
     isModoIntervalo,
     filters,
     setFilters,
@@ -30,8 +32,9 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
 }) => {
     if (isModoIntervalo) {
         return (
-            <div className="col-span-1 min-w-0 sm:col-span-2 xl:col-span-3">
+            <div className="col-span-1 min-w-0 sm:col-span-2 xl:col-span-3" data-filter-role="date-range">
                 <FiltroDateRange
+                    appearance={appearance}
                     dataInicial={filters?.dataInicial ?? null}
                     dataFinal={filters?.dataFinal ?? null}
                     onRangeApply={(dataInicial, dataFinal) => {
@@ -71,6 +74,7 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
     return (
         <>
             <FiltroSelect
+                appearance={appearance}
                 label="Ano"
                 value={filters.ano !== null ? String(filters.ano) : ''}
                 options={anosOptions}
@@ -79,6 +83,7 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
             />
             <div className="min-w-0">
                 <FiltroMultiSelect
+                    appearance={appearance}
                     label="Semana"
                     selected={selectedWeeks}
                     options={semanasOptions}

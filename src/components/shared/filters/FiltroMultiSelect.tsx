@@ -9,13 +9,14 @@ type FilterOption = {
   label: string;
 };
 
-const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, onSelectionChange, disabled = false }: {
+const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, onSelectionChange, disabled = false, appearance = 'default' }: {
   label: string;
   placeholder: string;
   options: FilterOption[];
   selected: string[];
   onSelectionChange: (selected: string[]) => void;
   disabled?: boolean;
+  appearance?: 'default' | 'quiet';
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -47,8 +48,8 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
       : `${selectedLabels.slice(0, 2).join(', ')} +${selectedLabels.length - 2}`;
 
   return (
-    <div className="group relative flex min-w-0 flex-col gap-1" ref={wrapperRef}>
-      <span className="pl-1 text-[11px] font-bold text-slate-600 dark:text-slate-300">
+    <div className="group relative flex min-w-0 flex-col gap-1" ref={wrapperRef} data-filter-role="multi-select">
+      <span className={cn("pl-1 text-[11px] font-bold text-slate-600 dark:text-slate-300", appearance === 'quiet' && "pl-0 font-semibold")}>
         {label}
       </span>
       <div className="relative">
@@ -60,14 +61,18 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
             "h-[38px] w-full appearance-none rounded-lg border border-slate-200/80 text-left focus:outline-none dark:border-slate-800",
             "bg-white px-3 py-1 pr-10 text-xs font-semibold text-slate-900 shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-200 dark:bg-slate-900 dark:text-slate-100",
             "hover:border-blue-300 hover:bg-white hover:shadow-md motion-safe:hover:-translate-y-0.5 dark:hover:border-blue-500/50 dark:hover:bg-slate-900",
-            isOpen ? "border-blue-400 ring-2 ring-blue-500/20" : "",
-            "disabled:cursor-not-allowed disabled:opacity-50"
+            isOpen
+              ? appearance === 'quiet' ? "border-[#315c49] ring-2 ring-[#315c49]/10 dark:border-emerald-300" : "border-blue-400 ring-2 ring-blue-500/20"
+              : "",
+            "disabled:cursor-not-allowed disabled:opacity-50",
+            appearance === 'quiet' && "rounded-lg border-slate-300 bg-white font-medium shadow-none hover:translate-y-0 hover:border-[#315c49] hover:bg-white hover:shadow-none dark:border-slate-700 dark:bg-slate-950 dark:hover:border-emerald-300"
           )}
+          data-filter-trigger="multi-select"
           title={selected.length > 0 ? selectedLabels.join(', ') : placeholder}
         >
-          <span className={cn("block min-w-0 pr-1 leading-snug truncate w-full", isWeekFilter ? "whitespace-nowrap font-mono text-[13px] tabular-nums" : "")}>
+          <span className={cn("block min-w-0 pr-1 leading-snug truncate w-full", isWeekFilter && appearance !== 'quiet' ? "whitespace-nowrap font-mono text-[13px] tabular-nums" : "")}>
             {selected.length > 0 ? (
-              <span className="block truncate font-semibold text-blue-700 dark:text-blue-300" title={selectedLabels.join(', ')}>
+              <span className={cn("block truncate font-semibold text-blue-700 dark:text-blue-300", appearance === 'quiet' && "font-medium text-slate-800 dark:text-slate-100")} title={selectedLabels.join(', ')}>
                 {selectedDisplay}
               </span>
             ) : (
@@ -81,6 +86,7 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
       </div>
 
       <FiltroMultiSelectDropdown
+        appearance={appearance}
         isOpen={isOpen}
         disabled={disabled}
         options={options}

@@ -4,10 +4,10 @@ import { AnimatePresence, motion, type Variants } from 'framer-motion';
 import type { EntregadoresMetricItem } from '../utils/entregadoresMetrics';
 
 const toneStyles: Record<EntregadoresMetricItem['tone'], string> = {
-    blue: 'bg-blue-50 text-blue-600 ring-blue-100 dark:bg-blue-950/40 dark:text-blue-300 dark:ring-blue-900/50',
-    emerald: 'bg-emerald-50 text-emerald-600 ring-emerald-100 dark:bg-emerald-950/40 dark:text-emerald-300 dark:ring-emerald-900/50',
-    rose: 'bg-rose-50 text-rose-600 ring-rose-100 dark:bg-rose-950/40 dark:text-rose-300 dark:ring-rose-900/50',
-    amber: 'bg-amber-50 text-amber-600 ring-amber-100 dark:bg-amber-950/40 dark:text-amber-300 dark:ring-amber-900/50',
+    blue: 'text-[#526f82] dark:text-sky-200',
+    emerald: 'text-[#315c49] dark:text-emerald-200',
+    rose: 'text-[#936653] dark:text-rose-200',
+    amber: 'text-[#806b48] dark:text-amber-200',
 };
 
 const metricVariants: Variants = {
@@ -26,33 +26,29 @@ export function EntregadoresOverviewMetric({
     return (
         <motion.div
             variants={reduceMotion ? undefined : metricVariants}
-            className="min-w-0 px-2 py-1"
+            className="min-w-0 px-3 py-2 xl:px-4"
         >
-            <div className="flex min-w-0 items-center gap-2.5">
-                <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ring-1 ${toneStyles[tone]}`}>
-                    <Icon className="h-4 w-4" aria-hidden="true" />
-                </span>
-                <dt className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
+            <div className="flex min-w-0 items-center gap-2">
+                <Icon className={`h-3.5 w-3.5 shrink-0 ${toneStyles[tone]}`} aria-hidden="true" />
+                <dt className="truncate text-xs font-medium text-[#4f5c53] dark:text-slate-300">
                     {label}
                 </dt>
             </div>
 
-            <dd className="mt-3 min-h-8 font-mono text-2xl font-semibold tracking-tight text-slate-950 tabular-nums dark:text-slate-50">
+            <dd className="mt-2 min-h-7 font-sans text-[22px] font-semibold tracking-tight text-[#242b26] tabular-nums dark:text-slate-50">
                 <AnimatePresence initial={false} mode="wait">
                     <motion.span
                         key={value}
                         initial={{ opacity: 0, y: reduceMotion ? 0 : 4 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: reduceMotion ? 0 : -2 }}
-                        transition={{ duration: reduceMotion ? 0.08 : 0.15, ease: 'easeOut' }}
+                        transition={{ duration: reduceMotion ? 0.08 : 0.12, ease: 'easeOut' }}
                         className="block"
                     >
                         {value}
                     </motion.span>
                 </AnimatePresence>
-                <span className="mt-1 block truncate font-sans text-xs font-medium text-slate-400 dark:text-slate-500">
-                    {meta}
-                </span>
+                <span className="sr-only">{meta}</span>
             </dd>
         </motion.div>
     );
