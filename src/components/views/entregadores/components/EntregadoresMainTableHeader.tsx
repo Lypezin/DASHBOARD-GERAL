@@ -13,6 +13,7 @@ type SortableField = keyof Entregador | 'percentual_aceitas' | 'percentual_compl
 
 export const ENTREGADORES_TABLE_GRID = 'grid-cols-[88px_minmax(280px,2fr)_130px_120px_120px_120px_135px_140px_120px]';
 export const ENTREGADORES_OPERATIONAL_TABLE_GRID = 'grid-cols-[58px_minmax(230px,1.8fr)_110px_90px_90px_95px_110px_105px_100px]';
+export const ENTREGADORES_OVERVIEW_TABLE_GRID = 'grid-cols-[minmax(250px,2fr)_105px_88px_88px_96px_108px_110px_132px]';
 
 export const EntregadoresMainTableHeader = React.memo(function EntregadoresMainTableHeader({
     sortField,
@@ -21,14 +22,14 @@ export const EntregadoresMainTableHeader = React.memo(function EntregadoresMainT
     variant = 'entregadores',
 }: EntregadoresTableHeaderProps) {
     const isEntregadores = variant === 'entregadores';
-    const gridClass = isEntregadores ? ENTREGADORES_OPERATIONAL_TABLE_GRID : ENTREGADORES_TABLE_GRID;
+    const gridClass = isEntregadores ? ENTREGADORES_OVERVIEW_TABLE_GRID : ENTREGADORES_TABLE_GRID;
 
     const getSortIcon = (field: SortableField) => {
         if (sortField !== field) {
             return <ArrowUpDown className="h-3.5 w-3.5 shrink-0 text-slate-400" />;
         }
 
-        const activeClass = isEntregadores ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-900 dark:text-white';
+        const activeClass = isEntregadores ? 'text-[#155d8b] dark:text-sky-300' : 'text-slate-900 dark:text-white';
         return sortDirection === 'asc'
             ? <ArrowUp className={`h-3.5 w-3.5 shrink-0 ${activeClass}`} />
             : <ArrowDown className={`h-3.5 w-3.5 shrink-0 ${activeClass}`} />;
@@ -79,10 +80,10 @@ export const EntregadoresMainTableHeader = React.memo(function EntregadoresMainT
 
     return (
         <div className={isEntregadores
-            ? 'sticky top-0 z-20 border-b border-[#d6dcd5] bg-[#eef1ec] dark:border-slate-700 dark:bg-slate-800'
+            ? 'sticky top-0 z-20 border-b border-[#d5e1e9] bg-[#f2f7fa] dark:border-slate-700 dark:bg-slate-800'
             : 'sticky top-0 z-20 border-b border-slate-200 bg-slate-50/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95'}>
-            <div className={`grid ${gridClass} items-center ${isEntregadores ? 'gap-3 px-4 py-2.5' : 'gap-4 px-6 py-3'}`}>
-                <HeaderCell label="Saúde" />
+            <div className={`grid ${gridClass} items-center ${isEntregadores ? 'gap-3 px-5 py-3' : 'gap-4 px-6 py-3'}`}>
+                {!isEntregadores && <HeaderCell label="Saúde" />}
                 <HeaderCell label="Nome" field="nome_entregador" align="left" />
                 <HeaderCell label="Horas" field="total_segundos" />
                 <HeaderCell label="Ofertadas" field="corridas_ofertadas" align="right" />
@@ -90,7 +91,7 @@ export const EntregadoresMainTableHeader = React.memo(function EntregadoresMainT
                 <HeaderCell label="% Aceitas" field="percentual_aceitas" />
                 <HeaderCell label="Completadas" field="corridas_completadas" align="right" />
                 <HeaderCell label="% Completadas" field="percentual_completadas" />
-                <HeaderCell label="Aderência" field="aderencia_percentual" />
+                <HeaderCell label="Aderência" field="aderencia_percentual" align={isEntregadores ? 'right' : 'center'} />
             </div>
         </div>
     );

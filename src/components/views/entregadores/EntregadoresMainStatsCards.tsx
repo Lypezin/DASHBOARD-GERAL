@@ -52,15 +52,21 @@ export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainSt
     }
 
     return (
-        <section aria-labelledby="entregadores-resumo-title" className="space-y-3">
-            <h2 id="entregadores-resumo-title" className="text-sm font-semibold tracking-tight text-[#242b26] dark:text-slate-100">
-                Resumo da frota
-            </h2>
+        <section aria-labelledby="entregadores-resumo-title" className="space-y-2.5">
+            <div className="flex items-end justify-between gap-3 px-0.5">
+                <div>
+                    <h2 id="entregadores-resumo-title" className="text-[15px] font-semibold tracking-tight text-[#183f58] dark:text-slate-100">
+                        Visão da frota
+                    </h2>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Indicadores do período selecionado</p>
+                </div>
+                <span className="hidden text-[11px] font-medium text-slate-400 sm:block">Atualizado com os filtros ativos</span>
+            </div>
             <motion.dl
                 initial={reduceMotion ? false : 'hidden'}
                 animate={reduceMotion ? undefined : 'visible'}
                 variants={reduceMotion ? undefined : containerVariants}
-                className="grid grid-cols-1 gap-x-5 gap-y-4 border-y border-[#d6dcd5] py-3 dark:border-slate-700 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 xl:divide-x xl:divide-[#e8ece7] dark:xl:divide-slate-700"
+                className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-[#d8e4eb] bg-[#d8e4eb] shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-700 dark:bg-slate-700 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5"
             >
                 {metrics.map((metric) => (
                     <EntregadoresOverviewMetric key={metric.label} {...metric} reduceMotion={reduceMotion} />

@@ -71,13 +71,13 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
         <div
             aria-busy={isUpdating}
             className={variant === 'entregadores'
-                ? 'overflow-hidden rounded-lg border border-[#d6dcd5] bg-[#fbfcf9] dark:border-slate-700 dark:bg-slate-900'
+                ? 'overflow-hidden rounded-xl border border-[#d3e0e9] bg-white shadow-[0_12px_36px_-28px_rgba(14,55,82,0.45)] dark:border-slate-700 dark:bg-slate-900'
                 : 'overflow-hidden rounded-[2rem] border border-slate-200/75 bg-white/90 shadow-[0_18px_48px_-40px_rgba(15,23,42,0.52)] ring-1 ring-slate-100/80 dark:border-slate-800/75 dark:bg-slate-950/80 dark:ring-slate-800/50'}
         >
             <EntregadoresMainTableHeaderCard variant={variant} totalItems={totalItems} />
 
             <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
-                <div className={variant === 'entregadores' ? 'min-w-[1180px]' : 'min-w-[1320px]'}>
+                <div className={variant === 'entregadores' ? 'min-w-[1080px]' : 'min-w-[1320px]'}>
                     <EntregadoresMainTableHeader
                         sortField={sortField}
                         sortDirection={sortDirection}
@@ -94,7 +94,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -3, pointerEvents: 'none' }}
                                     transition={{ duration: shouldReduceMotion ? 0.08 : 0.16, ease: 'easeOut' }}
-                                    className="divide-y divide-slate-100/80 dark:divide-slate-800/80"
+                                    className={variant === 'entregadores' ? 'divide-y divide-[#e7eef3] dark:divide-slate-800/80' : 'divide-y divide-slate-100/80 dark:divide-slate-800/80'}
                                 >
                                     {currentItems.map((entregador) => (
                                         <EntregadoresMainTableRow
