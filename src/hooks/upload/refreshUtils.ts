@@ -1,6 +1,7 @@
 import { safeLog } from '@/lib/errorHandler';
 import { mvService } from '@/services/mvService';
 import { sleep } from '@/utils/async/sleep';
+import { notifyEntregadoresRefreshComplete } from '@/utils/dashboard/dashboardDataRefreshEvents';
 import { REFRESH_MAX_MONITORING_MS, REFRESH_POLL_INTERVAL_MS } from './refreshTiming';
 
 export interface RefreshState {
@@ -135,6 +136,7 @@ async function monitorRefreshQueue(
     incrementalOnly = false
 ) {
     if (initialPendingCount <= 0) {
+        notifyEntregadoresRefreshComplete();
         setRefreshState({
             isRefreshing: false,
             progress: 100,
@@ -161,6 +163,7 @@ async function monitorRefreshQueue(
     }
 
     if (remaining === 0) {
+        notifyEntregadoresRefreshComplete();
         setRefreshState({
             isRefreshing: false,
             progress: 100,
@@ -210,11 +213,21 @@ export const performRefresh = async (
                 return;
             }
 
+            if (payload?.incremental_succeeded === false) {
+                setRefreshState({
+                    isRefreshing: false,
+                    progress: 0,
+                    status: payload?.incremental_error || 'O processamento incremental falhou. Tente atualizar novamente.'
+                });
+                return;
+            }
+
             setRefreshState({
                 isRefreshing: false,
                 progress: 100,
                 status: 'Dados agregados, Dashboard e UTR atualizados para a importacao.'
             });
+            notifyEntregadoresRefreshComplete();
             return;
         }
 

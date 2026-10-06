@@ -529,10 +529,14 @@ function chooseChunkedEntregadorName(current: string, next: string) {
 }
 
 function mergeChunkedEntregadoresResults(results: unknown[], payload: Record<string, unknown>) {
+  const consolidationStartedAt = performance.now();
   const rowsById = new Map<string, Entregador>();
+  let inputRows = 0;
 
   for (const result of results) {
-      for (const row of normalizeEntregadoresRows(result)) {
+      const normalizedRows = normalizeEntregadoresRows(result);
+      inputRows += normalizedRows.length;
+      for (const row of normalizedRows) {
           const current = rowsById.get(row.id_entregador);
           if (!current) {
               rowsById.set(row.id_entregador, { ...row });
@@ -562,6 +566,15 @@ function mergeChunkedEntregadoresResults(results: unknown[], payload: Record<str
       right.corridas_completadas - left.corridas_completadas
       || compareText(left.id_entregador, right.id_entregador)
   );
+
+  console.info('[dashboard-performance]', JSON.stringify({
+      phase: 'consolidation',
+      mode: 'entregadores',
+      chunk_count: results.length,
+      input_rows: inputRows,
+      output_rows: entregadores.length,
+      consolidation_ms: Math.round((performance.now() - consolidationStartedAt) * 100) / 100,
+  }));
 
   return {
       entregadores,
@@ -1084,10 +1097,32 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
       payload.p_only_inactive = payload.p_only_inactive === true;
   }
 
-  if (mode === 'entregadores_page' && canUseInMemoryEntregadoresPage(payload)) {
-      // Reuse a cached aggregate source for search, sorting, filters and page
-      // changes. The direct SQL page RPC re-aggregates and ranks the whole
-      // annual scope on every request and can exceed the database timeout.
+  let weeklyEntregadoresPageEnabled = false;
+  if (mode === 'entregadores_page') {
+      const { data: rolloutState, error: rolloutError } = await admin
+          .from('dashboard_entregadores_rollout_state')
+          .select('enabled')
+          .eq('singleton', true)
+          .maybeSingle();
+      if (rolloutError) {
+          console.info('[dashboard-performance]', JSON.stringify({
+              phase: 'rollout_config',
+              mode,
+              success: false,
+              error_code: rolloutError.code || null,
+          }));
+          throw toDashboardRpcError(rolloutError);
+      }
+      if (!rolloutState) {
+          throw new Error('A configuração da leitura de Entregadores está indisponível. Tente novamente.');
+      }
+      weeklyEntregadoresPageEnabled = rolloutState.enabled === true;
+  }
+
+  if (mode === 'entregadores_page' && !weeklyEntregadoresPageEnabled && canUseInMemoryEntregadoresPage(payload)) {
+      // Keep the existing result-cache path during the reversible rollout.
+      // Once the weekly table passes parity/load checks, its DB flag makes all
+      // page requests use the fresh server-side query below.
       const sourcePayload = pickPayload(source, ENTREGADORES_ALLOWED_PARAMS);
       sourcePayload.p_organization_id = organizationId;
       delete sourcePayload.p_search;
@@ -1109,9 +1144,53 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
           ? 'listar_entregadores_dashboard_fast_v1'
       : mode === 'valores_detalhados'
           ? 'listar_valores_entregadores_detalhado'
-          : canUseAggregatedValoresSource(payload)
+      : canUseAggregatedValoresSource(payload)
               ? '_listar_valores_entregadores_source_20260719'
               : 'listar_valores_entregadores';
+
+  if (mode === 'entregadores_page' && weeklyEntregadoresPageEnabled) {
+      // Page reads are always fresh. The database feature gate selects the
+      // weekly source when ready and keeps the old RPC available for rollback.
+      const rpcStartedAt = performance.now();
+      const { data: rpcData, error } = await admin.rpc(rpcName, payload);
+      const rpcDurationMs = Math.round((performance.now() - rpcStartedAt) * 100) / 100;
+      if (error) {
+          console.info('[dashboard-performance]', JSON.stringify({
+              mode,
+              rpc: rpcName,
+              rpc_ms: rpcDurationMs,
+              response_bytes: 0,
+              error_code: error.code || null,
+              success: false,
+          }));
+          throw toDashboardRpcError(error);
+      }
+
+      let responseData: unknown = rpcData ?? null;
+      let aggregationMs: number | null = null;
+      if (responseData && typeof responseData === 'object' && !Array.isArray(responseData)) {
+          const result = responseData as Record<string, unknown>;
+          const diagnostics = result._diagnostics;
+          if (diagnostics && typeof diagnostics === 'object') {
+              const value = Number((diagnostics as Record<string, unknown>).aggregation_ms);
+              if (Number.isFinite(value)) aggregationMs = value;
+              const publicResult = { ...result };
+              delete publicResult._diagnostics;
+              responseData = publicResult;
+          }
+      }
+
+      console.info('[dashboard-performance]', JSON.stringify({
+          mode,
+          rpc: rpcName,
+          rpc_ms: rpcDurationMs,
+          aggregation_ms: aggregationMs,
+          response_bytes: Buffer.byteLength(JSON.stringify(responseData ?? null), 'utf8'),
+          error_code: null,
+          success: true,
+      }));
+      return { data: responseData, cached: false };
+  }
 
   return resolveWithCache(mode, payload, async () => {
       if (mode === 'entregadores') {

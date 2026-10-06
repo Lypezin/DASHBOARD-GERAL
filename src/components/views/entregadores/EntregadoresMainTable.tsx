@@ -21,6 +21,7 @@ interface EntregadoresMainTableProps {
         totalItems: number;
         onPageChange: (page: number) => void;
     };
+    variant?: 'entregadores' | 'dedicado';
 }
 
 const DEFAULT_ITEMS_PER_PAGE = 50;
@@ -36,6 +37,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
     onRowClick,
     isUpdating = false,
     serverPagination,
+    variant = 'entregadores',
 }: EntregadoresMainTableProps) {
     const shouldReduceMotion = useReducedMotion() ?? true;
     const itemsPerPage = sortedEntregadores.length > 1000
@@ -67,7 +69,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
 
     return (
         <div aria-busy={isUpdating} className="overflow-hidden rounded-[2rem] border border-slate-200/75 bg-white/90 shadow-[0_18px_48px_-40px_rgba(15,23,42,0.52)] ring-1 ring-slate-100/80 dark:border-slate-800/75 dark:bg-slate-950/80 dark:ring-slate-800/50">
-            <EntregadoresMainTableHeaderCard />
+            <EntregadoresMainTableHeaderCard variant={variant} />
 
             <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
                 <div className="min-w-[1320px]">
@@ -75,6 +77,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                         sortField={sortField}
                         sortDirection={sortDirection}
                         onSort={onSort}
+                        variant={variant}
                     />
 
                     <div className="subtle-scrollbar max-h-[640px] overflow-y-auto">
@@ -92,6 +95,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                                         <EntregadoresMainTableRow
                                             key={entregador.id_entregador}
                                             entregador={entregador}
+                                            variant={variant}
                                             onClick={isUpdating ? undefined : onRowClick}
                                         />
                                     ))}

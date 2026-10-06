@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS public.idx_dashboard_entregadores_calendar_year_pending;

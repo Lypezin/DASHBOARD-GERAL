@@ -15,7 +15,7 @@ import { formatarHorasParaHMS } from '@/utils/formatters';
 import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
 import { ViewTransition } from '@/components/ui/view-transition';
 import { AlertTriangle } from 'lucide-react';
-import type { EntregadoresData, EntregadoresSortField } from '@/types';
+import type { Entregador, EntregadoresData, EntregadoresSortField } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 import { resolveEntregadoresDescription } from './utils/entregadoresHelpers';
 import { fetchEntregadoresData } from '@/utils/tabData/fetchers/entregadoresFetcher';
@@ -139,30 +139,69 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
     const queryFilters = { ...exportFilters };
     const search = String(queryFilters.p_search || '').trim();
     queryFilters.p_search = search.length >= 3 ? search : null;
-    const result = await fetchEntregadoresData({ filterPayload: queryFilters as FilterPayload });
-    if (result.error) {
-      throw new Error(result.error.message || 'Não foi possível carregar todos os entregadores para o Excel.');
-    }
-    if (!result.data) {
-      throw new Error('A busca completa não retornou dados para a exportação.');
+    const pageSize = 200;
+    let pageNumber = 1;
+    let reportedTotal: number | null = null;
+    let responseFingerprint: string | null = null;
+    const allRows: Entregador[] = [];
+    const exportedIds = new Set<string>();
+
+    while (reportedTotal === null || allRows.length < reportedTotal) {
+      const result = await fetchEntregadoresData({
+        filterPayload: {
+          ...queryFilters,
+          p_limit: pageSize,
+          p_page: pageNumber,
+          p_sort_field: String(sortField),
+          p_sort_direction: sortDirection,
+          p_only_inactive: !isDedicado && showInactiveOnly,
+        } as FilterPayload,
+      });
+      if (result.error) {
+        throw new Error(result.error.message || 'Não foi possível carregar todos os entregadores para o Excel.');
+      }
+      if (!result.data) {
+        throw new Error('A busca paginada não retornou dados para a exportação.');
+      }
+
+      const pageTotal = Number(result.data.total);
+      if (!Number.isSafeInteger(pageTotal) || pageTotal < 0) {
+        throw new Error('A consulta retornou um total inválido para a exportação.');
+      }
+      const fingerprint = JSON.stringify([result.data.summary || null, result.data.performers_by_metric || null]);
+      if (reportedTotal === null) {
+        reportedTotal = pageTotal;
+        responseFingerprint = fingerprint;
+      } else if (pageTotal !== reportedTotal || fingerprint !== responseFingerprint) {
+        throw new Error('Os dados mudaram durante a exportação. Gere o arquivo novamente.');
+      }
+
+      if (result.data.page !== pageNumber || result.data.page_size !== pageSize) {
+        throw new Error('A paginação da exportação mudou durante a consulta. Gere o arquivo novamente.');
+      }
+      if (result.data.entregadores.length === 0 && allRows.length < reportedTotal) {
+        throw new Error('A exportação encontrou uma página vazia antes do fim da lista. Atualize a consulta.');
+      }
+
+      for (const entregador of result.data.entregadores) {
+        const id = String(entregador.id_entregador || '').trim();
+        if (!id || exportedIds.has(id)) {
+          throw new Error('A consulta retornou identificadores ausentes ou repetidos. Atualize a lista antes de exportar.');
+        }
+        exportedIds.add(id);
+      }
+      allRows.push(...result.data.entregadores);
+      pageNumber += 1;
+      if (pageNumber > 1000000) {
+        throw new Error('A exportação ultrapassou o limite de páginas permitido.');
+      }
     }
 
-    const reportedTotal = Number(result.data.total);
-    if (!Number.isSafeInteger(reportedTotal) || reportedTotal !== result.data.entregadores.length) {
+    if (reportedTotal === null || allRows.length !== reportedTotal) {
       throw new Error('A consulta retornou apenas parte dos entregadores. Atualize a lista antes de exportar.');
     }
-
-    const exportedIds = new Set<string>();
-    for (const entregador of result.data.entregadores) {
-      const id = String(entregador.id_entregador || '').trim();
-      if (!id || exportedIds.has(id)) {
-        throw new Error('A consulta retornou identificadores ausentes ou repetidos. Atualize a lista antes de exportar.');
-      }
-      exportedIds.add(id);
-    }
-
     return filterAndSortEntregadores(
-      result.data.entregadores,
+      allRows,
       effectiveSearchTerm,
       showInactiveOnly,
       sortField,
@@ -227,7 +266,7 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
 
   return (
     <ViewTransition stateKey={`${variant}-content`} preventExitInteraction={!isDedicado}>
-      <ViewContainer className="space-y-6">
+      <ViewContainer className={isDedicado ? 'space-y-6' : 'space-y-5'}>
         <EntregadoresHeader
           onExport={handleExport}
           isExporting={isExporting}
@@ -238,6 +277,7 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
           title={isDedicado ? 'Entregadores por Origem' : undefined}
           description={resolvedDescription}
           periodoResolvido={entregadoresData?.periodo_resolvido}
+          variant={variant}
         />
 
         {error && !hasEntregadores ? (
@@ -285,9 +325,10 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
         {error && !hasEntregadores ? null : (
           <FilteredDataTransition
             isUpdating={isUpdatingResults}
-            className="space-y-5"
+            className={isDedicado ? 'space-y-5' : 'space-y-4'}
           >
             <EntregadoresMainStatsCards
+              variant={variant}
               totalEntregadores={displayStats.totalEntregadores}
               aderenciaMedia={displayStats.aderenciaMedia}
               rejeicaoMedia={displayStats.rejeicaoMedia}
@@ -300,6 +341,7 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
             />
 
             <EntregadoresMainSearch
+              variant={variant}
               searchTerm={effectiveSearchTerm}
               onSearchChange={handleSearchChange}
               showInactiveOnly={showInactiveOnly}
@@ -313,6 +355,7 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
             />
 
             <EntregadoresMainTable
+              variant={variant}
               sortedEntregadores={sortedEntregadores}
               sortField={sortField}
               sortDirection={sortDirection}

@@ -7,6 +7,7 @@ import type { FilterPayload } from '@/types/filters';
 import { fetchTabData } from '@/utils/tabData/fetchTabData';
 import { createRequestKey } from '@/utils/request/createRequestKey';
 import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
+import { ENTREGADORES_REFRESH_COMPLETE_EVENT } from '@/utils/dashboard/dashboardDataRefreshEvents';
 import { processTabSuccessData, getTabFallbackData, TabData } from './tabDataHelpers';
 
 const SELF_MANAGED_TABS = ['evolucao', 'dashboard', 'analise', 'comparacao', 'marketing'];
@@ -121,12 +122,19 @@ export function useTabData(
     setError(null);
   }, []);
 
-  const fetchData = useCallback(async (tab: string, payload: FilterPayload, filterPayloadKey: string, fetchId: number) => {
+  const fetchData = useCallback(async (
+    tab: string,
+    payload: FilterPayload,
+    filterPayloadKey: string,
+    fetchId: number,
+    forceFresh = false,
+  ) => {
     const tabScope = getTabScope(tab);
     const requestTab = getRequestTab(tab);
+    const cacheEnabled = requestTab !== 'entregadores';
     const requestKey = getTabCacheKey(tabScope, filterPayloadKey);
     const cacheParams = { tab: tabScope, filterPayloadKey };
-    const cached = getCached(cacheParams);
+    const cached = cacheEnabled && !forceFresh ? getCached(cacheParams) : null;
 
     if (cached !== null) {
       if (fetchIdRef.current === fetchId) {
@@ -145,22 +153,26 @@ export function useTabData(
     setError(null);
 
     try {
-      const requestKey = `${tabScope}-${filterPayloadKey}`;
-      let request = SHARED_TAB_REQUESTS.get(requestKey);
+      const inFlightKey = `${tabScope}-${filterPayloadKey}${forceFresh ? `-fresh-${fetchId}` : ''}`;
+      let request = SHARED_TAB_REQUESTS.get(inFlightKey);
 
       if (!request) {
         request = (async () => {
-          const result = await fetchTabData({ tab: requestTab, filterPayload: payload, requestScopeKey: accessScopeKey });
+          const result = await fetchTabData({
+            tab: requestTab,
+            filterPayload: payload,
+            requestScopeKey: forceFresh ? `${accessScopeKey}:refresh:${fetchId}` : accessScopeKey,
+          });
           if (result.error) {
             throw result.error;
           }
 
           return processTabSuccessData(requestTab, result);
         })().finally(() => {
-          SHARED_TAB_REQUESTS.delete(requestKey);
+          SHARED_TAB_REQUESTS.delete(inFlightKey);
         });
 
-        SHARED_TAB_REQUESTS.set(requestKey, request);
+        SHARED_TAB_REQUESTS.set(inFlightKey, request);
       }
 
       const processedData = await request;
@@ -172,7 +184,7 @@ export function useTabData(
       setDataTabScope(tabScope);
       setDataAccessScopeKey(accessScopeKey);
       setResolvedRequestKey(requestKey);
-      setCached(cacheParams, processedData);
+      if (cacheEnabled) setCached(cacheParams, processedData);
       setLoading(false);
       setError(null);
     } catch (error) {
@@ -191,7 +203,7 @@ export function useTabData(
           }
           setResolvedRequestKey(requestKey);
           setData((previousData) => {
-            if (hasCurrentDataRef.current && hasLoadedData(previousData)) return previousData;
+            if (requestTab !== 'entregadores' && hasCurrentDataRef.current && hasLoadedData(previousData)) return previousData;
             return getTabFallbackData(tab);
           });
           setLoading(false);
@@ -219,7 +231,7 @@ export function useTabData(
       }
       setResolvedRequestKey(requestKey);
       setData((previousData) => {
-        if (hasCurrentDataRef.current && hasLoadedData(previousData)) return previousData;
+        if (requestTab !== 'entregadores' && hasCurrentDataRef.current && hasLoadedData(previousData)) return previousData;
         return getTabFallbackData(tab);
       });
       setLoading(false);
@@ -240,6 +252,24 @@ export function useTabData(
     retryAttemptsRef.current.delete(fetchId);
     void fetchData(activeTab, currentPayload.payload, currentPayload.key, fetchId);
   }, [activeTab, fetchData]);
+
+  useEffect(() => {
+    if (activeTab !== 'entregadores' && activeTab !== 'prioridade') return;
+
+    const reloadAfterImport = () => {
+      const currentPayload = stableFilterPayloadRef.current;
+      if (!enabled || isOrgLoading || !currentPayload) return;
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
+      const fetchId = ++fetchIdRef.current;
+      void fetchData(activeTab, currentPayload.payload, currentPayload.key, fetchId, true);
+    };
+
+    window.addEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, reloadAfterImport);
+    return () => window.removeEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, reloadAfterImport);
+  }, [activeTab, enabled, fetchData, isOrgLoading]);
 
   useEffect(() => {
     if (debounceRef.current) {
@@ -274,7 +304,8 @@ export function useTabData(
 
     const currentFetchId = ++fetchIdRef.current;
     const tabScope = getTabScope(activeTab);
-    const cached = getCached({ tab: tabScope, filterPayloadKey: filterPayloadStr });
+    const cacheEnabled = getRequestTab(activeTab) !== 'entregadores';
+    const cached = cacheEnabled ? getCached({ tab: tabScope, filterPayloadKey: filterPayloadStr }) : null;
 
     if (cached !== null) {
       setData(activeTab === 'valores' ? (Array.isArray(cached) ? cached : []) : cached);

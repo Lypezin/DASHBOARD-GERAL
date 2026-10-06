@@ -12,12 +12,14 @@ export type DashboardDataApiMode =
 
 export async function fetchDashboardDataApi<T>(
     mode: DashboardDataApiMode,
-    payload: Record<string, unknown>
+    payload: Record<string, unknown>,
+    requestScopeKey?: string,
 ): Promise<RpcResult<T>> {
     return fetchInternalRpcApi<T>({
         path: '/api/dashboard/data',
         mode,
         payload,
+        requestScopeKey,
         errorMessage: 'Erro ao consultar dados do dashboard.',
     });
 }

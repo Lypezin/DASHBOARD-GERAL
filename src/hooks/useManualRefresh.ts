@@ -4,6 +4,7 @@ import type { RefreshMVState } from '@/types/upload';
 import { mvService } from '@/services/mvService';
 import { sleep } from '@/utils/async/sleep';
 import { REFRESH_MAX_MONITORING_MS, REFRESH_POLL_INTERVAL_MS, REFRESH_RESET_DELAY_MS } from '@/hooks/upload/refreshTiming';
+import { notifyEntregadoresRefreshComplete } from '@/utils/dashboard/dashboardDataRefreshEvents';
 
 export function useManualRefresh() {
     const [state, setState] = useState<RefreshMVState>({
@@ -35,7 +36,9 @@ export function useManualRefresh() {
                 throw new Error(error.message || 'Falha ao enfileirar MVs.');
             }
 
-            let remaining = data?.pending?.length || 0;
+            let remaining = (data?.pending?.length || 0)
+                + Number((data as any)?.queue_state?.incremental_pending_count || 0);
+            const initialRemaining = remaining;
             const total = Math.max(remaining, 1);
             const startedAt = Date.now();
 
@@ -54,12 +57,34 @@ export function useManualRefresh() {
 
                 await sleep(REFRESH_POLL_INTERVAL_MS);
 
-                const { data: pendingData, error: pendingError } = await mvService.getPendingMVs();
+                const { data: pendingData, error: pendingError } = await mvService.getRefreshQueueSnapshot<any>();
                 if (pendingError) throw new Error(pendingError.message || 'Falha ao acompanhar fila de MVs.');
-                remaining = pendingData?.length || 0;
+                remaining = (pendingData?.pending?.length || 0)
+                    + Number(pendingData?.queue_state?.incremental_pending_count || 0);
             }
 
             const completed = Math.max(0, total - remaining);
+            if (
+                remaining === 0
+                && initialRemaining === 0
+                && (data as any)?.incremental_mode === true
+                && (data as any)?.incremental_succeeded === false
+            ) {
+                setState(prev => ({
+                    ...prev,
+                    refreshing: false,
+                    progress: 0,
+                    total,
+                    completed,
+                    failedMVs: [],
+                    progressLabel: 'Atualizacao nao confirmada',
+                    message: (data as any)?.incremental_error
+                        || 'O processamento incremental falhou. Tente atualizar novamente.'
+                }));
+                return;
+            }
+
+            if (remaining === 0) notifyEntregadoresRefreshComplete();
             setState(prev => ({
                 ...prev,
                 refreshing: false,

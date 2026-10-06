@@ -64,6 +64,8 @@ function scopeDashboardPracas(
 }
 
 export async function POST(request: Request) {
+    const apiStartedAt = performance.now();
+    let requestMode: string | null = null;
     try {
         const auth = await loadCurrentUserProfile({
             requireApproved: true,
@@ -76,6 +78,7 @@ export async function POST(request: Request) {
 
         const body = await request.json().catch(() => null) as DashboardDataRequest | null;
         const mode = normalizeMode(body?.mode);
+        requestMode = mode;
 
         if (!mode) {
             return NextResponse.json({ data: null, error: 'Modo de dados do dashboard invalido.' }, { status: 400 });
@@ -101,18 +104,33 @@ export async function POST(request: Request) {
         }
 
         const { data, cached } = await fetchDashboardData(mode, plazaAccess.source, organizationAccess.organizationId);
-
-        return NextResponse.json({ data, error: null, cached });
+        const responsePayload = { data, error: null, cached };
+        console.info('[dashboard-performance]', JSON.stringify({
+            phase: 'api',
+            mode,
+            api_ms: Math.round((performance.now() - apiStartedAt) * 100) / 100,
+            response_bytes: Buffer.byteLength(JSON.stringify(responsePayload), 'utf8'),
+            success: true,
+        }));
+        return NextResponse.json(responsePayload);
     } catch (error) {
+        const errorCode = error && typeof error === 'object' && 'code' in error
+            ? (error as { code?: unknown }).code
+            : null;
+        console.info('[dashboard-performance]', JSON.stringify({
+            phase: 'api',
+            mode: requestMode,
+            api_ms: Math.round((performance.now() - apiStartedAt) * 100) / 100,
+            response_bytes: 0,
+            error_code: typeof errorCode === 'string' ? errorCode : null,
+            success: false,
+        }));
         if (isServiceRoleConfigError(error)) {
             const payload = getServiceRoleConfigErrorPayload();
             return NextResponse.json({ data: null, error: payload.error, code: payload.code }, { status: 503 });
         }
 
         const message = error instanceof Error ? error.message : 'Erro ao consultar dados do dashboard.';
-        const errorCode = error && typeof error === 'object' && 'code' in error
-            ? (error as { code?: unknown }).code
-            : null;
         const sqlState = typeof errorCode === 'string' && /^[0-9A-Z]{5}$/.test(errorCode)
             ? errorCode
             : undefined;

@@ -9,11 +9,13 @@ import { ENTREGADORES_TABLE_GRID } from './EntregadoresMainTableHeader';
 interface EntregadoresTableRowProps {
     entregador: Entregador;
     onClick?: (entregador: Entregador) => void;
+    variant?: 'entregadores' | 'dedicado';
 }
 
 export const EntregadoresMainTableRow = React.memo(function EntregadoresMainTableRow({
     entregador,
     onClick,
+    variant = 'entregadores',
 }: EntregadoresTableRowProps) {
     const horas = (entregador.total_segundos || 0) / 3600;
     const hs = calculateHealthScore(
@@ -27,7 +29,10 @@ export const EntregadoresMainTableRow = React.memo(function EntregadoresMainTabl
 
     return (
         <div
-            className={`grid ${ENTREGADORES_TABLE_GRID} min-h-[72px] ${onClick ? 'cursor-pointer' : 'cursor-default'} items-center gap-4 px-6 py-4 transition-colors hover:bg-slate-50/90 dark:hover:bg-slate-900/70`}
+            className={`grid ${ENTREGADORES_TABLE_GRID} min-h-[72px] ${onClick ? 'cursor-pointer' : 'cursor-default'} items-center gap-4 px-6 py-4 transition-colors ${variant === 'entregadores'
+                ? 'duration-200 hover:bg-emerald-50/45 dark:hover:bg-emerald-950/20'
+                : 'hover:bg-slate-50/90 dark:hover:bg-slate-900/70'
+                }`}
             style={{ contentVisibility: 'auto', containIntrinsicSize: '72px' }}
             onClick={() => onClick?.(entregador)}
         >
