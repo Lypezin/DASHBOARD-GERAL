@@ -53,6 +53,7 @@ const quietGradeStyles: Record<HealthGrade, string> = {
 
 export const HealthBadge = React.memo(function HealthBadge({ grade, score, size = 'sm', appearance = 'default' }: HealthBadgeProps) {
     const config = gradeConfig[grade];
+    const shapeClass = 'rounded-full font-bold';
     const sizeClass = size === 'sm' ? 'w-6 h-6 text-xs' : 'w-8 h-8 text-sm';
     const appearanceClass = appearance === 'quiet' ? quietGradeStyles[grade] : config.bg + ' ' + config.text;
 
