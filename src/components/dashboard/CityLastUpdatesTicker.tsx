@@ -4,7 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { format, parseISO } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useReducedMotion } from 'framer-motion';
-import { RefreshCw } from 'lucide-react';
+import { Pause, Play, RefreshCw } from 'lucide-react';
 
 import { useCityLastUpdates } from '@/hooks/data/useCityLastUpdates';
 
@@ -24,6 +24,16 @@ export function CityLastUpdatesTicker({ className = '' }: { className?: string }
       // Keep the in-memory preference when browser storage is unavailable.
     }
   }, []);
+
+  const toggleTickerMotion = () => {
+    const nextEnabled = !tickerMotionEnabled;
+    setTickerMotionEnabled(nextEnabled);
+    try {
+      window.localStorage.setItem(CITY_TICKER_MOTION_STORAGE_KEY, String(nextEnabled));
+    } catch {
+      // Keep the in-memory preference when browser storage is unavailable.
+    }
+  };
 
   const visibleItems = useMemo(() => {
     if (!data || data.length === 0) return [];
@@ -107,6 +117,23 @@ export function CityLastUpdatesTicker({ className = '' }: { className?: string }
       </div>
 
       <div className="h-4 w-px bg-border shrink-0" />
+
+      {motionPreference === true && (
+        <button
+          type="button"
+          onClick={toggleTickerMotion}
+          aria-label={shouldAnimateTicker
+            ? 'Pausar rolagem automática das cidades'
+            : 'Ativar rolagem automática das cidades'}
+          aria-pressed={shouldAnimateTicker}
+          title={shouldAnimateTicker ? 'Pausar rolagem automática' : 'Ativar rolagem automática'}
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/60"
+        >
+          {shouldAnimateTicker
+            ? <Pause aria-hidden="true" className="h-3 w-3" />
+            : <Play aria-hidden="true" className="h-3 w-3" />}
+        </button>
+      )}
 
       {/* Marquee de Cidades e Datas */}
       <div
