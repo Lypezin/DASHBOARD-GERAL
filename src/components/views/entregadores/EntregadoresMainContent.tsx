@@ -327,11 +327,10 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
               } : undefined}
             />
 
-            {hasPerformers ? (
+            {isDedicado && hasPerformers ? (
               showPerformers ? (
                 <DeferredTopBottomPerformers
                   entregadores={sortedEntregadores}
-                  performersByMetric={isDedicado ? undefined : entregadoresData?.performers_by_metric}
                   totalEntregadores={displayStats.totalEntregadores}
                 />
               ) : <TopBottomPerformersSkeleton rows={Math.min(10, Math.max(1, Math.floor(performerCount)))} />
