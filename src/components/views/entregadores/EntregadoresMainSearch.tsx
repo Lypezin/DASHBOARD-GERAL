@@ -30,7 +30,7 @@ export const EntregadoresMainSearch = React.memo(function EntregadoresMainSearch
                 ? 'border-[#bfd8e6] bg-[#eaf4f9] text-[#1c5e81] shadow-[inset_0_0_0_1px_rgba(45,117,154,0.06)] dark:border-sky-300/30 dark:bg-sky-950/40 dark:text-sky-100'
                 : 'border-rose-200 bg-rose-50 text-rose-700 shadow-sm dark:border-rose-900/50 dark:bg-rose-950/25 dark:text-rose-300'
             : isEntregadores
-                ? 'border-[#d7e2e8] bg-white text-slate-600 hover:border-[#92bcd2] hover:bg-[#f5fafd] hover:text-[#1c5e81] dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-sky-200'
+                ? 'border-[#d7e2e8] bg-white text-slate-600 hover:border-[#92bcd2] hover:bg-[#f5fafd] hover:text-[#1c5e81] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800 dark:hover:text-sky-200'
                 : 'border-slate-200/80 bg-white text-slate-600 shadow-sm hover:border-emerald-300 hover:text-emerald-700 dark:border-slate-800/80 dark:bg-slate-950 dark:text-slate-400 dark:hover:border-emerald-500/40 dark:hover:text-emerald-300'
     );
 

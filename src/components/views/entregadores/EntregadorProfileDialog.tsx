@@ -181,8 +181,8 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className={cn(
-                'subtle-scrollbar max-h-[88vh] overflow-y-auto rounded-[1.9rem] border border-slate-200/80 bg-white/95 shadow-[0_26px_80px_-48px_rgba(15,23,42,0.48)] dark:border-slate-800/80 dark:bg-slate-950/95',
-                isDedicado ? 'max-w-5xl' : 'max-w-3xl'
+                'subtle-scrollbar max-h-[90vh] w-[calc(100vw-1.5rem)] gap-0 overflow-x-hidden overflow-y-auto rounded-2xl border border-slate-200 bg-white p-0 text-slate-900 shadow-[0_28px_90px_-48px_rgba(15,23,42,0.58)] dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 [&>button:last-child]:z-10 [&>button:last-child]:rounded-full [&>button:last-child]:bg-white/10 [&>button:last-child]:p-2 [&>button:last-child]:text-white [&>button:last-child]:opacity-100 [&>button:last-child]:hover:bg-white/20 [&>button:last-child]:focus:ring-white/60 [&>button:last-child]:focus:ring-offset-[#164d72]',
+                isDedicado ? 'max-w-5xl' : 'max-w-4xl'
             )}>
                 <EntregadorProfileHeader
                     nome={entregador.nome_entregador}
@@ -191,17 +191,21 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
                     score={hs.score}
                 />
 
-                <EntregadorMetricsGrid
-                    entregador={entregador}
-                    firstSeenLabel={firstSeenLabel}
-                />
-
-                {isDedicado ? (
-                    <EntregadorOrigemBreakdown
-                        origemBreakdown={origemBreakdown}
-                        origemLoading={origemLoading}
+                <div className="divide-y divide-slate-200/80 dark:divide-slate-800">
+                    <EntregadorMetricsGrid
+                        entregador={entregador}
+                        firstSeenLabel={firstSeenLabel}
                     />
-                ) : null}
+
+                    {isDedicado ? (
+                        <div className="px-5 py-6 sm:px-7">
+                            <EntregadorOrigemBreakdown
+                                origemBreakdown={origemBreakdown}
+                                origemLoading={origemLoading}
+                            />
+                        </div>
+                    ) : null}
+                </div>
             </DialogContent>
         </Dialog>
     );
