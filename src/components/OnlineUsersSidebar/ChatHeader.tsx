@@ -1,7 +1,7 @@
 import React, { memo, useMemo } from 'react';
 import { OnlineUser } from '@/hooks/data/useOnlineUsers';
 import { CurrentUser } from '@/types';
-import { User, X } from 'lucide-react';
+import { User, X, ArrowLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
@@ -20,39 +20,58 @@ function ChatHeaderComponent({ activeChatUser, currentUser, onClose }: ChatHeade
   }, [activeChatUser.last_typed, activeChatUser.typing_to, currentUser.id]);
 
   return (
-    <div className="z-10 flex items-center justify-between border-b border-slate-200/80 bg-white/95 p-3 shadow-sm select-none dark:border-slate-800/80 dark:bg-slate-950/95">
-      <div className="flex items-center gap-2">
-        <div className="relative">
+    <div className="z-10 flex min-h-[4.25rem] items-center justify-between border-b border-slate-200 bg-white px-3.5 py-3 dark:border-slate-800 dark:bg-slate-950">
+      <div className="flex min-w-0 items-center gap-3">
+        <button
+          onClick={onClose}
+          type="button"
+          className="-ml-1 rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 dark:text-slate-400 dark:hover:bg-slate-900 lg:hidden"
+          aria-label="Voltar para a equipe"
+        >
+          <ArrowLeft size={17} aria-hidden="true" />
+        </button>
+        <div className="relative shrink-0">
           <span className={cn(
             'absolute bottom-0 right-0 z-10 h-2.5 w-2.5 rounded-full border-2 border-white dark:border-slate-950',
-            activeChatUser.is_idle ? 'bg-amber-400 animate-pulse' : 'bg-emerald-500'
+            activeChatUser.is_idle ? 'bg-amber-400' : 'bg-emerald-500'
           )} />
-          <Avatar className="h-9 w-9 border border-slate-200/80 shadow-sm dark:border-slate-800/80">
+          <Avatar className="h-10 w-10 border border-slate-200 dark:border-slate-800">
             <AvatarImage src={activeChatUser.avatar_url || undefined} alt={`Avatar de ${activeChatUser.name || 'usuário'}`} className="object-cover" />
             <AvatarFallback className="bg-slate-100 text-slate-500 dark:bg-slate-900 dark:text-slate-300">
-              <User className="w-8 h-8 p-1.5" />
+              <User className="h-5 w-5" aria-hidden="true" />
             </AvatarFallback>
           </Avatar>
         </div>
-        <div className="leading-tight flex flex-col">
-          <span className="block max-w-[180px] truncate font-outfit text-sm font-black text-slate-950 dark:text-white" title={activeChatUser.name || undefined}>
+        <div className="min-w-0 leading-tight">
+          <span className="block max-w-[220px] truncate text-sm font-semibold text-slate-950 dark:text-white" title={activeChatUser.name || undefined}>
             {activeChatUser.name}
           </span>
-          <span className="block text-[9px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
+          <span className="mt-1 flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
             {isTyping ? (
-              <span className="animate-pulse font-extrabold text-blue-600 dark:text-blue-300">digitando...</span>
+              <>
+                <span className="flex gap-0.5" aria-hidden="true">
+                  <span className="h-1 w-1 animate-pulse rounded-full bg-blue-500 [animation-delay:-0.2s]" />
+                  <span className="h-1 w-1 animate-pulse rounded-full bg-blue-500 [animation-delay:-0.1s]" />
+                  <span className="h-1 w-1 animate-pulse rounded-full bg-blue-500" />
+                </span>
+                <span className="text-blue-700 dark:text-blue-300">digitando</span>
+              </>
             ) : (
-              activeChatUser.is_idle ? 'Ausente' : 'Online'
+              <>
+                <span className={cn('h-1.5 w-1.5 rounded-full', activeChatUser.is_idle ? 'bg-amber-400' : 'bg-emerald-500')} aria-hidden="true" />
+                {activeChatUser.is_idle ? 'Ausente' : 'Online'}
+              </>
             )}
           </span>
         </div>
       </div>
-      <button 
-        onClick={onClose} 
+      <button
+        onClick={onClose}
         type="button"
-        className="rounded-full p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-950 focus:outline-none dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white"
+        className="hidden rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white lg:block"
+        aria-label="Fechar conversa"
       >
-        <X size={16} />
+        <X size={17} aria-hidden="true" />
       </button>
     </div>
   );

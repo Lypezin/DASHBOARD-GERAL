@@ -1,6 +1,6 @@
 import React, { memo, useMemo } from 'react';
 import { ChatMessage, OnlineUser } from '@/hooks/data/useOnlineUsers';
-import { Smile, Pin } from 'lucide-react';
+import { MessageCircle, Pin } from 'lucide-react';
 import { MessageItem } from './MessageItem';
 import { CurrentUser } from '@/types';
 
@@ -12,9 +12,10 @@ interface MessageListProps {
   onReply: (msg: ChatMessage | null) => void;
   onlineUsers: OnlineUser[];
   chatEndRef: React.RefObject<HTMLDivElement>;
+  conversationName: string;
 }
 
-function MessageListComponent({ messages, currentUser, onReact, onPin, onReply, onlineUsers, chatEndRef }: MessageListProps) {
+function MessageListComponent({ messages, currentUser, onReact, onPin, onReply, onlineUsers, chatEndRef, conversationName }: MessageListProps) {
   const hasPinnedMessages = useMemo(
     () => messages.some((message) => message.isPinned),
     [messages]
@@ -39,22 +40,23 @@ function MessageListComponent({ messages, currentUser, onReact, onPin, onReply, 
   }, [onlineUsers]);
 
   return (
-    <div className="subtle-scrollbar flex-1 space-y-3 overflow-y-auto bg-slate-50/70 p-3 dark:bg-slate-950/70">
+    <div role="log" aria-label="Mensagens da conversa" aria-relevant="additions" className="subtle-scrollbar flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto bg-slate-50/80 px-3.5 py-4 dark:bg-slate-900/35 sm:px-4">
       {messages.length === 0 ? (
-        <div className="flex h-full select-none flex-col items-center justify-center gap-2.5 text-slate-400">
-          <div className="rounded-full border border-slate-200/80 bg-white p-3 shadow-sm dark:border-slate-800/80 dark:bg-slate-900">
-            <Smile size={24} className="text-slate-400" />
+        <div className="flex flex-1 select-none flex-col items-center justify-center px-4 py-10 text-center">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl border border-slate-200 bg-white text-blue-600 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:text-blue-300">
+            <MessageCircle size={21} aria-hidden="true" />
           </div>
-          <p className="font-outfit text-[10px] font-bold uppercase tracking-wider">
-            Inicie a conversa
+          <p className="max-w-[15rem] text-sm font-semibold text-slate-800 dark:text-slate-100">
+            Converse com {conversationName}
           </p>
+          <p className="mt-1.5 max-w-[16rem] text-xs leading-relaxed text-slate-500 dark:text-slate-400">Envie uma mensagem para iniciar ou retomar a conversa.</p>
         </div>
       ) : null}
 
       {hasPinnedMessages ? (
-        <div className="sticky top-0 z-10 mb-2 flex items-center gap-2 rounded-xl border border-amber-500/20 bg-amber-500/10 px-3 py-1.5 text-[10px] text-amber-600 shadow-sm backdrop-blur-sm select-none dark:text-amber-400">
+        <div className="sticky top-0 z-10 -mb-1 flex items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-50 px-3 py-2 text-[11px] text-amber-700 shadow-sm select-none dark:bg-amber-400/10 dark:text-amber-300">
           <Pin size={10} className="fill-current text-amber-500" />
-          <span className="flex-1 truncate font-outfit font-bold uppercase tracking-wider">
+          <span className="flex-1 truncate font-semibold">
             Mensagens fixadas
           </span>
         </div>

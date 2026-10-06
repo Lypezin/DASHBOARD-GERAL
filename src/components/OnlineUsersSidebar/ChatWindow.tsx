@@ -32,7 +32,7 @@ function ChatWindowComponent({
   if (!activeChatUser) return null;
 
   return (
-    <div className="absolute top-0 -left-[340px] z-[9999] flex h-[520px] w-[330px] flex-col overflow-hidden rounded-[1.5rem] border border-slate-200/80 bg-white/95 font-sans shadow-[0_28px_90px_-36px_rgba(15,23,42,0.48)] backdrop-blur-xl transition-all duration-200 animate-in fade-in-50 slide-in-from-right-4 dark:border-slate-800/80 dark:bg-slate-950/95 dark:shadow-black/50">
+    <section aria-label={`Conversa com ${activeChatUser.name || 'pessoa da equipe'}`} className="absolute inset-0 z-[9999] flex min-h-0 flex-col overflow-hidden border border-slate-200 bg-white font-sans shadow-[-12px_0_38px_rgba(15,23,42,0.14)] motion-safe:animate-in motion-safe:fade-in-50 motion-safe:duration-200 motion-reduce:animate-none dark:border-slate-800 dark:bg-slate-950 lg:inset-y-0 lg:left-[calc(-22rem-0.75rem)] lg:right-auto lg:h-full lg:w-[22rem] lg:rounded-2xl">
       <ChatHeader 
         activeChatUser={activeChatUser} 
         currentUser={currentUser} 
@@ -47,6 +47,7 @@ function ChatWindowComponent({
         onReply={onReply}
         onlineUsers={onlineUsers}
         chatEndRef={chatEndRef}
+        conversationName={activeChatUser.name?.split(' ')[0] || 'esta pessoa'}
       />
 
       <MessageInput
@@ -59,7 +60,7 @@ function ChatWindowComponent({
         setTypingTo={setTypingTo}
         activeUserId={activeChatUser.id}
       />
-    </div>
+    </section>
   );
 }
 

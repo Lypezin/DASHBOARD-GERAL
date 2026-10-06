@@ -48,7 +48,7 @@ function UserListComponent({
     const hasUsers = filteredUsers.length > 0;
 
     return (
-        <div className="flex-1 overflow-y-auto px-3 pb-4 pt-3 space-y-5 scrollbar-thin scrollbar-thumb-slate-200">
+        <div className="subtle-scrollbar flex-1 space-y-5 overflow-y-auto px-4 pb-5 pt-4">
             {['admin', 'marketing', 'user'].map((group) => {
                 const usersInGroup = groupedUsers[group as keyof typeof groupedUsers];
                 if (usersInGroup.length === 0) return null;
@@ -56,8 +56,10 @@ function UserListComponent({
                 return (
                     <div key={group} className="space-y-2.5">
                         {isOpen && (
-                            <h4 className="px-2 text-[11px] font-bold uppercase tracking-[0.16em] text-slate-400">
-                                {group === 'user' ? 'Geral' : group} ({usersInGroup.length})
+                            <h4 className="flex items-center gap-2 px-1 text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                                <span>{group === 'user' ? 'Equipe' : group === 'admin' ? 'Administradores' : 'Marketing'}</span>
+                                <span className="h-px flex-1 bg-slate-200 dark:bg-slate-800" />
+                                <span className="tabular-nums text-slate-400 dark:text-slate-500">{usersInGroup.length}</span>
                             </h4>
                         )}
 
@@ -77,8 +79,8 @@ function UserListComponent({
             })}
 
             {!hasUsers && isOpen && (
-                <div className="rounded-2xl border border-dashed border-slate-200 bg-slate-50/70 p-6 text-center text-sm text-slate-400 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-500">
-                    Ninguem encontrado no momento.
+                <div className="rounded-xl border border-dashed border-slate-300 bg-white/70 px-5 py-8 text-center text-sm text-slate-500 dark:border-slate-700 dark:bg-slate-900/50 dark:text-slate-400">
+                    Nenhuma pessoa encontrada. Tente outro nome ou cargo.
                 </div>
             )}
         </div>
