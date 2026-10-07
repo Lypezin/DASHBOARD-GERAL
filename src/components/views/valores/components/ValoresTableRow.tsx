@@ -17,41 +17,41 @@ export const ValoresTableRow = React.memo(({ entregador, ranking, formatarReal, 
 
     return (
         <TableRow
-            className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-100 dark:border-slate-800"
+            className="border-b border-[#e7eef3] transition-colors duration-150 hover:bg-[#f5fafd] dark:border-slate-800 dark:hover:bg-slate-800/50"
             style={{ contentVisibility: 'auto', containIntrinsicSize: '60px' }}
         >
-            <TableCell className="py-4 pl-6">
+            <TableCell className="py-3 pl-4">
                 <div className="flex items-center gap-3 text-sm">
-                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-medium text-slate-600 dark:text-slate-400">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[#eef4f7] text-[11px] font-semibold text-[#55758a] dark:bg-slate-800 dark:text-slate-300">
                         {ranking}
                     </span>
-                    <span className="font-medium text-slate-900 dark:text-white truncate max-w-[200px]">{nomeEntregador}</span>
+                    <span className="max-w-[240px] truncate font-medium text-slate-800 dark:text-slate-100">{nomeEntregador}</span>
                 </div>
             </TableCell>
             {isDetailed && (
                 <>
-                    <TableCell className="py-4">
-                        <span className="text-sm text-slate-500">{entregador.turno || '-'}</span>
+                    <TableCell className="py-3">
+                        <span className="text-sm text-slate-500 dark:text-slate-400">{entregador.turno || '-'}</span>
                     </TableCell>
-                    <TableCell className="py-4">
-                        <span className="text-sm text-slate-500 truncate max-w-[150px] block" title={entregador.sub_praca || ''}>
+                    <TableCell className="py-3">
+                        <span className="block max-w-[150px] truncate text-sm text-slate-500 dark:text-slate-400" title={entregador.sub_praca || ''}>
                             {entregador.sub_praca || '-'}
                         </span>
                     </TableCell>
                 </>
             )}
-            <TableCell className="text-right py-4">
-                <span className="font-mono font-medium text-emerald-600 dark:text-emerald-400">
+            <TableCell className="py-3 text-right">
+                <span className="font-mono font-semibold tabular-nums text-[#1c5e81] dark:text-sky-200">
                     {formatarReal(totalTaxas)}
                 </span>
             </TableCell>
-            <TableCell className="text-right py-4">
-                <span className="text-slate-600 dark:text-slate-400 text-sm">
+            <TableCell className="py-3 text-right">
+                <span className="text-sm tabular-nums text-slate-600 dark:text-slate-400">
                     {numeroCorridas.toLocaleString('pt-BR')}
                 </span>
             </TableCell>
-            <TableCell className="text-right py-4 pr-6">
-                <span className="font-mono text-slate-600 dark:text-slate-400 text-sm">
+            <TableCell className="py-3 pr-4 text-right">
+                <span className="font-mono text-sm tabular-nums text-slate-600 dark:text-slate-400">
                     {formatarReal(taxaMedia)}
                 </span>
             </TableCell>

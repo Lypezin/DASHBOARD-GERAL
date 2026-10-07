@@ -7,7 +7,7 @@ import {
     TableHeader,
     TableRow
 } from '@/components/ui/table';
-import { ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { ArrowUpDown, ArrowUp, ArrowDown, DollarSign } from 'lucide-react';
 import { ValoresEntregador } from '@/types';
 import { ValoresTableRow } from './components/ValoresTableRow';
 import { useInfiniteScroll } from '@/hooks/ui/useInfiniteScroll';
@@ -23,6 +23,8 @@ interface ValoresTableProps {
     onLoadMore?: () => void;
     hasMore?: boolean;
     isLoadingMore?: boolean;
+    searchTerm?: string;
+    onClearSearch?: () => void;
 }
 
 interface ValoresSortableHeaderProps {
@@ -41,12 +43,12 @@ const ValoresSortIcon = React.memo(function ValoresSortIcon({
     sortDirection,
 }: Pick<ValoresSortableHeaderProps, 'field' | 'sortField' | 'sortDirection'>) {
     if (sortField !== field) {
-        return <ArrowUpDown className="ml-1 h-3 w-3 text-slate-400" />;
+        return <ArrowUpDown className="ml-1 h-3 w-3 text-slate-400" aria-hidden="true" />;
     }
 
     return sortDirection === 'asc'
-        ? <ArrowUp className="ml-1 h-3 w-3 text-slate-900 dark:text-white" />
-        : <ArrowDown className="ml-1 h-3 w-3 text-slate-900 dark:text-white" />;
+        ? <ArrowUp className="ml-1 h-3 w-3 text-[#1c5e81] dark:text-sky-200" aria-hidden="true" />
+        : <ArrowDown className="ml-1 h-3 w-3 text-[#1c5e81] dark:text-sky-200" aria-hidden="true" />;
 });
 
 const ValoresSortableHeader = React.memo(function ValoresSortableHeader({
@@ -65,18 +67,18 @@ const ValoresSortableHeader = React.memo(function ValoresSortableHeader({
     return (
         <TableHead
             aria-sort={ariaSort}
-            className={`p-0 transition-colors hover:bg-slate-100 dark:hover:bg-slate-800 ${className}`}
+            className={`p-0 text-slate-600 transition-colors hover:bg-[#eaf2f7] dark:text-slate-300 dark:hover:bg-slate-800 ${className}`}
         >
             <button
                 type="button"
                 onClick={() => onSort(field)}
-                className={`flex min-h-12 w-full items-center gap-2 px-4 text-left outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500 ${
+                className={`flex min-h-11 w-full items-center gap-2 px-4 text-left text-[12px] font-semibold outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-sky-600 ${
                     align === 'right' ? 'justify-end text-right' : ''
                 }`}
                 aria-label={`Ordenar por ${label}, ${
                     sortField === field
                         ? (sortDirection === 'asc' ? 'crescente' : 'decrescente')
-                        : 'sem ordenacao ativa'
+                        : 'sem ordenação ativa'
                 }`}
             >
                 {label}
@@ -98,16 +100,17 @@ export const ValoresTable = React.memo(function ValoresTable({
     isUpdating = false,
     onLoadMore,
     hasMore,
-    isLoadingMore
+    isLoadingMore,
+    searchTerm = '',
+    onClearSearch,
 }: ValoresTableProps) {
     const lastElementRef = useInfiniteScroll(onLoadMore || noopLoadMore, hasMore || false, isLoadingMore || false);
 
     return (
-        <div className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white/90 shadow-[0_18px_48px_-40px_rgba(15,23,42,0.52)] ring-1 ring-slate-100/80 dark:border-slate-800/70 dark:bg-slate-900/80 dark:ring-slate-800/50">
-            <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
+            <div aria-busy={isUpdating} className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
                 <Table className={isDetailed ? "min-w-[920px]" : "min-w-[720px]"}>
                     <TableHeader>
-                        <TableRow className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-900/80">
+                        <TableRow className="border-b border-[#d8e4eb] bg-[#f2f7fa] dark:border-slate-800 dark:bg-[#101c26]">
                             <ValoresSortableHeader field="nome_entregador" label="Entregador" sortField={sortField} sortDirection={sortDirection} onSort={onSort} className="w-[300px]" />
                             {isDetailed ? (
                                 <>
@@ -144,10 +147,10 @@ export const ValoresTable = React.memo(function ValoresTable({
                                             <div ref={lastElementRef} className="flex items-center justify-center gap-2 text-slate-500">
                                                 {isLoadingMore
                                                     ? <>
-                                                        <div className="h-4 w-4 motion-safe:animate-spin rounded-full border-b-2 border-slate-600" />
-                                                        <span className="sr-only">Carregando mais entregadores</span>
+                                                        <div className="h-4 w-4 motion-safe:animate-spin rounded-full border-2 border-[#d6e3ea] border-t-[#347ca3] dark:border-slate-700 dark:border-t-sky-200" />
+                                                        <span className="sr-only">Carregando mais resultados</span>
                                                     </>
-                                                    : <span className="text-xs">Mais entregadores disponíveis ao rolar</span>}
+                                                    : <span className="text-xs">Role para carregar mais resultados</span>}
                                             </div>
                                         </TableCell>
                                     </TableRow>
@@ -184,14 +187,32 @@ export const ValoresTable = React.memo(function ValoresTable({
                             </TableRow>
                         ) : (
                             <TableRow>
-                                <TableCell colSpan={isDetailed ? 6 : 4} className="h-24 text-center">
-                                    Nenhum dado encontrado.
+                                <TableCell colSpan={isDetailed ? 6 : 4} className="px-4 py-12 text-center">
+                                    <div className="mx-auto flex h-9 w-9 items-center justify-center rounded-full bg-[#eaf4f9] text-[#347ca3] dark:bg-sky-950/50 dark:text-sky-200">
+                                        <DollarSign className="h-4 w-4" aria-hidden="true" />
+                                    </div>
+                                    <p className="mt-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                        {searchTerm.trim()
+                                            ? `Nenhum entregador encontrado para “${searchTerm.trim()}”.`
+                                            : 'Nenhum valor neste recorte.'}
+                                    </p>
+                                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                                        {searchTerm.trim() ? 'Revise o termo pesquisado ou limpe a busca.' : 'Ajuste os filtros ou o período selecionado.'}
+                                    </p>
+                                    {searchTerm.trim() && onClearSearch ? (
+                                        <button
+                                            type="button"
+                                            onClick={onClearSearch}
+                                            className="mt-3 rounded-md px-2 py-1 text-xs font-semibold text-[#1c5e81] underline underline-offset-2 transition-colors hover:text-[#123f5a] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600/30 dark:text-sky-200 dark:hover:text-sky-100"
+                                        >
+                                            Limpar busca
+                                        </button>
+                                    ) : null}
                                 </TableCell>
                             </TableRow>
                         )}
                     </TableBody>
                 </Table>
             </div>
-        </div>
     );
 });

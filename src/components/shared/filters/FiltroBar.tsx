@@ -64,6 +64,7 @@ const FiltroBar = React.memo(function FiltroBar({
   }, [filters]);
 
   const { anosOptions, semanasOptions, loadingSemanas, errorSemanas, retrySemanas } = useFiltroBarOptions(anos, semanas, filters);
+  const filterAppearance = activeTab === 'entregadores' || activeTab === 'valores' ? 'quiet' : 'default';
   const dimensionSupport = getDimensionFilterSupport(activeTab);
   const hasSubPracaFilter = Boolean(filters.subPracas?.length || filters.subPraca);
   const hasOrigemFilter = Boolean(filters.origens?.length || filters.origem);
@@ -101,7 +102,7 @@ const FiltroBar = React.memo(function FiltroBar({
           <FilterModeSwitch
             isModoIntervalo={showDateRangeFilters}
             onToggle={handleModeToggle}
-            appearance={activeTab === 'entregadores' ? 'quiet' : 'default'}
+            appearance={filterAppearance}
           />
         </div>
 
@@ -120,7 +121,7 @@ const FiltroBar = React.memo(function FiltroBar({
             errorSemanas={errorSemanas}
             onRetrySemanas={retrySemanas}
             handleChange={handleChange}
-            appearance={activeTab === 'entregadores' ? 'quiet' : 'default'}
+            appearance={filterAppearance}
           />
 
           <FilterSecondarySection
@@ -135,7 +136,7 @@ const FiltroBar = React.memo(function FiltroBar({
             shouldDisablePracaFilter={shouldDisablePracaFilter}
             optionsLoading={optionsLoading}
             optionsError={optionsError}
-            appearance={activeTab === 'entregadores' ? 'quiet' : 'default'}
+            appearance={filterAppearance}
           />
         </div>
 
@@ -143,7 +144,7 @@ const FiltroBar = React.memo(function FiltroBar({
           <div className="w-full shrink-0 sm:w-auto">
             <FilterClearButton
               onClear={handleClearFiltersClick}
-              appearance={activeTab === 'entregadores' ? 'quiet' : 'default'}
+              appearance={filterAppearance}
             />
           </div>
         )}
