@@ -26,14 +26,14 @@ export const UtrSection = React.memo(function UtrSection<T extends UtrItemBase>(
     if (!data || data.length === 0) return null;
 
     return (
-        <div className="flex h-full min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-sm dark:border-slate-800/80 dark:bg-slate-950/60">
-            <div className="flex shrink-0 items-center gap-3 border-b border-slate-200/70 bg-slate-50/80 px-5 py-4 dark:border-slate-800/80 dark:bg-slate-900/50">
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-700 shadow-sm dark:border-slate-800 dark:bg-slate-950 dark:text-slate-300">
+        <section className="flex h-full min-w-0 flex-col overflow-hidden rounded-xl border border-[#d8e4eb] bg-white shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex shrink-0 items-center gap-3 border-b border-[#e2ebf0] px-4 py-3.5 dark:border-slate-800 sm:px-5">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-[#edf5f9] dark:bg-slate-800">
                     {icon}
                 </div>
                 <div className="min-w-0">
-                    <h3 className="text-sm font-bold text-slate-950 dark:text-slate-50">{title}</h3>
-                    <p className="truncate text-xs font-medium text-slate-500 dark:text-slate-400">{description}</p>
+                    <h3 className="text-sm font-semibold text-[#183f58] dark:text-slate-100">{title}</h3>
+                    <p className="truncate text-xs text-slate-500 dark:text-slate-400">{description}</p>
                 </div>
             </div>
 
@@ -47,10 +47,10 @@ export const UtrSection = React.memo(function UtrSection<T extends UtrItemBase>(
                     return (
                         <div
                             key={`${label}-${index}`}
-                            className="group flex min-w-0 items-center justify-between gap-4 px-5 py-3 transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-900/55"
+                            className="group flex min-w-0 items-center justify-between gap-4 px-4 py-3 transition-colors hover:bg-[#f5f9fb] dark:hover:bg-slate-800/50 sm:px-5"
                         >
                             <div className="min-w-0 flex-1">
-                                <p className="truncate text-sm font-bold text-slate-900 transition-colors group-hover:text-blue-600 dark:text-slate-100 dark:group-hover:text-blue-300" title={label || 'N/D'}>
+                                <p className="truncate text-sm font-semibold text-slate-900 transition-colors group-hover:text-[#236b91] dark:text-slate-100 dark:group-hover:text-sky-300" title={label || 'N/D'}>
                                     {label || 'N/D'}
                                 </p>
                                 <div className="mt-1 flex min-w-0 flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
@@ -62,8 +62,8 @@ export const UtrSection = React.memo(function UtrSection<T extends UtrItemBase>(
 
                             <div className="shrink-0 text-right">
                                 <span className="mb-0.5 block text-[9px] font-bold uppercase tracking-[0.14em] text-slate-400">UTR</span>
-                                <div className="rounded-lg border border-blue-100 bg-blue-50 px-2.5 py-1 dark:border-blue-900/50 dark:bg-blue-950/30">
-                                    <span className="font-mono text-sm font-extrabold text-blue-600 tabular-nums dark:text-blue-300">
+                                <div className="rounded-md bg-[#edf5f9] px-2.5 py-1 dark:bg-slate-800">
+                                    <span className="font-mono text-sm font-semibold text-[#236b91] tabular-nums dark:text-sky-300">
                                         {item.utr.toFixed(2)}
                                     </span>
                                 </div>
@@ -72,7 +72,7 @@ export const UtrSection = React.memo(function UtrSection<T extends UtrItemBase>(
                     );
                 })}
             </div>
-        </div>
+        </section>
     );
 });
 

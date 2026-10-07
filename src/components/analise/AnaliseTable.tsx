@@ -14,29 +14,29 @@ export const AnaliseTable = React.memo(function AnaliseTable({
 }: AnaliseTableProps) {
   if (data.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200/80 bg-slate-50/80 px-6 py-14 text-center dark:border-slate-800 dark:bg-slate-900/50">
-        <BarChart3 className="mb-3 h-10 w-10 text-slate-300 dark:text-slate-700" />
-        <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">
-          Nenhum dado disponivel para esta segmentacao
+      <div className="flex flex-col items-center justify-center border-y border-dashed border-[#d8e4eb] px-6 py-14 text-center dark:border-slate-800">
+        <BarChart3 className="mb-3 h-8 w-8 text-slate-300 dark:text-slate-700" aria-hidden="true" />
+        <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+          Nenhum dado disponível para esta segmentação
         </p>
       </div>
     );
   }
 
   return (
-    <div className="subtle-scrollbar w-full max-w-full overflow-x-auto rounded-2xl border border-slate-200/80 bg-white shadow-sm dark:border-slate-800/80 dark:bg-slate-950/60">
+    <div className="subtle-scrollbar w-full max-w-full overflow-x-auto">
       <table className="w-full min-w-[1040px] text-left">
         <thead>
-          <tr className="border-b border-slate-200/80 bg-slate-50/90 dark:border-slate-800/80 dark:bg-slate-900/80">
-            <th className="min-w-[250px] py-3.5 pl-5 pr-4 text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">{labelColumn}</th>
-            <th className="whitespace-nowrap px-3 py-3.5 text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Horas</th>
-            <th className="whitespace-nowrap px-3 py-3.5 text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Ofertadas</th>
-            <th className="whitespace-nowrap px-3 py-3.5 text-right text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Aceitas</th>
-            <th className="whitespace-nowrap px-3 py-3.5 text-right text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Rejeitadas</th>
-            <th className="whitespace-nowrap px-3 py-3.5 text-right text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">Completadas</th>
-            <th className="whitespace-nowrap px-3 py-3.5 text-center text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">% Aceit.</th>
-            <th className="whitespace-nowrap px-3 py-3.5 text-center text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">% Rej.</th>
-            <th className="whitespace-nowrap py-3.5 pl-3 pr-5 text-center text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">% Comp.</th>
+          <tr className="border-y border-[#d8e4eb] bg-[#f2f7fa] dark:border-slate-800 dark:bg-slate-800/70">
+            <th className="min-w-[250px] py-3 pl-4 pr-4 text-[11px] font-semibold text-slate-600 dark:text-slate-300 sm:pl-5">{labelColumn}</th>
+            <th className="whitespace-nowrap px-3 py-3 text-[11px] font-semibold text-slate-600 dark:text-slate-300">Horas</th>
+            <th className="whitespace-nowrap px-3 py-3 text-[11px] font-semibold text-slate-600 dark:text-slate-300">Ofertadas</th>
+            <th className="whitespace-nowrap px-3 py-3 text-right text-[11px] font-semibold text-slate-600 dark:text-slate-300">Aceitas</th>
+            <th className="whitespace-nowrap px-3 py-3 text-right text-[11px] font-semibold text-slate-600 dark:text-slate-300">Rejeitadas</th>
+            <th className="whitespace-nowrap px-3 py-3 text-right text-[11px] font-semibold text-slate-600 dark:text-slate-300">Completadas</th>
+            <th className="whitespace-nowrap px-3 py-3 text-center text-[11px] font-semibold text-slate-600 dark:text-slate-300">% Aceit.</th>
+            <th className="whitespace-nowrap px-3 py-3 text-center text-[11px] font-semibold text-slate-600 dark:text-slate-300">% Rej.</th>
+            <th className="whitespace-nowrap py-3 pl-3 pr-4 text-center text-[11px] font-semibold text-slate-600 dark:text-slate-300 sm:pr-5">% Comp.</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-200/60 dark:divide-slate-800/70">

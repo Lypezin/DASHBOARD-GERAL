@@ -1,8 +1,8 @@
 import React from 'react';
 import { Activity, Car, Timer } from 'lucide-react';
+import { motion, useReducedMotion, type Variants } from 'framer-motion';
 import { UtrGeral as UtrGeralType } from '@/types';
 import { formatCompactTime, formatarHorasParaHMS } from '@/utils/formatters';
-import { cn } from '@/lib/utils';
 
 interface UtrGeralProps {
     data: UtrGeralType;
@@ -12,82 +12,54 @@ export const UtrGeral = React.memo(function UtrGeral({ data }: UtrGeralProps) {
     const fullTime = formatarHorasParaHMS(data.tempo_horas ?? 0);
     const compactTime = formatCompactTime(fullTime);
     const formattedCorridas = (data.corridas ?? 0).toLocaleString('pt-BR');
+    const reduceMotion = useReducedMotion() ?? true;
+    const metrics = [
+        { title: 'UTR consolidada', value: (data.utr ?? 0).toFixed(2), meta: 'Média do período', icon: Activity },
+        { title: 'Tempo total', value: compactTime, meta: `${fullTime} · Horas operacionais`, icon: Timer },
+        { title: 'Total de corridas', value: formattedCorridas, meta: 'Volume de entregas aceitas', icon: Car },
+    ];
 
     return (
-        <div className="grid gap-4 sm:grid-cols-3">
-            <UtrMetricCard
-                title="UTR Consolidada"
-                subtitle="Média do período"
-                value={(data.utr ?? 0).toFixed(2)}
-                suffix="índice"
-                icon={Activity}
-                tone="blue"
-            />
-
-            <UtrMetricCard
-                title="Tempo Total"
-                subtitle="Horas operacionais"
-                value={compactTime}
-                meta={fullTime}
-                icon={Timer}
-                tone="amber"
-            />
-
-            <UtrMetricCard
-                title="Total Corridas"
-                subtitle="Volume de entregas"
-                value={formattedCorridas}
-                suffix="entregas"
-                icon={Car}
-                tone="emerald"
-            />
-        </div>
+        <section aria-labelledby="utr-period-title" className="space-y-2.5">
+            <div className="px-0.5">
+                <h2 id="utr-period-title" className="text-[15px] font-semibold tracking-tight text-[#183f58] dark:text-slate-100">Visão do período</h2>
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Indicadores dos filtros selecionados</p>
+            </div>
+            <motion.dl
+                initial={reduceMotion ? false : 'hidden'}
+                animate={reduceMotion ? undefined : 'visible'}
+                variants={reduceMotion ? undefined : containerVariants}
+                className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-[#d8e4eb] bg-[#d8e4eb] shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800 dark:bg-slate-800 sm:grid-cols-3"
+            >
+                {metrics.map(({ title, value, meta, icon: Icon }) => (
+                    <motion.div
+                        key={title}
+                        variants={reduceMotion ? undefined : metricVariants}
+                        className="min-w-0 border-t-[3px] border-t-[#9ac8de] bg-white px-4 py-3 dark:border-t-sky-700 dark:bg-slate-900 sm:px-5"
+                    >
+                        <div className="flex min-w-0 items-center gap-2">
+                            <Icon className="h-3.5 w-3.5 shrink-0 text-[#347ca3] dark:text-sky-200" aria-hidden="true" />
+                            <dt className="truncate text-[11px] font-medium text-slate-500 dark:text-slate-300">{title}</dt>
+                        </div>
+                        <dd className="mt-2 min-h-[3.75rem] min-w-0 text-[#173f5a] dark:text-slate-50">
+                            <span className="block truncate text-[22px] font-semibold leading-7 tracking-tight tabular-nums" title={value}>{value}</span>
+                            <span className="mt-1 block truncate text-[11px] leading-4 text-slate-500 dark:text-slate-400" title={meta}>{meta}</span>
+                        </dd>
+                    </motion.div>
+                ))}
+            </motion.dl>
+        </section>
     );
 });
 
-function UtrMetricCard({
-    title,
-    subtitle,
-    value,
-    suffix,
-    meta,
-    icon: Icon,
-    tone,
-}: {
-    title: string;
-    subtitle: string;
-    value: string;
-    suffix?: string;
-    meta?: string;
-    icon: React.ElementType;
-    tone: 'blue' | 'amber' | 'emerald';
-}) {
-    const toneClass = {
-        blue: 'bg-blue-500/10 border-blue-500/20 text-blue-600 dark:text-blue-400',
-        amber: 'bg-amber-500/10 border-amber-500/20 text-amber-600 dark:text-amber-400',
-        emerald: 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600 dark:text-emerald-400',
-    }[tone];
+const containerVariants: Variants = {
+    hidden: {},
+    visible: { transition: { delayChildren: 0.03, staggerChildren: 0.035 } },
+};
 
-    return (
-        <div className="group min-w-0 rounded-2xl border border-slate-200/80 bg-white/95 p-5 shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-[0_18px_48px_-38px_rgba(15,23,42,0.38)] dark:border-slate-800/80 dark:bg-slate-950/70 dark:hover:border-slate-700">
-            <div className="mb-4 flex items-center justify-between gap-3">
-                <div className="min-w-0">
-                    <h3 className="text-xs font-bold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-400">{title}</h3>
-                    <p className="mt-1 text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-400 dark:text-slate-500">{subtitle}</p>
-                </div>
-                <div className={cn('flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border', toneClass)}>
-                    <Icon className="h-4 w-4" />
-                </div>
-            </div>
-            <div className="flex min-w-0 items-baseline gap-1.5">
-                <span className="whitespace-nowrap font-mono text-2xl font-black tracking-tight text-slate-950 tabular-nums dark:text-slate-50" title={meta || value}>
-                    {value}
-                </span>
-                {suffix && <span className="text-xs font-semibold text-slate-400">{suffix}</span>}
-            </div>
-            {meta && <span className="mt-1 block font-mono text-[10px] text-slate-400" title={meta}>{meta}</span>}
-        </div>
-    );
-}
+const metricVariants: Variants = {
+    hidden: { opacity: 0, y: 5 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.2, ease: 'easeOut' } },
+};
 
 UtrGeral.displayName = 'UtrGeral';

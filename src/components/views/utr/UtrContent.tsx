@@ -3,7 +3,6 @@ import { Building2, Clock, MapPin, Target } from 'lucide-react';
 import { UtrData } from '@/types';
 import { UtrGeral } from './UtrGeral';
 import { UtrSection } from './UtrSection';
-import { SaasPanel, SaasPanelHeader } from '@/components/views/shared/SaasPrimitives';
 
 interface UtrContentProps {
     utrData: UtrData;
@@ -21,25 +20,20 @@ export const UtrContent = React.memo(function UtrContent({
     porTurno
 }: UtrContentProps) {
     return (
-        <div className="space-y-8">
-            <section className="space-y-4">
-                <UtrGeral data={utrData.geral} />
-            </section>
+        <div className="space-y-5">
+            <UtrGeral data={utrData.geral} />
 
-            <SaasPanel>
-                <SaasPanelHeader
-                    eyebrow="Segmentos"
-                    title="Detalhamento por segmentos"
-                    description="Distribuição da UTR por praça, sub-praça, origem e turno."
-                    icon={Building2}
-                    tone="amber"
-                />
+            <section aria-labelledby="utr-segments-title" className="space-y-3">
+                <div className="px-0.5">
+                    <h2 id="utr-segments-title" className="text-[15px] font-semibold tracking-tight text-[#183f58] dark:text-slate-100">Desempenho por segmento</h2>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">UTR, tempo e corridas nos recortes operacionais disponíveis.</p>
+                </div>
 
-                <div className="grid gap-4 p-4 xl:grid-cols-2">
+                <div className="grid gap-3 xl:grid-cols-2">
                     <UtrSection
                         title="Praça"
                         description="Desempenho por polo operacional."
-                        icon={<Building2 className="h-4 w-4 text-sky-600 dark:text-sky-400" />}
+                        icon={<Building2 className="h-4 w-4 text-[#347ca3] dark:text-sky-300" />}
                         data={porPraca}
                         getLabel={(item) => item.praca}
                     />
@@ -47,7 +41,7 @@ export const UtrContent = React.memo(function UtrContent({
                     <UtrSection
                         title="Sub-praça"
                         description="Detalhamento por recorte interno."
-                        icon={<MapPin className="h-4 w-4 text-cyan-600 dark:text-cyan-400" />}
+                        icon={<MapPin className="h-4 w-4 text-[#347ca3] dark:text-sky-300" />}
                         data={porSubPraca}
                         getLabel={(item) => item.sub_praca}
                     />
@@ -55,7 +49,7 @@ export const UtrContent = React.memo(function UtrContent({
                     <UtrSection
                         title="Origem"
                         description="Distribuição por canal operacional."
-                        icon={<Target className="h-4 w-4 text-rose-600 dark:text-rose-400" />}
+                        icon={<Target className="h-4 w-4 text-[#347ca3] dark:text-sky-300" />}
                         data={porOrigem}
                         getLabel={(item) => item.origem}
                     />
@@ -63,12 +57,12 @@ export const UtrContent = React.memo(function UtrContent({
                     <UtrSection
                         title="Turno"
                         description="Comparativo por janela operacional."
-                        icon={<Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />}
+                        icon={<Clock className="h-4 w-4 text-[#347ca3] dark:text-sky-300" />}
                         data={porTurno}
                         getLabel={(item) => item.turno || item.periodo || ''}
                     />
                 </div>
-            </SaasPanel>
+            </section>
         </div>
     );
 });

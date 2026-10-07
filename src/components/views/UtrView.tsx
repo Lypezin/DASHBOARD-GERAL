@@ -42,7 +42,7 @@ const UtrView = React.memo(function UtrView({
     stateKey = 'utr-error';
     content = (
       <div className="mx-auto w-full max-w-[1600px] px-4 pt-4 sm:px-6 lg:px-8">
-        <div className="rounded-[1.65rem] border border-rose-200/80 bg-rose-50/80 px-6 py-12 text-center shadow-sm dark:border-rose-900/50 dark:bg-rose-950/20">
+        <div className="rounded-xl border border-rose-200/80 bg-rose-50/80 px-6 py-12 text-center shadow-sm dark:border-rose-900/50 dark:bg-rose-950/20">
           <AlertCircle className="mx-auto mb-4 h-8 w-8 text-rose-500" />
           <p className="text-base font-bold text-rose-950 dark:text-rose-100">Não foi possível carregar a UTR</p>
           <p className="mx-auto mt-1.5 max-w-sm text-xs text-rose-800 dark:text-rose-300">Tente carregar novamente. Os filtros atuais serão mantidos.</p>
@@ -57,7 +57,7 @@ const UtrView = React.memo(function UtrView({
     stateKey = 'utr-empty';
     content = (
       <div className="mx-auto w-full max-w-[1600px] px-4 pt-4 sm:px-6 lg:px-8">
-        <div className="rounded-[1.65rem] border border-dashed border-slate-200/80 bg-white/95 px-6 py-14 text-center shadow-sm dark:border-slate-800 dark:bg-slate-950/70">
+        <div className="rounded-xl border border-dashed border-[#d8e4eb] bg-white px-6 py-14 text-center dark:border-slate-800 dark:bg-slate-950/70">
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-900">
             <Activity className="h-5 w-5 text-slate-400" />
           </div>
@@ -73,7 +73,7 @@ const UtrView = React.memo(function UtrView({
     const totalSlices = porPraca.length + porSubPraca.length + porOrigem.length + porTurno.length;
 
     content = (
-      <ViewContainer className="flex flex-col gap-8 pb-16 pt-4">
+      <ViewContainer className="flex flex-col gap-5 pb-10 pt-4">
         <UtrHeader
           isExporting={isExporting}
           exportDisabled={loading || Boolean(error)}

@@ -13,8 +13,8 @@ export const AnaliseTableRow = React.memo(function AnaliseTableRow({
   const taxas = calcularTaxas(item);
 
   return (
-    <tr className="transition-colors duration-150 hover:bg-slate-50/80 dark:hover:bg-slate-900/55">
-      <td className="py-3.5 pl-5 pr-4 text-sm font-semibold text-slate-950 dark:text-slate-50">
+    <tr className="even:bg-slate-50/40 transition-colors duration-150 hover:bg-[#edf5f9] dark:even:bg-slate-800/25 dark:hover:bg-slate-800/60">
+      <td className="py-3.5 pl-4 pr-4 text-sm font-medium text-slate-900 dark:text-slate-100 sm:pl-5">
         <div className="max-w-[320px] truncate" title={item.label}>
           {item.label}
         </div>

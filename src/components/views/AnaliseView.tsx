@@ -13,6 +13,7 @@ import { safeLog } from '@/lib/errorHandler';
 import { ViewContainer } from '@/components/layout/ViewContainer';
 import { AnalysisLoading, FilteredDataTransition } from '@/components/dashboard/OperationalLoading';
 import { DashboardDataStatus } from '@/components/dashboard/DashboardDataStatus';
+import { AnaliseHeader } from './analise/AnaliseHeader';
 
 const AnaliseView = React.memo(function AnaliseView({
   filterPayload,
@@ -117,10 +118,15 @@ const AnaliseView = React.memo(function AnaliseView({
   }
 
   return (
-    <ViewContainer className="flex flex-col gap-8 pb-16 pt-4">
+    <ViewContainer className="flex flex-col gap-5 pb-10 pt-4">
       {mainDataError ? <DashboardDataStatus hasPreviousData={hasResolvedData} onRetry={retryMainData} /> : null}
+      <AnaliseHeader
+        isExporting={isExporting}
+        exportDisabled={exportDisabled}
+        onExport={handleExport}
+      />
       <FilteredDataTransition isUpdating={mainDataLoading}>
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-5">
           <AnaliseMetricCards
             totals={totals || { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }}
             taxaAceitacao={taxaAceitacao}
@@ -134,9 +140,6 @@ const AnaliseView = React.memo(function AnaliseView({
             onTableChange={handleTableChange}
             tableData={tableData}
             labelColumn={labelColumn}
-            isExporting={isExporting}
-            exportDisabled={exportDisabled}
-            onExport={handleExport}
             aderenciaDiaOrigem={aderenciaDiaOrigem || []}
             dayDateMap={dayDateMap}
           />

@@ -1,19 +1,15 @@
 import React from 'react';
 import { AnaliseTable } from '@/components/analise/AnaliseTable';
 import { AnaliseTableTabs } from '@/components/analise/AnaliseTableTabs';
-import { BarChart3, Download } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 import { TableType } from './useAnaliseViewController';
 import { AnaliseDiaOrigemTable } from './components/AnaliseDiaOrigemTable';
-import { SaasPanel, SaasPanelHeader } from '@/components/views/shared/SaasPrimitives';
 
 interface AnaliseDetailedCardProps {
     activeTable: TableType | any;
     onTableChange: (table: TableType | any) => void;
     tableData: any[];
     labelColumn: string;
-    isExporting?: boolean;
-    exportDisabled?: boolean;
-    onExport?: () => void;
     aderenciaDiaOrigem: any[];
     loadingDiaOrigem?: boolean;
     dayDateMap?: Record<string, string>;
@@ -24,41 +20,22 @@ export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
     onTableChange,
     tableData,
     labelColumn,
-    isExporting,
-    exportDisabled = false,
-    onExport,
     aderenciaDiaOrigem = [],
     loadingDiaOrigem = false,
     dayDateMap = {},
 }: AnaliseDetailedCardProps) {
     return (
-        <SaasPanel>
-            <SaasPanelHeader
-                eyebrow="Análise operacional"
-                title="Análise detalhada"
-                description="Comparativo de performance por dimensões, com leitura compacta e scroll controlado."
-                icon={BarChart3}
-                actions={(
-                    <div className="flex flex-wrap items-center gap-3">
-                        <AnaliseTableTabs
-                            activeTable={activeTable}
-                            onTableChange={onTableChange}
-                        />
-                        {onExport && (
-                            <button
-                                onClick={onExport}
-                                disabled={isExporting || exportDisabled}
-                                title={exportDisabled ? 'Aguarde a atualização dos dados antes de exportar.' : undefined}
-                                type="button"
-                                className="group inline-flex h-10 items-center gap-2 rounded-xl border border-slate-200/80 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-[border-color,background-color,color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-blue-300 hover:text-blue-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800/80 dark:bg-slate-950 dark:text-slate-300 dark:hover:border-blue-500/40 dark:hover:text-blue-300"
-                            >
-                                <Download className="h-4 w-4 text-slate-400 transition-colors group-hover:text-blue-500" />
-                                {isExporting ? 'Exportando...' : 'Exportar Excel'}
-                            </button>
-                        )}
-                    </div>
-                )}
-            />
+        <section aria-labelledby="analise-detail-title" className="min-w-0 overflow-hidden rounded-xl border border-[#d8e4eb] bg-white shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800 dark:bg-slate-900">
+            <div className="flex min-w-0 flex-col gap-3 border-b border-[#e2ebf0] px-4 py-4 dark:border-slate-800 sm:px-5 lg:flex-row lg:items-end lg:justify-between">
+                <div className="min-w-0">
+                    <h2 id="analise-detail-title" className="flex items-center gap-2 text-[15px] font-semibold tracking-tight text-[#183f58] dark:text-slate-100">
+                        <BarChart3 className="h-4 w-4 shrink-0 text-[#347ca3] dark:text-sky-300" aria-hidden="true" />
+                        Análise detalhada
+                    </h2>
+                    <p className="mt-1 text-xs leading-5 text-slate-500 dark:text-slate-400">Compare os resultados por dia, turno, sub-praça, origem ou dia e origem.</p>
+                </div>
+                <AnaliseTableTabs activeTable={activeTable} onTableChange={onTableChange} />
+            </div>
 
             <div className="min-w-0 p-3 sm:p-4">
                 {activeTable === 'dia_origem' ? (
@@ -79,6 +56,6 @@ export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
                     />
                 )}
             </div>
-        </SaasPanel>
+        </section>
     );
 });
