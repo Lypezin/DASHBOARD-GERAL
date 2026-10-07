@@ -16,13 +16,13 @@ export const PrioridadeStatsCards = React.memo(function PrioridadeStatsCards({
     totalRejeitadas, totalCompletadas, aderenciaMedia,
 }: PrioridadeStatsCardsProps) {
     return (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            <HeroCard title="Entregadores" icon={Users} value={totalEntregadores.toLocaleString('pt-BR')} subtext="Total cadastrados" colorFrom="from-blue-400" colorTo="to-blue-600" iconColor="text-blue-600" />
-            <HeroCard title="Ofertadas" icon={Megaphone} value={totalOfertadas.toLocaleString('pt-BR')} subtext="Total ofertadas" colorFrom="from-sky-400" colorTo="to-cyan-600" iconColor="text-sky-600" />
-            <HeroCard title="Aceitas" icon={CheckCircle2} value={totalAceitas.toLocaleString('pt-BR')} subtext="Total aceitas" colorFrom="from-emerald-400" colorTo="to-teal-600" iconColor="text-emerald-600" />
-            <HeroCard title="Rejeitadas" icon={XCircle} value={totalRejeitadas.toLocaleString('pt-BR')} subtext="Total rejeitadas" colorFrom="from-rose-400" colorTo="to-pink-600" iconColor="text-rose-600" />
-            <HeroCard title="Completadas" icon={Flag} value={totalCompletadas.toLocaleString('pt-BR')} subtext="Total completadas" colorFrom="from-sky-400" colorTo="to-blue-600" iconColor="text-sky-600" />
-            <HeroCard title="Aderência média" icon={BarChart3} value={`${aderenciaMedia.toFixed(1)}%`} subtext="Média geral" colorFrom="from-teal-400" colorTo="to-cyan-600" iconColor="text-teal-600" isPercentage={true} />
-        </div>
+        <dl className="grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-[#d8e4eb] bg-[#d8e4eb] shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800 dark:bg-slate-800 sm:grid-cols-3 xl:grid-cols-6">
+            <HeroCard title="Entregadores" icon={Users} value={totalEntregadores.toLocaleString('pt-BR')} subtext="No período" tone="blue" />
+            <HeroCard title="Ofertadas" icon={Megaphone} value={totalOfertadas.toLocaleString('pt-BR')} subtext="Total de corridas" tone="sky" />
+            <HeroCard title="Aceitas" icon={CheckCircle2} value={totalAceitas.toLocaleString('pt-BR')} subtext="Total de corridas" tone="emerald" />
+            <HeroCard title="Rejeitadas" icon={XCircle} value={totalRejeitadas.toLocaleString('pt-BR')} subtext="Total de corridas" tone="rose" />
+            <HeroCard title="Completadas" icon={Flag} value={totalCompletadas.toLocaleString('pt-BR')} subtext="Total de corridas" tone="blue" />
+            <HeroCard title="Aderência média" icon={BarChart3} value={`${aderenciaMedia.toFixed(1)}%`} subtext="Média do período" tone="emerald" isPercentage />
+        </dl>
     );
 });

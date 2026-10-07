@@ -12,7 +12,7 @@ export const EvolucaoViewToggle: React.FC<EvolucaoViewToggleProps> = ({
     onViewModeChange,
 }) => {
     return (
-        <div className="inline-flex rounded-2xl border border-slate-200/80 bg-slate-100/80 p-1 shadow-inner dark:border-slate-800/80 dark:bg-slate-900/80">
+        <div role="group" aria-label="Período do gráfico" className="inline-flex rounded-lg border border-[#d8e4eb] bg-[#f6f9fb] p-1 dark:border-slate-700 dark:bg-slate-900">
             <ToggleButton active={viewMode === 'mensal'} onClick={() => onViewModeChange('mensal')} icon={Calendar} label="Mensal" />
             <ToggleButton active={viewMode === 'semanal'} onClick={() => onViewModeChange('semanal')} icon={BarChart2} label="Semanal" />
         </div>
@@ -34,11 +34,12 @@ function ToggleButton({
         <button
             onClick={onClick}
             type="button"
+            aria-pressed={active}
             className={cn(
-                "inline-flex h-9 items-center gap-2 rounded-xl px-3 text-sm font-bold transition-[background-color,color,box-shadow,transform] duration-200",
+                "inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#38708e] focus-visible:ring-offset-1 motion-reduce:transition-none",
                 active
-                    ? "bg-white text-slate-950 shadow-sm dark:bg-slate-800 dark:text-white"
-                    : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"
+                    ? "bg-white text-[#174d70] shadow-sm dark:bg-slate-800 dark:text-sky-200"
+                    : "text-slate-600 hover:text-[#183f58] dark:text-slate-400 dark:hover:text-slate-100"
             )}
         >
             <Icon className="h-4 w-4" />

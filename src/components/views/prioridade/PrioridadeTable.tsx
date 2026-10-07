@@ -1,7 +1,6 @@
 import React from 'react';
 import { Entregador } from '@/types';
-import { Card, CardContent } from '@/components/ui/card';
-import { Star } from 'lucide-react';
+import { Users } from 'lucide-react';
 import { PrioridadeTableHeader } from './components/PrioridadeTableHeader';
 import { PrioridadeTableRow } from './components/PrioridadeTableRow';
 
@@ -23,24 +22,20 @@ export const PrioridadeTable = React.memo<PrioridadeTableProps>(({
     onSort,
 }) => {
     return (
-        <Card className="overflow-hidden rounded-[2rem] border border-slate-200/75 bg-white/90 shadow-[0_18px_46px_-38px_rgba(15,23,42,0.45)] backdrop-blur-sm dark:border-slate-800/75 dark:bg-slate-950/80">
-            <div className="flex flex-col justify-between gap-4 border-b border-slate-200/70 px-6 py-5 dark:border-slate-800/60 sm:flex-row sm:items-center">
-                <div className="flex items-center gap-3">
-                    <div className="rounded-2xl bg-amber-50 p-2.5 dark:bg-amber-950/30">
-                        <Star className="h-5 w-5 text-amber-600 dark:text-amber-300" />
-                    </div>
-                    <div>
-                        <h3 className="text-lg font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                            Prioridade / Promo
-                        </h3>
-                        <p className="text-sm text-slate-500 dark:text-slate-400">
-                            Analise detalhada de entregadores
-                        </p>
-                    </div>
+        <section aria-labelledby="prioridade-table-title" className="overflow-hidden rounded-xl border border-[#d8e4eb] bg-white shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800 dark:bg-slate-950/80">
+            <header className="flex min-w-0 items-center gap-2.5 border-b border-[#e2ebf0] px-4 py-3.5 dark:border-slate-800 sm:px-5">
+                <Users className="h-4 w-4 shrink-0 text-[#38708e] dark:text-sky-300" aria-hidden="true" />
+                <div className="min-w-0">
+                    <h2 id="prioridade-table-title" className="text-[15px] font-semibold tracking-tight text-[#183f58] dark:text-slate-100">
+                        Entregadores por desempenho
+                    </h2>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                        Selecione uma coluna para ordenar os resultados.
+                    </p>
                 </div>
-            </div>
+            </header>
 
-            <CardContent className="p-0">
+            <div className="p-0">
                 <div className="subtle-scrollbar max-h-[600px] overflow-auto">
                     <table className="w-full min-w-[960px]">
                         <PrioridadeTableHeader
@@ -59,17 +54,18 @@ export const PrioridadeTable = React.memo<PrioridadeTableProps>(({
                     </table>
                 </div>
                 {hasMore && (
-                    <div className="flex justify-center border-t border-slate-200/70 bg-slate-50/90 p-4 dark:border-slate-800/60 dark:bg-slate-900/40">
+                    <div className="flex justify-center border-t border-[#e2ebf0] bg-[#f6f9fb] p-3.5 dark:border-slate-800 dark:bg-slate-900/40">
                         <button
+                            type="button"
                             onClick={onLoadMore}
-                            className="rounded-full border border-slate-200/80 bg-white px-6 py-2 text-sm font-medium text-slate-700 shadow-sm transition-[background-color,color,border-color,transform] duration-200 motion-safe:hover:-translate-y-0.5 hover:border-sky-300 hover:bg-slate-50 hover:text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-sky-500/40 dark:hover:bg-slate-700 dark:hover:text-white"
+                            className="rounded-lg border border-[#d8e4eb] bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors duration-150 hover:border-[#afc5d1] hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#38708e] focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800 dark:hover:text-white"
                         >
                             Carregar mais resultados
                         </button>
                     </div>
                 )}
-            </CardContent>
-        </Card>
+            </div>
+        </section>
     );
 });
 

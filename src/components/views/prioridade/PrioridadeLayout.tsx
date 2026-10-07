@@ -73,7 +73,7 @@ export const PrioridadeLayout = React.memo(function PrioridadeLayout({
     onLoadMore
 }: PrioridadeLayoutProps) {
     return (
-        <ViewContainer className="space-y-8 pb-8">
+        <ViewContainer className="space-y-5 pb-10 pt-4">
             <PrioridadeHeader
                 sortedEntregadores={sortedEntregadores}
                 exportDisabled={exportDisabled}

@@ -1,8 +1,7 @@
 import React from 'react';
-import { TrendingUp } from 'lucide-react';
 import { EvolucaoViewToggle } from './components/EvolucaoViewToggle';
 import { EvolucaoMetricsSelector, MetricType } from './components/EvolucaoMetricsSelector';
-import { SaasPanel, SaasPanelHeader } from '@/components/views/shared/SaasPrimitives';
+import { SaasPanel } from '@/components/views/shared/SaasPrimitives';
 
 interface EvolucaoFiltersProps {
   viewMode: 'mensal' | 'semanal';
@@ -18,27 +17,23 @@ export const EvolucaoFilters: React.FC<EvolucaoFiltersProps> = ({
   onMetricsChange,
 }) => {
   return (
-    <SaasPanel className="overflow-visible">
-      <SaasPanelHeader
-        eyebrow="Evolução"
-        title={`Evolução ${viewMode === 'mensal' ? 'mensal' : 'semanal'}`}
-        description="Acompanhe corridas e horas ao longo do tempo com métricas selecionáveis."
-        icon={TrendingUp}
-        actions={(
-          <EvolucaoViewToggle
-            viewMode={viewMode}
-            onViewModeChange={onViewModeChange}
-          />
-        )}
-      />
+    <SaasPanel className="overflow-visible rounded-xl border-[#d8e4eb] shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800">
+      <header className="flex min-w-0 flex-col gap-3 border-b border-[#e2ebf0] px-4 py-3.5 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between sm:px-5">
+        <div className="min-w-0">
+          <h2 className="text-[15px] font-semibold tracking-tight text-[#183f58] dark:text-slate-100">Configuração do gráfico</h2>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Escolha a visualização e as métricas exibidas.</p>
+        </div>
+        <EvolucaoViewToggle
+          viewMode={viewMode}
+          onViewModeChange={onViewModeChange}
+        />
+      </header>
 
       <div className="p-4 sm:p-5">
-        <div className="rounded-[1.5rem] border border-slate-200/80 bg-gradient-to-br from-slate-50 to-white p-4 shadow-inner dark:border-slate-800/80 dark:from-slate-900/65 dark:to-slate-950/65">
-          <EvolucaoMetricsSelector
-            selectedMetrics={selectedMetrics}
-            onMetricsChange={onMetricsChange}
-          />
-        </div>
+        <EvolucaoMetricsSelector
+          selectedMetrics={selectedMetrics}
+          onMetricsChange={onMetricsChange}
+        />
       </div>
     </SaasPanel>
   );

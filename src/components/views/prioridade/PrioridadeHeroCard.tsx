@@ -1,54 +1,52 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import type { LucideIcon } from 'lucide-react';
 
+type Tone = 'blue' | 'sky' | 'emerald' | 'rose';
+
+const tones: Record<Tone, { icon: string; progress: string }> = {
+  blue: { icon: 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300', progress: 'bg-blue-600' },
+  sky: { icon: 'bg-sky-50 text-sky-700 dark:bg-sky-950/40 dark:text-sky-300', progress: 'bg-sky-600' },
+  emerald: { icon: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-300', progress: 'bg-emerald-600' },
+  rose: { icon: 'bg-rose-50 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300', progress: 'bg-rose-600' },
+};
+
 export const PrioridadeHeroCard = ({
-    title,
-    value,
-    subtext,
-    icon: Icon,
-    colorFrom,
-    colorTo,
-    iconColor,
-    isPercentage = false
+  title,
+  value,
+  subtext,
+  icon: Icon,
+  tone,
+  isPercentage = false,
 }: {
-    title: string;
-    value: string;
-    subtext: string;
-    icon: LucideIcon;
-    colorFrom: string;
-    colorTo: string;
-    iconColor: string;
-    isPercentage?: boolean
+  title: string;
+  value: string;
+  subtext: string;
+  icon: LucideIcon;
+  tone: Tone;
+  isPercentage?: boolean;
 }) => (
-    <Card className="relative overflow-hidden rounded-[1.65rem] border border-slate-200/50 bg-white/90 shadow-[0_12px_32px_-22px_rgba(15,23,42,0.18)] transition-all duration-300 motion-safe:hover:-translate-y-1 hover:shadow-[0_18px_40px_-24px_rgba(15,23,42,0.25)] hover:border-slate-350 dark:border-slate-900/60 dark:bg-slate-900/40 dark:hover:border-slate-800 group">
-        <div className={`absolute inset-0 bg-gradient-to-br ${colorFrom} ${colorTo} opacity-[0.06] group-hover:opacity-[0.1] transition-opacity duration-300`} />
-
-        <div className="absolute -right-6 -bottom-6 opacity-[0.04] transform rotate-12 motion-safe:group-hover:scale-110 motion-safe:group-hover:rotate-[15deg] transition-all duration-300">
-            <Icon className={`w-32 h-32 ${iconColor}`} />
-        </div>
-
-        <CardContent className="p-5 relative z-10 flex flex-col justify-between h-full">
-            <div className="flex justify-between items-start mb-3">
-                <div className={`p-2.5 rounded-xl bg-white dark:bg-slate-800 shadow-sm ring-1 ring-black/5 dark:ring-white/10 motion-safe:group-hover:scale-105 transition-transform duration-300 ${iconColor}`}>
-                    <Icon className="w-5 h-5" />
-                </div>
-            </div>
-
-            <div>
-                <h3 className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider mb-1">{title}</h3>
-                <div className="text-2xl font-black tracking-tight text-slate-800 dark:text-slate-100 font-mono">
-                    {value}
-                </div>
-                {isPercentage && (
-                    <div className="mt-2.5 h-1.5 w-full bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                        <div
-                            className={`h-full bg-current rounded-full ${iconColor}`}
-                            style={{ width: value }}
-                        />
-                    </div>
-                )}
-            </div>
-        </CardContent>
-    </Card>
+  <div className="min-w-0 bg-white px-3 py-3.5 transition-colors duration-150 hover:bg-[#f8fbfc] dark:bg-slate-950/70 dark:hover:bg-slate-900 sm:px-3.5">
+    <div className="flex min-w-0 items-center gap-2">
+      <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${tones[tone].icon}`}>
+        <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+      </span>
+      <dt className="min-w-0 truncate text-xs font-medium text-slate-600 dark:text-slate-300">{title}</dt>
+    </div>
+    <dd className="mt-2 whitespace-nowrap font-mono text-xl font-semibold tracking-tight text-[#183f58] tabular-nums dark:text-slate-50" title={value}>
+      {value}
+    </dd>
+    <p className="mt-1 truncate text-[11px] text-slate-500 dark:text-slate-400">{subtext}</p>
+    {isPercentage ? (
+      <div
+        className="mt-2.5 h-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800"
+        role="progressbar"
+        aria-label={`${title}: ${value}`}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-valuenow={Math.max(0, Math.min(Number.parseFloat(value), 100))}
+      >
+        <div className={`h-full rounded-full transition-[width] duration-300 motion-reduce:transition-none ${tones[tone].progress}`} style={{ width: `${Math.max(0, Math.min(Number.parseFloat(value), 100))}%` }} />
+      </div>
+    ) : null}
+  </div>
 );

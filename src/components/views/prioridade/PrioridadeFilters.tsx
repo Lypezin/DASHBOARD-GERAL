@@ -1,6 +1,6 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Filter, X, CheckCircle2, XCircle, Flag, Megaphone } from 'lucide-react';
+import { CheckCircle2, Flag, Megaphone, X, XCircle } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 interface PrioridadeFiltersProps {
   filtroAderencia: string;
@@ -12,6 +12,21 @@ interface PrioridadeFiltersProps {
   onCompletadasChange: (value: string) => void;
   onAceitasChange: (value: string) => void;
   onClearFilters: () => void;
+}
+
+interface FilterPreset {
+  value: string;
+  label: string;
+}
+
+interface FilterFieldProps {
+  id: string;
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  icon: LucideIcon;
+  placeholder: string;
+  presets: FilterPreset[];
 }
 
 export const PrioridadeFilters: React.FC<PrioridadeFiltersProps> = ({
@@ -28,148 +43,111 @@ export const PrioridadeFilters: React.FC<PrioridadeFiltersProps> = ({
   const hasFilters = filtroAderencia || filtroRejeicao || filtroCompletadas || filtroAceitas;
 
   return (
-    <Card className="overflow-hidden rounded-[2rem] border border-slate-200/80 bg-white/80 shadow-[0_20px_50px_-38px_rgba(15,23,42,0.3)] backdrop-blur-md dark:border-slate-800/80 dark:bg-slate-950/40">
-      <CardContent className="p-6">
-        <div className="mb-5 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600 dark:bg-blue-400/10 dark:text-blue-400">
-              <Filter className="h-4 w-4" />
-            </div>
-            <h3 className="text-sm font-bold tracking-tight text-slate-800 dark:text-slate-200">Filtros avançados</h3>
-          </div>
-
-          {hasFilters && (
-            <button 
-              onClick={onClearFilters} 
-              className="flex items-center gap-1.5 rounded-full bg-rose-50 px-3 py-1 text-xs font-bold text-rose-600 transition-all hover:bg-rose-100 hover:text-rose-700 dark:bg-rose-950/30 dark:text-rose-400 dark:hover:bg-rose-950/50"
-            >
-              <X className="h-3.5 w-3.5" /> Limpar filtros
-            </button>
-          )}
+    <section
+      aria-labelledby="prioridade-filters-title"
+      className="overflow-hidden rounded-xl border border-[#d8e4eb] bg-white shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800 dark:bg-slate-950/80"
+    >
+      <header className="flex min-w-0 items-center justify-between gap-3 border-b border-[#e2ebf0] px-4 py-3 dark:border-slate-800 sm:px-5">
+        <div className="min-w-0">
+          <h2 id="prioridade-filters-title" className="text-[15px] font-semibold tracking-tight text-[#183f58] dark:text-slate-100">
+            Filtros de desempenho
+          </h2>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Defina limites mínimos e máximos para os indicadores.</p>
         </div>
+        {hasFilters ? (
+          <button
+            type="button"
+            onClick={onClearFilters}
+            className="inline-flex h-9 shrink-0 items-center gap-1.5 rounded-lg border border-[#d8e4eb] bg-white px-3 text-xs font-semibold text-slate-600 transition-colors duration-150 hover:border-rose-300 hover:text-rose-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-600 focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-rose-700 dark:hover:text-rose-300"
+          >
+            <X className="h-3.5 w-3.5" aria-hidden="true" />
+            Limpar filtros
+          </button>
+        ) : null}
+      </header>
 
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {/* Filtro Aderência */}
-          <div className="flex flex-col">
-            <label className="mb-2 pl-0.5 text-xs font-bold tracking-wide text-slate-500 dark:text-slate-400 uppercase">% Aderência mínima</label>
-            <div className="relative">
-              <CheckCircle2 className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input 
-                type="number" 
-                placeholder="Ex: 90" 
-                value={filtroAderencia} 
-                onChange={(e) => onAderenciaChange(e.target.value)} 
-                min="0" 
-                max="100" 
-                step="0.1" 
-                className="w-full rounded-xl border border-slate-200/90 bg-slate-50/50 pl-10 pr-3 py-2 text-sm font-semibold text-slate-900 placeholder-slate-400 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:outline-none dark:border-slate-800 dark:bg-slate-950/70 dark:text-white dark:placeholder-slate-650" 
-              />
-            </div>
-            <div className="mt-2 flex flex-wrap gap-1.5 pl-0.5">
-              {['95', '90', '80', '0'].map(val => (
-                <button
-                  key={val}
-                  type="button"
-                  onClick={() => onAderenciaChange(val === '0' ? '' : val)}
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-md transition-all ${filtroAderencia === val || (val === '0' && !filtroAderencia) ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/10' : 'bg-slate-100/80 hover:bg-slate-200 text-slate-600 dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-400'}`}
-                >
-                  {val === '0' ? 'Zerar' : `${val}%`}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Filtro Rejeição */}
-          <div className="flex flex-col">
-            <label className="mb-2 pl-0.5 text-xs font-bold tracking-wide text-slate-500 dark:text-slate-400 uppercase">% Rejeição máxima</label>
-            <div className="relative">
-              <XCircle className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input 
-                type="number" 
-                placeholder="Ex: 10" 
-                value={filtroRejeicao} 
-                onChange={(e) => onRejeicaoChange(e.target.value)} 
-                min="0" 
-                max="100" 
-                step="0.1" 
-                className="w-full rounded-xl border border-slate-200/90 bg-slate-50/50 pl-10 pr-3 py-2 text-sm font-semibold text-slate-900 placeholder-slate-400 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:outline-none dark:border-slate-800 dark:bg-slate-950/70 dark:text-white dark:placeholder-slate-650" 
-              />
-            </div>
-            <div className="mt-2 flex flex-wrap gap-1.5 pl-0.5">
-              {['5', '10', '15', '0'].map(val => (
-                <button
-                  key={val}
-                  type="button"
-                  onClick={() => onRejeicaoChange(val === '0' ? '' : val)}
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-md transition-all ${filtroRejeicao === val || (val === '0' && !filtroRejeicao) ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/10' : 'bg-slate-100/80 hover:bg-slate-200 text-slate-600 dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-400'}`}
-                >
-                  {val === '0' ? 'Zerar' : `${val}%`}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Filtro Completadas */}
-          <div className="flex flex-col">
-            <label className="mb-2 pl-0.5 text-xs font-bold tracking-wide text-slate-500 dark:text-slate-400 uppercase">% Completadas mínima</label>
-            <div className="relative">
-              <Flag className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input 
-                type="number" 
-                placeholder="Ex: 80" 
-                value={filtroCompletadas} 
-                onChange={(e) => onCompletadasChange(e.target.value)} 
-                min="0" 
-                max="100" 
-                step="0.1" 
-                className="w-full rounded-xl border border-slate-200/90 bg-slate-50/50 pl-10 pr-3 py-2 text-sm font-semibold text-slate-900 placeholder-slate-400 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:outline-none dark:border-slate-800 dark:bg-slate-950/70 dark:text-white dark:placeholder-slate-650" 
-              />
-            </div>
-            <div className="mt-2 flex flex-wrap gap-1.5 pl-0.5">
-              {['95', '90', '85', '0'].map(val => (
-                <button
-                  key={val}
-                  type="button"
-                  onClick={() => onCompletadasChange(val === '0' ? '' : val)}
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-md transition-all ${filtroCompletadas === val || (val === '0' && !filtroCompletadas) ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/10' : 'bg-slate-100/80 hover:bg-slate-200 text-slate-600 dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-400'}`}
-                >
-                  {val === '0' ? 'Zerar' : `${val}%`}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Filtro Aceitas */}
-          <div className="flex flex-col">
-            <label className="mb-2 pl-0.5 text-xs font-bold tracking-wide text-slate-500 dark:text-slate-400 uppercase">% Aceitas mínima</label>
-            <div className="relative">
-              <Megaphone className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input 
-                type="number" 
-                placeholder="Ex: 85" 
-                value={filtroAceitas} 
-                onChange={(e) => onAceitasChange(e.target.value)} 
-                min="0" 
-                max="100" 
-                step="0.1" 
-                className="w-full rounded-xl border border-slate-200/90 bg-slate-50/50 pl-10 pr-3 py-2 text-sm font-semibold text-slate-900 placeholder-slate-400 transition-all duration-200 focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:outline-none dark:border-slate-800 dark:bg-slate-950/70 dark:text-white dark:placeholder-slate-650" 
-              />
-            </div>
-            <div className="mt-2 flex flex-wrap gap-1.5 pl-0.5">
-              {['95', '90', '85', '0'].map(val => (
-                <button
-                  key={val}
-                  type="button"
-                  onClick={() => onAceitasChange(val === '0' ? '' : val)}
-                  className={`text-[10px] font-bold px-2 py-0.5 rounded-md transition-all ${filtroAceitas === val || (val === '0' && !filtroAceitas) ? 'bg-blue-600 text-white shadow-sm shadow-blue-600/10' : 'bg-slate-100/80 hover:bg-slate-200 text-slate-600 dark:bg-slate-900 dark:hover:bg-slate-800 dark:text-slate-400'}`}
-                >
-                  {val === '0' ? 'Zerar' : `${val}%`}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+      <div className="grid grid-cols-1 gap-4 p-4 sm:grid-cols-2 sm:p-5 lg:grid-cols-4">
+        <FilterField
+          id="prioridade-aderencia"
+          label="Aderência mínima"
+          value={filtroAderencia}
+          onChange={onAderenciaChange}
+          icon={CheckCircle2}
+          placeholder="Ex.: 90"
+          presets={[{ value: '95', label: '95%' }, { value: '90', label: '90%' }, { value: '80', label: '80%' }, { value: '', label: 'Qualquer' }]}
+        />
+        <FilterField
+          id="prioridade-rejeicao"
+          label="Rejeição máxima"
+          value={filtroRejeicao}
+          onChange={onRejeicaoChange}
+          icon={XCircle}
+          placeholder="Ex.: 10"
+          presets={[{ value: '5', label: '5%' }, { value: '10', label: '10%' }, { value: '15', label: '15%' }, { value: '', label: 'Qualquer' }]}
+        />
+        <FilterField
+          id="prioridade-completadas"
+          label="Completadas mínimas"
+          value={filtroCompletadas}
+          onChange={onCompletadasChange}
+          icon={Flag}
+          placeholder="Ex.: 80"
+          presets={[{ value: '95', label: '95%' }, { value: '90', label: '90%' }, { value: '85', label: '85%' }, { value: '', label: 'Qualquer' }]}
+        />
+        <FilterField
+          id="prioridade-aceitas"
+          label="Aceitas mínimas"
+          value={filtroAceitas}
+          onChange={onAceitasChange}
+          icon={Megaphone}
+          placeholder="Ex.: 85"
+          presets={[{ value: '95', label: '95%' }, { value: '90', label: '90%' }, { value: '85', label: '85%' }, { value: '', label: 'Qualquer' }]}
+        />
+      </div>
+    </section>
   );
 };
+
+function FilterField({ id, label, value, onChange, icon: Icon, placeholder, presets }: FilterFieldProps) {
+  return (
+    <div className="min-w-0">
+      <label htmlFor={id} className="mb-1.5 block text-xs font-medium text-[#183f58] dark:text-slate-200">
+        {label}
+      </label>
+      <div className="relative">
+        <Icon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" aria-hidden="true" />
+        <input
+          id={id}
+          type="number"
+          placeholder={placeholder}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          min="0"
+          max="100"
+          step="0.1"
+          className="h-10 w-full rounded-lg border border-[#d8e4eb] bg-white pl-9 pr-3 text-sm font-medium text-slate-800 placeholder:text-slate-400 transition-colors duration-150 focus:border-[#38708e] focus:outline-none focus:ring-2 focus:ring-[#38708e]/15 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500"
+        />
+      </div>
+      <div role="group" className="mt-2 flex flex-wrap gap-1.5" aria-label={`Atalhos para ${label.toLowerCase()}`}>
+        {presets.map((preset) => {
+          const active = preset.value === '' ? !value : value === preset.value;
+
+          return (
+            <button
+              key={`${id}-${preset.label}`}
+              type="button"
+              aria-pressed={active}
+              onClick={() => onChange(preset.value)}
+              className={`rounded-md border px-2.5 py-1 text-[11px] font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#38708e] focus-visible:ring-offset-1 ${active
+                ? 'border-[#174d70] bg-[#174d70] text-white'
+                : 'border-[#e2ebf0] bg-[#f6f9fb] text-slate-600 hover:border-[#afc5d1] hover:bg-[#edf4f7] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800'
+                }`}
+            >
+              {preset.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}

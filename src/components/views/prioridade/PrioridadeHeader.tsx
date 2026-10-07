@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Download } from 'lucide-react';
 import { Entregador } from '@/types';
@@ -30,30 +29,26 @@ export const PrioridadeHeader: React.FC<PrioridadeHeaderProps> = ({ sortedEntreg
     };
 
     return (
-        <Card className="overflow-hidden rounded-[2rem] border border-slate-200/75 bg-white/90 shadow-[0_18px_46px_-38px_rgba(15,23,42,0.45)] dark:border-slate-800/75 dark:bg-slate-950/80">
-            <CardContent className="p-6">
-                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div className="min-w-0">
-                        <div className="mb-3 h-1.5 w-16 rounded-full bg-gradient-to-r from-sky-500 to-blue-600" />
-                        <h2 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
-                            Prioridade / Promo
-                        </h2>
-                        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                            Analise detalhada de aderencia e performance dos entregadores
-                        </p>
-                    </div>
-                    <Button
-                        onClick={exportarParaExcel}
-                        disabled={isExporting || exportDisabled || sortedEntregadores.length === 0}
-                        title={exportDisabledReason || (exportDisabled ? 'Aguarde a atualização dos dados antes de exportar.' : undefined)}
-                        variant="outline"
-                        className="h-11 shrink-0 gap-2 rounded-2xl border-slate-200/80 bg-white/90 px-4 shadow-[0_12px_24px_-22px_rgba(15,23,42,0.35)] transition-[border-color,background-color,box-shadow,transform] duration-200 motion-safe:hover:-translate-y-0.5 hover:border-sky-300 hover:bg-white dark:border-slate-800/80 dark:bg-slate-900/85 dark:hover:border-sky-500/40 dark:hover:bg-slate-900"
-                    >
-                        <Download className="h-4 w-4 text-sky-600 dark:text-sky-300" />
-                        {isExporting ? 'Preparando Excel...' : 'Exportar Excel'}
-                    </Button>
-                </div>
-            </CardContent>
-        </Card>
+        <header className="flex min-w-0 flex-col gap-4 rounded-xl border border-[#164d70] bg-[#174d70] px-4 py-4 shadow-[0_8px_28px_-22px_rgba(12,54,81,0.6)] sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
+            <div className="min-w-0">
+                <h1 className="text-[21px] font-semibold leading-tight tracking-[-0.025em] text-white sm:text-[24px]">
+                    Prioridade | Promo
+                </h1>
+                <p className="mt-1.5 text-[12px] leading-5 text-sky-100/90 sm:text-[13px]">
+                    Compare os indicadores e encontre entregadores que precisam de atenção.
+                </p>
+            </div>
+            <Button
+                type="button"
+                onClick={exportarParaExcel}
+                disabled={isExporting || exportDisabled || sortedEntregadores.length === 0}
+                title={exportDisabledReason || (exportDisabled ? 'Aguarde a atualização dos dados antes de exportar.' : undefined)}
+                variant="outline"
+                className="h-10 shrink-0 gap-2 rounded-lg border-white bg-white px-3.5 text-sm font-semibold text-[#174d70] shadow-none transition-colors duration-150 hover:border-white hover:bg-sky-50 hover:text-[#103c59] focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#174d70] dark:border-white dark:bg-white dark:text-[#174d70] dark:hover:bg-sky-50"
+            >
+                <Download className="h-4 w-4" />
+                {isExporting ? 'Preparando Excel...' : 'Exportar Excel'}
+            </Button>
+        </header>
     );
 };

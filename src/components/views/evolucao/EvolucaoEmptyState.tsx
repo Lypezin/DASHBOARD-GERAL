@@ -17,9 +17,10 @@ export const EvolucaoEmptyState: React.FC<EvolucaoEmptyStateProps> = ({
     if (chartError) {
         return (
             <div className="flex h-full items-center justify-center">
-                <div className="text-center">
-                    <p className="text-red-600 dark:text-red-400 font-semibold mb-2">Erro ao carregar gráfico</p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">{chartError}</p>
+                <div role="alert" className="max-w-lg px-6 text-center">
+                    <AlertTriangle className="mx-auto mb-3 h-5 w-5 text-rose-600 dark:text-rose-300" aria-hidden="true" />
+                    <p className="font-semibold text-rose-800 dark:text-rose-200">Erro ao carregar gráfico</p>
+                    <p className="mt-1 text-sm text-slate-600 dark:text-slate-400">{chartError}</p>
                 </div>
             </div>
         );
@@ -27,15 +28,13 @@ export const EvolucaoEmptyState: React.FC<EvolucaoEmptyStateProps> = ({
 
     if (hasNoData) {
         return (
-            <div className="absolute inset-0 flex items-center justify-center bg-white/80 dark:bg-slate-900/80 z-10 rounded-lg backdrop-blur-sm">
-                <div className="text-center p-6 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 max-w-md">
-                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-700">
-                        <Info className="h-6 w-6 text-slate-500 dark:text-slate-400" />
-                    </div>
-                    <p className="text-lg font-medium text-slate-900 dark:text-white mb-2">
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-white/90 px-4 dark:bg-slate-950/90">
+                <div className="max-w-md text-center">
+                    <Info className="mx-auto mb-3 h-5 w-5 text-[#38708e] dark:text-sky-300" aria-hidden="true" />
+                    <p className="font-semibold text-slate-800 dark:text-slate-100">
                         Sem dados para exibir
                     </p>
-                    <p className="text-sm text-slate-500 dark:text-slate-400">
+                    <p className="mt-1.5 text-sm leading-6 text-slate-600 dark:text-slate-400">
                         Não foram encontrados registros para o ano de {anoSelecionado} com os filtros atuais.
                         Tente selecionar outro ano ou limpar os filtros.
                     </p>
@@ -47,11 +46,9 @@ export const EvolucaoEmptyState: React.FC<EvolucaoEmptyStateProps> = ({
     if (labelsLength === 0) {
         return (
             <div className="flex h-[400px] items-center justify-center">
-                <div className="text-center max-w-md mx-auto">
-                    <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
-                        <AlertTriangle className="h-6 w-6 text-amber-600 dark:text-amber-400" />
-                    </div>
-                    <p className="text-lg font-medium text-amber-800 dark:text-amber-200">
+                <div role="status" className="mx-auto max-w-md px-6 text-center">
+                    <AlertTriangle className="mx-auto mb-3 h-5 w-5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+                    <p className="font-semibold text-amber-800 dark:text-amber-200">
                         Dados de evolução temporariamente indisponíveis
                     </p>
                     <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">
