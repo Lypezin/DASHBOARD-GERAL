@@ -1,5 +1,4 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Info, LucideIcon } from 'lucide-react';
 import {
     Tooltip,
@@ -15,15 +14,7 @@ interface StatisticCardProps {
     tooltipText: string;
     icon: LucideIcon;
     statusColor?: string;
-    badge: {
-        text: string;
-        icon: LucideIcon;
-        className: string;
-    };
-    gradientFrom: string;
-    gradientTo: string;
-    iconColor: string;
-    bgGlowColor: string;
+    meta: string;
     sparklineData?: number[];
     sparklineColor?: string;
 }
@@ -34,83 +25,42 @@ export const StatisticCard = React.memo(function StatisticCard({
     tooltipText,
     icon: Icon,
     statusColor = "text-slate-950 dark:text-slate-50",
-    badge,
-    iconColor,
+    meta,
     sparklineData,
     sparklineColor
 }: StatisticCardProps) {
-    const isPositive = badge.className.includes('emerald') || badge.className.includes('success');
-    const isNegative = badge.className.includes('rose') || badge.className.includes('destructive') || badge.className.includes('danger');
-
-    const badgeColorClass = isPositive
-        ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
-        : isNegative
-        ? 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/20'
-        : 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20';
-
     const valueString = String(value);
-    const valueSizeClass = valueString.length > 13
-        ? 'text-lg sm:text-xl'
-        : valueString.length > 10
-        ? 'text-xl sm:text-2xl'
-        : 'text-2xl sm:text-3xl';
 
     return (
-        <Card className="group relative overflow-hidden rounded-xl border-slate-200/80 bg-white/95 shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md dark:border-slate-800/80 dark:bg-slate-900/90">
-            <CardContent className="relative z-10 flex min-h-[148px] items-start justify-between gap-4 p-5 sm:p-6">
-                <div className="min-w-0 flex-1 space-y-3">
-                    <div className="mb-1 flex items-center gap-1.5">
-                        <p className="truncate text-xs font-semibold text-slate-500 dark:text-slate-400">
-                            {title}
-                        </p>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <button className="shrink-0 rounded-full text-slate-400 transition-colors hover:text-blue-600 focus:outline-none dark:text-slate-500 dark:hover:text-blue-400">
-                                    <Info className="h-3.5 w-3.5" />
-                                </button>
-                            </TooltipTrigger>
-                            <TooltipContent className="max-w-[240px] border border-border text-xs">
-                                <p>{tooltipText}</p>
-                            </TooltipContent>
-                        </Tooltip>
-                    </div>
+        <div className="group min-w-0 border-t-[3px] border-t-[#9ac8de] bg-white px-4 py-3 dark:border-t-sky-700 dark:bg-slate-900 sm:px-5">
+            <div className="flex min-w-0 items-center gap-2">
+                <Icon className="h-3.5 w-3.5 shrink-0 text-[#347ca3] dark:text-sky-200" aria-hidden="true" />
+                <dt className="truncate text-[11px] font-medium text-slate-500 dark:text-slate-300">{title}</dt>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <button type="button" aria-label={`Sobre ${title.toLowerCase()}`} className="shrink-0 rounded-sm text-slate-400 transition-colors hover:text-[#236b91] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600/30 dark:text-slate-500 dark:hover:text-sky-300">
+                            <Info className="h-3.5 w-3.5" aria-hidden="true" />
+                        </button>
+                    </TooltipTrigger>
+                    <TooltipContent className="max-w-[240px] border border-border text-xs">
+                        <p>{tooltipText}</p>
+                    </TooltipContent>
+                </Tooltip>
+            </div>
 
-                    <h4
-                        className={cn(
-                            'max-w-full truncate font-mono font-semibold leading-tight',
-                            valueSizeClass,
-                            statusColor
-                        )}
-                        title={valueString}
-                    >
-                        {value}
-                    </h4>
+            <dd className="mt-2 min-w-0">
+                <span className={cn('block truncate text-[22px] font-semibold leading-7 tracking-tight tabular-nums', statusColor)} title={valueString}>
+                    {value}
+                </span>
+                <span className="mt-0.5 block text-[11px] leading-4 text-slate-500 dark:text-slate-400">{meta}</span>
+            </dd>
 
-                    <div className="flex items-center gap-2">
-                        <div className={cn("flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-semibold shadow-none", badgeColorClass)}>
-                            <badge.icon className="h-3.5 w-3.5" />
-                            <span>{badge.text}</span>
-                        </div>
-                    </div>
-
-                    {sparklineData && sparklineData.length >= 2 && (
-                        <div className="pt-2 opacity-90 transition-opacity group-hover:opacity-100">
-                            <Sparkline
-                                data={sparklineData}
-                                width={132}
-                                height={28}
-                                color={sparklineColor || '#3B82F6'}
-                                strokeWidth={1.5}
-                            />
-                        </div>
-                    )}
+            {sparklineData && sparklineData.length >= 2 ? (
+                <div className="mt-2 h-7 opacity-80 transition-opacity group-hover:opacity-100">
+                    <Sparkline data={sparklineData} width={132} height={28} color={sparklineColor || '#347ca3'} strokeWidth={1.5} />
                 </div>
-
-                <div className="shrink-0 rounded-lg border border-slate-200/70 bg-slate-50 p-3 shadow-sm transition-colors duration-200 group-hover:bg-white dark:border-slate-800 dark:bg-slate-950/60 dark:group-hover:bg-slate-900">
-                    <Icon className={cn("h-5 w-5", iconColor ? iconColor : "text-muted-foreground")} />
-                </div>
-            </CardContent>
-        </Card>
+            ) : null}
+        </div>
     );
 });
 

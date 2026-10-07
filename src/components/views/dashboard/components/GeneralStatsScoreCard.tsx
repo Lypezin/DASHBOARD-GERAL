@@ -1,13 +1,10 @@
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { CircularProgress } from '@/components/ui/circular-progress';
 import { Info, TrendingUp, AlertTriangle, CheckCircle2 } from 'lucide-react';
 import {
     Tooltip,
     TooltipContent,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useTheme } from '@/contexts/ThemeContext';
 
 interface GeneralStatsScoreCardProps {
     percentual: number;
@@ -15,8 +12,6 @@ interface GeneralStatsScoreCardProps {
 }
 
 export const GeneralStatsScoreCard: React.FC<GeneralStatsScoreCardProps> = ({ percentual, progressColor }) => {
-    const { theme } = useTheme();
-
     const isHighPerf = percentual >= 90;
     const isMidPerf = percentual >= 70;
     const displayColor = progressColor || (isHighPerf ? '#10B981' : isMidPerf ? '#3B82F6' : '#EF4444');
@@ -29,47 +24,37 @@ export const GeneralStatsScoreCard: React.FC<GeneralStatsScoreCardProps> = ({ pe
         : 'bg-rose-50 text-rose-700 ring-rose-200/70 dark:bg-rose-950/30 dark:text-rose-300 dark:ring-rose-900/50';
 
     return (
-        <Card className="group relative overflow-hidden rounded-xl border-slate-200/80 bg-white/95 shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md dark:border-slate-800/80 dark:bg-slate-900/90 lg:col-span-4">
-            <div className="absolute inset-x-0 top-0 h-1" style={{ backgroundColor: displayColor }} />
-
-            <CardContent className="flex h-full min-h-[230px] flex-col justify-between gap-5 p-5 sm:p-6">
-                <div className="flex w-full items-start justify-between gap-4">
-                    <div className="flex min-w-0 flex-col gap-1">
-                        <div className="flex items-center gap-1.5">
-                            <h3 className="text-base font-semibold text-slate-950 dark:text-slate-50">Aderência Geral</h3>
-                            <Tooltip>
-                                <TooltipTrigger asChild>
-                                    <button className="rounded-full text-slate-400 transition-colors hover:text-blue-600 focus:outline-none dark:text-slate-500 dark:hover:text-blue-400">
-                                        <Info className="h-3.5 w-3.5" />
-                                    </button>
-                                </TooltipTrigger>
-                                <TooltipContent className="max-w-[240px] border border-border text-xs">
-                                    <p>Índice percentual entre horas entregues e horas planejadas.</p>
-                                </TooltipContent>
-                            </Tooltip>
-                        </div>
-                        <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                            Desempenho consolidado
-                        </p>
-                    </div>
-                    <div className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ${statusClass}`}>
-                        <StatusIcon className="h-3.5 w-3.5" />
-                        {statusLabel}
-                    </div>
+        <div className="min-w-0 border-t-[3px] border-t-[#9ac8de] bg-white px-4 py-3 dark:border-t-sky-700 dark:bg-slate-900 sm:px-5">
+            <div className="flex min-w-0 items-center justify-between gap-3">
+                <div className="flex min-w-0 items-center gap-2">
+                    <dt className="truncate text-[11px] font-medium text-slate-500 dark:text-slate-300">Aderência geral</dt>
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <button type="button" aria-label="Sobre aderência geral" className="shrink-0 rounded-sm text-slate-400 transition-colors hover:text-[#236b91] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600/30 dark:text-slate-500 dark:hover:text-sky-300">
+                                <Info className="h-3.5 w-3.5" aria-hidden="true" />
+                            </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-[240px] border border-border text-xs">
+                            <p>Índice percentual entre horas entregues e horas planejadas.</p>
+                        </TooltipContent>
+                    </Tooltip>
                 </div>
+                <span className={`inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-[10px] font-semibold ${statusClass}`}>
+                    <StatusIcon className="h-3.5 w-3.5" aria-hidden="true" />
+                    {statusLabel}
+                </span>
+            </div>
 
-                <div className="flex flex-1 items-center justify-center">
-                    <CircularProgress
-                        value={percentual}
-                        size={148}
-                        strokeWidth={10}
-                        color={displayColor}
-                        backgroundColor={theme === 'dark' ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.035)"}
-                        showLabel={true}
-                        label="Total"
-                    />
-                </div>
-            </CardContent>
-        </Card>
+            <dd className="mt-2 text-[#173f5a] dark:text-slate-50">
+                <span className="block truncate text-[25px] font-semibold leading-8 tracking-tight tabular-nums" title={`${percentual.toFixed(2)}%`}>
+                    {percentual.toFixed(2)}%
+                </span>
+                <span className="mt-0.5 block text-[11px] leading-4 text-slate-500 dark:text-slate-400">Horas entregues sobre horas planejadas</span>
+            </dd>
+
+            <div className="mt-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800" role="progressbar" aria-label="Aderência geral" aria-valuenow={Math.min(Math.max(percentual, 0), 100)} aria-valuemin={0} aria-valuemax={100}>
+                <div className="h-full rounded-full transition-[width] duration-300" style={{ width: `${Math.min(Math.max(percentual, 0), 100)}%`, backgroundColor: displayColor }} />
+            </div>
+        </div>
     );
 };

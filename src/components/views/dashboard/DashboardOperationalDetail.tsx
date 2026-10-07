@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { BarChart3, Layers3, Target } from 'lucide-react';
+import { BarChart3 } from 'lucide-react';
 import { AderenciaDia, AderenciaOrigem, AderenciaSubPraca, AderenciaTurno } from '@/types';
-import { SaasMetric, SaasPanel, SaasPanelHeader } from '@/components/views/shared/SaasPrimitives';
 import { BenchmarkPracas } from '../comparacao/BenchmarkPracas';
 import { OperationalDetailCard } from './components/OperationalDetailCard';
 import { OperationalViewToggle, ViewMode } from './components/OperationalViewToggle';
@@ -17,7 +16,7 @@ interface Props {
 const viewLabels: Record<ViewMode, string> = {
     dia: 'Dia',
     turno: 'Turno',
-    sub_praca: 'Sub Praça',
+    sub_praca: 'Sub-praça',
     origem: 'Origem',
     ranking: 'Ranking',
 };
@@ -80,50 +79,62 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
     }, [dataToRender]);
 
     return (
-        <SaasPanel>
-            <SaasPanelHeader
-                eyebrow="Quebra selecionada"
-                title={`Visão por ${viewLabels[viewMode]}`}
-                description={viewMode !== 'ranking' ? `${dataToRender.length} recortes analisados para investigar desvios operacionais.` : 'Ranking comparativo por sub-praça.'}
-                icon={Layers3}
-                tone="emerald"
-                actions={<OperationalViewToggle viewMode={viewMode} onViewModeChange={setViewMode} />}
-            />
-
-            {viewMode !== 'ranking' && dataToRender.length > 0 && (
-                <div className="grid gap-3 border-b border-slate-200/70 bg-slate-50/60 px-4 py-3 dark:border-slate-800/80 dark:bg-slate-900/30 sm:grid-cols-3 lg:px-5">
-                    <SaasMetric icon={Target} label="Média do recorte" value={`${detailSummary.media.toFixed(1)}%`} />
-                    <SaasMetric label="Melhor aderência" value={`${detailSummary.melhor?.aderencia.toFixed(1) || '0.0'}%`} tone="emerald" />
-                    <SaasMetric label="Melhor grupo" value={detailSummary.melhor?.label || 'N/A'} truncate />
+        <section aria-labelledby="overview-detail-title" className="min-w-0 space-y-3">
+            <header className="flex min-w-0 flex-col gap-3 px-0.5 sm:flex-row sm:items-end sm:justify-between">
+                <div className="min-w-0">
+                    <h2 id="overview-detail-title" className="text-[15px] font-semibold tracking-tight text-[#183f58] dark:text-slate-100">Detalhamento operacional</h2>
+                    <p className="mt-0.5 text-xs leading-5 text-slate-500 dark:text-slate-400">
+                        {viewMode !== 'ranking'
+                            ? `${dataToRender.length} recortes na dimensão ${viewLabels[viewMode].toLowerCase()}.`
+                            : 'Ranking comparativo por sub-praça.'}
+                    </p>
                 </div>
-            )}
+                <OperationalViewToggle viewMode={viewMode} onViewModeChange={setViewMode} className="w-full sm:w-auto" />
+            </header>
 
-            <div className="min-w-0 p-4 sm:p-5">
+            {viewMode !== 'ranking' && dataToRender.length > 0 ? (
+                <dl className="flex flex-wrap gap-x-7 gap-y-2 border-y border-[#d8e4eb] px-1 py-2.5 dark:border-slate-800">
+                    <div>
+                        <dt className="text-[10px] text-slate-500 dark:text-slate-400">Média do recorte</dt>
+                        <dd className="mt-0.5 text-sm font-semibold tabular-nums text-[#183f58] dark:text-slate-100">{detailSummary.media.toFixed(1)}%</dd>
+                    </div>
+                    <div>
+                        <dt className="text-[10px] text-slate-500 dark:text-slate-400">Melhor aderência</dt>
+                        <dd className="mt-0.5 text-sm font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">{detailSummary.melhor?.aderencia.toFixed(1) || '0.0'}%</dd>
+                    </div>
+                    <div className="min-w-0 max-w-full">
+                        <dt className="text-[10px] text-slate-500 dark:text-slate-400">Melhor grupo</dt>
+                        <dd className="mt-0.5 max-w-[18rem] truncate text-sm font-semibold text-[#183f58] dark:text-slate-100" title={detailSummary.melhor?.label || 'N/A'}>{detailSummary.melhor?.label || 'N/A'}</dd>
+                    </div>
+                </dl>
+            ) : null}
+
+            <div className="min-w-0">
                 <ViewTransition stateKey={viewMode} className="w-full" preventExitInteraction>
                     {viewMode === 'ranking' ? (
                         aderenciaSubPraca.length > 0 ? (
-                            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                            <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
                                 <BenchmarkPracas subPracas={aderenciaSubPraca} />
                             </div>
                         ) : <EmptyState text="Nenhum dado de ranking disponível" />
                     ) : dataToRender.length > 0 ? (
                         <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
                             {dataToRender.map((item, index) => (
-                                <OperationalDetailCard key={`${viewMode}-${index}`} data={item} index={index} />
+                                <OperationalDetailCard key={`${viewMode}-${index}`} data={item} />
                             ))}
                         </div>
-                    ) : <EmptyState text="Nenhum dado disponível" sub="Ajuste os filtros para visualizar os dados" />}
+                    ) : <EmptyState text="Nenhum dado disponível" sub="Ajuste os filtros para visualizar os dados." />}
                 </ViewTransition>
             </div>
-        </SaasPanel>
+        </section>
     );
 });
 
 DashboardOperationalDetail.displayName = 'DashboardOperationalDetail';
 
 const EmptyState = ({ text, sub }: { text: string; sub?: string }) => (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-slate-200/80 bg-slate-50/80 py-12 text-center text-slate-500 dark:border-slate-800 dark:bg-slate-900/50 dark:text-slate-400">
-        <BarChart3 className="mb-3 h-10 w-10 opacity-30" />
+    <div className="flex flex-col items-center justify-center border-y border-dashed border-[#d8e4eb] py-10 text-center text-slate-600 dark:border-slate-800 dark:text-slate-400">
+        <BarChart3 className="mb-2 h-7 w-7 text-slate-400 dark:text-slate-500" aria-hidden="true" />
         <p className="text-sm font-semibold">{text}</p>
         {sub && <p className="mt-1 text-xs opacity-70">{sub}</p>}
     </div>

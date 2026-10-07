@@ -52,38 +52,35 @@ const DashboardView = React.memo(function DashboardView({
   }
 
   return (
-    <ViewContainer className="space-y-9 pb-16 pt-5">
+    <ViewContainer className="space-y-5 pb-10 pt-4">
       {mainDataError ? <DashboardDataStatus hasPreviousData={hasResolvedData} onRetry={retryMainData} /> : null}
+      <header className="rounded-xl border border-[#164d70] bg-[#174d70] px-5 py-5 shadow-[0_16px_40px_-28px_rgba(12,54,81,0.72)] sm:px-7 sm:py-6">
+        <h1 className="text-[23px] font-semibold leading-tight tracking-[-0.025em] text-white sm:text-[28px]">
+          Visão geral
+        </h1>
+        <p className="mt-1.5 text-[13px] leading-5 text-sky-100/85">
+          Acompanhe aderência, desempenho diário e detalhes da operação.
+        </p>
+      </header>
       <FilteredDataTransition isUpdating={mainDataLoading}>
-        <div className="space-y-9">
-          <section className="space-y-4">
+        <div className="space-y-5">
+          <section aria-labelledby="overview-summary-title" className="space-y-3">
             <DashboardSectionHeader
+              id="overview-summary-title"
               title="Resumo Operacional"
               description="Indicadores consolidados de aderência e métricas críticas de entrega."
             />
             <DashboardGeneralStats aderenciaGeral={aderenciaGeral} aderenciaDia={aderenciaDia} />
           </section>
 
-          <section className="space-y-4">
-            <DashboardSectionHeader
-              title="Evolução diária"
-              description="Acompanhamento rápido da aderência por dia no período filtrado."
-            />
-            <DashboardDailyPerformance aderenciaDia={aderenciaDia} />
-          </section>
+          <DashboardDailyPerformance aderenciaDia={aderenciaDia} />
 
-          <section className="space-y-4">
-            <DashboardSectionHeader
-              title="Detalhamento Operacional"
-              description="Quebra por turno, sub-praça, origem e dia para investigar desvios."
-            />
-            <DashboardOperationalDetail
-              aderenciaTurno={aderenciaTurno}
-              aderenciaSubPraca={aderenciaSubPraca}
-              aderenciaOrigem={aderenciaOrigem}
-              aderenciaDia={aderenciaDia}
-            />
-          </section>
+          <DashboardOperationalDetail
+            aderenciaTurno={aderenciaTurno}
+            aderenciaSubPraca={aderenciaSubPraca}
+            aderenciaOrigem={aderenciaOrigem}
+            aderenciaDia={aderenciaDia}
+          />
         </div>
       </FilteredDataTransition>
     </ViewContainer>
@@ -94,13 +91,13 @@ DashboardView.displayName = 'DashboardView';
 
 export default DashboardView;
 
-function DashboardSectionHeader({ title, description }: { title: string; description: string }) {
+function DashboardSectionHeader({ id, title, description }: { id?: string; title: string; description: string }) {
   return (
-    <div className="flex min-w-0 flex-col gap-1 border-l-2 border-blue-500/70 pl-3">
-      <h2 className="text-xl font-semibold leading-tight text-slate-950 dark:text-slate-50">
+    <div className="flex min-w-0 flex-col gap-0.5 px-0.5">
+      <h2 id={id} className="text-[15px] font-semibold leading-5 tracking-tight text-[#183f58] dark:text-slate-100">
         {title}
       </h2>
-      <p className="max-w-3xl text-sm text-slate-500 dark:text-slate-400">
+      <p className="max-w-3xl text-xs leading-5 text-slate-500 dark:text-slate-400">
         {description}
       </p>
     </div>

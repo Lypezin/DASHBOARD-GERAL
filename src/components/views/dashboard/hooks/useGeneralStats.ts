@@ -19,7 +19,7 @@ export function useGeneralStats(aderenciaGeral?: AderenciaSemanal) {
             entregue: formatarHorasParaHMS(entregueStr),
             gap: gap > 0 ? formatarHorasParaHMS(gap) : null,
             percentual,
-            statusColor: percentual >= 90 ? 'text-emerald-500' : percentual >= 70 ? 'text-blue-500' : 'text-rose-500',
+            statusColor: percentual >= 90 ? 'text-emerald-700 dark:text-emerald-300' : percentual >= 70 ? 'text-[#236b91] dark:text-sky-300' : 'text-rose-700 dark:text-rose-300',
             progressColor: percentual >= 90 ? '#10b981' : percentual >= 70 ? '#3b82f6' : '#ef4444'
         };
     }, [aderenciaGeral]);

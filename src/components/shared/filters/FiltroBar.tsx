@@ -64,7 +64,7 @@ const FiltroBar = React.memo(function FiltroBar({
   }, [filters]);
 
   const { anosOptions, semanasOptions, loadingSemanas, errorSemanas, retrySemanas } = useFiltroBarOptions(anos, semanas, filters);
-  const filterAppearance = ['entregadores', 'valores', 'utr', 'analise'].includes(activeTab) ? 'quiet' : 'default';
+  const filterAppearance = ['dashboard', 'entregadores', 'valores', 'utr', 'analise'].includes(activeTab) ? 'quiet' : 'default';
   const dimensionSupport = getDimensionFilterSupport(activeTab);
   const hasSubPracaFilter = Boolean(filters.subPracas?.length || filters.subPraca);
   const hasOrigemFilter = Boolean(filters.origens?.length || filters.origem);

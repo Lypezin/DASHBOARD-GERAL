@@ -3,6 +3,7 @@ import { AderenciaSemanal, AderenciaDia } from '@/types';
 import { useGeneralStats } from './hooks/useGeneralStats';
 import { GeneralStatsScoreCard } from './components/GeneralStatsScoreCard';
 import { GeneralStatsMetrics } from './components/GeneralStatsMetrics';
+import { GapIndicatorCard } from './components/GapIndicatorCard';
 import { converterHorasParaDecimal } from '@/utils/formatters';
 
 interface DashboardGeneralStatsProps {
@@ -30,17 +31,20 @@ export const DashboardGeneralStats = React.memo(function DashboardGeneralStats({
     if (!stats) return null;
 
     return (
-        <div className="grid grid-cols-1 gap-4 motion-safe:animate-fade-in lg:grid-cols-12">
-            <GeneralStatsScoreCard
-                percentual={stats.percentual}
-                progressColor={stats.progressColor}
-            />
+        <div className="space-y-3 motion-safe:animate-fade-in">
+            <dl className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-[#d8e4eb] bg-[#d8e4eb] shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800 dark:bg-slate-800 sm:grid-cols-2 xl:grid-cols-3">
+                <GeneralStatsScoreCard
+                    percentual={stats.percentual}
+                    progressColor={stats.progressColor}
+                />
 
-            <GeneralStatsMetrics
-                stats={stats}
-                sparklinePlanejado={sparklineData.planejado}
-                sparklineEntregue={sparklineData.entregue}
-            />
+                <GeneralStatsMetrics
+                    stats={stats}
+                    sparklinePlanejado={sparklineData.planejado}
+                    sparklineEntregue={sparklineData.entregue}
+                />
+            </dl>
+            {stats.gap ? <GapIndicatorCard gap={stats.gap} /> : null}
         </div>
     );
 });

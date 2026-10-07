@@ -1,7 +1,5 @@
 import React from 'react';
-import { CalendarDays, TrendingUp } from 'lucide-react';
 import { AderenciaDia } from '@/types';
-import { SaasMetric, SaasPanel, SaasPanelHeader } from '@/components/views/shared/SaasPrimitives';
 import { useDailyPerformanceData } from './hooks/useDailyPerformanceData';
 import { DailyPerformanceCard } from './components/DailyPerformanceCard';
 
@@ -33,27 +31,28 @@ export const DashboardDailyPerformance = React.memo(function DashboardDailyPerfo
     const media = resumo.total / aderenciaDiaOrdenada.length;
 
     return (
-        <SaasPanel>
-            <SaasPanelHeader
-                eyebrow="Semana operacional"
-                title="Leitura diária consolidada"
-                description="Acompanhe aderência, horas realizadas, meta e corridas por dia sem duplicidade de indicadores."
-                icon={CalendarDays}
-                actions={(
-                    <div className="grid min-w-[280px] grid-cols-2 gap-2">
-                        <SaasMetric label="Média" value={`${media.toFixed(1)}%`} />
-                        <SaasMetric
-                            label={`Melhor: ${resumo.melhor.label.substring(0, 3)}`}
-                            value={`${resumo.melhor.valor.toFixed(1)}%`}
-                            icon={TrendingUp}
-                            tone="emerald"
-                        />
+        <section aria-labelledby="overview-daily-title" className="min-w-0 overflow-hidden rounded-xl border border-[#d8e4eb] bg-white shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800 dark:bg-slate-900">
+            <header className="flex min-w-0 flex-col gap-3 border-b border-[#e2ebf0] px-4 py-4 dark:border-slate-800 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
+                <div className="min-w-0">
+                    <h2 id="overview-daily-title" className="text-[15px] font-semibold tracking-tight text-[#183f58] dark:text-slate-100">Evolução diária</h2>
+                    <p className="mt-0.5 text-xs leading-5 text-slate-500 dark:text-slate-400">Aderência, horas realizadas, meta e corridas por dia.</p>
+                </div>
+                <dl className="grid grid-cols-2 gap-x-5 gap-y-2 border-t border-[#e2ebf0] pt-3 dark:border-slate-800 sm:w-fit sm:gap-x-6 lg:border-0 lg:pt-0">
+                    <div>
+                        <dt className="text-[10px] font-medium text-slate-500 dark:text-slate-400">Média do período</dt>
+                        <dd className="mt-0.5 text-sm font-semibold tabular-nums text-[#183f58] dark:text-slate-100">{media.toFixed(1)}%</dd>
                     </div>
-                )}
-            />
+                    <div>
+                        <dt className="text-[10px] font-medium text-slate-500 dark:text-slate-400">Melhor dia</dt>
+                        <dd className="mt-0.5 truncate text-sm font-semibold tabular-nums text-[#183f58] dark:text-slate-100" title={resumo.melhor.label}>
+                            {resumo.melhor.label} <span className="text-[#347ca3] dark:text-sky-300">{resumo.melhor.valor.toFixed(1)}%</span>
+                        </dd>
+                    </div>
+                </dl>
+            </header>
 
-            <div className="subtle-scrollbar overflow-x-auto p-3 sm:p-4">
-                <div className="grid min-w-[1180px] grid-cols-7 overflow-hidden rounded-2xl border border-slate-200/70 bg-slate-50/80 shadow-inner dark:border-slate-800/80 dark:bg-slate-900/40">
+            <div className="subtle-scrollbar overflow-x-auto">
+                <div className="grid min-w-[1180px] grid-cols-7 divide-x divide-[#e2ebf0] dark:divide-slate-800">
                     {aderenciaDiaOrdenada.map((dia, index) => (
                         <DailyPerformanceCard
                             key={`dia-${index}`}
@@ -63,7 +62,7 @@ export const DashboardDailyPerformance = React.memo(function DashboardDailyPerfo
                     ))}
                 </div>
             </div>
-        </SaasPanel>
+        </section>
     );
 });
 

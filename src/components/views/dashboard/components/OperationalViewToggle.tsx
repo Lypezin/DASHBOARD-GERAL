@@ -14,7 +14,7 @@ interface OperationalViewToggleProps {
 const options: Array<{ mode: ViewMode; label: string; icon: React.ElementType }> = [
   { mode: 'dia', label: 'Dia', icon: CalendarDays },
   { mode: 'turno', label: 'Turno', icon: Clock3 },
-  { mode: 'sub_praca', label: 'Sub Praca', icon: MapPin },
+  { mode: 'sub_praca', label: 'Sub-praça', icon: MapPin },
   { mode: 'origem', label: 'Origem', icon: Route },
   { mode: 'ranking', label: 'Ranking', icon: Trophy },
 ];
@@ -25,28 +25,31 @@ export const OperationalViewToggle: React.FC<OperationalViewToggleProps> = ({
   className
 }) => {
   return (
-    <SaasSegmentedControl className={className}>
-      {options.map(({ mode, label, icon: Icon }) => {
-        const isActive = viewMode === mode;
-        return (
-          <button
-            key={mode}
-            onClick={() => onViewModeChange(mode)}
-            type="button"
-            className={cn(
-              "inline-flex h-10 items-center justify-center gap-2 whitespace-nowrap rounded-xl px-3.5 text-xs font-semibold transition-[background-color,color,box-shadow,transform] duration-200",
-              "focus:outline-none focus:ring-2 focus:ring-emerald-500/20",
-              isActive
-                ? "bg-white text-slate-950 shadow-[0_8px_22px_-16px_rgba(15,23,42,0.65)] ring-1 ring-slate-200/70 dark:bg-slate-950 dark:text-slate-50 dark:ring-slate-800"
-                : "text-slate-500 hover:-translate-y-0.5 hover:bg-white/70 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-100"
-            )}
-          >
-            <Icon className={cn("h-3.5 w-3.5", isActive ? "text-emerald-500" : "text-slate-400")} />
-            {label}
-          </button>
-        );
-      })}
-    </SaasSegmentedControl>
+    <div role="group" aria-label="Dimensão do detalhamento" className="min-w-0 max-w-full">
+      <SaasSegmentedControl className={className}>
+        {options.map(({ mode, label, icon: Icon }) => {
+          const isActive = viewMode === mode;
+          return (
+            <button
+              key={mode}
+              onClick={() => onViewModeChange(mode)}
+              type="button"
+              className={cn(
+                "inline-flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs font-semibold transition-colors duration-150",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600/30",
+                isActive
+                  ? "bg-[#174d70] text-white shadow-sm dark:bg-sky-800 dark:text-white"
+                  : "text-slate-600 hover:bg-white hover:text-[#174d70] dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100"
+              )}
+              aria-pressed={isActive}
+            >
+              <Icon className={cn("h-3.5 w-3.5", isActive ? "text-sky-100" : "text-slate-400")} aria-hidden="true" />
+              {label}
+            </button>
+          );
+        })}
+      </SaasSegmentedControl>
+    </div>
   );
 };
 

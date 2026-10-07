@@ -36,7 +36,7 @@ export const DashboardFiltersContainer = React.memo(function DashboardFiltersCon
     return null;
   }
 
-  const isQuietOperationalTab = ['entregadores', 'valores', 'utr', 'analise'].includes(activeTab);
+  const isQuietOperationalTab = ['dashboard', 'entregadores', 'valores', 'utr', 'analise'].includes(activeTab);
 
   return (
     <div

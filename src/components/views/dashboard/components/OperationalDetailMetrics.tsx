@@ -1,5 +1,4 @@
 import React from 'react';
-import { Clock, CheckCircle2 } from 'lucide-react';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { cn } from '@/lib/utils';
 
@@ -18,49 +17,17 @@ export const OperationalDetailMetrics: React.FC<OperationalDetailMetricsProps> =
   const real = formatarHorasParaHMS(horasEntregues);
 
   return (
-    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-      <MetricTile
-        icon={Clock}
-        label="Meta"
-        value={meta}
-        title={meta}
-        className="text-slate-600 dark:text-slate-300"
-      />
-      <MetricTile
-        icon={CheckCircle2}
-        label="Real"
-        value={real}
-        title={real}
-        className={statusColor}
-      />
-    </div>
+    <dl className="grid grid-cols-2 divide-x divide-[#e2ebf0] border-y border-[#e2ebf0] py-2.5 dark:divide-slate-800 dark:border-slate-800">
+      <div className="min-w-0 pr-3">
+        <dt className="text-[10px] text-slate-500 dark:text-slate-400">Horas planejadas</dt>
+        <dd className="mt-0.5 truncate font-mono text-xs font-semibold tabular-nums text-slate-700 dark:text-slate-200" title={meta}>{meta}</dd>
+      </div>
+      <div className="min-w-0 pl-3">
+        <dt className="text-[10px] text-slate-500 dark:text-slate-400">Horas entregues</dt>
+        <dd className={cn("mt-0.5 truncate font-mono text-xs font-semibold tabular-nums", statusColor)} title={real}>{real}</dd>
+      </div>
+    </dl>
   );
 };
-
-function MetricTile({
-  icon: Icon,
-  label,
-  value,
-  title,
-  className,
-}: {
-  icon: React.ElementType;
-  label: string;
-  value: string;
-  title: string;
-  className: string;
-}) {
-  return (
-    <div className="min-w-0 rounded-2xl border border-slate-200/70 bg-white/80 px-3 py-2.5 shadow-sm transition-colors duration-200 group-hover:bg-white dark:border-slate-800/80 dark:bg-slate-900/50 dark:group-hover:bg-slate-900/75">
-      <div className="mb-1 flex items-center gap-1.5 text-slate-400">
-        <Icon className="h-3.5 w-3.5" />
-        <span className="text-[10px] font-semibold uppercase tracking-[0.14em]">{label}</span>
-      </div>
-      <span className={cn("block whitespace-nowrap font-mono text-[13px] font-semibold tabular-nums", className)} title={title}>
-        {value}
-      </span>
-    </div>
-  );
-}
 
 export default OperationalDetailMetrics;
