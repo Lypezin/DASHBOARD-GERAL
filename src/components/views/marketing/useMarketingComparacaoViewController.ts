@@ -41,7 +41,7 @@ export function useMarketingComparacaoViewController(filters: DashboardFilters) 
     // Handle "Todas" or null praca
     const praca = (filters.praca && filters.praca !== 'Todas') ? filters.praca : null;
 
-    const { data, loading, error } = useMarketingComparacao(
+    const { data, loading, error, refetch } = useMarketingComparacao(
         dataInicial,
         dataFinal,
         user?.organization_id || undefined,
@@ -81,6 +81,7 @@ export function useMarketingComparacaoViewController(filters: DashboardFilters) 
         data,
         loading: authLoading || loading,
         error,
+        refetch,
         totals,
         praca
     };

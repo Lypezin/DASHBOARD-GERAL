@@ -21,25 +21,32 @@ export const MarketingComparacaoRow = React.memo(function MarketingComparacaoRow
     row,
     onSelectWeek,
 }: MarketingComparacaoRowProps) {
+    const weekNumber = extractWeekNumber(row.semana_iso);
+    const [weekYear = ''] = row.semana_iso.split('-W');
+    const weekLabel = weekYear && weekNumber
+        ? `Semana ${weekNumber} de ${weekYear}`
+        : `Semana ${weekNumber}`;
+
     return (
-        <TableRow className="group border-b border-slate-50 transition-all duration-200 hover:bg-slate-50/80 dark:border-slate-800/50 dark:hover:bg-slate-800/50">
-            <TableCell className="whitespace-nowrap py-4 pl-6 font-medium">
-                <div className="flex items-center gap-2">
-                    <span className="rounded bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600 dark:bg-slate-800 dark:text-slate-300">
-                        S{extractWeekNumber(row.semana_iso)}
+        <TableRow className="border-b border-slate-100 transition-colors duration-150 hover:bg-[#f8fbfc] dark:border-slate-800 dark:hover:bg-slate-900/60">
+            <TableCell className="whitespace-nowrap py-3 pl-4 font-medium">
+                <div className="flex min-w-[72px] flex-col items-start">
+                    <span aria-label={weekLabel} className="text-sm font-semibold text-[#183f58] dark:text-slate-100">
+                        S{weekNumber}
                     </span>
+                    {weekYear ? <span className="text-[11px] text-slate-500 dark:text-slate-400">{weekYear}</span> : null}
                 </div>
             </TableCell>
-            <TableCell className="py-4 text-center">
+            <TableCell className="py-2 text-center">
                 <Button
                     variant="ghost"
-                    size="sm"
-                    className="h-8 w-8 p-0 text-blue-500 opacity-0 transition-all hover:bg-blue-50 group-hover:opacity-100 dark:hover:bg-blue-900/20"
+                    size="icon"
+                    className="h-9 w-9 text-[#38708e] transition-colors duration-150 hover:bg-[#eef4f7] hover:text-[#174d70] focus-visible:ring-2 focus-visible:ring-[#38708e] dark:text-sky-300 dark:hover:bg-slate-800 dark:hover:text-sky-200"
                     onClick={() => onSelectWeek(row.semana_iso)}
-                    title="Ver detalhes"
+                    aria-label={`Ver detalhes de ${weekLabel}`}
+                    title={`Ver detalhes de ${weekLabel}`}
                 >
-                    <Search className="h-4 w-4" />
-                    <span className="sr-only">Ver detalhes</span>
+                    <Search className="h-4 w-4" aria-hidden="true" />
                 </Button>
             </TableCell>
 

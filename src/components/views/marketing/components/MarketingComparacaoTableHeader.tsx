@@ -3,39 +3,39 @@ import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 export const MarketingComparacaoTableHeader = React.memo(function MarketingComparacaoTableHeader() {
     return (
-        <TableHeader>
-            <TableRow className="border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900">
-                <TableHead rowSpan={2} className="w-[100px] pl-4 font-semibold text-slate-500 dark:text-slate-400">Semana</TableHead>
-                <TableHead rowSpan={2} className="w-[50px] text-center font-semibold text-slate-500 dark:text-slate-400">Ver</TableHead>
-                <TableHead colSpan={2} className="border-l border-slate-100 text-center font-semibold text-sky-600 dark:border-slate-800 dark:text-sky-300">Entregadores</TableHead>
-                <TableHead colSpan={2} className="border-l border-slate-100 text-center font-semibold text-slate-600 dark:border-slate-800 dark:text-slate-300">Horas Logadas</TableHead>
-                <TableHead colSpan={2} className="border-l border-slate-100 text-center font-semibold text-slate-600 dark:border-slate-800 dark:text-slate-300">Ofertadas</TableHead>
-                <TableHead colSpan={2} className="border-l border-slate-100 text-center font-semibold text-slate-600 dark:border-slate-800 dark:text-slate-300">Aceitas</TableHead>
-                <TableHead colSpan={2} className="border-l border-slate-100 text-center font-semibold text-slate-600 dark:border-slate-800 dark:text-slate-300">Completas</TableHead>
-                <TableHead colSpan={2} className="border-l border-slate-100 text-center font-semibold text-slate-600 dark:border-slate-800 dark:text-slate-300">Rejeitadas</TableHead>
-                <TableHead colSpan={2} className="border-l border-slate-100 text-center font-semibold text-amber-600 dark:border-slate-800 dark:text-amber-400">Valor (R$)</TableHead>
+        <TableHeader className="bg-[#f6f9fb] dark:bg-slate-900">
+            <TableRow className="border-b border-[#d8e4eb] hover:bg-transparent dark:border-slate-800">
+                <TableHead scope="col" rowSpan={2} className="w-[100px] whitespace-nowrap pl-4 text-xs font-semibold text-slate-600 dark:text-slate-300">Semana</TableHead>
+                <TableHead scope="col" rowSpan={2} className="w-[88px] whitespace-nowrap text-center text-xs font-semibold text-slate-600 dark:text-slate-300">Detalhes</TableHead>
+                <TableHead scope="colgroup" colSpan={2} className="border-l border-[#e2ebf0] text-center text-xs font-semibold text-[#183f58] dark:border-slate-800 dark:text-slate-200">Entregadores</TableHead>
+                <TableHead scope="colgroup" colSpan={2} className="border-l border-[#e2ebf0] text-center text-xs font-semibold text-[#183f58] dark:border-slate-800 dark:text-slate-200">Horas logadas</TableHead>
+                <TableHead scope="colgroup" colSpan={2} className="border-l border-[#e2ebf0] text-center text-xs font-semibold text-[#183f58] dark:border-slate-800 dark:text-slate-200">Ofertadas</TableHead>
+                <TableHead scope="colgroup" colSpan={2} className="border-l border-[#e2ebf0] text-center text-xs font-semibold text-[#183f58] dark:border-slate-800 dark:text-slate-200">Aceitas</TableHead>
+                <TableHead scope="colgroup" colSpan={2} className="border-l border-[#e2ebf0] text-center text-xs font-semibold text-[#183f58] dark:border-slate-800 dark:text-slate-200">Completadas</TableHead>
+                <TableHead scope="colgroup" colSpan={2} className="border-l border-[#e2ebf0] text-center text-xs font-semibold text-[#183f58] dark:border-slate-800 dark:text-slate-200">Rejeitadas</TableHead>
+                <TableHead scope="colgroup" colSpan={2} className="border-l border-[#e2ebf0] text-center text-xs font-semibold text-[#183f58] dark:border-slate-800 dark:text-slate-200">Valor (R$)</TableHead>
             </TableRow>
-            <TableRow className="border-b border-slate-100 hover:bg-transparent dark:border-slate-800">
-                <TableHead className="border-l border-slate-100 px-1 text-right text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:border-slate-800">Ops</TableHead>
-                <TableHead className="min-w-[50px] px-1 text-right text-[10px] font-bold uppercase tracking-wider text-sky-500 dark:text-sky-300">Mkt</TableHead>
+            <TableRow className="border-b border-[#d8e4eb] hover:bg-transparent dark:border-slate-800">
+                <TableHead scope="col" className="border-l border-[#e2ebf0] px-2 text-right text-[11px] font-medium text-slate-500 dark:border-slate-800 dark:text-slate-400">Ops</TableHead>
+                <TableHead scope="col" className="min-w-[50px] px-2 text-right text-[11px] font-semibold text-[#38708e] dark:text-sky-300">Mkt</TableHead>
 
-                <TableHead className="border-l border-slate-100 px-1 text-right text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:border-slate-800">Ops</TableHead>
-                <TableHead className="min-w-[60px] px-1 text-right text-[10px] font-bold uppercase tracking-wider text-sky-500 dark:text-sky-300">Mkt</TableHead>
+                <TableHead scope="col" className="border-l border-[#e2ebf0] px-2 text-right text-[11px] font-medium text-slate-500 dark:border-slate-800 dark:text-slate-400">Ops</TableHead>
+                <TableHead scope="col" className="min-w-[60px] px-2 text-right text-[11px] font-semibold text-[#38708e] dark:text-sky-300">Mkt</TableHead>
 
-                <TableHead className="border-l border-slate-100 px-1 text-right text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:border-slate-800">Ops</TableHead>
-                <TableHead className="min-w-[50px] px-1 text-right text-[10px] font-bold uppercase tracking-wider text-sky-500 dark:text-sky-300">Mkt</TableHead>
+                <TableHead scope="col" className="border-l border-[#e2ebf0] px-2 text-right text-[11px] font-medium text-slate-500 dark:border-slate-800 dark:text-slate-400">Ops</TableHead>
+                <TableHead scope="col" className="min-w-[50px] px-2 text-right text-[11px] font-semibold text-[#38708e] dark:text-sky-300">Mkt</TableHead>
 
-                <TableHead className="border-l border-slate-100 px-1 text-right text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:border-slate-800">Ops</TableHead>
-                <TableHead className="min-w-[50px] px-1 text-right text-[10px] font-bold uppercase tracking-wider text-sky-500 dark:text-sky-300">Mkt</TableHead>
+                <TableHead scope="col" className="border-l border-[#e2ebf0] px-2 text-right text-[11px] font-medium text-slate-500 dark:border-slate-800 dark:text-slate-400">Ops</TableHead>
+                <TableHead scope="col" className="min-w-[50px] px-2 text-right text-[11px] font-semibold text-[#38708e] dark:text-sky-300">Mkt</TableHead>
 
-                <TableHead className="border-l border-slate-100 px-1 text-right text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:border-slate-800">Ops</TableHead>
-                <TableHead className="min-w-[50px] px-1 text-right text-[10px] font-bold uppercase tracking-wider text-sky-500 dark:text-sky-300">Mkt</TableHead>
+                <TableHead scope="col" className="border-l border-[#e2ebf0] px-2 text-right text-[11px] font-medium text-slate-500 dark:border-slate-800 dark:text-slate-400">Ops</TableHead>
+                <TableHead scope="col" className="min-w-[50px] px-2 text-right text-[11px] font-semibold text-[#38708e] dark:text-sky-300">Mkt</TableHead>
 
-                <TableHead className="border-l border-slate-100 px-1 text-right text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:border-slate-800">Ops</TableHead>
-                <TableHead className="min-w-[50px] px-1 text-right text-[10px] font-bold uppercase tracking-wider text-sky-500 dark:text-sky-300">Mkt</TableHead>
+                <TableHead scope="col" className="border-l border-[#e2ebf0] px-2 text-right text-[11px] font-medium text-slate-500 dark:border-slate-800 dark:text-slate-400">Ops</TableHead>
+                <TableHead scope="col" className="min-w-[50px] px-2 text-right text-[11px] font-semibold text-[#38708e] dark:text-sky-300">Mkt</TableHead>
 
-                <TableHead className="border-l border-slate-100 px-1 text-right text-[10px] font-medium uppercase tracking-wider text-slate-400 dark:border-slate-800">Ops</TableHead>
-                <TableHead className="min-w-[70px] px-1 pr-4 text-right text-[10px] font-bold uppercase tracking-wider text-sky-500 dark:text-sky-300">Mkt</TableHead>
+                <TableHead scope="col" className="border-l border-[#e2ebf0] px-2 text-right text-[11px] font-medium text-slate-500 dark:border-slate-800 dark:text-slate-400">Ops</TableHead>
+                <TableHead scope="col" className="min-w-[70px] px-2 pr-4 text-right text-[11px] font-semibold text-[#38708e] dark:text-sky-300">Mkt</TableHead>
             </TableRow>
         </TableHeader>
     );

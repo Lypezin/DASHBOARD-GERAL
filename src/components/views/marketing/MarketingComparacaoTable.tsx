@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-    Table,
     TableBody,
     TableCell,
     TableRow,
@@ -36,8 +35,9 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
     const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
 
     return (
-        <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
-            <Table className="min-w-[1120px]">
+        <div className="subtle-scrollbar overflow-auto overscroll-x-contain focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#38708e]" role="region" aria-label="Tabela do comparativo semanal" tabIndex={0}>
+            <table className="w-full min-w-[1120px] text-sm">
+                <caption className="sr-only">Comparação semanal entre as métricas de Operacional e Marketing. Use o botão de detalhes para consultar os entregadores de cada semana.</caption>
                 <MarketingComparacaoTableHeader />
                 <TableBody>
                     {data.length === 0 ? (
@@ -56,7 +56,7 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
                         ))
                     )}
                 </TableBody>
-            </Table>
+            </table>
 
             <MarketingDriverDetailModal
                 isOpen={!!selectedWeek}
