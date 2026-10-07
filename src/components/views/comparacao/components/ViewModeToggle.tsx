@@ -16,7 +16,7 @@ export const ViewModeToggle: React.FC<ViewModeToggleProps> = ({
     const isSmall = size === 'sm';
 
     return (
-        <SaasSegmentedControl>
+        <SaasSegmentedControl className="rounded-lg border-[#d8e4eb] bg-[#f4f8fa] p-0.5 shadow-none dark:border-slate-800 dark:bg-slate-900/70">
             <ModeButton
                 active={viewMode === 'table'}
                 onClick={() => onViewModeChange('table')}
@@ -28,7 +28,7 @@ export const ViewModeToggle: React.FC<ViewModeToggleProps> = ({
                 active={viewMode === 'chart'}
                 onClick={() => onViewModeChange('chart')}
                 icon={BarChart2}
-                label="Grafico"
+                label="Gráfico"
                 small={isSmall}
             />
         </SaasSegmentedControl>
@@ -52,9 +52,10 @@ function ModeButton({
         <button
             onClick={onClick}
             type="button"
-            className={`${small ? 'h-8 px-3 text-[11px]' : 'h-9 px-3.5 text-xs'} inline-flex items-center gap-1.5 rounded-xl font-semibold transition-[background-color,color,box-shadow,transform] duration-200 ${active
-                ? 'bg-white text-slate-950 shadow-sm ring-1 ring-slate-200/70 dark:bg-slate-950 dark:text-slate-50 dark:ring-slate-800'
-                : 'text-slate-500 hover:-translate-y-0.5 hover:bg-white/70 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-100'
+            aria-pressed={active}
+            className={`${small ? 'h-7 px-2.5 text-[11px]' : 'h-8 px-3 text-xs'} inline-flex items-center gap-1.5 rounded-md font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#38708e] focus-visible:ring-offset-1 ${active
+                ? 'bg-white text-[#183f58] shadow-sm ring-1 ring-[#d8e4eb] dark:bg-slate-800 dark:text-slate-100 dark:ring-slate-700'
+                : 'text-slate-500 hover:bg-white/70 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-100'
                 }`}
         >
             <Icon className={small ? 'h-3 w-3' : 'h-3.5 w-3.5'} />

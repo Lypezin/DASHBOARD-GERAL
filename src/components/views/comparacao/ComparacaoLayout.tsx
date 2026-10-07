@@ -67,7 +67,7 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
         actions.retryData,
     ]);
     return (
-        <ViewContainer className="space-y-8 pb-8">
+        <ViewContainer className="space-y-5 pb-10 pt-4">
             <ComparacaoFilters
                 pracas={pracas}
                 todasSemanas={data.todasSemanas}
@@ -96,12 +96,12 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                     </div>
                 ) : (state.error || data.utrError) && !hasComparisonData ? (
                     <div
-                        className="rounded-[2rem] border border-rose-200/70 bg-white/95 px-4 py-16 text-center shadow-[0_20px_60px_-44px_rgba(190,24,93,0.35)] dark:border-rose-900/40 dark:bg-slate-950/80"
+                        className="rounded-xl border border-rose-200 bg-white px-4 py-12 text-center dark:border-rose-900/40 dark:bg-slate-950/80"
                     >
-                        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-rose-100/90 dark:bg-rose-950/50">
-                            <AlertCircle className="h-8 w-8 text-rose-500 dark:text-rose-300" />
+                        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-rose-50 dark:bg-rose-950/40">
+                            <AlertCircle className="h-6 w-6 text-rose-600 dark:text-rose-300" />
                         </div>
-                        <h2 className="mb-2 text-xl font-bold text-slate-900 dark:text-white">
+                        <h2 className="mb-2 text-lg font-semibold text-slate-900 dark:text-white">
                             {state.error ? 'Erro ao carregar comparação' : 'Erro ao carregar UTR'}
                         </h2>
                         <p className="mx-auto max-w-md leading-relaxed text-slate-500 dark:text-slate-400">
@@ -109,39 +109,39 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                         </p>
                         <button
                             onClick={actions.retryData}
-                            className="mt-6 rounded-full bg-rose-500 px-6 py-2 text-xs font-bold uppercase tracking-widest text-white shadow-md shadow-rose-500/20 transition-[background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:bg-rose-600"
+                            className="mt-5 rounded-lg bg-rose-700 px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-rose-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-600 focus-visible:ring-offset-2"
                         >
                             Tentar novamente
                         </button>
                     </div>
                 ) : state.semanasSelecionadas.length > 2 ? (
                     <div
-                        className="rounded-[2rem] border border-slate-200/80 bg-white/95 px-4 py-20 text-center shadow-[0_24px_70px_-50px_rgba(15,23,42,0.34)] dark:border-slate-800/80 dark:bg-slate-950/80"
+                        className="rounded-xl border border-[#d8e4eb] bg-white px-4 py-14 text-center dark:border-slate-800 dark:bg-slate-950/80"
                     >
-                        <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-sky-50 dark:bg-sky-950/30">
-                            <Calendar className="h-10 w-10 text-sky-500 dark:text-sky-300" />
+                        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-sky-50 dark:bg-sky-950/30">
+                            <Calendar className="h-6 w-6 text-[#38708e] dark:text-sky-300" />
                         </div>
-                        <h2 className="mb-3 text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                        <h2 className="mb-2 text-lg font-semibold text-slate-900 dark:text-white">
                             Limite de comparação excedido
                         </h2>
-                        <p className="mx-auto mb-8 max-w-md leading-relaxed text-slate-500 dark:text-slate-400">
-                            Para manter leitura e precisão, a aba de comparação suporta no máximo <span className="font-bold text-sky-600 dark:text-sky-300">2 semanas</span> simultâneas.
+                        <p className="mx-auto mb-6 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-400">
+                            Para manter a leitura clara, compare até <span className="font-semibold text-[#285d79] dark:text-sky-200">2 semanas</span> por vez.
                         </p>
                         <button
                             onClick={actions.limparSemanas}
-                            className="rounded-full bg-slate-900 px-8 py-3 text-sm font-bold uppercase tracking-widest text-white shadow-md shadow-slate-900/10 transition-[background-color,color,box-shadow,transform] duration-200 hover:-translate-y-0.5 dark:bg-white dark:text-slate-900 dark:shadow-white/5"
+                            className="rounded-lg bg-[#174d70] px-4 py-2 text-sm font-semibold text-white transition-colors duration-150 hover:bg-[#103c59] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#38708e] focus-visible:ring-offset-2 dark:bg-white dark:text-[#174d70] dark:hover:bg-slate-100"
                         >
                             Reajustar seleção
                         </button>
                     </div>
                 ) : state.semanasSelecionadas.length < 2 ? (
                     <div
-                        className="rounded-[2rem] border border-slate-200/80 bg-white/95 px-4 py-16 text-center shadow-[0_24px_70px_-50px_rgba(15,23,42,0.24)] dark:border-slate-800/80 dark:bg-slate-950/80"
+                        className="rounded-xl border border-[#d8e4eb] bg-white px-4 py-12 text-center dark:border-slate-800 dark:bg-slate-950/80"
                     >
-                        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-sky-50 dark:bg-sky-950/30">
-                            <Calendar className="h-8 w-8 text-sky-500 dark:text-sky-300" />
+                        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-sky-50 dark:bg-sky-950/30">
+                            <Calendar className="h-6 w-6 text-[#38708e] dark:text-sky-300" />
                         </div>
-                        <h2 className="mb-2 text-xl font-bold text-slate-900 dark:text-white">
+                        <h2 className="mb-2 text-lg font-semibold text-slate-900 dark:text-white">
                             Selecione duas semanas para comparar
                         </h2>
                         <p className="mx-auto max-w-md leading-relaxed text-slate-500 dark:text-slate-400">
@@ -150,12 +150,12 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                     </div>
                 ) : !hasComparisonData ? (
                     <div
-                        className="rounded-[2rem] border border-slate-200/80 bg-white/95 px-4 py-16 text-center shadow-[0_24px_70px_-50px_rgba(15,23,42,0.24)] dark:border-slate-800/80 dark:bg-slate-950/80"
+                        className="rounded-xl border border-[#d8e4eb] bg-white px-4 py-12 text-center dark:border-slate-800 dark:bg-slate-950/80"
                     >
-                        <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800">
-                            <Calendar className="h-8 w-8 text-slate-500 dark:text-slate-300" />
+                        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800">
+                            <Calendar className="h-6 w-6 text-slate-600 dark:text-slate-300" />
                         </div>
-                        <h2 className="mb-2 text-xl font-bold text-slate-900 dark:text-white">
+                        <h2 className="mb-2 text-lg font-semibold text-slate-900 dark:text-white">
                             Nenhum dado encontrado para essa combinação
                         </h2>
                         <p className="mx-auto max-w-md leading-relaxed text-slate-500 dark:text-slate-400">
@@ -167,12 +167,12 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                         className="min-w-0"
                     >
                         {state.loading ? (
-                            <div className="mb-4 rounded-2xl border border-sky-200/70 bg-sky-50/80 px-4 py-3 text-sm font-semibold text-sky-800 shadow-sm dark:border-sky-900/50 dark:bg-sky-950/25 dark:text-sky-200">
+                            <div className="mb-4 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-medium text-sky-900 dark:border-sky-900/50 dark:bg-sky-950/25 dark:text-sky-200">
                                 Atualizando comparação com os filtros atuais...
                             </div>
                         ) : null}
                                 {state.error ? (
-                            <div className="mb-4 rounded-2xl border border-amber-200/70 bg-amber-50/85 px-4 py-3 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
+                            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
                                 Não foi possível atualizar todos os dados da comparação. Exibindo a última resposta válida.
                             </div>
                         ) : null}

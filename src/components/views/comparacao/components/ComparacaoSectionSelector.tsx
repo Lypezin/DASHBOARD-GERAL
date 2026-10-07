@@ -54,9 +54,10 @@ export const ComparacaoSectionSelector: React.FC<ComparacaoSectionSelectorProps>
             <button
                 ref={triggerRef}
                 onClick={() => setOpen((prev) => !prev)}
-                className={`inline-flex items-center gap-2.5 rounded-full border px-4 py-2.5 text-[11px] font-bold uppercase tracking-[0.18em] transition-[background-color,border-color,color,box-shadow,transform] duration-200 ${open
-                    ? 'border-slate-900 bg-slate-900 text-white shadow-[0_16px_30px_-22px_rgba(15,23,42,0.7)] dark:border-white dark:bg-white dark:text-slate-900'
-                    : 'border-slate-200/80 bg-white/90 text-slate-500 shadow-sm hover:-translate-y-0.5 hover:border-sky-300 hover:text-sky-600 dark:border-slate-800/80 dark:bg-slate-950 dark:text-slate-400 dark:hover:border-sky-500/50 dark:hover:text-sky-300'
+                aria-expanded={open}
+                className={`inline-flex h-9 items-center gap-2 rounded-lg border px-3 text-xs font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#174d70] ${open
+                    ? 'border-white bg-white text-[#174d70]'
+                    : 'border-white/25 bg-white/10 text-white hover:border-white/40 hover:bg-white/20'
                     }`}
                 title="Escolher seções visíveis"
                 type="button"
@@ -64,7 +65,7 @@ export const ComparacaoSectionSelector: React.FC<ComparacaoSectionSelectorProps>
                 <LayoutDashboard className="h-3.5 w-3.5" />
                 <span className="hidden sm:inline">Exibição</span>
                 {totalVisiveis < total ? (
-                    <span className={`inline-flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-black ${open ? 'bg-white/20 text-white dark:bg-slate-900/10 dark:text-slate-900' : 'bg-sky-500 text-white'}`}>
+                    <span className={`inline-flex h-4 w-4 items-center justify-center rounded-full text-[9px] font-bold ${open ? 'bg-[#174d70]/10 text-[#174d70]' : 'bg-white/20 text-white'}`}>
                         {totalVisiveis}
                     </span>
                 ) : null}
@@ -75,10 +76,10 @@ export const ComparacaoSectionSelector: React.FC<ComparacaoSectionSelectorProps>
                     <div
                         ref={dropdownRef}
                         style={{ left: position.left, top: position.top, width: position.width, maxHeight: position.maxHeight }}
-                        className="fixed z-[100000] overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white/95 p-3 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.42)] backdrop-blur-xl animate-in fade-in-0 zoom-in-95 slide-in-from-top-1 duration-150 dark:border-slate-800/70 dark:bg-slate-950/95 dark:shadow-black/40"
+                        className="fixed z-[100000] overflow-hidden rounded-xl border border-slate-200 bg-white p-2.5 shadow-[0_12px_34px_-22px_rgba(15,23,42,0.4)] animate-in fade-in-0 zoom-in-95 slide-in-from-top-1 duration-150 dark:border-slate-800 dark:bg-slate-950 dark:shadow-black/40"
                     >
-                        <div className="mb-2 px-4 py-2">
-                            <p className="text-[10px] font-black uppercase tracking-[0.22em] text-slate-400 dark:text-slate-500">
+                        <div className="mb-2 px-2 py-1.5">
+                            <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">
                                 Configurar exibição
                             </p>
                         </div>
@@ -91,13 +92,13 @@ export const ComparacaoSectionSelector: React.FC<ComparacaoSectionSelectorProps>
                                     <button
                                         key={secao.id}
                                         onClick={() => onToggleSecao(secao.id)}
-                                        className="group flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                                        className="group flex w-full items-center gap-3 rounded-md px-2.5 py-2 text-left transition-colors hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600 focus-visible:ring-inset dark:hover:bg-slate-800/50"
                                         type="button"
                                         title={secao.label}
                                     >
                                         <div
-                                            className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-lg border-2 transition-all ${isVisible
-                                                ? 'border-sky-500 bg-sky-500 shadow-[0_10px_24px_-16px_rgba(14,165,233,0.9)]'
+                                            className={`flex h-4 w-4 shrink-0 items-center justify-center rounded border transition-colors ${isVisible
+                                                ? 'border-[#174d70] bg-[#174d70]'
                                                 : 'border-slate-200 bg-transparent group-hover:border-slate-300 dark:border-slate-800 dark:group-hover:border-slate-700'
                                                 }`}
                                         >

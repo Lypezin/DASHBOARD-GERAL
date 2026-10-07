@@ -4,7 +4,8 @@ import { DashboardResumoData } from '@/types';
 import { ComparacaoCharts } from './ComparacaoCharts';
 import { ComparacaoDiaTable } from './components/ComparacaoDiaTable';
 import { ViewModeToggle } from './components/ViewModeToggle';
-import { SaasPanel, SaasPanelHeader } from '@/components/views/shared/SaasPrimitives';
+import { SaasPanel } from '@/components/views/shared/SaasPrimitives';
+import { ComparacaoPanelHeader } from './ComparacaoSectionWrapper';
 
 interface ComparacaoSectionProps {
     title: string;
@@ -30,9 +31,8 @@ export const ComparacaoSection = React.memo(function ComparacaoSection({
 }: ComparacaoSectionProps) {
     if (type === 'dia') {
         return (
-            <SaasPanel>
-                <SaasPanelHeader
-                    eyebrow="Dias"
+            <SaasPanel className="rounded-xl border-[#d8e4eb] shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800">
+                <ComparacaoPanelHeader
                     title={title}
                     description={description}
                     icon={CalendarDays}

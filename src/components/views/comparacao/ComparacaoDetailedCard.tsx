@@ -3,7 +3,8 @@ import { BarChart3 } from 'lucide-react';
 import { ComparacaoTabelaDetalhada } from './ComparacaoTabelaDetalhada';
 import { ComparacaoCharts } from './ComparacaoCharts';
 import { ViewModeToggle } from './components/ViewModeToggle';
-import { SaasPanel, SaasPanelHeader } from '@/components/views/shared/SaasPrimitives';
+import { SaasPanel } from '@/components/views/shared/SaasPrimitives';
+import { ComparacaoPanelHeader } from './ComparacaoSectionWrapper';
 
 interface ComparacaoDetailedCardProps {
     dadosComparacao: any[];
@@ -19,11 +20,10 @@ export const ComparacaoDetailedCard = React.memo(function ComparacaoDetailedCard
     onViewModeChange
 }: ComparacaoDetailedCardProps) {
     return (
-        <SaasPanel>
-            <SaasPanelHeader
-                eyebrow="Detalhamento"
+        <SaasPanel className="rounded-xl border-[#d8e4eb] shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800">
+            <ComparacaoPanelHeader
                 title="Análise detalhada"
-                description="Comparativo consolidado entre as semanas selecionadas."
+                description="Indicadores consolidados das semanas selecionadas."
                 icon={BarChart3}
                 actions={<ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />}
             />

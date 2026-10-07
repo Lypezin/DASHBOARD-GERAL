@@ -4,7 +4,8 @@ import { DashboardResumoData } from '@/types';
 import { ComparacaoCharts } from './ComparacaoCharts';
 import { ComparacaoOrigemTable } from './ComparacaoOrigemTable';
 import { ViewModeToggle } from './components/ViewModeToggle';
-import { SaasPanel, SaasPanelHeader } from '@/components/views/shared/SaasPrimitives';
+import { SaasPanel } from '@/components/views/shared/SaasPrimitives';
+import { ComparacaoPanelHeader } from './ComparacaoSectionWrapper';
 
 interface ComparacaoOrigemSectionProps {
     dadosComparacao: DashboardResumoData[];
@@ -25,9 +26,8 @@ export const ComparacaoOrigemSection = React.memo(function ComparacaoOrigemSecti
     if (origensDisponiveis.length === 0) return null;
 
     return (
-        <SaasPanel>
-            <SaasPanelHeader
-                eyebrow="Origem"
+        <SaasPanel className="rounded-xl border-[#d8e4eb] shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800">
+            <ComparacaoPanelHeader
                 title="Por origem"
                 description="Comparativo por canal operacional."
                 icon={Route}

@@ -3,6 +3,7 @@ import { DashboardResumoData } from '@/types';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { METRICAS, formatVariation, getValorOrigemItem } from './helpers/comparacaoOrigemHelpers';
 import type { OrigemMetricItem } from './helpers/comparacaoOrigemHelpers';
+import { ComparacaoPanelHeader } from './ComparacaoSectionWrapper';
 
 interface ComparacaoOrigemDetalhadaProps {
     dadosComparacao: DashboardResumoData[];
@@ -36,11 +37,11 @@ export const ComparacaoOrigemDetalhada = React.memo(function ComparacaoOrigemDet
     const showVariation = dadosComparacao.length >= 2;
 
     return (
-        <div className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-[0_20px_58px_-46px_rgba(15,23,42,0.42)] dark:border-slate-800/80 dark:bg-slate-950/80 sm:rounded-[1.65rem]">
-            <div className="border-b border-slate-200/70 px-4 py-3 dark:border-slate-800/70 sm:px-6 sm:py-4">
-                <h3 className="text-sm font-semibold tracking-wide text-slate-900 dark:text-white">Analise detalhada por origem</h3>
-                <p className="mt-1 text-xs font-medium text-slate-400 dark:text-slate-500">{origens.length} origens comparadas</p>
-            </div>
+        <div className="overflow-hidden rounded-xl border border-[#d8e4eb] bg-white shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800 dark:bg-slate-950/80">
+            <ComparacaoPanelHeader
+                title="Análise detalhada por origem"
+                description={`${origens.length} origens comparadas`}
+            />
 
             <div className="max-h-[72vh] divide-y divide-slate-100 overflow-y-auto dark:divide-slate-800">
                 {origens.map((origem) => (

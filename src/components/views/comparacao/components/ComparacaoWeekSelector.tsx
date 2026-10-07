@@ -46,16 +46,16 @@ export const ComparacaoWeekSelector = React.memo(function ComparacaoWeekSelector
                 : 'Adicionar semanas', [selectedWeekLabels, loading, error, todasSemanas.length]);
 
     return (
-        <div className="flex min-w-0 flex-col gap-3 lg:flex-row lg:items-center">
+        <div className="flex min-w-0 flex-col gap-2.5 lg:flex-row lg:items-center">
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button
                         variant="outline"
                         disabled={loading || todasSemanas.length === 0}
-                        className="h-11 w-full min-w-0 justify-between rounded-xl border-slate-200/80 bg-white/90 px-4 shadow-sm transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-sky-300 hover:bg-white dark:border-slate-800/80 dark:bg-slate-950 dark:hover:border-sky-500/40 dark:hover:bg-slate-900 sm:min-w-[280px] sm:px-5 lg:w-auto"
+                        className="h-10 w-full min-w-0 justify-between rounded-lg border-[#d8e4eb] bg-white px-3.5 shadow-none transition-[border-color,background-color] duration-150 hover:border-[#7b9caf] hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-[#38708e] focus-visible:ring-offset-2 dark:border-slate-800 dark:bg-slate-950 dark:hover:border-slate-600 dark:hover:bg-slate-900 sm:min-w-[240px] sm:px-4 lg:w-auto"
                     >
                         <span
-                            className="min-w-0 truncate whitespace-nowrap font-mono text-[13px] font-bold uppercase tracking-[0.12em] text-slate-500 tabular-nums dark:text-slate-400"
+                            className="min-w-0 truncate whitespace-nowrap text-sm font-semibold text-slate-700 tabular-nums dark:text-slate-200"
                             title={selectedWeekLabels.length > 0 ? selectedWeekLabels.join(', ') : undefined}
                         >
                             {triggerLabel}
@@ -63,8 +63,8 @@ export const ComparacaoWeekSelector = React.memo(function ComparacaoWeekSelector
                         <ChevronDown className="ml-2 h-4 w-4 text-slate-400" />
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent className="subtle-scrollbar max-h-[400px] w-[280px] overflow-y-auto rounded-[1.4rem] border-slate-200/80 p-2 shadow-[0_24px_70px_-36px_rgba(15,23,42,0.42)] dark:border-slate-800/70" align="start">
-                    <DropdownMenuLabel className="px-3 py-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                <DropdownMenuContent className="subtle-scrollbar max-h-[400px] w-[280px] overflow-y-auto rounded-xl border-slate-200 p-2 shadow-[0_12px_34px_-22px_rgba(15,23,42,0.4)] dark:border-slate-800" align="start">
+                    <DropdownMenuLabel className="px-2.5 py-2 text-xs font-semibold text-slate-600 dark:text-slate-300">
                         Semanas disponíveis
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator className="mx-2 bg-slate-100 dark:bg-slate-800" />
@@ -80,7 +80,7 @@ export const ComparacaoWeekSelector = React.memo(function ComparacaoWeekSelector
                                 key={semanaStr}
                                 checked={isSelected}
                                 onCheckedChange={() => onToggleSemana(semanaStr)}
-                                className="rounded-xl px-3 py-2 text-sm font-medium transition-colors focus:bg-sky-50 focus:text-sky-600 dark:focus:bg-sky-950/30 dark:focus:text-sky-300"
+                                className="rounded-md px-2.5 py-2 text-sm font-medium transition-colors focus:bg-sky-50 focus:text-sky-700 dark:focus:bg-sky-950/30 dark:focus:text-sky-200"
                             >
                                 Semana {semanaNumLabel}
                             </DropdownMenuCheckboxItem>
@@ -103,7 +103,7 @@ export const ComparacaoWeekSelector = React.memo(function ComparacaoWeekSelector
 
             <div className="flex min-h-[44px] flex-1 flex-wrap items-center gap-2">
                 {semanasSelecionadas.length === 0 ? (
-                    <span className="rounded-full border border-slate-200/80 bg-slate-50 px-4 py-2 text-[11px] font-medium italic text-slate-400 dark:border-slate-800 dark:bg-slate-800/50">
+                        <span className="rounded-md border border-dashed border-slate-300 px-3 py-1.5 text-xs text-slate-500 dark:border-slate-700 dark:text-slate-400">
                         Nenhuma semana ativa
                     </span>
                 ) : null}
@@ -116,10 +116,10 @@ export const ComparacaoWeekSelector = React.memo(function ComparacaoWeekSelector
                     return (
                         <div
                             key={semana}
-                            className="inline-flex items-center gap-2 rounded-full border border-sky-100 bg-sky-50/60 px-4 py-2 text-[11px] font-bold text-sky-700 shadow-[0_10px_22px_-18px_rgba(14,165,233,0.5)] transition-transform duration-200 hover:-translate-y-0.5 dark:border-sky-900/50 dark:bg-sky-950/20 dark:text-sky-300"
+                            className="inline-flex items-center gap-2 rounded-md border border-[#d7e6ee] bg-[#f4f8fa] px-2.5 py-1.5 text-xs font-semibold text-[#285d79] transition-colors duration-150 hover:border-[#9eb9c8] hover:bg-[#edf4f7] dark:border-slate-700 dark:bg-slate-900 dark:text-sky-200 dark:hover:border-slate-600 dark:hover:bg-slate-800"
                         >
-                            <span className="uppercase tracking-[0.18em] opacity-60">Sem</span>
-                            <span className="text-sm font-black">{displayLabel}</span>
+                            <span className="text-slate-500 dark:text-slate-400">Semana</span>
+                            <span className="tabular-nums">{displayLabel}</span>
                         </div>
                     );
                 })}
