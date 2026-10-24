@@ -65,6 +65,12 @@ export const VALORES_CIDADE_COLUMN_MAP: { [key: string]: string } = {
 export const BATCH_SIZE = 100;
 
 /**
+ * Lote maior para corridas reduz o número de chamadas RPC e de upserts
+ * repetidos na fila de impactos durante a mesma importação.
+ */
+export const CORRIDAS_BATCH_SIZE = 500;
+
+/**
  * Tamanho máximo do arquivo em bytes (50MB)
  */
 export const MAX_FILE_SIZE = 50 * 1024 * 1024;

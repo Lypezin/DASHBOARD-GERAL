@@ -143,21 +143,6 @@ export async function POST(request: Request) {
         const admin = createServiceRoleClient();
 
         if (isUploadRefresh) {
-            const immediateResult = await tryRpc(admin, 'process_incremental_refresh_impacts', {
-                p_limit: 50,
-                p_include_corridas: true,
-            });
-            const immediatePayload = immediateResult.data && typeof immediateResult.data === 'object'
-                ? immediateResult.data as { success?: unknown; entregadores_result?: { error?: unknown } }
-                : null;
-            const immediateSucceeded = immediateResult.error === null && immediatePayload?.success === true;
-            const immediateError = immediateResult.error
-                || (immediateSucceeded
-                    ? null
-                    : typeof immediatePayload?.entregadores_result?.error === 'string'
-                        ? immediatePayload.entregadores_result.error
-                        : 'Não foi possível confirmar a conclusão do processamento incremental.');
-
             const incrementalWorker = await tryRpc(admin, 'ensure_incremental_refresh_worker_scheduled');
 
             const stateAfterWorker = await fetchQueueState(admin);
@@ -172,11 +157,11 @@ export async function POST(request: Request) {
 
             return NextResponse.json({
                 success: true,
-                queued: false,
+                queued: pendingIncrementals > 0,
                 incremental_mode: true,
-                incremental_result: immediateResult.data,
-                incremental_error: immediateError,
-                incremental_succeeded: immediateSucceeded,
+                incremental_result: null,
+                incremental_error: null,
+                incremental_succeeded: pendingIncrementals === 0,
                 incremental_worker_result: incrementalWorker.data,
                 incremental_worker_error: incrementalWorker.error,
                 stale_cleanup_result: cleanupData ?? null,

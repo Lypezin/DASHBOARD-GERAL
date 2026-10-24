@@ -3,7 +3,7 @@ import { safeLog } from '@/lib/errorHandler';
 import { uploadRateLimiter } from '@/lib/rateLimiter';
 import { processCorridasFile } from '@/utils/processors/corridasProcessor';
 import { insertInBatches, isNonRetryableBatchInsertError } from '@/utils/dbHelpers';
-import { BATCH_SIZE } from '@/constants/upload';
+import { CORRIDAS_BATCH_SIZE } from '@/constants/upload';
 
 export interface UploadState {
     uploading: boolean;
@@ -67,7 +67,7 @@ export function useUploadProcessor(organizationId?: string) {
                     'dados_corridas',
                     sanitizedData,
                     {
-                        batchSize: BATCH_SIZE,
+                        batchSize: CORRIDAS_BATCH_SIZE,
                         organizationId,
                         onProgress: (insertedRows, total) => {
                             const batchProgress = (insertedRows / total) * (100 / totalFiles);
