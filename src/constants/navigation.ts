@@ -11,6 +11,7 @@ import {
   Target,
   Shield,
   ArrowLeftRight,
+  Presentation,
   type LucideIcon
 } from 'lucide-react';
 import { TabType } from '@/types';
@@ -52,6 +53,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
     items: [
       { label: 'Operacional Marketing', value: 'marketing_comparacao', icon: Megaphone },
       { label: 'Marketing', value: 'marketing', icon: Target },
+      { label: 'Apresentação Marketing', value: 'marketing_apresentacao', icon: Presentation },
     ],
   },
 ];

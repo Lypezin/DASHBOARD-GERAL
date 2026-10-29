@@ -30,6 +30,7 @@ const BREADCRUMB_MAP: Record<TabType, { group: string; label: string }> = {
   evolucao: { group: 'Operacional', label: 'Evolução' },
   dedicado: { group: 'Operacional', label: 'Dedicado' },
   marketing_comparacao: { group: 'Marketing', label: 'Operacional | Marketing' },
+  marketing_apresentacao: { group: 'Marketing', label: 'Apresentação Marketing' },
   marketing: { group: 'Marketing', label: 'Marketing' },
 };
 

@@ -33,6 +33,7 @@ const SUPPORT_BY_TAB: Record<string, DimensionFilterSupport> = {
   valores: SUB_PRACA_AND_ORIGEM,
   marketing: NO_DIMENSIONS,
   marketing_comparacao: NO_DIMENSIONS,
+  marketing_apresentacao: NO_DIMENSIONS,
   entrada_saida: NO_DIMENSIONS,
 };
 

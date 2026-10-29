@@ -14,6 +14,7 @@ export const VALID_DASHBOARD_TABS: readonly TabType[] = [
   'entrada_saida',
   'marketing',
   'marketing_comparacao',
+  'marketing_apresentacao',
   'dedicado',
 ] as const;
 

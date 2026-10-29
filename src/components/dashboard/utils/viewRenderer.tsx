@@ -11,6 +11,7 @@ import {
     PrioridadePromoView,
     ComparacaoView,
     MarketingComparacaoView,
+    MarketingApresentacaoView,
     MarketingEntradaSaidaView,
     DedicadoView,
 } from '@/config/dynamicImports';
@@ -96,6 +97,8 @@ export const renderActiveView = (activeTab: TabType, props: DashboardViewRenderP
             );
         case 'marketing_comparacao':
             return <MarketingComparacaoView filters={props.filters} />;
+        case 'marketing_apresentacao':
+            return <MarketingApresentacaoView />;
         case 'entrada_saida':
             return <MarketingEntradaSaidaView />;
         case 'marketing':

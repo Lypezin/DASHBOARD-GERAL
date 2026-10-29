@@ -32,7 +32,7 @@ export const DashboardFiltersContainer = React.memo(function DashboardFiltersCon
   optionsLoading,
   optionsError,
 }: DashboardFiltersContainerProps) {
-  if (activeTab === 'marketing' || activeTab === 'entrada_saida') {
+  if (activeTab === 'marketing' || activeTab === 'entrada_saida' || activeTab === 'marketing_apresentacao') {
     return null;
   }
 

@@ -10,7 +10,7 @@ import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
 import { ENTREGADORES_REFRESH_COMPLETE_EVENT } from '@/utils/dashboard/dashboardDataRefreshEvents';
 import { processTabSuccessData, getTabFallbackData, TabData } from './tabDataHelpers';
 
-const SELF_MANAGED_TABS = ['evolucao', 'dashboard', 'analise', 'comparacao', 'marketing', 'entrada_saida'];
+const SELF_MANAGED_TABS = ['evolucao', 'dashboard', 'analise', 'comparacao', 'marketing', 'entrada_saida', 'marketing_apresentacao'];
 const SHARED_TAB_SCOPES: Record<string, string> = {
   entregadores: 'entregadores_shared',
   prioridade: 'entregadores_shared',
