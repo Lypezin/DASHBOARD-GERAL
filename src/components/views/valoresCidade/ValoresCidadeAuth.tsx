@@ -13,23 +13,23 @@ export const ValoresCidadeAuth: React.FC<ValoresCidadeAuthProps> = ({
 }) => {
   if (loading) {
     return (
-      <div className="flex h-[60vh] items-center justify-center">
-        <div className="text-center">
-          <div className="mx-auto h-16 w-16 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600"></div>
-          <p className="mt-4 text-lg font-semibold text-emerald-700 dark:text-emerald-200">Validando acesso...</p>
+      <div role="status" className="flex min-h-[18rem] items-center justify-center rounded-xl border border-[#d8e4eb] bg-white dark:border-slate-800 dark:bg-slate-950/70">
+        <div className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-300">
+          <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600 dark:border-slate-700 dark:border-t-blue-300" aria-hidden="true" />
+          <span>Validando acesso…</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="flex h-[60vh] items-center justify-center">
-      <div className="mx-auto w-full max-w-md rounded-xl border border-amber-200 bg-white p-8 shadow-xl dark:border-amber-900 dark:bg-slate-900">
-        <div className="mb-6 text-center">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-amber-100 dark:bg-amber-900/30">
-            <Lock className="h-8 w-8 text-amber-600 dark:text-amber-400" />
+      <div className="flex min-h-[18rem] items-center justify-center rounded-xl border border-[#d8e4eb] bg-white px-5 py-10 dark:border-slate-800 dark:bg-slate-950/70">
+      <div className="mx-auto w-full max-w-md text-center">
+        <div className="mb-6">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-900">
+            <Lock className="h-5 w-5 text-slate-500 dark:text-slate-300" />
           </div>
-          <h2 className="mb-2 text-2xl font-bold text-slate-900 dark:text-white">
+          <h2 className="mb-2 text-base font-semibold text-[#183f58] dark:text-slate-100">
             Acesso Restrito
           </h2>
           <p className="text-sm text-slate-600 dark:text-slate-400">
@@ -38,10 +38,10 @@ export const ValoresCidadeAuth: React.FC<ValoresCidadeAuthProps> = ({
         </div>
 
         <div className="space-y-4 text-center">
-          <p className="text-sm text-slate-700 dark:text-slate-300">
+          <p className="text-sm text-slate-600 dark:text-slate-300">
             {errorMessage || 'Você não possui permissão para acessar Valores por Cidade.'}
           </p>
-          <Button type="button" className="w-full" onClick={() => window.location.reload()}>
+          <Button type="button" variant="outline" className="w-full border-[#b7ccd9] text-[#174d70] hover:bg-sky-50 hover:text-[#123d58] dark:border-slate-700 dark:text-sky-200 dark:hover:bg-slate-900" onClick={() => window.location.reload()}>
             Atualizar permissão
           </Button>
         </div>

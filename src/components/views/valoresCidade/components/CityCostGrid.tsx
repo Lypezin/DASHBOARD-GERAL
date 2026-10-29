@@ -13,7 +13,7 @@ export const CityCostGrid: React.FC<CityCostGridProps> = ({ cidadesData }) => {
         <section aria-labelledby="custo-por-liberado-title" className="space-y-3">
             <div className="flex items-end justify-between gap-3 px-0.5">
                 <div>
-                    <h2 id="custo-por-liberado-title" className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                    <h2 id="custo-por-liberado-title" className="text-[15px] font-semibold tracking-tight text-[#183f58] dark:text-slate-100">
                         Custo por liberado
                     </h2>
                     <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">

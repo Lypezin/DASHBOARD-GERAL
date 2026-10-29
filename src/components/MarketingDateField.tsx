@@ -15,7 +15,7 @@ export const MarketingDateField: React.FC<MarketingDateFieldProps> = ({
     id, label, value, onChange, min, max
 }) => (
     <div className="space-y-1.5">
-        <Label htmlFor={id} className="text-[10px] uppercase font-semibold text-slate-400 tracking-wider">
+        <Label htmlFor={id} className="text-[10px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">
             {label}
         </Label>
         <Input
@@ -25,7 +25,7 @@ export const MarketingDateField: React.FC<MarketingDateFieldProps> = ({
             onChange={onChange}
             min={min}
             max={max}
-            className="h-9 text-xs bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700 focus:ring-2 focus:ring-slate-400/40 focus:border-slate-500 transition-all"
+            className="h-9 border-[#d8e4eb] bg-white text-xs focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 dark:border-slate-700 dark:bg-slate-900 dark:focus:border-blue-400"
         />
     </div>
 );

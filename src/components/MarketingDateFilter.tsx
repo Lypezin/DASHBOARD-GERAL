@@ -34,12 +34,12 @@ const MarketingDateFilter: React.FC<MarketingDateFilterProps> = ({
   } = useDateFilterState(filter, onFilterChange);
 
   return (
-    <Card className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 shadow-sm dark:border-slate-800/80 dark:bg-slate-950/70">
+    <Card className="overflow-hidden rounded-xl border border-[#d8e4eb] bg-white shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800 dark:bg-slate-950/80">
       <CardHeader className="px-4 pb-3 pt-4">
         <div className="flex items-start justify-between gap-2">
           <CardTitle className="flex min-w-0 items-center gap-2 text-sm font-semibold text-slate-700 dark:text-slate-200">
-            <div className="rounded-xl bg-slate-100 p-1.5 dark:bg-slate-900">
-              <Calendar className="h-3.5 w-3.5 text-slate-700 dark:text-slate-200" />
+            <div className="rounded-lg bg-sky-50 p-1.5 dark:bg-sky-950/40">
+              <Calendar className="h-3.5 w-3.5 text-[#347ca3] dark:text-sky-200" />
             </div>
             <span className="min-w-0 text-xs uppercase tracking-wider">{label}</span>
           </CardTitle>

@@ -50,16 +50,16 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
           />
         ) : null}
         {error ? (
-          <div role="alert" className="rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-100">
+          <div role="alert" className="rounded-xl border border-amber-200/70 bg-amber-50/85 px-4 py-3 text-sm font-semibold text-amber-800 dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
             Não foi possível atualizar os valores agora. Exibindo os dados da última atualização válida.
           </div>
         ) : null}
         <section aria-labelledby="valores-cidade-filters-title" className="space-y-3">
-          <div className="flex items-center justify-between gap-3 px-0.5">
-            <h2 id="valores-cidade-filters-title" className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+          <div className="flex flex-col gap-1 px-0.5 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
+            <h2 id="valores-cidade-filters-title" className="text-[15px] font-semibold tracking-tight text-[#183f58] dark:text-slate-100">
               Período de análise
             </h2>
-            <span className="text-[11px] text-slate-500 dark:text-slate-400">Ajuste as datas para atualizar os indicadores</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400">Defina os intervalos para calcular os indicadores</span>
           </div>
           <ValoresCidadeFilters
             filter={filter}
