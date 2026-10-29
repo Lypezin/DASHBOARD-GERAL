@@ -2,7 +2,7 @@
  * Tipos relacionados ao Dashboard
  */
 
-export type TabType = 'dashboard' | 'analise' | 'utr' | 'entregadores' | 'valores' | 'evolucao' | 'prioridade' | 'comparacao' | 'marketing' | 'marketing_comparacao' | 'dedicado';
+export type TabType = 'dashboard' | 'analise' | 'utr' | 'entregadores' | 'valores' | 'evolucao' | 'prioridade' | 'comparacao' | 'entrada_saida' | 'marketing' | 'marketing_comparacao' | 'dedicado';
 
 export interface Totals {
   ofertadas: number;

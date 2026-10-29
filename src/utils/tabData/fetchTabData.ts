@@ -48,6 +48,7 @@ export async function fetchTabData(options: FetchOptions): Promise<{ data: TabDa
             case 'comparacao':
             case 'marketing':
             case 'marketing_comparacao':
+            case 'entrada_saida':
                 return { data: null, error: null };
 
             default:

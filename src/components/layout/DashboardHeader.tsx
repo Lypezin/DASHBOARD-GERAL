@@ -23,6 +23,7 @@ const BREADCRUMB_MAP: Record<TabType, { group: string; label: string }> = {
   analise: { group: 'Principal', label: 'Análise' },
   utr: { group: 'Principal', label: 'UTR' },
   comparacao: { group: 'Principal', label: 'Comparação' },
+  entrada_saida: { group: 'Principal', label: 'Entrada/Saída' },
   entregadores: { group: 'Operacional', label: 'Entregadores' },
   valores: { group: 'Operacional', label: 'Valores' },
   prioridade: { group: 'Operacional', label: 'Prioridade | Promo' },

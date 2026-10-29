@@ -17,16 +17,19 @@ export const ValoresCidadeCards: React.FC<ValoresCidadeCardsProps> = ({
   cidadesData,
 }) => {
   return (
-    <div className="space-y-8">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="space-y-7">
+      <section aria-labelledby="valores-cidade-summary-title" className="space-y-3">
+        <div className="px-0.5">
+          <h2 id="valores-cidade-summary-title" className="text-sm font-semibold text-slate-800 dark:text-slate-100">Resumo financeiro</h2>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Totais do período selecionado</p>
+        </div>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <SummaryCard
           title="Total Geral"
           value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(totalGeral)}
           subtext="Valor total acumulado"
           icon={DollarSign}
-          colorClass="text-emerald-600 dark:text-emerald-400"
-          bgClass="from-emerald-50 to-white dark:from-emerald-900/20 dark:to-slate-900"
-          iconBgClass="bg-emerald-100 dark:bg-emerald-900/40"
+          tone="blue"
         />
 
         <SummaryCard
@@ -34,13 +37,12 @@ export const ValoresCidadeCards: React.FC<ValoresCidadeCardsProps> = ({
           value={new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(custoPorLiberado)}
           subtext={'M\u00e9dia geral'}
           icon={BarChart3}
-          colorClass="text-sky-600 dark:text-sky-300"
-          bgClass="from-sky-50 to-white dark:from-sky-900/20 dark:to-slate-900"
-          iconBgClass="bg-sky-100 dark:bg-sky-900/40"
+          tone="slate"
         />
-      </div>
+        </div>
+      </section>
 
-      <div className="space-y-8">
+      <div className="space-y-7">
         <CityValuesGrid cidadesData={cidadesData} />
         <CityCostGrid cidadesData={cidadesData} />
       </div>

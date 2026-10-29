@@ -27,6 +27,7 @@ const dashboardViewLoaders = {
   prioridade: () => import('@/components/views/PrioridadePromoView').then((mod) => ({ default: mod.default })),
   comparacao: () => import('@/components/views/ComparacaoView').then((mod) => ({ default: mod.default })),
   marketing_comparacao: () => import('@/components/views/marketing/MarketingComparacaoView').then((mod) => ({ default: mod.default })),
+  entrada_saida: () => import('@/components/views/marketing/MarketingEntradaSaidaView').then((mod) => ({ default: mod.default })),
   dedicado: () => import('@/components/views/DedicadoView').then((mod) => ({ default: mod.default })),
 } satisfies Partial<Record<TabType, () => Promise<{ default: React.ComponentType<any> }>>>;
 
@@ -56,4 +57,5 @@ export const EntregadoresMainView = dynamic(dashboardViewLoaders.entregadores, {
 export const PrioridadePromoView = dynamic(dashboardViewLoaders.prioridade, { ssr: false, loading: viewLoading });
 export const ComparacaoView = dynamic(dashboardViewLoaders.comparacao, { ssr: false, loading: viewLoading });
 export const MarketingComparacaoView = dynamic(dashboardViewLoaders.marketing_comparacao, { ssr: false, loading: viewLoading });
+export const MarketingEntradaSaidaView = dynamic(dashboardViewLoaders.entrada_saida, { ssr: false, loading: viewLoading });
 export const DedicadoView = dynamic(dashboardViewLoaders.dedicado, { ssr: false, loading: viewLoading });

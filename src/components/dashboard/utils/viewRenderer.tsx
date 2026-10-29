@@ -11,6 +11,7 @@ import {
     PrioridadePromoView,
     ComparacaoView,
     MarketingComparacaoView,
+    MarketingEntradaSaidaView,
     DedicadoView,
 } from '@/config/dynamicImports';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
@@ -95,6 +96,8 @@ export const renderActiveView = (activeTab: TabType, props: DashboardViewRenderP
             );
         case 'marketing_comparacao':
             return <MarketingComparacaoView filters={props.filters} />;
+        case 'entrada_saida':
+            return <MarketingEntradaSaidaView />;
         case 'marketing':
             return <MarketingView />;
         case 'dedicado':

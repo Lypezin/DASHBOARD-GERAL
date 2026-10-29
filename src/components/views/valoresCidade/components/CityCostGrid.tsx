@@ -2,6 +2,7 @@ import React from 'react';
 import CustoPorLiberadoCard from '@/components/CustoPorLiberadoCard';
 import { ValoresCidadePorCidade } from '@/types';
 import { BarChart3 } from 'lucide-react';
+import { SaasPanel } from '@/components/views/shared/SaasPrimitives';
 
 interface CityCostGridProps {
     cidadesData: ValoresCidadePorCidade[];
@@ -9,28 +10,26 @@ interface CityCostGridProps {
 
 export const CityCostGrid: React.FC<CityCostGridProps> = ({ cidadesData }) => {
     return (
-        <div className="space-y-4">
-            <div className="flex items-center gap-3 px-2">
-                <div className="h-8 w-1.5 rounded-full bg-gradient-to-b from-sky-500 to-blue-600 shadow-sm" />
+        <section aria-labelledby="custo-por-liberado-title" className="space-y-3">
+            <div className="flex items-end justify-between gap-3 px-0.5">
                 <div>
-                    <h3 className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100">
-                        Custo por Liberado por Cidade
-                    </h3>
-                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
-                        Eficiência de investimento por praça
+                    <h2 id="custo-por-liberado-title" className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+                        Custo por liberado
+                    </h2>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                        Eficiência do investimento em cada praça
                     </p>
                 </div>
+                <BarChart3 className="mb-0.5 hidden h-4 w-4 text-muted-foreground sm:block" aria-hidden="true" />
             </div>
 
             {cidadesData.length === 0 ? (
-                <div className="rounded-xl border border-slate-200 bg-white p-12 text-center dark:border-slate-800 dark:bg-slate-900/50">
-                    <div className="mx-auto mb-3 h-12 w-12 text-slate-300">
-                        <BarChart3 className="h-full w-full" />
-                    </div>
-                    <p className="font-medium text-slate-500 dark:text-slate-400">
+                <SaasPanel className="px-5 py-10 text-center">
+                    <BarChart3 className="mx-auto h-5 w-5 text-muted-foreground" aria-hidden="true" />
+                    <p className="mt-3 text-sm font-medium text-muted-foreground">
                         Nenhum dado encontrado para o período selecionado.
                     </p>
-                </div>
+                </SaasPanel>
             ) : (
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {cidadesData.map((cidadeData) => (
@@ -45,6 +44,6 @@ export const CityCostGrid: React.FC<CityCostGridProps> = ({ cidadesData }) => {
                     ))}
                 </div>
             )}
-        </div>
+        </section>
     );
 };

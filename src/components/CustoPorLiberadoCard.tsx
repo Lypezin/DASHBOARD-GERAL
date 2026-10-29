@@ -69,17 +69,17 @@ const CustoPorLiberadoCard: React.FC<CustoPorLiberadoCardProps> = ({
     };
 
     return (
-        <Card className="overflow-hidden border-slate-200/70 bg-white/90 shadow-sm transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-md dark:border-slate-800/70 dark:bg-slate-900/85">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="truncate pr-3 text-sm font-medium text-muted-foreground" title={cidade}>
+        <Card className="overflow-hidden rounded-xl border-slate-200/80 bg-white/95 shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-slate-300 hover:shadow-md dark:border-slate-800/80 dark:bg-slate-950/70">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2.5">
+                <CardTitle className="truncate pr-3 text-xs font-semibold text-slate-600 dark:text-slate-300" title={cidade}>
                     {cidade} - Custo/Liberado
                 </CardTitle>
-                <div className={`rounded-xl bg-gradient-to-br p-2 text-white shadow-sm ${colors.gradient}`}>
-                    <BarChart3 className="h-4 w-4" />
+                <div className="rounded-lg bg-blue-50 p-2 text-blue-600 dark:bg-blue-950/40 dark:text-blue-300">
+                    <BarChart3 className="h-4 w-4" aria-hidden="true" />
                 </div>
             </CardHeader>
             <CardContent>
-                <div className="text-2xl font-bold text-slate-900 dark:text-white font-mono">
+                <div className="font-mono text-2xl font-semibold tracking-tight text-slate-950 dark:text-slate-50">
                     {formatCurrency(custoPorLiberado)}
                 </div>
 

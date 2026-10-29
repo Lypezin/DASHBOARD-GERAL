@@ -7,7 +7,6 @@ import { useValoresCidadeFilters } from '@/hooks/valoresCidade/useValoresCidadeF
 import { ValoresCidadeAuth } from './valoresCidade/ValoresCidadeAuth';
 import { ValoresCidadeFilters } from './valoresCidade/ValoresCidadeFilters';
 import { ValoresCidadeCards } from './valoresCidade/ValoresCidadeCards';
-import { ValoresCidadeHeader } from './valoresCidade/ValoresCidadeHeader';
 import { ValoresCidadeFeedback } from './valoresCidade/ValoresCidadeFeedback';
 import { ViewTransition } from '@/components/ui/view-transition';
 import { LoadingNotice } from '@/components/ui/loading-notice';
@@ -45,25 +44,30 @@ const ValoresCidadeView = React.memo(function ValoresCidadeView() {
       <div className="space-y-6 pb-8">
         {loading ? (
           <LoadingNotice
-            tone="emerald"
+            tone="blue"
             message="Atualizando valores por cidade"
-            detail="Mantendo os ultimos cards visiveis enquanto os filtros sao aplicados."
+            detail="Mantendo os últimos valores visíveis enquanto os filtros são aplicados."
           />
         ) : null}
         {error ? (
-          <div role="alert" className="rounded-2xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm font-semibold text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-100">
-            Nao foi possivel atualizar os valores agora. Exibindo a ultima resposta valida.
+          <div role="alert" className="rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-100">
+            Não foi possível atualizar os valores agora. Exibindo os dados da última atualização válida.
           </div>
         ) : null}
-        <div className="space-y-4">
-          <ValoresCidadeHeader />
+        <section aria-labelledby="valores-cidade-filters-title" className="space-y-3">
+          <div className="flex items-center justify-between gap-3 px-0.5">
+            <h2 id="valores-cidade-filters-title" className="text-sm font-semibold text-slate-800 dark:text-slate-100">
+              Período de análise
+            </h2>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">Ajuste as datas para atualizar os indicadores</span>
+          </div>
           <ValoresCidadeFilters
             filter={filter}
             filterEnviados={filterEnviados}
             onFilterChange={handleFilterChange}
             onFilterEnviadosChange={handleFilterEnviadosChange}
           />
-        </div>
+        </section>
 
         <ValoresCidadeCards
           totalGeral={totalGeral}

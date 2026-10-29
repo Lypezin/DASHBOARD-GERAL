@@ -10,6 +10,7 @@ import {
   Megaphone,
   Target,
   Shield,
+  ArrowLeftRight,
   type LucideIcon
 } from 'lucide-react';
 import { TabType } from '@/types';
@@ -33,6 +34,7 @@ export const SIDEBAR_GROUPS: SidebarGroup[] = [
       { label: 'Análise', value: 'analise', icon: BarChart3 },
       { label: 'UTR', value: 'utr', icon: Gauge },
       { label: 'Comparação', value: 'comparacao', icon: GitCompare },
+      { label: 'Entrada/Saída', value: 'entrada_saida', icon: ArrowLeftRight },
     ],
   },
   {

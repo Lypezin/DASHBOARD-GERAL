@@ -11,6 +11,7 @@ export const VALID_DASHBOARD_TABS: readonly TabType[] = [
   'evolucao',
   'prioridade',
   'comparacao',
+  'entrada_saida',
   'marketing',
   'marketing_comparacao',
   'dedicado',
