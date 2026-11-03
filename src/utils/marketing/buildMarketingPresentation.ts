@@ -28,10 +28,14 @@ export type MarketingPresentationWeek = {
 
 export type MarketingPresentationReport = {
   reportDate: string;
+  monthStart: string;
+  monthEnd: string;
   weekStart: string;
   weekEnd: string;
-  previousWeekStart: string;
-  previousWeekEnd: string;
+  trafficCurrentStart: string;
+  trafficCurrentEnd: string;
+  trafficPreviousStart: string;
+  trafficPreviousEnd: string;
   scannedAt: string;
   citiesData: MarketingCityData[];
   evolutionData: Array<{ data: string; liberado: number; enviado: number }>;
@@ -55,6 +59,24 @@ function weekStartFor(isoDate: string) {
   const daysSinceMonday = (date.getUTCDay() + 6) % 7;
   date.setUTCDate(date.getUTCDate() - daysSinceMonday);
   return date.toISOString().slice(0, 10);
+}
+
+function monthStartFor(isoDate: string) {
+  return `${isoDate.slice(0, 7)}-01`;
+}
+
+function lastMondayOnOrBefore(isoDate: string) {
+  const date = new Date(`${isoDate}T12:00:00.000Z`);
+  const daysSinceMonday = (date.getUTCDay() + 6) % 7;
+  date.setUTCDate(date.getUTCDate() - daysSinceMonday);
+  return date.toISOString().slice(0, 10);
+}
+
+function datesBetween(start: string, end: string) {
+  if (end < start) return [];
+  const dates: string[] = [];
+  for (let date = start; date <= end; date = shiftDate(date, 1)) dates.push(date);
+  return dates;
 }
 
 function inRange(value: string | null, start: string, end: string) {
@@ -138,6 +160,7 @@ function buildCostsForRange(
   start: string,
   end: string,
 ): MarketingCostData[] {
+  if (end < start) return [];
   const activeLeads = leads.filter((lead) => inRange(lead.sentDate, start, end) || inRange(lead.releasedDate, start, end) || inRange(lead.ranDate, start, end));
   const regions = new Set([
     ...PRIMARY_REGIONS,
@@ -175,10 +198,22 @@ export async function buildMarketingPresentation(
   organizationId: string | null,
   client: SupabaseClient,
 ): Promise<MarketingPresentationReport> {
-  const weekStart = weekStartFor(reportDate);
-  const weekEnd = shiftDate(weekStart, 6);
+  const monthStart = monthStartFor(reportDate);
+  const monthEnd = shiftDate(reportDate, -1);
+  const weekStart = weekStartFor(monthEnd);
+  const calendarWeekEnd = shiftDate(weekStart, 6);
+  const weekEnd = calendarWeekEnd < monthEnd ? calendarWeekEnd : monthEnd;
   const comparisonStart = shiftDate(weekStart, -FIRST_WEEK_OFFSET * 7);
-  const costRows = await loadImportedCosts(comparisonStart, weekEnd, organizationId, client);
+  const trafficCurrentStart = monthStart;
+  const trafficCurrentEnd = monthEnd;
+  const trafficPreviousStart = monthStart;
+  const trafficPreviousEnd = lastMondayOnOrBefore(monthEnd);
+  const costsQueryStart = comparisonStart < monthStart ? comparisonStart : monthStart;
+  const costRows = await loadImportedCosts(costsQueryStart, monthEnd, organizationId, client);
+  const monthCostRows = costRows.filter((row: any) => {
+    const date = String(row.data || '').slice(0, 10);
+    return date >= monthStart && date <= monthEnd;
+  });
   const cities = new Set([
     ...PRIMARY_REGIONS,
     ...leads.filter((lead) => inRange(lead.createdDate, comparisonStart, weekEnd)
@@ -197,7 +232,8 @@ export async function buildMarketingPresentation(
 
   const weeks = Array.from({ length: FIRST_WEEK_OFFSET + 1 }, (_, index) => {
     const start = shiftDate(weekStart, (index - FIRST_WEEK_OFFSET) * 7);
-    const end = shiftDate(start, 6);
+    const calendarWeekEnd = shiftDate(start, 6);
+    const end = calendarWeekEnd < monthEnd ? calendarWeekEnd : monthEnd;
     const weekLeads = leads.filter((lead) => inRange(lead.createdDate, start, end)
       || inRange(lead.sentDate, start, end)
       || inRange(lead.releasedDate, start, end)
@@ -222,10 +258,13 @@ export async function buildMarketingPresentation(
     };
   });
 
-  const selectedWeek = weeks[weeks.length - 1];
+  const monthLeads = leads.filter((lead) => inRange(lead.createdDate, monthStart, monthEnd)
+    || inRange(lead.sentDate, monthStart, monthEnd)
+    || inRange(lead.releasedDate, monthStart, monthEnd)
+    || inRange(lead.ranDate, monthStart, monthEnd));
   const citiesData: MarketingCityData[] = orderedCities.map((cidade) => {
-    const cityLeads = selectedWeek.rows.filter((lead) => normalizeRegion(lead.region) === cidade);
-    const metrics = sumLeadMetrics(cityLeads, weekStart, weekEnd);
+    const cityLeads = monthLeads.filter((lead) => normalizeRegion(lead.region) === cidade);
+    const metrics = sumLeadMetrics(cityLeads, monthStart, monthEnd);
     return {
       cidade,
       criado: metrics.created,
@@ -238,12 +277,11 @@ export async function buildMarketingPresentation(
     };
   }).filter((city) => city.criado || city.enviado || city.liberado || city.rodandoInicio || city.aberto || city.voltou);
 
-  const evolutionData = Array.from({ length: 7 }, (_, index) => {
-    const date = shiftDate(weekStart, index);
+  const evolutionData = datesBetween(monthStart, monthEnd).map((date) => {
     return {
       data: date,
-      liberado: selectedWeek.rows.filter((lead) => lead.releasedDate === date).length,
-      enviado: selectedWeek.rows.filter((lead) => lead.sentDate === date).length,
+      liberado: monthLeads.filter((lead) => lead.releasedDate === date).length,
+      enviado: monthLeads.filter((lead) => lead.sentDate === date).length,
     };
   });
 
@@ -270,26 +308,28 @@ export async function buildMarketingPresentation(
     }),
   })).filter((city) => city.data.some((week) => week.criado || week.enviado || week.liberado || week.rodando || week.conversas));
 
-  const previousWeekStart = shiftDate(weekStart, -7);
-  const previousWeekEnd = shiftDate(previousWeekStart, 6);
   const costsComparison: MarketingCostsComparison = {
-    atual: buildCostsForRange(leads, costRows.filter((row: any) => String(row.data || '').slice(0, 10) >= weekStart && String(row.data || '').slice(0, 10) <= weekEnd), weekStart, weekEnd),
-    passada: buildCostsForRange(leads, costRows.filter((row: any) => String(row.data || '').slice(0, 10) >= previousWeekStart && String(row.data || '').slice(0, 10) <= previousWeekEnd), previousWeekStart, previousWeekEnd),
+    atual: buildCostsForRange(leads, monthCostRows.filter((row: any) => String(row.data || '').slice(0, 10) <= trafficCurrentEnd), trafficCurrentStart, trafficCurrentEnd),
+    passada: buildCostsForRange(leads, monthCostRows.filter((row: any) => String(row.data || '').slice(0, 10) <= trafficPreviousEnd), trafficPreviousStart, trafficPreviousEnd),
   };
 
   const scannedDateLabel = new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(`${scannedAt}T12:00:00.000Z`));
   return {
     reportDate,
+    monthStart,
+    monthEnd,
     weekStart,
     weekEnd,
-    previousWeekStart,
-    previousWeekEnd,
+    trafficCurrentStart,
+    trafficCurrentEnd,
+    trafficPreviousStart,
+    trafficPreviousEnd,
     scannedAt,
     citiesData,
     evolutionData,
     weeklyData,
     weeklyDataByCity,
     costsComparison,
-    dataNote: `Eventos agrupados pelas datas registradas. As etapas “em aberto” e “voltou” refletem o estágio atual no DataCrazy, consultado em ${scannedDateLabel}. Custos e conversas vêm da planilha importada.`,
+    dataNote: `“Doc. coletado” corresponde à data de criação do lead. Eventos agrupados pelas datas registradas. As etapas “em aberto” e “voltou” refletem o estágio atual no DataCrazy, consultado em ${scannedDateLabel}. Custos e conversas vêm da planilha importada.`,
   };
 }

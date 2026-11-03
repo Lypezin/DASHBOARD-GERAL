@@ -53,7 +53,7 @@ export const WeeklyPerformanceCard: React.FC<WeeklyPerformanceCardProps> = ({
             
             <div className={`${compact ? 'mt-2 space-y-2.5' : 'mt-5 space-y-4'}`}>
                 <div className="flex justify-between items-center text-slate-400">
-                    <span className={`font-bold uppercase tracking-widest ${compact ? 'text-[8px]' : 'text-[10px]'}`}>Criados</span>
+                    <span className={`font-bold uppercase tracking-widest ${compact ? 'text-[8px]' : 'text-[10px]'}`}>Doc. coletado</span>
                     <span className={`font-black ${compact ? 'text-sm md:text-base' : 'text-xl'} ${isDark ? 'text-slate-200' : 'text-slate-700'}`}>{week.criado}</span>
                 </div>
                 <div className="flex justify-between items-center text-blue-600">

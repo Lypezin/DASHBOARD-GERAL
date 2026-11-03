@@ -43,7 +43,7 @@ export const CostsSlidesSection: React.FC<CostsSlidesSectionProps> = ({
             >
                 <SlideComparativoCustosMarketing
                     isVisible={true}
-                    titulo="ANTERIOR"
+                    titulo="PASSADA"
                     data={costsComparison.passada}
                     sourceNote={sourceNote}
                     periodLabel={previousPeriod}

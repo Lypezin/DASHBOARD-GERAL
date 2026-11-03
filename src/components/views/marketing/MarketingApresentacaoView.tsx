@@ -486,7 +486,7 @@ const MarketingApresentacaoView = React.memo(function MarketingApresentacaoView(
       <header className="flex min-w-0 flex-col gap-4 rounded-xl border border-[#164d70] bg-[#174d70] px-4 py-4 text-white shadow-[0_8px_28px_-22px_rgba(12,54,81,0.6)] sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
         <div className="min-w-0">
           <h1 className="text-[21px] font-semibold leading-tight tracking-[-0.025em] sm:text-[24px]">Apresentação Marketing</h1>
-          <p className="mt-1.5 max-w-3xl text-[12px] leading-5 text-sky-100/90 sm:text-[13px]">Escolha uma data para analisar a semana correspondente e montar a apresentação.</p>
+          <p className="mt-1.5 max-w-3xl text-[12px] leading-5 text-sky-100/90 sm:text-[13px]">A data escolhida fecha o relatório: mês até o dia anterior, tráfego pago e últimas oito semanas.</p>
         </div>
         <div className="flex shrink-0 items-center gap-2.5">
           <span className="inline-flex h-8 items-center gap-2 rounded-md border border-white/20 bg-white/[0.08] px-2.5 text-[11px] font-medium text-sky-50">
@@ -535,7 +535,7 @@ const MarketingApresentacaoView = React.memo(function MarketingApresentacaoView(
                 className="h-10 rounded-lg border-[#cbd9e2] bg-white pl-10 text-xs text-[#173f59] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
               />
             </span>
-            <span className="mt-1.5 block text-[10px] leading-4 text-slate-500 dark:text-slate-400">Semana: {reportLabel || 'carregando…'}</span>
+            <span className="mt-1.5 block text-[10px] leading-4 text-slate-500 dark:text-slate-400">Prévia: {reportLabel || 'carregando…'}</span>
           </label>
           <Button
             type="button"

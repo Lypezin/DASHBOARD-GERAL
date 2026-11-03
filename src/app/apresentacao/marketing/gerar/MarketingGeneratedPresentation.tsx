@@ -22,6 +22,7 @@ function formatDate(isoDate: string) {
 }
 
 function formatShortRange(start: string, end: string) {
+  if (end < start) return 'Sem dados no período';
   const dateOptions: Intl.DateTimeFormatOptions = { timeZone: 'America/Sao_Paulo', day: '2-digit', month: 'short' };
   const formatter = new Intl.DateTimeFormat('pt-BR', dateOptions);
   return `${formatter.format(new Date(`${start}T12:00:00.000Z`))} a ${formatter.format(new Date(`${end}T12:00:00.000Z`))}`;
@@ -88,7 +89,9 @@ export function MarketingGeneratedPresentation({ reportDate }: { reportDate: str
     );
   }
 
-  const period = `${formatDate(report.weekStart)} a ${formatDate(report.weekEnd)}`;
+  const period = report.monthEnd < report.monthStart
+    ? 'Sem dados no período mensal'
+    : `${formatDate(report.monthStart)} a ${formatDate(report.monthEnd)}`;
   const sourceNote = stale ? `${report.dataNote} A consulta do DataCrazy usou o último resultado disponível em cache.` : report.dataNote;
 
   return (
@@ -104,8 +107,8 @@ export function MarketingGeneratedPresentation({ reportDate }: { reportDate: str
         periodoFormatado={period}
         subtitulo="Resumo executivo e resultados por cidade"
         sourceNote={sourceNote}
-        costsCurrentPeriod={formatShortRange(report.weekStart, report.weekEnd)}
-        costsPreviousPeriod={formatShortRange(report.previousWeekStart, report.previousWeekEnd)}
+        costsCurrentPeriod={formatShortRange(report.trafficCurrentStart, report.trafficCurrentEnd)}
+        costsPreviousPeriod={formatShortRange(report.trafficPreviousStart, report.trafficPreviousEnd)}
       />
     </>
   );

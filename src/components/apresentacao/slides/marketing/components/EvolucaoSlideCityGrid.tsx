@@ -51,7 +51,7 @@ export const EvolucaoSlideCityGrid: React.FC<EvolucaoSlideCityGridProps> = React
                                 <div className="h-4 w-4 shrink-0 rounded-full bg-blue-500 shadow-[0_0_20px_rgba(59,130,246,0.8)] animate-glow-pulse" />
                             </h4>
                             <div className="grid grid-cols-2 gap-y-4 gap-x-6">
-                                <StatItem label="Criados" value={data.criado} color={isDark ? 'text-blue-400' : 'text-blue-600'} isDark={isDark} />
+                                <StatItem label="Doc. coletado" value={data.criado} color={isDark ? 'text-blue-400' : 'text-blue-600'} isDark={isDark} />
                                 <StatItem label="Enviados" value={data.enviado} color={isDark ? 'text-white' : 'text-slate-700'} isDark={isDark} />
                                 <StatItem label="Liberados" value={data.liberado} color="text-blue-500" isDark={isDark} />
                                 <StatItem label="Rodando" value={data.rodandoInicio} color="text-emerald-500" isDark={isDark} />
