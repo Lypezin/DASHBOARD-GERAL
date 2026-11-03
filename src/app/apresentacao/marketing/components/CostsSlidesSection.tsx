@@ -7,10 +7,16 @@ import { MarketingSlideFrame } from './MarketingSlideFrame';
 
 interface CostsSlidesSectionProps {
     costsComparison: MarketingCostsComparison;
+    sourceNote?: string;
+    currentPeriod?: string;
+    previousPeriod?: string;
 }
 
-export const CostsSlidesSection: React.FC<CostsSlidesSectionProps> = ({ 
-    costsComparison 
+export const CostsSlidesSection: React.FC<CostsSlidesSectionProps> = ({
+    costsComparison,
+    sourceNote,
+    currentPeriod,
+    previousPeriod,
 }) => {
     return (
         <>
@@ -24,6 +30,8 @@ export const CostsSlidesSection: React.FC<CostsSlidesSectionProps> = ({
                     isVisible={true}
                     titulo="ATUAL"
                     data={costsComparison.atual}
+                    sourceNote={sourceNote}
+                    periodLabel={currentPeriod}
                 />
             </MarketingSlideFrame>
 
@@ -37,6 +45,8 @@ export const CostsSlidesSection: React.FC<CostsSlidesSectionProps> = ({
                     isVisible={true}
                     titulo="ANTERIOR"
                     data={costsComparison.passada}
+                    sourceNote={sourceNote}
+                    periodLabel={previousPeriod}
                 />
             </MarketingSlideFrame>
         </>

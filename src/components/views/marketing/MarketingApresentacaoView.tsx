@@ -4,11 +4,10 @@ import React from 'react';
 import {
   AlertCircle,
   CalendarDays,
-  Check,
-  CircleDollarSign,
   Clock3,
   Database,
   Loader2,
+  Presentation,
   RefreshCw,
   Search,
   Users,
@@ -36,6 +35,7 @@ type ReportLead = {
   subregion: string;
   stage: string;
   stageOrder: number;
+  createdDate: string | null;
   sentDate: string | null;
   releasedDate: string | null;
   ranDate: string | null;
@@ -43,6 +43,9 @@ type ReportLead = {
 
 type ReportSnapshot = {
   currentDate: string;
+  reportDate: string;
+  weekStart: string;
+  weekEnd: string;
   leads: ReportLead[];
 };
 
@@ -52,11 +55,16 @@ type Metrics = { sent: number; released: number; ran: number };
 
 const DEFAULT_REGIONS = ['ABC', 'Taboão da Serra', 'Guarulhos', 'Sorocaba', 'Salvador', 'São Paulo', 'Manaus'];
 const DEFAULT_ATTENDANTS = ['Beatriz', 'Henrique', 'Mariane', 'Melissa', 'Dafhny'];
-const moneyFormat = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' });
 
 function shiftDate(isoDate: string, days: number) {
   const date = new Date(`${isoDate}T12:00:00.000Z`);
   date.setUTCDate(date.getUTCDate() + days);
+  return date.toISOString().slice(0, 10);
+}
+
+function getWeekStart(isoDate: string) {
+  const date = new Date(`${isoDate}T12:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
   return date.toISOString().slice(0, 10);
 }
 
@@ -69,7 +77,7 @@ function inRange(value: string | null, start: string, end: string) {
   return Boolean(value && value >= start && value <= end);
 }
 
-function getMetrics(lead: ReportLead, mode: Mode, referenceDate: string, currentDate: string): Metrics {
+function getMetrics(lead: ReportLead, mode: Mode, referenceDate: string): Metrics {
   if (mode === 'day') {
     return {
       sent: lead.sentDate === referenceDate ? 1 : 0,
@@ -78,17 +86,18 @@ function getMetrics(lead: ReportLead, mode: Mode, referenceDate: string, current
     };
   }
 
-  const start = shiftDate(currentDate, -6);
+  const start = getWeekStart(referenceDate);
+  const end = shiftDate(start, 6);
   return {
-    sent: inRange(lead.sentDate, start, currentDate) ? 1 : 0,
-    released: inRange(lead.releasedDate, start, currentDate) ? 1 : 0,
-    ran: inRange(lead.ranDate, start, currentDate) ? 1 : 0,
+    sent: inRange(lead.sentDate, start, end) ? 1 : 0,
+    released: inRange(lead.releasedDate, start, end) ? 1 : 0,
+    ran: inRange(lead.ranDate, start, end) ? 1 : 0,
   };
 }
 
-function sumMetrics(rows: ReportLead[], mode: Mode, referenceDate: string, currentDate: string): Metrics {
+function sumMetrics(rows: ReportLead[], mode: Mode, referenceDate: string): Metrics {
   return rows.reduce<Metrics>((totals, lead) => {
-    const metrics = getMetrics(lead, mode, referenceDate, currentDate);
+    const metrics = getMetrics(lead, mode, referenceDate);
     totals.sent += metrics.sent;
     totals.released += metrics.released;
     totals.ran += metrics.ran;
@@ -98,20 +107,6 @@ function sumMetrics(rows: ReportLead[], mode: Mode, referenceDate: string, curre
 
 function numberFormat(value: number) {
   return new Intl.NumberFormat('pt-BR').format(value);
-}
-
-function parseCurrency(value: string) {
-  const cleaned = value.replace(/\s|R\$/gi, '').trim();
-  if (!cleaned) return null;
-  const normalized = cleaned.includes(',')
-    ? cleaned.replace(/\./g, '').replace(',', '.')
-    : cleaned;
-  const parsed = Number(normalized);
-  return Number.isFinite(parsed) && parsed >= 0 ? Math.round(parsed * 100) / 100 : null;
-}
-
-function formatCurrencyInput(value: number) {
-  return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 function getApiError<T>(payload: ApiResponse<T>, fallback: string) {
@@ -157,131 +152,8 @@ function MetricCell({ label, value, note, tone }: { label: string; value: number
   );
 }
 
-function CostEditor({
-  mode,
-  date,
-  totalSent,
-}: {
-  mode: Mode;
-  date: string;
-  totalSent: number;
-}) {
-  const [savedCost, setSavedCost] = React.useState(0);
-  const [inputValue, setInputValue] = React.useState('0,00');
-  const [loading, setLoading] = React.useState(true);
-  const [saving, setSaving] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const [notice, setNotice] = React.useState<string | null>(null);
-
-  React.useEffect(() => {
-    let active = true;
-    setLoading(true);
-    setError(null);
-    setNotice(null);
-    fetch(`/api/marketing/apresentacao/custo?period=${mode}&date=${date}`, { cache: 'no-store' })
-      .then(async (response) => {
-        const payload = await response.json() as ApiResponse<{ totalCost: number }>;
-        if (!response.ok || !payload.data) throw new Error(getApiError(payload, 'Não foi possível consultar o custo salvo.'));
-        return payload.data;
-      })
-      .then((data) => {
-        if (!active) return;
-        setSavedCost(data.totalCost);
-        setInputValue(formatCurrencyInput(data.totalCost));
-      })
-      .catch((reason) => {
-        if (active) setError(reason instanceof Error ? reason.message : 'Não foi possível consultar o custo salvo.');
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => { active = false; };
-  }, [date, mode]);
-
-  const parsedCost = parseCurrency(inputValue);
-  const dirty = parsedCost !== null && parsedCost !== savedCost;
-
-  const saveCost = async () => {
-    if (parsedCost === null) {
-      setError('Informe um valor válido, como 1.250,00.');
-      return;
-    }
-    setSaving(true);
-    setError(null);
-    setNotice(null);
-    try {
-      const response = await fetch('/api/marketing/apresentacao/custo', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ period: mode, date, totalCost: parsedCost }),
-      });
-      const payload = await response.json() as ApiResponse<{ totalCost: number }>;
-      if (!response.ok || !payload.data) throw new Error(getApiError(payload, 'Não foi possível salvar o custo.'));
-      setSavedCost(payload.data.totalCost);
-      setInputValue(formatCurrencyInput(payload.data.totalCost));
-      setNotice('Custo compartilhado com a equipe.');
-    } catch (reason) {
-      setError(reason instanceof Error ? reason.message : 'Não foi possível salvar o custo.');
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  return (
-    <section aria-labelledby="marketing-cost-title" className="rounded-xl border border-[#d6e2e9] bg-white p-4 dark:border-slate-800 dark:bg-slate-950/80 sm:p-5">
-      <div className="flex items-start gap-3">
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#edf5f9] text-[#1e5d80] dark:bg-sky-950/60 dark:text-sky-300">
-          <CircleDollarSign className="h-[18px] w-[18px]" aria-hidden="true" />
-        </span>
-        <div className="min-w-0 flex-1">
-          <h2 id="marketing-cost-title" className="text-sm font-semibold text-[#173f59] dark:text-slate-100">Custo de marketing</h2>
-          <p className="mt-0.5 text-xs leading-5 text-slate-600 dark:text-slate-400">
-            {mode === 'day' ? `Dia ${formatDate(date, { day: '2-digit', month: 'long' })}` : `Período de 7 dias · até ${formatDate(date)}`}
-          </p>
-        </div>
-      </div>
-      <div className="mt-4 grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3">
-        <label className="min-w-0">
-          <span className="mb-1.5 block text-[11px] font-semibold text-slate-600 dark:text-slate-400">Custo total (R$)</span>
-          <Input
-            type="text"
-            inputMode="decimal"
-            autoComplete="off"
-            aria-label="Custo total de marketing em reais"
-            value={inputValue}
-            disabled={loading || saving}
-            onChange={(event) => { setInputValue(event.target.value); setNotice(null); }}
-            className="h-10 rounded-lg border-[#cfdae2] text-sm tabular-nums dark:border-slate-700 dark:bg-slate-900"
-          />
-        </label>
-        <Button
-          type="button"
-          onClick={saveCost}
-          disabled={loading || saving || !dirty}
-          className="h-10 gap-2 rounded-lg bg-[#1e5d80] px-3 text-xs font-semibold text-white hover:bg-[#174966] disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-800 dark:disabled:text-slate-500"
-        >
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Check className="h-4 w-4" aria-hidden="true" />}
-          Salvar
-        </Button>
-      </div>
-      <div className="mt-4 flex items-center justify-between border-t border-[#e6edf1] pt-3 dark:border-slate-800">
-        <span className="text-xs text-slate-600 dark:text-slate-400">Custo por enviado</span>
-        <strong className="tabular-nums text-sm font-semibold text-[#173f59] dark:text-slate-100">
-          {totalSent > 0 ? moneyFormat.format((parsedCost ?? savedCost) / totalSent) : '—'}
-        </strong>
-      </div>
-      <p role={error ? 'alert' : 'status'} aria-live="polite" className={cn(
-        'mt-2 min-h-4 text-[11px] leading-4',
-        error ? 'text-rose-700 dark:text-rose-300' : 'text-slate-500 dark:text-slate-400',
-      )}>
-        {error || notice || (loading ? 'Consultando valor salvo…' : 'Valor compartilhado com quem tem acesso ao Marketing.')}
-      </p>
-    </section>
-  );
-}
-
-function WeeklyTrend({ leads, currentDate }: { leads: ReportLead[]; currentDate: string }) {
-  const days = Array.from({ length: 7 }, (_, index) => shiftDate(currentDate, index - 6));
+function WeeklyTrend({ leads, weekStart, weekEnd }: { leads: ReportLead[]; weekStart: string; weekEnd: string }) {
+  const days = Array.from({ length: 7 }, (_, index) => shiftDate(weekStart, index));
   const dailyMetrics = days.map((date) => ({
     date,
     metrics: leads.reduce<Metrics>((totals, lead) => {
@@ -297,9 +169,9 @@ function WeeklyTrend({ leads, currentDate }: { leads: ReportLead[]; currentDate:
     <section aria-labelledby="marketing-trend-title" className="overflow-hidden rounded-xl border border-[#d6e2e9] bg-white dark:border-slate-800 dark:bg-slate-950/80">
       <SectionHeading
         id="marketing-trend-title"
-        title="Ritmo dos últimos 7 dias"
+        title="Ritmo da semana selecionada"
         detail="Cada barra conta os registros conforme a data informada no DataCrazy."
-        trailing={<span className="text-[11px] tabular-nums text-slate-500 dark:text-slate-400">{formatDate(days[0])} — {formatDate(currentDate)}</span>}
+        trailing={<span className="text-[11px] tabular-nums text-slate-500 dark:text-slate-400">{formatDate(days[0])} — {formatDate(weekEnd)}</span>}
       />
       <div className="px-4 pb-4 pt-5 sm:px-5">
         <div className="mb-4 flex flex-wrap gap-x-4 gap-y-2 text-[11px] text-slate-600 dark:text-slate-400" aria-label="Legenda do gráfico">
@@ -339,12 +211,10 @@ function RegionBreakdown({
   rows,
   mode,
   referenceDate,
-  currentDate,
 }: {
   rows: ReportLead[];
   mode: Mode;
   referenceDate: string;
-  currentDate: string;
 }) {
   const otherRegions = Array.from(new Set(rows.map((lead) => lead.region))).filter((region) => !DEFAULT_REGIONS.includes(region)).sort((a, b) => a.localeCompare(b, 'pt-BR'));
   const regions = [...DEFAULT_REGIONS, ...otherRegions];
@@ -364,7 +234,7 @@ function RegionBreakdown({
           <tbody className="divide-y divide-[#e7edf1] dark:divide-slate-800">
             {regions.map((region) => {
               const regionRows = rows.filter((lead) => lead.region === region);
-              const totals = sumMetrics(regionRows, mode, referenceDate, currentDate);
+              const totals = sumMetrics(regionRows, mode, referenceDate);
               return (
                 <tr key={region} className="text-slate-700 dark:text-slate-300">
                   <th scope="row" className="px-4 py-3 font-medium text-[#173f59] dark:text-slate-200 sm:px-5">{region}</th>
@@ -385,12 +255,10 @@ function AttendantBreakdown({
   rows,
   mode,
   referenceDate,
-  currentDate,
 }: {
   rows: ReportLead[];
   mode: Mode;
   referenceDate: string;
-  currentDate: string;
 }) {
   const namesInData = Array.from(new Set(rows.map((lead) => lead.attendant)));
   const primary = DEFAULT_ATTENDANTS.filter((name) => namesInData.some((current) => current.toLocaleLowerCase('pt-BR').includes(name.toLocaleLowerCase('pt-BR'))));
@@ -411,7 +279,7 @@ function AttendantBreakdown({
           <tbody className="divide-y divide-[#e7edf1] dark:divide-slate-800">
             {names.length > 0 ? names.map((name) => {
               const attendantRows = rows.filter((lead) => lead.attendant.toLocaleLowerCase('pt-BR').includes(name.toLocaleLowerCase('pt-BR')));
-              const totals = sumMetrics(attendantRows, mode, referenceDate, currentDate);
+              const totals = sumMetrics(attendantRows, mode, referenceDate);
               return (
                 <tr key={name} className="text-slate-700 dark:text-slate-300">
                   <th scope="row" className="max-w-[220px] truncate px-4 py-3 font-medium text-[#173f59] dark:text-slate-200 sm:px-5">{name}</th>
@@ -433,12 +301,10 @@ function LeadList({
   rows,
   mode,
   referenceDate,
-  currentDate,
 }: {
   rows: ReportLead[];
   mode: Mode;
   referenceDate: string;
-  currentDate: string;
 }) {
   const [search, setSearch] = React.useState('');
   const [stage, setStage] = React.useState('all');
@@ -451,7 +317,7 @@ function LeadList({
   const normalizedSearch = search.trim().toLocaleLowerCase('pt-BR');
   const filteredRows = rows.filter((lead) => {
     const text = [lead.lead, lead.phone, lead.code, lead.subregion].join(' ').toLocaleLowerCase('pt-BR');
-    const metrics = getMetrics(lead, mode, referenceDate, currentDate);
+    const metrics = getMetrics(lead, mode, referenceDate);
     const matchesMetric = metric === 'all' || (metric === 'sent' && metrics.sent > 0) || (metric === 'released' && metrics.released > 0) || (metric === 'ran' && metrics.ran > 0);
     return (!normalizedSearch || text.includes(normalizedSearch))
       && (stage === 'all' || lead.stage === stage)
@@ -516,7 +382,7 @@ function LeadList({
           </thead>
           <tbody className="divide-y divide-[#e7edf1] dark:divide-slate-800">
             {filteredRows.length > 0 ? filteredRows.map((lead, index) => {
-              const metrics = getMetrics(lead, mode, referenceDate, currentDate);
+              const metrics = getMetrics(lead, mode, referenceDate);
               return (
                 <tr key={`${lead.code || lead.lead}-${index}`} className="align-top text-slate-700 hover:bg-[#f8fbfc] dark:text-slate-300 dark:hover:bg-slate-900/70">
                   <td className="max-w-[260px] px-4 py-3">
@@ -571,17 +437,21 @@ const MarketingApresentacaoView = React.memo(function MarketingApresentacaoView(
   const [region, setRegion] = React.useState('all');
   const [attendant, setAttendant] = React.useState('all');
 
-  const loadReport = React.useCallback(async (forceRefresh = false) => {
+  const loadReport = React.useCallback(async (forceRefresh = false, date?: string) => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`/api/marketing/apresentacao${forceRefresh ? '?refresh=1' : ''}`, { cache: 'no-store' });
+      const query = new URLSearchParams();
+      if (date) query.set('date', date);
+      if (forceRefresh) query.set('refresh', '1');
+      const queryString = query.toString();
+      const response = await fetch(`/api/marketing/apresentacao${queryString ? `?${queryString}` : ''}`, { cache: 'no-store' });
       const payload = await response.json() as ApiResponse<ReportSnapshot>;
       if (!response.ok || !payload.data) throw new Error(getApiError(payload, 'Não foi possível carregar a apresentação.'));
       setSnapshot(payload.data);
       setStale(Boolean(payload.stale));
       setUpdatedAt(new Date());
-      setSelectedDate((current) => current || payload.data!.currentDate);
+      setSelectedDate(payload.data.reportDate || payload.data.currentDate);
     } catch (reason) {
       setError(reason instanceof Error ? reason.message : 'Não foi possível consultar os dados do DataCrazy.');
     } finally {
@@ -592,30 +462,31 @@ const MarketingApresentacaoView = React.memo(function MarketingApresentacaoView(
   React.useEffect(() => { void loadReport(); }, [loadReport]);
 
   const currentDate = snapshot?.currentDate || '';
-  const selectedReference = mode === 'day' ? selectedDate : currentDate;
+  const selectedReference = selectedDate;
   const scopedRows = React.useMemo(() => {
     if (!snapshot || !selectedReference) return [];
     return snapshot.leads.filter((lead) => {
-      const metrics = getMetrics(lead, mode, selectedReference, currentDate);
+      const metrics = getMetrics(lead, mode, selectedReference);
       return (metrics.sent || metrics.released || metrics.ran)
         && (region === 'all' || lead.region === region)
         && (attendant === 'all' || lead.attendant === attendant);
     });
-  }, [attendant, currentDate, mode, region, selectedReference, snapshot]);
-  const totals = React.useMemo(() => sumMetrics(scopedRows, mode, selectedReference, currentDate), [currentDate, mode, scopedRows, selectedReference]);
+  }, [attendant, mode, region, selectedReference, snapshot]);
+  const totals = React.useMemo(() => sumMetrics(scopedRows, mode, selectedReference), [mode, scopedRows, selectedReference]);
   const availableRegions = React.useMemo(() => Array.from(new Set([...DEFAULT_REGIONS, ...(snapshot?.leads.map((lead) => lead.region) || [])])), [snapshot]);
   const availableAttendants = React.useMemo(() => Array.from(new Set(snapshot?.leads.map((lead) => lead.attendant) || [])).sort((a, b) => a.localeCompare(b, 'pt-BR')), [snapshot]);
-  const visibleStartDate = currentDate ? shiftDate(currentDate, -6) : '';
+  const weekStart = selectedDate ? getWeekStart(selectedDate) : snapshot?.weekStart || '';
+  const weekEnd = snapshot?.weekEnd || (weekStart ? shiftDate(weekStart, 6) : '');
   const reportLabel = mode === 'day' && selectedReference
     ? formatDate(selectedReference, { day: '2-digit', month: 'long', year: 'numeric' })
-    : currentDate ? `${formatDate(visibleStartDate, { day: '2-digit', month: 'short' })} a ${formatDate(currentDate, { day: '2-digit', month: 'short', year: 'numeric' })}` : '';
+    : weekStart && weekEnd ? `${formatDate(weekStart, { day: '2-digit', month: 'short' })} a ${formatDate(weekEnd, { day: '2-digit', month: 'short', year: 'numeric' })}` : '';
 
   return (
     <ViewContainer className="space-y-5 pb-10 pt-3 sm:space-y-6">
       <header className="flex min-w-0 flex-col gap-4 rounded-xl border border-[#164d70] bg-[#174d70] px-4 py-4 text-white shadow-[0_8px_28px_-22px_rgba(12,54,81,0.6)] sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
         <div className="min-w-0">
           <h1 className="text-[21px] font-semibold leading-tight tracking-[-0.025em] sm:text-[24px]">Apresentação Marketing</h1>
-          <p className="mt-1.5 max-w-3xl text-[12px] leading-5 text-sky-100/90 sm:text-[13px]">Acompanhe cadastros enviados, liberados e iniciados pela pipeline Status.</p>
+          <p className="mt-1.5 max-w-3xl text-[12px] leading-5 text-sky-100/90 sm:text-[13px]">Escolha uma data para analisar a semana correspondente e montar a apresentação.</p>
         </div>
         <div className="flex shrink-0 items-center gap-2.5">
           <span className="inline-flex h-8 items-center gap-2 rounded-md border border-white/20 bg-white/[0.08] px-2.5 text-[11px] font-medium text-sky-50">
@@ -624,7 +495,7 @@ const MarketingApresentacaoView = React.memo(function MarketingApresentacaoView(
           <Button
             type="button"
             variant="outline"
-            onClick={() => void loadReport(true)}
+            onClick={() => void loadReport(true, selectedDate)}
             disabled={loading}
             className="h-8 gap-2 rounded-md border-white/30 bg-transparent px-2.5 text-[11px] font-semibold text-white hover:bg-white/10 hover:text-white disabled:opacity-60"
           >
@@ -639,35 +510,41 @@ const MarketingApresentacaoView = React.memo(function MarketingApresentacaoView(
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600 dark:text-slate-400">Período</p>
           <div className="inline-flex rounded-lg border border-[#cbd9e2] bg-white p-1 dark:border-slate-700 dark:bg-slate-900" role="group" aria-label="Escolher período">
             <button type="button" aria-pressed={mode === 'day'} onClick={() => setMode('day')} className={cn('rounded-md px-3.5 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#38708e] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900', mode === 'day' ? 'bg-[#1e5d80] text-white shadow-sm' : 'text-slate-600 hover:bg-[#edf4f7] hover:text-[#173f59] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white')}>Dia</button>
-            <button type="button" aria-pressed={mode === 'week'} onClick={() => setMode('week')} className={cn('rounded-md px-3.5 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#38708e] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900', mode === 'week' ? 'bg-[#1e5d80] text-white shadow-sm' : 'text-slate-600 hover:bg-[#edf4f7] hover:text-[#173f59] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white')}>Últimos 7 dias</button>
+            <button type="button" aria-pressed={mode === 'week'} onClick={() => setMode('week')} className={cn('rounded-md px-3.5 py-2 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#38708e] focus-visible:ring-offset-2 dark:focus-visible:ring-offset-slate-900', mode === 'week' ? 'bg-[#1e5d80] text-white shadow-sm' : 'text-slate-600 hover:bg-[#edf4f7] hover:text-[#173f59] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white')}>Semana selecionada</button>
           </div>
         </div>
-        <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(210px,1fr)_minmax(185px,0.85fr)] sm:items-end sm:gap-5">
-          {mode === 'day' ? (
-            <label className="min-w-0">
-              <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600 dark:text-slate-400">Data do relatório</span>
-              <span className="relative block">
-                <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#47718a] dark:text-sky-300" aria-hidden="true" />
-                <Input
-                  type="date"
-                  value={selectedDate}
-                  min={visibleStartDate}
-                  max={currentDate}
-                  disabled={!snapshot}
-                  onChange={(event) => setSelectedDate(event.target.value)}
-                  aria-label="Data do relatório, últimos sete dias"
-                  className="h-10 rounded-lg border-[#cbd9e2] bg-white pl-10 text-xs text-[#173f59] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
-                />
-              </span>
-            </label>
-          ) : (
-            <div className="min-w-0">
-              <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600 dark:text-slate-400">Período fechado</span>
-              <div className="flex h-10 items-center gap-2 rounded-lg border border-[#cbd9e2] bg-white px-3 text-xs text-[#173f59] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">
-                <CalendarDays className="h-4 w-4 shrink-0 text-[#47718a] dark:text-sky-300" aria-hidden="true" />{reportLabel || 'Carregando período…'}
-              </div>
-            </div>
-          )}
+        <div className="grid min-w-0 gap-3 sm:grid-cols-[minmax(190px,1fr)_auto_auto] sm:items-end sm:gap-4">
+          <label className="min-w-0">
+            <span className="mb-2 block text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600 dark:text-slate-400">Data de referência</span>
+            <span className="relative block">
+              <CalendarDays className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#47718a] dark:text-sky-300" aria-hidden="true" />
+              <Input
+                type="date"
+                value={selectedDate}
+                max={currentDate}
+                disabled={!snapshot}
+                onChange={(event) => {
+                  const date = event.target.value;
+                  setSelectedDate(date);
+                  if (date) {
+                    setSnapshot(null);
+                    void loadReport(false, date);
+                  }
+                }}
+                aria-label="Escolha qualquer data até hoje"
+                className="h-10 rounded-lg border-[#cbd9e2] bg-white pl-10 text-xs text-[#173f59] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
+              />
+            </span>
+            <span className="mt-1.5 block text-[10px] leading-4 text-slate-500 dark:text-slate-400">Semana: {reportLabel || 'carregando…'}</span>
+          </label>
+          <Button
+            type="button"
+            disabled={!snapshot || !selectedDate || loading}
+            onClick={() => window.open(`/apresentacao/marketing/gerar?data=${encodeURIComponent(selectedDate)}`, '_blank', 'noopener,noreferrer')}
+            className="h-10 gap-2 rounded-lg bg-[#1e5d80] px-4 text-xs font-semibold text-white hover:bg-[#174966]"
+          >
+            <Presentation className="h-4 w-4" aria-hidden="true" />Gerar apresentação
+          </Button>
           <div className="flex min-w-0 items-center gap-2 text-[11px] leading-4 text-slate-600 dark:text-slate-400">
             <Clock3 className="h-4 w-4 shrink-0 text-[#47718a] dark:text-sky-300" aria-hidden="true" />
             <span>{updatedAt ? `Atualizado às ${updatedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'Aguardando atualização'}{stale ? ' · exibindo dados em cache' : ''}</span>
@@ -678,7 +555,7 @@ const MarketingApresentacaoView = React.memo(function MarketingApresentacaoView(
       {error && snapshot ? (
         <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-100">
           <span>Não foi possível atualizar agora; mantendo os dados carregados. {error}</span>
-          <Button variant="outline" size="sm" onClick={() => void loadReport(true)} disabled={loading} className="h-8 gap-2 text-xs"><RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />Tentar novamente</Button>
+          <Button variant="outline" size="sm" onClick={() => void loadReport(true, selectedDate)} disabled={loading} className="h-8 gap-2 text-xs"><RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />Tentar novamente</Button>
         </div>
       ) : null}
 
@@ -687,19 +564,16 @@ const MarketingApresentacaoView = React.memo(function MarketingApresentacaoView(
           <AlertCircle className="h-4 w-4" aria-hidden="true" />
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div><AlertTitle>Não foi possível carregar os dados</AlertTitle><AlertDescription className="mt-1">{error}</AlertDescription></div>
-            <Button type="button" variant="outline" onClick={() => void loadReport(true)} disabled={loading} className="shrink-0 gap-2"><RefreshCw className="h-4 w-4" aria-hidden="true" />Tentar novamente</Button>
+            <Button type="button" variant="outline" onClick={() => void loadReport(true, selectedDate)} disabled={loading} className="shrink-0 gap-2"><RefreshCw className="h-4 w-4" aria-hidden="true" />Tentar novamente</Button>
           </div>
         </Alert>
       ) : snapshot ? (
         <div className="space-y-5 sm:space-y-6">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-stretch">
-            <section aria-label={`Resumo do período ${reportLabel}`} className="grid min-w-0 flex-1 grid-cols-1 divide-y divide-[#e1eaf0] overflow-hidden rounded-xl border border-[#d6e2e9] bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-950/80 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-              <MetricCell label="Cadastros enviados" value={totals.sent} note={mode === 'day' ? `Data a enviar: ${formatDate(selectedReference)}` : 'DT a enviar dentro do período'} tone="blue" />
-              <MetricCell label="Cadastros liberados" value={totals.released} note={mode === 'day' ? 'Liberados na data selecionada' : 'Liberados nos últimos 7 dias'} tone="teal" />
-              <MetricCell label={mode === 'day' ? 'Começou ontem' : 'Rodou no período'} value={totals.ran} note={mode === 'day' ? `RODOU em ${formatDate(shiftDate(selectedReference, -1))}` : 'RODOU nos últimos 7 dias'} tone="slate" />
-            </section>
-            <div className="w-full shrink-0 xl:w-[340px]"><CostEditor mode={mode} date={selectedReference} totalSent={totals.sent} /></div>
-          </div>
+          <section aria-label={`Resumo do período ${reportLabel}`} className="grid min-w-0 grid-cols-1 divide-y divide-[#e1eaf0] overflow-hidden rounded-xl border border-[#d6e2e9] bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-950/80 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+            <MetricCell label="Cadastros enviados" value={totals.sent} note={mode === 'day' ? `Data a enviar: ${formatDate(selectedReference)}` : 'Dentro da semana selecionada'} tone="blue" />
+            <MetricCell label="Cadastros liberados" value={totals.released} note={mode === 'day' ? 'Liberados na data selecionada' : 'Dentro da semana selecionada'} tone="teal" />
+            <MetricCell label={mode === 'day' ? 'Começou ontem' : 'Rodou no período'} value={totals.ran} note={mode === 'day' ? `RODOU em ${formatDate(shiftDate(selectedReference, -1))}` : 'Dentro da semana selecionada'} tone="slate" />
+          </section>
 
           <section aria-label="Filtros por região e atendente" className="flex min-w-0 flex-col gap-3 rounded-lg border border-[#d6e2e9] bg-white px-3 py-3 dark:border-slate-800 dark:bg-slate-950/80 sm:flex-row sm:items-end sm:px-4">
             <div className="flex items-center gap-2 pb-0.5 text-xs font-semibold text-[#173f59] dark:text-slate-200 sm:mr-1"><Users className="h-4 w-4 text-[#47718a] dark:text-sky-300" aria-hidden="true" />Filtrar resumo</div>
@@ -722,16 +596,16 @@ const MarketingApresentacaoView = React.memo(function MarketingApresentacaoView(
             ) : null}
           </section>
 
-          {mode === 'week' ? <WeeklyTrend leads={scopedRows} currentDate={currentDate} /> : null}
+          {mode === 'week' ? <WeeklyTrend leads={scopedRows} weekStart={weekStart} weekEnd={weekEnd} /> : null}
 
           <div className="grid min-w-0 gap-5 lg:grid-cols-[1.12fr_0.88fr]">
-            <RegionBreakdown rows={scopedRows} mode={mode} referenceDate={selectedReference} currentDate={currentDate} />
-            <AttendantBreakdown rows={scopedRows} mode={mode} referenceDate={selectedReference} currentDate={currentDate} />
+            <RegionBreakdown rows={scopedRows} mode={mode} referenceDate={selectedReference} />
+            <AttendantBreakdown rows={scopedRows} mode={mode} referenceDate={selectedReference} />
           </div>
 
-          <LeadList rows={scopedRows} mode={mode} referenceDate={selectedReference} currentDate={currentDate} />
+          <LeadList rows={scopedRows} mode={mode} referenceDate={selectedReference} />
           <p className="text-[11px] leading-5 text-slate-500 dark:text-slate-400">
-            Fonte: pipeline Status do DataCrazy. No resumo diário, “Começou ontem” considera o campo RODOU DIA do dia anterior; os demais indicadores comparam a data escolhida.
+            Fonte: pipeline Status do DataCrazy. A seleção cobre toda a semana de segunda a domingo; no resumo diário, “Começou ontem” considera o campo RODOU DIA do dia anterior. Para semanas históricas, a análise considera os registros vinculados à pipeline Status no momento da consulta.
           </p>
         </div>
       ) : null}

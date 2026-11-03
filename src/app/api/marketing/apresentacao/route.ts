@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { hasElevatedRole, loadCurrentUserProfile } from '@/app/api/_shared/currentUserProfile';
+import { createServiceRoleClient } from '@/utils/supabase/admin';
+import { buildMarketingPresentation } from '@/utils/marketing/buildMarketingPresentation';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -23,6 +25,7 @@ type LeadRow = {
   subregion: string;
   stage: string;
   stageOrder: number;
+  createdDate: string | null;
   sentDate: string | null;
   releasedDate: string | null;
   ranDate: string | null;
@@ -61,6 +64,19 @@ function addDays(isoDate: string, days: number) {
   const date = new Date(`${isoDate}T12:00:00.000Z`);
   date.setUTCDate(date.getUTCDate() + days);
   return date.toISOString().slice(0, 10);
+}
+
+function isIsoDate(value: string | null): value is string {
+  if (!value || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const date = new Date(`${value}T12:00:00.000Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
+function getWeekRange(isoDate: string) {
+  const date = new Date(`${isoDate}T12:00:00.000Z`);
+  date.setUTCDate(date.getUTCDate() - ((date.getUTCDay() + 6) % 7));
+  const start = date.toISOString().slice(0, 10);
+  return { start, end: addDays(start, 6) };
 }
 
 function normalizeDate(value: unknown): string | null {
@@ -213,21 +229,16 @@ async function fetchReport() {
   const businessByLead = latestBusinessPerLead(businessesByStage.flat());
   const leadById = new Map(leads.map((lead) => [asString(lead.id), lead]));
   const currentDate = getSaoPauloDate();
-  const periodStart = addDays(currentDate, -6);
-  const ranStart = addDays(periodStart, -1);
 
   const rows: LeadRow[] = [];
   businessByLead.forEach((business, leadId) => {
     const lead = leadById.get(leadId) || asRecord(business.lead);
+    const createdDate = normalizeDate(lead.createdAt || lead.created_at || lead.createdDate || lead.created_date)
+      || normalizeDate(readLeadField(lead, 'Criado'));
     const sentDate = normalizeDate(readLeadField(lead, 'DT A ENVIAR'));
     const releasedDate = normalizeDate(readLeadField(lead, 'LIBERADO DIA'));
     const ranDate = normalizeDate(readLeadField(lead, 'RODOU DIA'));
-    const isInReportPeriod = Boolean(
-      (sentDate && sentDate >= periodStart && sentDate <= currentDate)
-      || (releasedDate && releasedDate >= periodStart && releasedDate <= currentDate)
-      || (ranDate && ranDate >= ranStart && ranDate <= currentDate),
-    );
-    if (!isInReportPeriod) return;
+    if (!createdDate && !sentDate && !releasedDate && !ranDate) return;
 
     const subregion = readLeadField(lead, 'Subpraça');
     const stage = asRecord(business.stage);
@@ -245,6 +256,7 @@ async function fetchReport() {
       subregion,
       stage: asString(stage.name) || stageNames.get(stageId) || 'Sem etapa',
       stageOrder: stageOrder.get(stageId) ?? 99,
+      createdDate,
       sentDate,
       releasedDate,
       ranDate,
@@ -287,21 +299,61 @@ export async function GET(request: Request) {
       return privateJson({ data: null, error: 'Esta apresentação é restrita ao time de Marketing.' }, 403);
     }
 
-    const forceRefresh = new URL(request.url).searchParams.get('refresh') === '1';
-    const cached = cache.get(CACHE_KEY);
-    if (!forceRefresh && cached && cached.expiresAt > Date.now()) {
-      return privateJson({ data: cached.data, error: null, cached: true });
+    const searchParams = new URL(request.url).searchParams;
+    const forceRefresh = searchParams.get('refresh') === '1';
+    const isPresentation = searchParams.get('presentation') === '1';
+    const requestedDate = searchParams.get('date');
+    const reportDate = requestedDate || getSaoPauloDate();
+    if (!isIsoDate(reportDate)) {
+      return privateJson({ data: null, error: 'Informe uma data válida no formato AAAA-MM-DD.' }, 400);
     }
 
+    const today = getSaoPauloDate();
+    if (reportDate > today) {
+      return privateJson({ data: null, error: 'A data da apresentação não pode ser futura.' }, 400);
+    }
+    const cached = cache.get(CACHE_KEY);
+    let data: CacheEntry['data'];
+    let usedStaleData = false;
     try {
-      const data = await getCachedReport();
-      return privateJson({ data, error: null, cached: false });
+      data = !forceRefresh && cached && cached.expiresAt > Date.now()
+        ? cached.data
+        : await getCachedReport();
     } catch (error) {
       if (cached && Date.now() - cached.expiresAt < CACHE_MAX_AGE_MS) {
-        return privateJson({ data: cached.data, error: null, cached: true, stale: true });
+        data = cached.data;
+        usedStaleData = true;
+      } else {
+        throw error;
       }
-      throw error;
     }
+
+    if (isPresentation) {
+      const organizationId = auth.profile.organization_id || null;
+      const report = await buildMarketingPresentation(
+        data.leads,
+        data.currentDate,
+        reportDate,
+        organizationId,
+        createServiceRoleClient(),
+      );
+      return privateJson({ data: report, error: null, cached: data === cached?.data, stale: usedStaleData });
+    }
+
+    const { start, end } = getWeekRange(reportDate);
+    const previousDay = addDays(start, -1);
+    const selectedLeads = data.leads.filter((lead) =>
+      (lead.createdDate && lead.createdDate >= start && lead.createdDate <= end)
+      || (lead.sentDate && lead.sentDate >= start && lead.sentDate <= end)
+      || (lead.releasedDate && lead.releasedDate >= start && lead.releasedDate <= end)
+      || (lead.ranDate && lead.ranDate >= previousDay && lead.ranDate <= end),
+    );
+    return privateJson({
+      data: { ...data, reportDate, weekStart: start, weekEnd: end, leads: selectedLeads },
+      error: null,
+      cached: data === cached?.data,
+      stale: usedStaleData,
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Não foi possível carregar os dados do DataCrazy.';
     return privateJson({ data: null, error: message }, 502);

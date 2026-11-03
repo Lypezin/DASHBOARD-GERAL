@@ -16,6 +16,10 @@ interface MarketingReportSlidesProps {
     costsComparison: MarketingCostsComparison;
     titulo: string;
     periodoFormatado: string;
+    subtitulo?: string;
+    sourceNote?: string;
+    costsCurrentPeriod?: string;
+    costsPreviousPeriod?: string;
 }
 
 import { MarketingExitButton } from './MarketingExitButton';
@@ -40,7 +44,11 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
     weeklyDataByCity,
     costsComparison,
     titulo: _titulo,
-    periodoFormatado
+    periodoFormatado,
+    subtitulo = 'Relatório de Resultados',
+    sourceNote,
+    costsCurrentPeriod,
+    costsPreviousPeriod,
 }) => {
     const router = useRouter();
     const { theme } = useTheme();
@@ -109,11 +117,11 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
             <MarketingExitButton onExit={onExit} theme={theme} />
 
             <MarketingSlideFrame id="top" className="animate-slide-up">
-                <SlideCapaMarketing isVisible titulo="Cadastros Marketing" periodo={periodoFormatado} subtitulo="Relatório de Resultados" />
+                <SlideCapaMarketing isVisible titulo="Cadastros Marketing" periodo={periodoFormatado} subtitulo={subtitulo} />
             </MarketingSlideFrame>
 
             <MarketingSlideFrame id="unidades" className="animate-slide-up">
-                <SlideEvolucaoResumoMarketing isVisible={true} evolutionData={evolutionData} citiesData={citiesData} />
+                <SlideEvolucaoResumoMarketing isVisible={true} evolutionData={evolutionData} citiesData={citiesData} sourceNote={sourceNote} />
             </MarketingSlideFrame>
 
             <div id="semanal">
@@ -121,7 +129,12 @@ export const MarketingReportSlides: React.FC<MarketingReportSlidesProps> = ({
             </div>
 
             <div id="custos">
-                <CostsSlidesSection costsComparison={costsComparison} />
+                <CostsSlidesSection
+                    costsComparison={costsComparison}
+                    sourceNote={sourceNote}
+                    currentPeriod={costsCurrentPeriod}
+                    previousPeriod={costsPreviousPeriod}
+                />
             </div>
         </div>
     );

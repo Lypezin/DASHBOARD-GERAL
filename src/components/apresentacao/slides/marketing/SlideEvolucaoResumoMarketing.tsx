@@ -11,13 +11,15 @@ interface SlideEvolucaoResumoMarketingProps {
     evolutionData: Array<{ data: string; liberado: number; enviado: number }>;
     citiesData: MarketingCityData[];
     titulo?: string;
+    sourceNote?: string;
 }
 
 const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> = ({
     isVisible,
     evolutionData,
     citiesData,
-    titulo = "Evolução de Migrações"
+    titulo = "Evolução de Migrações",
+    sourceNote,
 }) => {
     const { theme } = useTheme();
     const isDark = theme === 'dark';
@@ -38,7 +40,8 @@ const SlideEvolucaoResumoMarketing: React.FC<SlideEvolucaoResumoMarketingProps> 
                         <h2 className={`text-6xl font-black tracking-tighter transition-all duration-500 ${isDark ? 'text-white' : 'text-slate-900'}`}>
                             {titulo.toUpperCase()}
                         </h2>
-                        <p className="text-[12px] text-blue-500 font-bold uppercase tracking-[0.5em] mt-2">📊 Análise de Volume Diário</p>
+                        <p className="text-[12px] text-blue-500 font-bold uppercase tracking-[0.5em] mt-2">Análise de volume diário</p>
+                        {sourceNote ? <p className={`mt-2 max-w-3xl text-[10px] leading-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{sourceNote}</p> : null}
                     </div>
                 </div>
                 <div className="flex flex-col items-end opacity-60">

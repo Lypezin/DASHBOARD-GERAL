@@ -9,6 +9,8 @@ interface SlideComparativoCustosMarketingProps {
     isVisible: boolean;
     titulo: string; // Ex: "ATUAL" ou "PASSADA"
     data: MarketingCostData[];
+    sourceNote?: string;
+    periodLabel?: string;
 }
 
 import { CostsHeader } from './components/CostsHeader';
@@ -18,7 +20,9 @@ import { calculateCostsTotals } from './utils/costsUtils';
 const SlideComparativoCustosMarketing: React.FC<SlideComparativoCustosMarketingProps> = ({
     isVisible,
     titulo,
-    data = []
+    data = [],
+    sourceNote,
+    periodLabel,
 }) => {
     const { theme } = useTheme();
     const isDark = theme === 'dark';
@@ -32,8 +36,10 @@ const SlideComparativoCustosMarketing: React.FC<SlideComparativoCustosMarketingP
             isDark ? 'bg-[#020617]' : 'bg-white'
         }`}>
             <CostsHeader titulo={titulo} isDark={isDark} />
+            {periodLabel ? <p className={`mb-3 text-center text-sm font-medium ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>{periodLabel}</p> : null}
 
             <CostsTable data={data} totals={totals} isDark={isDark} />
+            {sourceNote ? <p className={`mt-2 text-center text-[9px] leading-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{sourceNote}</p> : null}
             
             <div className="absolute top-0 right-0 w-96 h-96 bg-blue-600/5 rounded-full -mr-48 -mt-48 blur-3xl" />
             <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-600/5 rounded-full -ml-48 -mb-48 blur-3xl" />
