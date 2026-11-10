@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Activity, CalendarDays, CheckCircle2, Clock, Hash, Percent, Target, XCircle } from 'lucide-react';
+import { Activity, CalendarDays, CheckCircle2, Clock, Hash, MapPin, Percent, Target, XCircle } from 'lucide-react';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import { Entregador } from '@/types';
 import { calcularPercentualAceitas, calcularPercentualCompletadas } from '../EntregadoresUtils';
@@ -9,11 +9,15 @@ import { calcularPercentualAceitas, calcularPercentualCompletadas } from '../Ent
 interface EntregadorMetricsGridProps {
   entregador: Entregador;
   firstSeenLabel: string;
+  cityLabel: string;
+  lastSeenLabel: string;
 }
 
 export const EntregadorMetricsGrid = React.memo(function EntregadorMetricsGrid({
   entregador,
   firstSeenLabel,
+  cityLabel,
+  lastSeenLabel,
 }: EntregadorMetricsGridProps) {
   const percentualAceitas = calcularPercentualAceitas(entregador);
   const percentualCompletadas = calcularPercentualCompletadas(entregador);
@@ -36,6 +40,20 @@ export const EntregadorMetricsGrid = React.memo(function EntregadorMetricsGrid({
 
   return (
     <div className="space-y-6 px-5 py-6 sm:px-7">
+      <section aria-labelledby="entregador-history-heading">
+        <h3 id="entregador-history-heading" className="text-sm font-bold text-slate-900 dark:text-slate-100">Histórico do entregador</h3>
+        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">Último registro nas cidades disponíveis para você</p>
+        <div className="mt-3 grid gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 px-4 py-3.5 dark:border-slate-800 dark:bg-slate-900/45 sm:grid-cols-2 sm:gap-5">
+          <div className="flex min-w-0 items-start gap-2.5">
+            <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
+            <div className="min-w-0"><p className="text-xs text-slate-500 dark:text-slate-400">Cidade na última aparição</p><p className="mt-1 break-words text-sm font-semibold text-slate-900 dark:text-slate-100">{cityLabel}</p></div>
+          </div>
+          <div className="flex min-w-0 items-start gap-2.5">
+            <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
+            <div className="min-w-0"><p className="text-xs text-slate-500 dark:text-slate-400">Última aparição</p><p className="mt-1 break-words text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100">{lastSeenLabel}</p></div>
+          </div>
+        </div>
+      </section>
       <section aria-labelledby="entregador-summary-heading">
         <div className="mb-3 flex items-end justify-between gap-3">
           <div>

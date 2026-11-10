@@ -12,6 +12,7 @@ import type { FilterPayload } from '@/types/filters';
 import { fetchDedicadoApi } from '@/utils/dedicado/fetchDedicadoApi';
 import { createRequestKey } from '@/utils/request/createRequestKey';
 import { fetchEntregadoresFirstSeen, formatFirstSeenDate } from './fetchEntregadoresFirstSeen';
+import { fetchEntregadorUltimaAparicao, type EntregadorUltimaAparicao } from './fetchEntregadorUltimaAparicao';
 
 // Subcomponentes modulares extraídos
 import { EntregadorProfileHeader } from './components/EntregadorProfileHeader';
@@ -63,6 +64,12 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
     const [origemLoading, setOrigemLoading] = React.useState(false);
     const [firstSeenDate, setFirstSeenDate] = React.useState<string | null>(entregador?.primeira_data_aparicao || null);
     const [firstSeenLoading, setFirstSeenLoading] = React.useState(false);
+    const [latestAppearance, setLatestAppearance] = React.useState<{
+        key: string;
+        status: 'loading' | 'success' | 'error';
+        data: EntregadorUltimaAparicao | null;
+    } | null>(null);
+    const latestAppearanceKey = createRequestKey({ id: entregador?.id_entregador || '', organizationId: organizationId || null });
 
     const origemPayloadKey = React.useMemo(() => {
         if (!entregador || !isDedicado) return '';
@@ -167,6 +174,24 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
         };
     }, [entregador, open, organizationId]);
 
+    React.useEffect(() => {
+        if (!open || !entregador?.id_entregador) return;
+        let cancelled = false;
+        const id = entregador.id_entregador;
+        setLatestAppearance({ key: latestAppearanceKey, status: 'loading', data: null });
+        void fetchEntregadorUltimaAparicao(id, organizationId)
+            .then((data) => {
+                if (!cancelled) setLatestAppearance({ key: latestAppearanceKey, status: 'success', data });
+            })
+            .catch((error) => {
+                if (!cancelled) {
+                    safeLog.error('Erro ao carregar última aparição do entregador:', error);
+                    setLatestAppearance({ key: latestAppearanceKey, status: 'error', data: null });
+                }
+            });
+        return () => { cancelled = true; };
+    }, [open, entregador?.id_entregador, organizationId, latestAppearanceKey]);
+
     if (!entregador) return null;
 
     const hs = calculateHealthScore(
@@ -177,6 +202,14 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
     );
 
     const firstSeenLabel = firstSeenLoading ? 'Carregando...' : formatFirstSeenDate(firstSeenDate);
+    const latest = latestAppearance?.key === latestAppearanceKey ? latestAppearance : null;
+    const latestLoading = !latest || latest.status === 'loading';
+    const latestError = latest?.status === 'error';
+    const cityLabel = latestLoading ? 'Carregando...' : latestError ? 'Não foi possível carregar'
+        : latest?.data?.cidades_incompletas ? 'Não foi possível determinar'
+            : latest?.data?.cidades.join(', ') || 'Não informada';
+    const lastSeenLabel = latestLoading ? 'Carregando...' : latestError ? 'Não foi possível carregar'
+        : formatFirstSeenDate(latest?.data?.ultima_data_aparicao);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -195,6 +228,8 @@ export const EntregadorProfileDialog = React.memo(function EntregadorProfileDial
                     <EntregadorMetricsGrid
                         entregador={entregador}
                         firstSeenLabel={firstSeenLabel}
+                        cityLabel={cityLabel}
+                        lastSeenLabel={lastSeenLabel}
                     />
 
                     {isDedicado ? (
