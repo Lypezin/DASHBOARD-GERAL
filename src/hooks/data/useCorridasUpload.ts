@@ -28,6 +28,9 @@ export function useCorridasUpload({ organizationId, onUploadSuccess }: UseCorrid
       safeLog.info('[Corridas] Sucesso! Disparando auto-refresh de MVs...');
       await startAutoRefresh(true);
       if (onUploadSuccess) onUploadSuccess();
+    }, async () => {
+      safeLog.warn('[Corridas] Importação parcial; verificando agregados dos lotes gravados.');
+      await startAutoRefresh(true);
     });
   };
 

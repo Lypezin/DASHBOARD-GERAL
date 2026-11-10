@@ -21,7 +21,7 @@ export function useAutoRefresh() {
 
         const pollQueue = async () => {
             try {
-                const snapshot = await fetchRefreshQueueSnapshot();
+                const snapshot = await fetchRefreshQueueSnapshot(true);
                 if (cancelled || !mountedRef.current) return;
 
                 const queueState = snapshot.queueState;

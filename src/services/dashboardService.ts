@@ -8,6 +8,7 @@ import { createRequestKey } from '@/utils/request/createRequestKey';
 import type { Entregador, EntregadoresSortField, ValoresEntregador } from '@/types';
 import { normalizeValoresEntregadores } from '@/utils/valores/normalizeValoresEntregadores';
 import { filterAndSortValores } from '@/utils/valores/filterAndSortValores';
+import { getEntregadoresCacheEarliestExpiry } from '@/utils/dashboard/entregadoresCacheExpiry';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const UTR_ALLOWED_PARAMS = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_turno', 'p_data_inicial', 'p_data_final', 'p_organization_id'] as const;
@@ -440,10 +441,34 @@ const ENTREGADORES_RANGE_CHUNK_CONCURRENCY = 1;
 const MAX_SINGLE_YEAR_ENTREGADORES_CHUNK_DAYS = 30;
 const ENTREGADORES_SHARED_CACHE_TABLE = 'dashboard_entregadores_month_cache';
 
-function getEntregadoresMonthCacheKey(payload: Record<string, unknown>) {
+function getEntregadoresMonthCacheKey(payload: Record<string, unknown>, revision: string | null) {
   return createHash('sha256')
-      .update(createRequestKey({ version: 1, mode: 'entregadores_month', payload }))
+      .update(createRequestKey({ version: 2, revision, mode: 'entregadores_month', payload }))
       .digest('hex');
+}
+
+async function getEntregadoresRevision(admin: ReturnType<typeof createServiceRoleClient>, organizationId: string) {
+  try {
+      const { data, error } = await admin.rpc('get_dashboard_cache_revision', { p_organization_id: organizationId });
+      if (error || typeof data !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:\d+$/i.test(data)) {
+          console.warn('Versão de cache indisponível; consulta de Entregadores sem cache.');
+          return null;
+      }
+      return data;
+  } catch {
+      console.warn('Versão de cache indisponível; consulta de Entregadores sem cache.');
+      return null;
+  }
+}
+
+async function resolveEntregadoresWithRevision(
+  mode: 'entregadores' | 'entregadores_page',
+  payload: Record<string, unknown>,
+  revision: string | null,
+  fetcher: () => Promise<unknown>,
+) {
+  if (revision === null) return { data: await fetcher(), cached: false };
+  return resolveWithCache(mode, { ...payload, cache_revision: revision }, fetcher);
 }
 
 function getEntregadoresMonthCacheTtl(endDate: string) {
@@ -625,6 +650,7 @@ async function fetchEntregadoresInDateChunks(
   admin: ReturnType<typeof createServiceRoleClient>,
   payload: Record<string, unknown>,
   chunks: Array<{ start: string; end: string }>,
+  revision: string | null,
 ) {
   const results = new Array<unknown>(chunks.length);
   const failures: Error[] = [];
@@ -636,12 +662,13 @@ async function fetchEntregadoresInDateChunks(
       p_semana: null,
       p_semanas: null,
   }));
-  const cacheKeys = chunkPayloads.map(getEntregadoresMonthCacheKey);
+  const cacheKeys = chunkPayloads.map((chunkPayload) => getEntregadoresMonthCacheKey(chunkPayload, revision));
   const cacheEntries = new Map<string, { data: unknown; expires_at: string }>();
-  const { data: cachedRows, error: cacheReadError } = await admin
+  const { data: cachedRows, error: cacheReadError } = revision === null ? { data: null, error: null } : await admin
       .from(ENTREGADORES_SHARED_CACHE_TABLE)
       .select('cache_key,data,expires_at')
-      .in('cache_key', cacheKeys);
+      .in('cache_key', cacheKeys)
+      .gt('expires_at', getEntregadoresCacheEarliestExpiry(chunks.map((chunk) => chunk.end)));
   if (cacheReadError) {
       console.warn('Cache compartilhado de Entregadores indisponível:', cacheReadError.message);
   } else {
@@ -673,7 +700,7 @@ async function fetchEntregadoresInDateChunks(
               return;
           }
           results[chunkIndex] = data ?? null;
-          if (!cacheReadError && data !== null && data !== undefined) {
+          if (revision !== null && !cacheReadError && data !== null && data !== undefined) {
               const { error: cacheWriteError } = await admin
                   .from(ENTREGADORES_SHARED_CACHE_TABLE)
                   .upsert({
@@ -704,10 +731,11 @@ async function fetchEntregadoresInDateChunks(
 async function fetchEntregadoresWithSharedCache(
   admin: ReturnType<typeof createServiceRoleClient>,
   payload: Record<string, unknown>,
+  revision: string | null,
 ) {
   const fetchSource = async () => {
       const chunks = splitEntregadoresDateRange(payload);
-      if (chunks.length > 0) return fetchEntregadoresInDateChunks(admin, payload, chunks);
+      if (chunks.length > 0) return fetchEntregadoresInDateChunks(admin, payload, chunks, revision);
       const { data, error } = await admin.rpc('listar_entregadores_dashboard_fast_v1', payload);
       if (error) throw toDashboardRpcError(error);
       return data ?? null;
@@ -716,17 +744,18 @@ async function fetchEntregadoresWithSharedCache(
   const start = Date.parse(`${String(payload.p_data_inicial)}T00:00:00.000Z`);
   const end = Date.parse(`${String(payload.p_data_final)}T00:00:00.000Z`);
   const days = (end - start) / DAY_MS;
-  if (!Number.isFinite(days) || days < 0 || days > 366 || payload.p_semana != null || payload.p_semanas != null) {
+  if (revision === null || !Number.isFinite(days) || days < 0 || days > 366 || payload.p_semana != null || payload.p_semanas != null) {
       return fetchSource();
   }
 
   const cacheKey = createHash('sha256')
-      .update(createRequestKey({ version: 1, mode: 'entregadores_scope', payload }))
+      .update(createRequestKey({ version: 2, revision, mode: 'entregadores_scope', payload }))
       .digest('hex');
   const { data: cachedRow, error: cacheReadError } = await admin
       .from(ENTREGADORES_SHARED_CACHE_TABLE)
       .select('data,expires_at')
       .eq('cache_key', cacheKey)
+      .gt('expires_at', getEntregadoresCacheEarliestExpiry([String(payload.p_data_final)]))
       .maybeSingle();
   if (!cacheReadError && cachedRow && Date.parse(cachedRow.expires_at) > Date.now()) {
       return cachedRow.data;
@@ -888,7 +917,7 @@ export function resolveOrganizationId(payload: Record<string, unknown>, profileO
   return requestedOrganizationId || profileOrganizationId;
 }
 
-export async function fetchDashboardData(mode: DashboardDataMode, source: Record<string, unknown>, organizationId: string) {
+export async function fetchDashboardData(mode: DashboardDataMode, source: Record<string, unknown>, organizationId: string, inheritedEntregadoresRevision?: string | null) {
   if (mode === 'valores_page') {
       const valoresPayload = pickPayload(source, VALORES_ALLOWED_PARAMS);
       valoresPayload.p_organization_id = organizationId;
@@ -1036,6 +1065,11 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
   }
 
   const admin = createServiceRoleClient();
+  const entregadoresRevision = mode === 'entregadores' || mode === 'entregadores_page'
+      ? inheritedEntregadoresRevision !== undefined
+          ? inheritedEntregadoresRevision
+          : await getEntregadoresRevision(admin, organizationId)
+      : null;
 
   if (mode === 'resumo_local') {
       const year = Number(source.p_ano);
@@ -1127,8 +1161,8 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
       sourcePayload.p_organization_id = organizationId;
       delete sourcePayload.p_search;
 
-      return resolveWithCache(mode, payload, async () => {
-          const fullResult = await fetchDashboardData('entregadores', sourcePayload, organizationId) as { data?: unknown };
+      return resolveEntregadoresWithRevision(mode, payload, entregadoresRevision, async () => {
+          const fullResult = await fetchDashboardData('entregadores', sourcePayload, organizationId, entregadoresRevision) as { data?: unknown };
           if (fullResult?.data === null || fullResult?.data === undefined) {
               throw new Error('A consulta de Entregadores não retornou dados.');
           }
@@ -1192,9 +1226,9 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
       return { data: responseData, cached: false };
   }
 
-  return resolveWithCache(mode, payload, async () => {
+  const fetchResult = async () => {
       if (mode === 'entregadores') {
-          return fetchEntregadoresWithSharedCache(admin, payload);
+          return fetchEntregadoresWithSharedCache(admin, payload, entregadoresRevision);
       }
 
       const { data: rpcData, error } = await admin.rpc(rpcName, payload);
@@ -1202,5 +1236,8 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
           throw toDashboardRpcError(error);
       }
       return rpcData ?? null;
-  });
+  };
+  return mode === 'entregadores' || mode === 'entregadores_page'
+      ? resolveEntregadoresWithRevision(mode, payload, entregadoresRevision, fetchResult)
+      : resolveWithCache(mode, payload, fetchResult);
 }

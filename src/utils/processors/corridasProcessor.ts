@@ -114,10 +114,12 @@ function validateCorridasImportQuality(rows: Record<string, unknown>[]) {
 /**
  * Processa uma planilha de dados de corridas
  * @param file Arquivo Excel a ser processado
- * @returns Array de objetos sanitizados prontos para inserção no banco
+ * @returns Linhas sanitizadas e impressão digital do arquivo original
  */
-export async function processCorridasFile(file: File): Promise<Record<string, unknown>[]> {
+export async function processCorridasFile(file: File): Promise<{ rows: Record<string, unknown>[]; fileHash: string }> {
   const arrayBuffer = await file.arrayBuffer();
+  const digest = await crypto.subtle.digest('SHA-256', arrayBuffer);
+  const fileHash = Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
   const XLSX = await import('xlsx-js-style');
   const workbook = XLSX.read(arrayBuffer, { raw: true });
   const sheetName = workbook.SheetNames[0];
@@ -193,6 +195,6 @@ export async function processCorridasFile(file: File): Promise<Record<string, un
 
   validateCorridasImportQuality(sanitizedData);
 
-  return sanitizedData;
+  return { rows: sanitizedData, fileHash };
 }
 

@@ -4,6 +4,7 @@ import { uploadRateLimiter } from '@/lib/rateLimiter';
 import { processCorridasFile } from '@/utils/processors/corridasProcessor';
 import { insertInBatches, isNonRetryableBatchInsertError } from '@/utils/dbHelpers';
 import { CORRIDAS_BATCH_SIZE } from '@/constants/upload';
+import { clearCorridasImportId, getCorridasImportId } from '@/utils/upload/corridasImportId';
 
 export interface UploadState {
     uploading: boolean;
@@ -22,7 +23,7 @@ export function useUploadProcessor(organizationId?: string) {
         currentFileIndex: 0
     });
 
-    const processUpload = useCallback(async (files: File[], onSuccess: () => void | Promise<void>): Promise<boolean> => {
+    const processUpload = useCallback(async (files: File[], onSuccess: () => void | Promise<void>, onPartial?: () => void | Promise<void>): Promise<boolean> => {
         if (files.length === 0) {
             setState(prev => ({ ...prev, message: 'Por favor, selecione pelo menos um arquivo.' }));
             return false;
@@ -45,10 +46,15 @@ export function useUploadProcessor(organizationId?: string) {
         const totalFiles = files.length;
         let successCount = 0;
         let errorCount = 0;
+        let attemptedInsert = false;
+        let confirmedRows = 0;
+        const importIds: Array<{ file: File; importId: string }> = [];
         const finalErrorMessageParts: string[] = [];
 
         for (let fileIdx = 0; fileIdx < files.length; fileIdx++) {
             const file = files[fileIdx];
+            let fileInsertionStarted = false;
+            let fileConfirmedRows = 0;
             setState(prev => ({
                 ...prev,
                 currentFileIndex: fileIdx + 1,
@@ -58,18 +64,26 @@ export function useUploadProcessor(organizationId?: string) {
             try {
                 setState(prev => ({ ...prev, progressLabel: 'Processando dados...', progress: 10 }));
 
-                const sanitizedData = await processCorridasFile(file);
+                const { rows: sanitizedData, fileHash } = await processCorridasFile(file);
+
+                const importId = getCorridasImportId(file, organizationId!, fileHash);
+                importIds.push({ file, importId });
 
                 const fileProgress = (fileIdx / totalFiles) * 100;
                 setState(prev => ({ ...prev, progress: fileProgress }));
 
+                attemptedInsert ||= sanitizedData.length > 0;
+                fileInsertionStarted = sanitizedData.length > 0;
                 const { errors: insertErrors } = await insertInBatches(
                     'dados_corridas',
                     sanitizedData,
                     {
                         batchSize: CORRIDAS_BATCH_SIZE,
                         organizationId,
+                        importId,
                         onProgress: (insertedRows, total) => {
+                            confirmedRows += Math.max(0, insertedRows - fileConfirmedRows);
+                            fileConfirmedRows = insertedRows;
                             const batchProgress = (insertedRows / total) * (100 / totalFiles);
                             setState(prev => ({
                                 ...prev,
@@ -88,10 +102,10 @@ export function useUploadProcessor(organizationId?: string) {
                 finalErrorMessageParts.push(`${file.name}: ${errorMessage}`);
                 errorCount++;
 
-                if (isNonRetryableBatchInsertError(error)) {
+                if (isNonRetryableBatchInsertError(error) || fileInsertionStarted) {
                     const remainingFiles = totalFiles - fileIdx - 1;
                     if (remainingFiles > 0) {
-                        finalErrorMessageParts.push(`Upload interrompido: ${remainingFiles} arquivo(s) restante(s) nao foram enviados para evitar novas falhas.`);
+                        finalErrorMessageParts.push(`Upload interrompido: ${remainingFiles} arquivo(s) restante(s) nao foram enviados; confira os dados gravados antes de continuar.`);
                         errorCount += remainingFiles;
                     }
                     break;
@@ -105,21 +119,29 @@ export function useUploadProcessor(organizationId?: string) {
 
         setState(prev => ({
             ...prev,
-            progress: 100,
-            progressLabel: 'Concluido!',
+            progress: errorCount === 0 ? 100 : prev.progress,
+            progressLabel: errorCount === 0 ? 'Concluido!' : 'Importacao interrompida',
             message: errorCount === 0
                 ? `Todos os ${successCount} arquivo(s) foram importados com sucesso!\n\nAtualizando dados agregados...`
-                : `${successCount} arquivo(s) importado(s) com sucesso, ${errorCount} com erro.${detailedErrorMsg}`,
+                : `${successCount} arquivo(s) importado(s) com sucesso, ${errorCount} com erro ou não enviado(s). ${confirmedRows} linha(s) tiveram gravação confirmada. Para retomar, use os mesmos arquivos neste navegador.${detailedErrorMsg}`,
             uploading: false
         }));
 
         if (errorCount === 0) {
             safeLog.info('[Upload] Upload concluido com sucesso, chamando onSuccess (auto-refresh MVs)...');
             await onSuccess();
+            try {
+                for (const entry of importIds) clearCorridasImportId(entry.file, organizationId!, entry.importId);
+            } catch {
+                setState(prev => ({ ...prev, message: `${prev.message}\n\nNão foi possível finalizar o registro local da importação. Verifique o armazenamento do navegador antes de importar esse arquivo novamente.` }));
+            }
             return true;
         }
 
-        safeLog.warn(`[Upload] Upload concluido com ${errorCount} erro(s), auto-refresh nao sera disparado`);
+        if (attemptedInsert && onPartial) {
+            await onPartial();
+        }
+        safeLog.warn(`[Upload] Upload interrompido com ${errorCount} erro(s); a retomada deve usar os mesmos arquivos.`);
         return false;
     }, [organizationId]);
 

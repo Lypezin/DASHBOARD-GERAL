@@ -8,6 +8,7 @@ export interface BatchInsertOptions {
     onProgress?: (inserted: number, total: number) => void;
     returnData?: boolean;
     organizationId?: string;
+    importId?: string;
 }
 
 export class NonRetryableBatchInsertError extends Error {
@@ -34,7 +35,7 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
     data: T[],
     options: BatchInsertOptions = {}
 ): Promise<{ inserted: number; errors: string[] }> {
-    const { batchSize = BATCH_SIZE, onProgress, returnData = false, organizationId } = options;
+    const { batchSize = BATCH_SIZE, onProgress, returnData = false, organizationId, importId } = options;
     const totalRows = data.length;
     const errors: string[] = [];
     let insertedRows = 0;
@@ -52,7 +53,7 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
 
         try {
             if (table === 'dados_corridas') {
-                await insertCorridasViaApi(batch, organizationId, batchNumber, errors);
+                await insertCorridasViaApi(batch, organizationId, batchNumber, importId);
             } else if (useInternalUploadApi) {
                 await insertTableViaApi(table, batch, organizationId, batchNumber, errors);
             } else {
@@ -78,6 +79,10 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
 
             const code = typeof error === 'object' && error !== null ? (error as { code?: string }).code : undefined;
             if (code === '23505' || code === '23503') throw error;
+            // A failed request can have been committed even when its response
+            // was lost. Stop before sending more corridas batches so the
+            // uncertain range stays small and can be reconciled safely.
+            if (table === 'dados_corridas') break;
         }
     }
 
@@ -91,15 +96,19 @@ async function insertCorridasViaApi(
     batch: Record<string, unknown>[],
     organizationId: string | undefined,
     batchNum: number,
-    errors: string[]
+    importId: string | undefined,
 ) {
     const dados = batch.map((item) => Object.fromEntries(Object.entries(item).map(([key, value]) => [key, value ?? null])));
     const { ok, status, payload } = await postUploadApi<{
+        success?: boolean;
+        inserted?: number;
         errors?: number;
         error_messages?: string[];
     }>('/api/upload/corridas-batch', {
         dados,
         organizationId,
+        importId,
+        batchNumber: batchNum,
     });
 
     if (!ok) {
@@ -115,8 +124,10 @@ async function insertCorridasViaApi(
 
     const errCount = Number(payload?.errors || 0);
     if (errCount > 0) {
-        payload?.error_messages?.forEach((msg) => errors.push(`Lote ${batchNum}: ${msg}`));
-        throw new Error(payload?.error_messages?.[0] || `Erro tratado no lote ${batchNum}`);
+        throw new Error(`Lote ${batchNum}: ${payload?.error_messages?.[0] || 'falha ao gravar os dados.'}`);
+    }
+    if (!payload || payload.success !== true || payload.inserted !== batch.length || payload.errors !== 0) {
+        throw new Error(`Lote ${batchNum}: não foi possível confirmar a quantidade gravada. Confira os dados antes de reenviar.`);
     }
 }
 

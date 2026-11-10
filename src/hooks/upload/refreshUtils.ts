@@ -109,8 +109,8 @@ export function buildIncrementalRefreshStatusFromQueue(queueState: RefreshQueueS
     };
 }
 
-export async function fetchRefreshQueueSnapshot() {
-    const { data: payload, error } = await mvService.getRefreshQueueSnapshot<any>();
+export async function fetchRefreshQueueSnapshot(incrementalOnly = false) {
+    const { data: payload, error } = await mvService.getRefreshQueueSnapshot<any>(incrementalOnly);
     if (error || !payload) throw new Error(error?.message || 'Erro ao acompanhar refresh.');
 
     return {
@@ -122,7 +122,7 @@ export async function fetchRefreshQueueSnapshot() {
 }
 
 async function fetchPendingCount(incrementalOnly = false) {
-    const snapshot = await fetchRefreshQueueSnapshot();
+    const snapshot = await fetchRefreshQueueSnapshot(incrementalOnly);
     if (incrementalOnly) {
         return snapshot.incrementalPendingCount;
     }

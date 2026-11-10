@@ -62,8 +62,8 @@ export const mvService = {
         };
     },
 
-    async getRefreshQueueSnapshot<T = Record<string, unknown>>(): Promise<ServiceResponse<T>> {
-        const response = await fetch('/api/mvs/refresh', {
+    async getRefreshQueueSnapshot<T = Record<string, unknown>>(incrementalOnly = false): Promise<ServiceResponse<T>> {
+        const response = await fetch(incrementalOnly ? '/api/mvs/refresh?incremental=1' : '/api/mvs/refresh', {
             method: 'GET',
             ...INTERNAL_FETCH_OPTIONS,
         });

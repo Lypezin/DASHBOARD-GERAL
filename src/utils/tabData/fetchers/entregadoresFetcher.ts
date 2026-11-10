@@ -286,7 +286,7 @@ async function fetchEntregadoresByRpc(
         const errorCode = result.error?.code || '';
         const errorMessage = result.error?.message || '';
 
-        if (options.fallbackOnError && (errorCode === '42883' || errorCode === 'PGRST116' || errorMessage.includes('does not exist'))) {
+        if (options.fallbackOnError && canUseRawFallback && (errorCode === '42883' || errorCode === 'PGRST116' || errorMessage.includes('does not exist'))) {
             try {
                 const fallbackData = await fetchEntregadoresFallback(listarEntregadoresPayload);
                 if (fallbackData) {

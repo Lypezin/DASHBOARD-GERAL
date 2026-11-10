@@ -55,12 +55,19 @@ async function fetchPendingMVs(admin = createServiceRoleClient()) {
 }
 
 async function fetchQueueState(admin = createServiceRoleClient()) {
-    const { data } = await admin.rpc('get_mv_refresh_queue_state');
-    return (data ?? null) as QueueStatePayload | null;
+    const { data, error } = await admin.rpc('get_mv_refresh_queue_state');
+    if (error || !data || typeof data !== 'object' || Array.isArray(data)) {
+        throw new Error(error?.message || 'Não foi possível confirmar o estado da fila de atualização.');
+    }
+    const state = data as QueueStatePayload;
+    if (typeof state.incremental_pending_count !== 'number' || typeof state.full_pending_count !== 'number') {
+        throw new Error('O estado da fila de atualização veio incompleto.');
+    }
+    return state;
 }
 
 function getQueueCount(state: QueueStatePayload | null | undefined, key: keyof QueueStatePayload, fallback = 0) {
-    return Number(state?.[key] || fallback || 0);
+    return Number(state?.[key] ?? fallback);
 }
 
 function normalizeRefreshReason(value: unknown) {
@@ -98,21 +105,23 @@ async function healRefreshQueueSnapshot(admin = createServiceRoleClient()) {
     const incrementalPending = getQueueCount(state, 'incremental_pending_count');
     const incrementalWorkerScheduled = state?.incremental_worker_scheduled === true;
     if (incrementalPending > 0 && !incrementalWorkerScheduled) {
-        await admin.rpc('ensure_incremental_refresh_worker_scheduled');
+        const { error } = await admin.rpc('ensure_incremental_refresh_worker_scheduled');
+        if (error) throw new Error(error.message || 'Falha ao agendar atualização incremental.');
         state = await fetchQueueState(admin);
     }
 
     return state;
 }
 
-export async function GET() {
+export async function GET(request: Request) {
     try {
         const auth = await requireApprovedUser();
         if ('error' in auth) return auth.error;
 
         const admin = createServiceRoleClient();
         const stateData = await healRefreshQueueSnapshot(admin);
-        const pending = await fetchPendingMVs(admin);
+        const incrementalOnly = new URL(request.url).searchParams.get('incremental') === '1';
+        const pending = incrementalOnly ? [] : await fetchPendingMVs(admin);
 
         return NextResponse.json({ success: true, pending, queue_state: stateData ?? null });
     } catch (error) {
@@ -152,9 +161,6 @@ export async function POST(request: Request) {
                 throw new Error(incrementalWorker.error);
             }
 
-            const { data: cleanupData } = await admin.rpc('clear_stale_full_mv_refresh_flags');
-            const stateData = await fetchQueueState(admin);
-
             return NextResponse.json({
                 success: true,
                 queued: pendingIncrementals > 0,
@@ -164,8 +170,7 @@ export async function POST(request: Request) {
                 incremental_succeeded: pendingIncrementals === 0,
                 incremental_worker_result: incrementalWorker.data,
                 incremental_worker_error: incrementalWorker.error,
-                stale_cleanup_result: cleanupData ?? null,
-                queue_state: stateData ?? null,
+                queue_state: stateAfterWorker,
                 queue_reason: reason,
                 queue_result: null,
                 worker_result: null,

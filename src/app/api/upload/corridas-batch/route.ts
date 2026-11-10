@@ -22,11 +22,18 @@ export async function POST(request: Request) {
         if ('failure' in auth) {
             return NextResponse.json({ success: false, error: auth.failure.message }, { status: auth.failure.status });
         }
-        const body = await readJsonBody<{ dados?: unknown; organizationId?: unknown }>(request);
+        const body = await readJsonBody<{ dados?: unknown; organizationId?: unknown; importId?: unknown; batchNumber?: unknown }>(request);
         const rawRows = body?.dados;
 
         if (!Array.isArray(rawRows) || rawRows.length === 0) {
             return NextResponse.json({ success: false, error: 'Nenhum dado recebido para importacao.' }, { status: 400 });
+        }
+
+        const importId = typeof body?.importId === 'string' ? body.importId : '';
+        const batchNumber = body?.batchNumber;
+        if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(importId)
+            || typeof batchNumber !== 'number' || !Number.isSafeInteger(batchNumber) || batchNumber < 1) {
+            return NextResponse.json({ success: false, error: 'Identificação do lote inválida. Atualize a página e tente novamente.' }, { status: 400 });
         }
 
         const organizationAccess = resolveAuthorizedOrganizationId(auth.profile, body?.organizationId, {
@@ -46,7 +53,12 @@ export async function POST(request: Request) {
         }));
 
         const admin = createServiceRoleClient();
-        const { data, error } = await admin.rpc('insert_dados_corridas_batch', { dados: rows });
+        const { data, error } = await admin.rpc('insert_dados_corridas_batch_once', {
+            p_organization_id: organizationAccess.organizationId,
+            p_import_id: importId,
+            p_batch_number: batchNumber,
+            p_rows: rows,
+        });
 
         if (error) {
             return NextResponse.json(

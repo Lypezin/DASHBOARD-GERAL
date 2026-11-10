@@ -110,6 +110,7 @@ export async function POST(request: Request) {
             mode,
             api_ms: Math.round((performance.now() - apiStartedAt) * 100) / 100,
             response_bytes: Buffer.byteLength(JSON.stringify(responsePayload), 'utf8'),
+            cached,
             success: true,
         }));
         return NextResponse.json(responsePayload);
