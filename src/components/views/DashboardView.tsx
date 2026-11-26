@@ -5,6 +5,7 @@ import { DashboardOperationalDetail } from './dashboard/DashboardOperationalDeta
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
 import { ViewContainer } from '@/components/layout/ViewContainer';
 import { ViewTransition } from '@/components/ui/view-transition';
+import { StaggerContainer, StaggerItem } from '@/components/ui/stagger';
 import { DashboardOverviewLoading, FilteredDataTransition } from '@/components/dashboard/OperationalLoading';
 import { DashboardDataStatus } from '@/components/dashboard/DashboardDataStatus';
 import type {
@@ -75,25 +76,31 @@ const DashboardView = React.memo(function DashboardView({
             </p>
           </header>
           <FilteredDataTransition isUpdating={mainDataLoading}>
-            <div className="space-y-5">
-              <section aria-labelledby="overview-summary-title" className="space-y-3">
-                <DashboardSectionHeader
-                  id="overview-summary-title"
-                  title="Resumo Operacional"
-                  description="Indicadores consolidados de aderência e métricas críticas de entrega."
+            <StaggerContainer className="space-y-5">
+              <StaggerItem>
+                <section aria-labelledby="overview-summary-title" className="space-y-3">
+                  <DashboardSectionHeader
+                    id="overview-summary-title"
+                    title="Resumo Operacional"
+                    description="Indicadores consolidados de aderência e métricas críticas de entrega."
+                  />
+                  <DashboardGeneralStats aderenciaGeral={aderenciaGeral} aderenciaDia={aderenciaDia} />
+                </section>
+              </StaggerItem>
+
+              <StaggerItem>
+                <DashboardDailyPerformance aderenciaDia={aderenciaDia} />
+              </StaggerItem>
+
+              <StaggerItem>
+                <DashboardOperationalDetail
+                  aderenciaTurno={aderenciaTurno}
+                  aderenciaSubPraca={aderenciaSubPraca}
+                  aderenciaOrigem={aderenciaOrigem}
+                  aderenciaDia={aderenciaDia}
                 />
-                <DashboardGeneralStats aderenciaGeral={aderenciaGeral} aderenciaDia={aderenciaDia} />
-              </section>
-
-              <DashboardDailyPerformance aderenciaDia={aderenciaDia} />
-
-              <DashboardOperationalDetail
-                aderenciaTurno={aderenciaTurno}
-                aderenciaSubPraca={aderenciaSubPraca}
-                aderenciaOrigem={aderenciaOrigem}
-                aderenciaDia={aderenciaDia}
-              />
-            </div>
+              </StaggerItem>
+            </StaggerContainer>
           </FilteredDataTransition>
         </ViewContainer>
       )}

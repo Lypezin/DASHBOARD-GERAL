@@ -6,6 +6,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Sparkline } from '@/components/ui/Sparkline';
+import { AnimatedNumberText } from '@/components/ui/animated-counter';
 import { cn } from '@/lib/utils';
 
 interface StatisticCardProps {
@@ -32,7 +33,7 @@ export const StatisticCard = React.memo(function StatisticCard({
     const valueString = String(value);
 
     return (
-        <div className="group min-w-0 border-t-[3px] border-t-[#9ac8de] bg-white px-4 py-3 dark:border-t-sky-700 dark:bg-slate-900 sm:px-5">
+        <div className="group min-w-0 border-t-[3px] border-t-[#9ac8de] bg-white px-4 py-3 dark:border-t-sky-700 dark:bg-slate-900 sm:px-5 interactive-card">
             <div className="flex min-w-0 items-center gap-2">
                 <Icon className="h-3.5 w-3.5 shrink-0 text-[#347ca3] dark:text-sky-200" aria-hidden="true" />
                 <dt className="truncate text-[11px] font-medium text-slate-500 dark:text-slate-300">{title}</dt>
@@ -50,7 +51,7 @@ export const StatisticCard = React.memo(function StatisticCard({
 
             <dd className="mt-2 min-w-0">
                 <span className={cn('block truncate text-[22px] font-semibold leading-7 tracking-tight tabular-nums', statusColor)} title={valueString}>
-                    {value}
+                    <AnimatedNumberText value={value} />
                 </span>
                 <span className="mt-0.5 block text-[11px] leading-4 text-slate-500 dark:text-slate-400">{meta}</span>
             </dd>

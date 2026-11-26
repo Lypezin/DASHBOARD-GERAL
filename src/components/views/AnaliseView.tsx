@@ -12,6 +12,7 @@ import type { FilterPayload } from '@/types/filters';
 import { safeLog } from '@/lib/errorHandler';
 import { ViewContainer } from '@/components/layout/ViewContainer';
 import { ViewTransition } from '@/components/ui/view-transition';
+import { StaggerContainer, StaggerItem } from '@/components/ui/stagger';
 import { AnalysisLoading, FilteredDataTransition } from '@/components/dashboard/OperationalLoading';
 import { DashboardDataStatus } from '@/components/dashboard/DashboardDataStatus';
 import { AnaliseHeader } from './analise/AnaliseHeader';
@@ -138,24 +139,28 @@ const AnaliseView = React.memo(function AnaliseView({
             onExport={handleExport}
           />
           <FilteredDataTransition isUpdating={mainDataLoading}>
-            <div className="flex flex-col gap-5">
-              <AnaliseMetricCards
-                totals={totals || { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }}
-                taxaAceitacao={taxaAceitacao}
-                taxaCompletude={taxaCompletude}
-                taxaRejeicao={taxaRejeicao}
-                totalHorasEntregues={totalHoras}
-              />
+            <StaggerContainer className="flex flex-col gap-5">
+              <StaggerItem>
+                <AnaliseMetricCards
+                  totals={totals || { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }}
+                  taxaAceitacao={taxaAceitacao}
+                  taxaCompletude={taxaCompletude}
+                  taxaRejeicao={taxaRejeicao}
+                  totalHorasEntregues={totalHoras}
+                />
+              </StaggerItem>
 
-              <AnaliseDetailedCard
-                activeTable={activeTable}
-                onTableChange={handleTableChange}
-                tableData={tableData}
-                labelColumn={labelColumn}
-                aderenciaDiaOrigem={aderenciaDiaOrigem || []}
-                dayDateMap={dayDateMap}
-              />
-            </div>
+              <StaggerItem>
+                <AnaliseDetailedCard
+                  activeTable={activeTable}
+                  onTableChange={handleTableChange}
+                  tableData={tableData}
+                  labelColumn={labelColumn}
+                  aderenciaDiaOrigem={aderenciaDiaOrigem || []}
+                  dayDateMap={dayDateMap}
+                />
+              </StaggerItem>
+            </StaggerContainer>
           </FilteredDataTransition>
         </ViewContainer>
       )}

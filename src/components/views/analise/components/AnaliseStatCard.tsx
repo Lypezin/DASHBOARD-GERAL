@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AnimatedNumberText } from '@/components/ui/animated-counter';
 
 interface AnaliseStatCardProps {
     title: string;
@@ -36,7 +37,7 @@ export const AnaliseStatCard = ({
         </CardHeader>
         <CardContent className="z-10 relative">
             <div className={`mb-1 whitespace-nowrap font-mono text-2xl font-bold tracking-tight tabular-nums ${colorClass}`}>
-                {value}
+                <AnimatedNumberText value={value} />
             </div>
             {subtext && (
                 <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">

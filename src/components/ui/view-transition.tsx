@@ -52,7 +52,7 @@ export function ViewTransition({
   const shouldReduceMotion = useReducedMotion() ?? false;
   const exitState = {
     opacity: 0,
-    y: shouldReduceMotion ? 0 : -4,
+    y: shouldReduceMotion ? 0 : -8,
     ...(preventExitInteraction ? { pointerEvents: 'none' as const } : {}),
   };
   const motionProps: MotionStateProps = shouldReduceMotion
@@ -63,10 +63,10 @@ export function ViewTransition({
         transition: { duration: 0.12, ease: 'easeOut' },
       }
     : {
-        initial: { opacity: 0, y: 6 },
+        initial: { opacity: 0, y: 14 },
         animate: { opacity: 1, y: 0 },
         exit: exitState,
-        transition: { duration: 0.16, ease: [0.22, 1, 0.36, 1] },
+        transition: { duration: 0.26, ease: [0.16, 1, 0.3, 1] },
       };
 
   return (

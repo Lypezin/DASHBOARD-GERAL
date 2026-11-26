@@ -12,6 +12,7 @@ import { ViewContainer } from '@/components/layout/ViewContainer';
 import { RefreshCw } from 'lucide-react';
 import { LoadingNotice } from '@/components/ui/loading-notice';
 import { ViewTransition } from '@/components/ui/view-transition';
+import { StaggerContainer, StaggerItem } from '@/components/ui/stagger';
 
 const EvolucaoView = React.memo(function EvolucaoView({
   filterPayload,
@@ -108,23 +109,27 @@ const EvolucaoView = React.memo(function EvolucaoView({
             />
 
             <ViewTransition stateKey={chartStateKey} preventExitInteraction>
-              <div className="min-w-0 space-y-5">
-                <EvolucaoChart
-                  chartData={state.chartData}
-                  chartOptions={state.chartOptions}
-                  chartError={state.chartError}
-                  anoSelecionado={anoSelecionado}
-                  selectedMetrics={state.selectedMetrics}
-                  viewMode={state.viewMode}
-                  dadosAtivosLength={state.totalPeriodos}
-                />
+              <StaggerContainer className="min-w-0 space-y-5">
+                <StaggerItem>
+                  <EvolucaoChart
+                    chartData={state.chartData}
+                    chartOptions={state.chartOptions}
+                    chartError={state.chartError}
+                    anoSelecionado={anoSelecionado}
+                    selectedMetrics={state.selectedMetrics}
+                    viewMode={state.viewMode}
+                    dadosAtivosLength={state.totalPeriodos}
+                  />
+                </StaggerItem>
 
-                <EvolucaoStatsCards
-                  dadosAtivos={state.dadosAtivos}
-                  viewMode={state.viewMode}
-                  anoSelecionado={anoSelecionado}
-                />
-              </div>
+                <StaggerItem>
+                  <EvolucaoStatsCards
+                    dadosAtivos={state.dadosAtivos}
+                    viewMode={state.viewMode}
+                    anoSelecionado={anoSelecionado}
+                  />
+                </StaggerItem>
+              </StaggerContainer>
             </ViewTransition>
           </div>
         )}

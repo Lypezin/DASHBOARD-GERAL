@@ -33,13 +33,45 @@
     transform: translateY(0);
 }
 
-/* Tabelas responsivas e modernas */
+/* Tabelas responsivas e modernas com destaque nítido no hover */
 table tbody tr {
-    transition: background-color 0.15s ease;
+    transition: background-color 0.14s ease, border-color 0.14s ease;
 }
 
 table tbody tr:hover {
-    background-color: rgba(59, 130, 246, 0.05);
+    background-color: rgba(56, 189, 248, 0.07);
+}
+
+.dark table tbody tr:hover {
+    background-color: rgba(56, 189, 248, 0.11);
+}
+
+/* Feedback tátil e micro-interação em botões */
+@media (prefers-reduced-motion: no-preference) {
+    button:not(:disabled):active,
+    [role="button"]:not([aria-disabled="true"]):active {
+        transform: scale(0.98);
+    }
+}
+
+/* Cards interativos com elevação suave e feedback de clique */
+.interactive-card {
+    transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+                border-color 0.18s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+    .interactive-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 28px -10px rgba(15, 23, 42, 0.15);
+    }
+    .dark .interactive-card:hover {
+        box-shadow: 0 12px 28px -10px rgba(0, 0, 0, 0.5);
+    }
+    .interactive-card:active {
+        transform: translateY(0) scale(0.99);
+    }
 }
 
 /* Gráficos */

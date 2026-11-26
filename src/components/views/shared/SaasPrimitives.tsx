@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import { AnimatedNumberText } from '@/components/ui/animated-counter';
 
 type Tone = 'blue' | 'emerald' | 'amber' | 'rose' | 'slate';
 
@@ -142,7 +143,11 @@ export function SaasMetric({
         )}
         title={title}
       >
-        {value}
+        {typeof value === 'string' || typeof value === 'number' ? (
+          <AnimatedNumberText value={value} />
+        ) : (
+          value
+        )}
       </div>
       {meta && <div className="mt-0.5 truncate text-[11px] font-medium text-slate-400">{meta}</div>}
     </div>

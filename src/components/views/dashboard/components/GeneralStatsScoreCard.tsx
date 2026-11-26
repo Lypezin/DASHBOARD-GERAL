@@ -5,6 +5,7 @@ import {
     TooltipContent,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { AnimatedCounter } from "@/components/ui/animated-counter";
 
 interface GeneralStatsScoreCardProps {
     percentual: number;
@@ -24,7 +25,7 @@ export const GeneralStatsScoreCard: React.FC<GeneralStatsScoreCardProps> = ({ pe
         : 'bg-rose-50 text-rose-700 ring-rose-200/70 dark:bg-rose-950/30 dark:text-rose-300 dark:ring-rose-900/50';
 
     return (
-        <div className="min-w-0 border-t-[3px] border-t-[#9ac8de] bg-white px-4 py-3 dark:border-t-sky-700 dark:bg-slate-900 sm:px-5">
+        <div className="min-w-0 border-t-[3px] border-t-[#9ac8de] bg-white px-4 py-3 dark:border-t-sky-700 dark:bg-slate-900 sm:px-5 interactive-card">
             <div className="flex min-w-0 items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2">
                     <dt className="truncate text-[11px] font-medium text-slate-500 dark:text-slate-300">Aderência geral</dt>
@@ -47,7 +48,7 @@ export const GeneralStatsScoreCard: React.FC<GeneralStatsScoreCardProps> = ({ pe
 
             <dd className="mt-2 text-[#173f5a] dark:text-slate-50">
                 <span className="block truncate text-[25px] font-semibold leading-8 tracking-tight tabular-nums" title={`${percentual.toFixed(2)}%`}>
-                    {percentual.toFixed(2)}%
+                    <AnimatedCounter value={percentual} decimals={2} suffix="%" />
                 </span>
                 <span className="mt-0.5 block text-[11px] leading-4 text-slate-500 dark:text-slate-400">Horas entregues sobre horas planejadas</span>
             </dd>

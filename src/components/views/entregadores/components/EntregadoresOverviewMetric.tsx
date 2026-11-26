@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, type Variants } from 'framer-motion';
+import { AnimatedNumberText } from '@/components/ui/animated-counter';
 import type { EntregadoresMetricItem } from '../utils/entregadoresMetrics';
 
 const toneStyles: Record<EntregadoresMetricItem['tone'], string> = {
@@ -44,7 +45,7 @@ export function EntregadoresOverviewMetric({
                     style={{ willChange: 'transform, opacity' }}
                     className="block"
                 >
-                    {value}
+                    <AnimatedNumberText value={value} />
                 </motion.span>
                 <span className="sr-only">{meta}</span>
             </dd>

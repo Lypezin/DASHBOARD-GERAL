@@ -15,6 +15,7 @@ import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
 import { getDimensionFilterSupport } from '@/utils/filters/dimensionFilterSupport';
 import { FaviconManager } from '@/components/layout/FaviconManager';
+import { startTopLoader, stopTopLoader } from '@/components/ui/TopLoader';
 
 const DeferredActivityTracker = dynamic(
   () => import('@/components/dashboard/ActivityTracker').then((mod) => ({ default: mod.ActivityTracker })),
@@ -70,6 +71,14 @@ function DashboardShellContent() {
   }, [filters.payload, ui.activeTab]);
   const isMainDataTab = ui.activeTab === 'dashboard' || ui.activeTab === 'analise';
   const showInitialLoading = isMainDataTab && ui.loading && !hasMainData && !data.hasSuccessfulData;
+
+  React.useEffect(() => {
+    if (ui.loading || filters.optionsLoading) {
+      startTopLoader();
+    } else {
+      stopTopLoader();
+    }
+  }, [ui.loading, filters.optionsLoading]);
 
   if (auth.isCheckingAuth) return <DashboardAuthLoading />;
   if (auth.hasSessionWithoutProfile) {

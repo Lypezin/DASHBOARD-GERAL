@@ -4,6 +4,7 @@ import { AderenciaDia } from '@/types';
 import { Tooltip, TooltipTrigger } from "@/components/ui/tooltip";
 import { DailyPerformanceTooltip } from './DailyPerformanceTooltip';
 import { DailyCorridasMetrics } from './DailyCorridasMetrics';
+import { AnimatedCounter } from '@/components/ui/animated-counter';
 import { cn } from '@/lib/utils';
 
 interface DailyPerformanceCardProps {
@@ -43,7 +44,7 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
       <TooltipTrigger asChild>
         <article
           className={cn(
-            "group relative flex min-h-[194px] min-w-0 cursor-help select-none flex-col gap-3 p-3.5 transition-colors duration-150 hover:bg-[#f5f9fb] dark:hover:bg-slate-800/40",
+            "group relative flex min-h-[194px] min-w-0 cursor-help select-none flex-col gap-3 p-3.5 transition-all duration-150 motion-safe:hover:-translate-y-0.5 hover:bg-[#f5f9fb] dark:hover:bg-slate-800/40",
             isToday ? "bg-[#f2f7fa] dark:bg-slate-800/50" : ""
           )}
           aria-label={`${dia.dia_da_semana || 'Dia'}, aderência ${aderencia.toFixed(1)}%`}
@@ -61,7 +62,7 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
           <div className="min-w-0">
             <div className="flex items-baseline justify-between gap-2">
               <span className={cn("font-mono text-[22px] font-semibold leading-7 tracking-tight tabular-nums", statusColor)}>
-                {aderencia.toFixed(1)}%
+                <AnimatedCounter value={aderencia} decimals={1} suffix="%" />
               </span>
               <span className="text-[10px] text-slate-500 dark:text-slate-400">Aderência</span>
             </div>
