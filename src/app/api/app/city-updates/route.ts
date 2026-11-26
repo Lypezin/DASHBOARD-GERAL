@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { hasElevatedRole, loadCurrentUserProfile, type CurrentUserProfile } from '@/app/api/_shared/currentUserProfile';
 import { createServiceRoleClient } from '@/utils/supabase/admin';
+import { getCachedOrganizationRevision, registerServerCacheInvalidator } from '@/utils/cache/organizationCacheRevision';
 
 export const runtime = 'nodejs';
 
@@ -8,6 +9,10 @@ const CITY_UPDATES_CACHE_TTL_MS = 30 * 60 * 1000;
 const MAX_CITY_UPDATES_CACHE_ENTRIES = 32;
 const cityUpdatesCache = new Map<string, { data: unknown[]; expiresAt: number }>();
 const cityUpdatesInFlight = new Map<string, Promise<unknown[]>>();
+
+registerServerCacheInvalidator(() => {
+    cityUpdatesCache.clear();
+});
 
 function getCachedCityUpdates(cacheKey: string) {
     const cached = cityUpdatesCache.get(cacheKey);
@@ -78,8 +83,10 @@ export async function GET() {
     }
 
     const organizationId = auth.profile.organization_id || null;
-    const cacheKey = organizationId || 'no-org';
-    const cached = getCachedCityUpdates(cacheKey);
+    const revision = await getCachedOrganizationRevision(organizationId);
+    const shouldBypassCache = Boolean(organizationId && revision === null);
+    const cacheKey = revision ? `${organizationId}:${revision}` : (organizationId || 'no-org');
+    const cached = shouldBypassCache ? null : getCachedCityUpdates(cacheKey);
 
     if (cached) {
         return jsonResponse(filterUpdatesForProfile(cached, auth.profile), null);
@@ -98,7 +105,9 @@ export async function GET() {
             }
 
             const updates = Array.isArray(data) ? data : [];
-            setCachedCityUpdates(cacheKey, updates);
+            if (!shouldBypassCache) {
+                setCachedCityUpdates(cacheKey, updates);
+            }
             return updates;
         })().finally(() => {
             if (cityUpdatesInFlight.get(cacheKey) === request) {

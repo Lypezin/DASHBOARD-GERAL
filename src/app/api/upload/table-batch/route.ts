@@ -10,6 +10,7 @@ import {
 } from '@/app/api/_shared/currentUserProfile';
 import { isMissingRpcSignatureError } from '@/app/api/_shared/postgrestErrors';
 import { readJsonBody } from '@/app/api/_shared/requestBody';
+import { invalidateServerDataCaches } from '@/utils/cache/organizationCacheRevision';
 
 export const runtime = 'nodejs';
 
@@ -82,6 +83,7 @@ export async function POST(request: Request) {
             }
 
             if (!error) {
+                invalidateServerDataCaches(organizationAccess.organizationId);
                 return NextResponse.json(data || { success: true, inserted: rows.length, errors: 0 });
             }
         }
@@ -92,6 +94,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: error.message, details: error }, { status: 500 });
         }
 
+        invalidateServerDataCaches(organizationAccess.organizationId);
         return NextResponse.json({ success: true, inserted: rows.length, errors: 0 });
     } catch (error) {
         if (isServiceRoleConfigError(error)) {

@@ -9,10 +9,15 @@ import {
     setTimedCacheValue,
     type TimedCacheEntry,
 } from '@/utils/cache/timedLruCache';
+import { registerClientRefreshCleanup } from '@/utils/dashboard/dashboardDataRefreshEvents';
 
 const MAX_CACHE_ENTRIES = 8;
 const dashboardCachePolicy = { ttlMs: CACHE.TAB_DATA_TTL, maxEntries: MAX_CACHE_ENTRIES } as const;
 const globalDashboardCache = new Map<string, TimedCacheEntry<DashboardResumoData>>();
+
+registerClientRefreshCleanup(() => {
+    globalDashboardCache.clear();
+});
 
 export function getInitialCacheData(payloadKey?: string): DashboardResumoData | null {
     if (!payloadKey) return null;

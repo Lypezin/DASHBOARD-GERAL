@@ -18,6 +18,7 @@ import {
     shouldFallbackOnMissingFunction,
 } from '@/components/views/dedicado/rpcFallback';
 import { createRequestKey } from '@/utils/request/createRequestKey';
+import { getCachedOrganizationRevision, registerServerCacheInvalidator } from '@/utils/cache/organizationCacheRevision';
 
 export const runtime = 'nodejs';
 
@@ -45,6 +46,10 @@ type DedicadoCacheEntry = {
 const dedicadoCache = new Map<string, DedicadoCacheEntry>();
 const inFlightDedicado = new Map<string, Promise<unknown>>();
 
+registerServerCacheInvalidator(() => {
+    dedicadoCache.clear();
+});
+
 function normalizeMode(value: unknown): DedicadoMode | null {
     if (value === 'summary' || value === 'entregadores' || value === 'entregador') {
         return value;
@@ -53,10 +58,16 @@ function normalizeMode(value: unknown): DedicadoMode | null {
     return null;
 }
 
-function getDedicadoCacheKey(mode: DedicadoMode, payload: Record<string, unknown>, profile: CurrentUserProfile) {
+function getDedicadoCacheKey(
+    mode: DedicadoMode,
+    payload: Record<string, unknown>,
+    profile: CurrentUserProfile,
+    cacheRevision: string | null = null,
+) {
     return createRequestKey({
         mode,
         payload,
+        cacheRevision,
         scope: {
             fullCityAccess: hasFullCityAccess(profile),
             role: profile.role || null,
@@ -90,9 +101,10 @@ async function resolveDedicadoWithCache(
     mode: DedicadoMode,
     payload: Record<string, unknown>,
     profile: CurrentUserProfile,
+    cacheRevision: string | null,
     fetcher: () => Promise<unknown>,
 ) {
-    const cacheKey = getDedicadoCacheKey(mode, payload, profile);
+    const cacheKey = getDedicadoCacheKey(mode, payload, profile, cacheRevision);
     const now = Date.now();
     const cached = dedicadoCache.get(cacheKey);
 
@@ -260,7 +272,8 @@ export async function POST(request: Request) {
             }
         }
 
-        const { data, cached } = await resolveDedicadoWithCache(mode, scopedPayload, auth.profile, async () => {
+        const cacheRevision = await getCachedOrganizationRevision(organizationAccess.organizationId);
+        const { data, cached } = await resolveDedicadoWithCache(mode, scopedPayload, auth.profile, cacheRevision, async () => {
             const result = mode === 'summary'
                 ? await executeRpcWithFallback(
                     'dashboard_dedicado_origens_v2',

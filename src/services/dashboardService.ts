@@ -9,6 +9,7 @@ import type { Entregador, EntregadoresSortField, ValoresEntregador } from '@/typ
 import { normalizeValoresEntregadores } from '@/utils/valores/normalizeValoresEntregadores';
 import { filterAndSortValores } from '@/utils/valores/filterAndSortValores';
 import { getEntregadoresCacheEarliestExpiry } from '@/utils/dashboard/entregadoresCacheExpiry';
+import { getCachedOrganizationRevision, registerServerCacheInvalidator } from '@/utils/cache/organizationCacheRevision';
 
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const UTR_ALLOWED_PARAMS = ['p_ano', 'p_semana', 'p_praca', 'p_sub_praca', 'p_origem', 'p_turno', 'p_data_inicial', 'p_data_final', 'p_organization_id'] as const;
@@ -93,6 +94,12 @@ const sourceValoresCache = new Map<string, TimedCacheEntry<SourceValoresData>>()
 const inFlightSourceValores = new Map<string, Promise<SourceValoresData>>();
 const preparedValoresCache = new Map<string, TimedCacheEntry<PreparedValoresData>>();
 const inFlightPreparedValores = new Map<string, Promise<PreparedValoresData>>();
+
+registerServerCacheInvalidator(() => {
+  dashboardDataCache.clear();
+  sourceValoresCache.clear();
+  preparedValoresCache.clear();
+});
 
 function getCacheKey(mode: DashboardDataMode, payload: Record<string, unknown>) {
   return createRequestKey({ mode, payload });
@@ -1049,12 +1056,14 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
           p_sort_direction: sortDirection,
           p_snapshot: expectedSnapshot,
       };
+      const cacheRevision = await getCachedOrganizationRevision(organizationId);
       const versionedPageCachePayload = {
           ...pageCachePayload,
           p_page_engine: useFastAnnualPageRpc ? 'annual-db-page-v1' : 'memory-page-v1',
           p_force_full_source: forceFullSource,
+          p_cache_revision: cacheRevision,
       };
-      const sourceCacheKey = createRequestKey({ mode: 'valores_source', payload: valoresPayload });
+      const sourceCacheKey = createRequestKey({ mode: 'valores_source', payload: valoresPayload, revision: cacheRevision });
       const preparedCacheKey = createRequestKey({
           mode: 'valores_prepared',
           snapshotVersion: 'jsonb-array-v1',
@@ -1062,6 +1071,7 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
           search,
           sortField,
           sortDirection,
+          revision: cacheRevision,
       });
 
       return resolveWithCache('valores_page', versionedPageCachePayload, async () => {
@@ -1193,8 +1203,9 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
           p_organization_id: organizationId,
           p_pracas: normalizePracas(source.p_pracas),
       };
+      const cacheRevision = await getCachedOrganizationRevision(organizationId);
 
-      return resolveWithCache('resumo_local', params, async () => {
+      return resolveWithCache('resumo_local', { ...params, cache_revision: cacheRevision }, async () => {
           const [driversResult, pedidosResult] = await Promise.all([
               admin.rpc('resumo_semanal_drivers', params),
               admin.rpc('resumo_semanal_pedidos', params),
@@ -1328,7 +1339,10 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
       }
       return rpcData ?? null;
   };
-  return mode === 'entregadores' || mode === 'entregadores_page'
-      ? resolveEntregadoresWithRevision(mode, payload, entregadoresRevision, fetchResult)
-      : resolveWithCache(mode, payload, fetchResult);
+  if (mode === 'entregadores' || mode === 'entregadores_page') {
+      return resolveEntregadoresWithRevision(mode, payload, entregadoresRevision, fetchResult);
+  }
+
+  const cacheRevision = await getCachedOrganizationRevision(organizationId);
+  return resolveWithCache(mode, { ...payload, cache_revision: cacheRevision }, fetchResult);
 }

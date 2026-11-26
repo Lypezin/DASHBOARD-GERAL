@@ -5,6 +5,7 @@ import type { DimensoesDashboard } from '@/types';
 import { IS_DEV } from '@/constants/environment';
 import { readJsonStorage, removeJsonStorage, writeJsonStorage } from '@/utils/storage/jsonStorage';
 import { scheduleIdleTask } from '@/utils/scheduling/idleTask';
+import { ENTREGADORES_REFRESH_COMPLETE_EVENT } from '@/utils/dashboard/dashboardDataRefreshEvents';
 
 const CACHE_KEY = 'dashboard_dimensions_cache_v8';
 const CACHE_DURATION = 1000 * 60 * 60; // 1 hora
@@ -49,6 +50,15 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
   const [dimensionsError, setDimensionsError] = useState<{ scopeKey: string; message: string } | null>(null);
   const [retryIndex, setRetryIndex] = useState(0);
   const retry = useCallback(() => setRetryIndex((value) => value + 1), []);
+
+  useEffect(() => {
+    const handleRefresh = () => {
+      setRetryIndex((value) => value + 1);
+    };
+
+    window.addEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, handleRefresh);
+    return () => window.removeEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, handleRefresh);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;

@@ -9,8 +9,11 @@ import {
     loadCurrentUserProfile,
 } from '@/app/api/_shared/currentUserProfile';
 import type { PendingMV } from '@/types/upload';
+import { invalidateServerDataCaches } from '@/utils/cache/organizationCacheRevision';
 
 export const runtime = 'nodejs';
+
+let hasObservedPendingRefresh = false;
 
 type QueueStatePayload = {
     full_pending_count?: number;
@@ -125,6 +128,15 @@ export async function GET(request: Request) {
             incrementalOnly ? Promise.resolve([]) : fetchPendingMVs(admin),
         ]);
 
+        const totalPending = getQueueCount(stateData, 'incremental_pending_count')
+            + (incrementalOnly ? 0 : pending.length);
+        if (totalPending > 0) {
+            hasObservedPendingRefresh = true;
+        } else if (hasObservedPendingRefresh) {
+            hasObservedPendingRefresh = false;
+            invalidateServerDataCaches();
+        }
+
         return NextResponse.json({ success: true, pending, queue_state: stateData ?? null });
     } catch (error) {
         if (isServiceRoleConfigError(error)) {
@@ -152,6 +164,7 @@ export async function POST(request: Request) {
         }
 
         const admin = createServiceRoleClient();
+        hasObservedPendingRefresh = true;
 
         if (isUploadRefresh) {
             const incrementalWorker = await tryRpc(admin, 'ensure_incremental_refresh_worker_scheduled');
@@ -161,6 +174,11 @@ export async function POST(request: Request) {
 
             if (incrementalWorker.error && pendingIncrementals > 0) {
                 throw new Error(incrementalWorker.error);
+            }
+
+            if (pendingIncrementals === 0) {
+                hasObservedPendingRefresh = false;
+                invalidateServerDataCaches();
             }
 
             return NextResponse.json({
@@ -198,6 +216,11 @@ export async function POST(request: Request) {
 
         if (fullWorker.error && pendingFull > 0) {
             throw new Error(fullWorker.error);
+        }
+
+        if (pendingFull === 0) {
+            hasObservedPendingRefresh = false;
+            invalidateServerDataCaches();
         }
 
         return NextResponse.json({

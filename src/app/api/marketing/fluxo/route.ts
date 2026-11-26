@@ -10,6 +10,7 @@ import {
     getServiceRoleConfigErrorPayload,
     isServiceRoleConfigError,
 } from '@/utils/supabase/admin';
+import { getCachedOrganizationRevision, registerServerCacheInvalidator } from '@/utils/cache/organizationCacheRevision';
 
 export const runtime = 'nodejs';
 
@@ -35,6 +36,10 @@ const FLUXO_CACHE_MAX_ENTRIES = 160;
 const fluxoCache = new Map<string, FluxoCacheEntry>();
 const fluxoInFlight = new Map<string, Promise<unknown[]>>();
 
+registerServerCacheInvalidator(() => {
+    fluxoCache.clear();
+});
+
 function normalizeDate(value: unknown) {
     return typeof value === 'string' && ISO_DATE_RE.test(value) ? value : null;
 }
@@ -52,9 +57,11 @@ function buildFluxoCacheKey(params: {
     includeNames: boolean;
     organizationId: string;
     praca: string | null;
+    revision?: string | null;
 }) {
     return [
         params.organizationId,
+        params.revision || 'no-rev',
         params.dataInicial,
         params.dataFinal,
         params.praca || 'all',
@@ -168,12 +175,14 @@ export async function POST(request: Request) {
             }
         }
 
+        const revision = await getCachedOrganizationRevision(organizationId);
         const cacheKey = buildFluxoCacheKey({
             dataInicial,
             dataFinal,
             includeNames,
             organizationId,
             praca,
+            revision,
         });
 
         const cached = getCachedFluxo(cacheKey);

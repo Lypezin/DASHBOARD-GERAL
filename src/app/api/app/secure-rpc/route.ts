@@ -6,6 +6,7 @@ import { asParams, clampPagination, getInternalScopedPracas, stripInternalParams
 import { resolveSecureRpcWithCache } from './cache';
 import { ensureAuthorizedOrganization, ensurePracaScope, filterPracasResult } from './authScope';
 import { hasFullCityAccess } from './utils';
+import { getCachedOrganizationRevision } from '@/utils/cache/organizationCacheRevision';
 
 export const runtime = 'nodejs';
 
@@ -59,6 +60,13 @@ export async function POST(request: Request) {
     params = pracaScope.params || params;
 
     const admin = createServiceRoleClient();
+    const orgIdForRevision = typeof params.p_organization_id === 'string'
+      ? params.p_organization_id
+      : typeof params.p_org_id === 'string'
+        ? params.p_org_id
+        : auth.profile.organization_id || null;
+    const cacheRevision = await getCachedOrganizationRevision(orgIdForRevision);
+
     const { data, cached, stale } = await resolveSecureRpcWithCache(functionName, params, auth.profile, async () => {
       const supportsScopedPracas = functionName === 'dashboard_resumo'
         || functionName === 'dashboard_evolucao_bundle'
@@ -106,7 +114,7 @@ export async function POST(request: Request) {
       return functionName === 'list_pracas_disponiveis'
         ? filterPracasResult(rpcData, auth.profile)
         : rpcData ?? null;
-    });
+    }, cacheRevision);
 
     return NextResponse.json({
       data,

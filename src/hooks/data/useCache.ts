@@ -9,6 +9,7 @@ import { CacheEntry, isCacheValid, createCacheEntry } from '@/types/cache';
 import { CACHE } from '@/constants/config';
 import { getFromSessionStorage, setToSessionStorage } from '@/hooks/cache/sessionStorage';
 import { scheduleIdleTask } from '@/utils/scheduling/idleTask';
+import { registerClientRefreshCleanup } from '@/utils/dashboard/dashboardDataRefreshEvents';
 
 interface UseCacheOptions<T> {
   ttl?: number;
@@ -19,6 +20,10 @@ interface UseCacheOptions<T> {
 const globalCache = new Map<string, CacheEntry<unknown>>();
 const MAX_GLOBAL_CACHE_ENTRIES = 24;
 const DEFAULT_TAB_DATA_TTL_MS: number = CACHE.TAB_DATA_TTL;
+
+registerClientRefreshCleanup(() => {
+  globalCache.clear();
+});
 
 function touchGlobalCacheEntry(key: string, entry: CacheEntry<unknown>) {
   globalCache.delete(key);

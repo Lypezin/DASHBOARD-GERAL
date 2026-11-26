@@ -9,7 +9,7 @@ import type { FilterPayload } from '@/types/filters';
 import { getTimedCacheValue, setTimedCacheValue, type TimedCacheEntry } from '@/utils/cache/timedLruCache';
 import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
 import { createRequestKey } from '@/utils/request/createRequestKey';
-import { ENTREGADORES_REFRESH_COMPLETE_EVENT } from '@/utils/dashboard/dashboardDataRefreshEvents';
+import { ENTREGADORES_REFRESH_COMPLETE_EVENT, registerClientRefreshCleanup } from '@/utils/dashboard/dashboardDataRefreshEvents';
 import { fetchDashboardEvolucaoData } from './utils/fetchEvolucao';
 import { useTopLoaderSync } from '@/components/ui/TopLoader';
 
@@ -27,6 +27,10 @@ interface EvolucaoRequestData {
 const evolucaoCache = new Map<string, TimedCacheEntry<EvolucaoRequestData>>();
 const evolucaoInFlight = new Map<string, Promise<EvolucaoRequestData>>();
 const evolucaoCachePolicy = { ttlMs: CACHE.EVOLUCAO_TTL, maxEntries: 12 } as const;
+
+registerClientRefreshCleanup(() => {
+  evolucaoCache.clear();
+});
 
 export function useDashboardEvolucao({ filterPayload, anoEvolucao }: UseDashboardEvolucaoOptions) {
   const { organizationId, isLoading: isOrgLoading } = useOrganization();

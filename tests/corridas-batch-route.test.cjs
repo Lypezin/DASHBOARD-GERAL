@@ -17,6 +17,7 @@ function loadRoute(rpc) {
       resolveAuthorizedOrganizationId: () => ({ organizationId: '00000000-0000-0000-0000-000000000001' }),
     },
     '@/app/api/_shared/requestBody': { readJsonBody: async (request) => request.body },
+    '@/utils/cache/organizationCacheRevision': { invalidateServerDataCaches: () => {} },
   };
   vm.runInNewContext(code, { exports, require: (name) => {
     if (!(name in modules)) throw new Error(`Unexpected import: ${name}`);

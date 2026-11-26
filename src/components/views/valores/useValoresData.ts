@@ -12,6 +12,7 @@ import { formatarReal } from './utils/formatters';
 import { useValoresSearch } from './hooks/useValoresSearch';
 import { useValoresSort } from './hooks/useValoresSort';
 import { useTopLoaderSync } from '@/components/ui/TopLoader';
+import { ENTREGADORES_REFRESH_COMPLETE_EVENT } from '@/utils/dashboard/dashboardDataRefreshEvents';
 
 const PAGE_SIZE = 100;
 const PAGE_ENGINE_VERSION = 'annual-db-page-v1';
@@ -339,6 +340,15 @@ export function useValoresData(filterPayload: FilterPayload, currentUser: Curren
         setForceRefreshKey(requestKey);
         setRetryVersion((version) => version + 1);
     }, [requestKey]);
+
+    useEffect(() => {
+        const handleRefresh = () => {
+            retry();
+        };
+
+        window.addEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, handleRefresh);
+        return () => window.removeEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, handleRefresh);
+    }, [retry]);
 
     return {
         sortedValores: visibleRows,

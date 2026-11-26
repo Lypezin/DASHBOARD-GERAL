@@ -20,6 +20,10 @@ function loadService(rpc) {
     '@/utils/valores/normalizeValoresEntregadores': {},
     '@/utils/valores/filterAndSortValores': {},
     '@/utils/dashboard/entregadoresCacheExpiry': {},
+    '@/utils/cache/organizationCacheRevision': {
+      getCachedOrganizationRevision: async () => null,
+      registerServerCacheInvalidator: () => {},
+    },
   };
   vm.runInNewContext(code, { exports, Buffer, performance, console: { info() {}, warn() {} }, require: (name) => {
     if (!(name in modules)) throw new Error(`Unexpected import: ${name}`);

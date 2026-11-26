@@ -4,6 +4,7 @@ import { getAppApiData } from '@/utils/app/fetchAppApi';
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { readJsonStorage, removeJsonStorage, writeJsonStorage } from '@/utils/storage/jsonStorage';
 import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
+import { ENTREGADORES_REFRESH_COMPLETE_EVENT, registerClientRefreshCleanup } from '@/utils/dashboard/dashboardDataRefreshEvents';
 import {
   getTimedCacheValue,
   rememberTimedCacheEntry,
@@ -22,6 +23,11 @@ const CITY_UPDATES_CACHE_POLICY = { ttlMs: CACHE_TTL, staleTtlMs: CITY_UPDATES_S
 const SESSION_CACHE_MAX_ENTRIES = 12;
 const globalCache = new Map<string, TimedCacheEntry<CityUpdateInfo[]>>();
 const globalPromises = new Map<string, Promise<CityUpdateInfo[] | null>>();
+
+registerClientRefreshCleanup(() => {
+  globalCache.clear();
+  globalPromises.clear();
+});
 
 const SESSION_CACHE_KEY_PREFIX = 'city_last_updates_cache_v4';
 
@@ -105,6 +111,17 @@ export function useCityLastUpdates() {
   const [data, setData] = useState<CityUpdateInfo[]>(initialCache);
   const [dataScopeKey, setDataScopeKey] = useState<string | null>(hasFreshInitialCache ? scopeKey : null);
   const [loading, setLoading] = useState(false);
+  const [refreshNonce, setRefreshNonce] = useState(0);
+
+  useEffect(() => {
+    const handleRefresh = () => {
+      sessionCacheRef.current = null;
+      setRefreshNonce((current) => current + 1);
+    };
+
+    window.addEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, handleRefresh);
+    return () => window.removeEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, handleRefresh);
+  }, []);
 
   const isScopeReady = hasResolved && isAuthenticated;
   const visibleData = isScopeReady
@@ -196,7 +213,7 @@ export function useCityLastUpdates() {
     return () => {
       mounted = false;
     };
-  }, [hasResolved, isAuthenticated, scopeKey]);
+  }, [hasResolved, isAuthenticated, refreshNonce, scopeKey]);
 
   return { data: visibleData, loading: visibleLoading };
 }

@@ -4,12 +4,18 @@ import { useOrganization } from '@/contexts/OrganizationContext';
 import { safeRpc } from '@/lib/rpcWrapper';
 import { IS_DEV } from '@/constants/environment';
 import { getTimedCacheValue, setTimedCacheValue, type TimedCacheEntry } from '@/utils/cache/timedLruCache';
+import { ENTREGADORES_REFRESH_COMPLETE_EVENT, registerClientRefreshCleanup } from '@/utils/dashboard/dashboardDataRefreshEvents';
 
 const WEEKS_CACHE_TTL_MS = 5 * 60 * 1000;
 const WEEKS_CACHE_POLICY = { ttlMs: WEEKS_CACHE_TTL_MS, maxEntries: 12 } as const;
 
 const weeksCache = new Map<string, TimedCacheEntry<number[]>>();
 const weeksRequests = new Map<string, Promise<number[]>>();
+
+registerClientRefreshCleanup(() => {
+    weeksCache.clear();
+    weeksRequests.clear();
+});
 
 /**
  * Busca as semanas com dados para o ano/organizacao ativos.
@@ -81,6 +87,15 @@ export function useSemanasComDados(ano: number | null) {
     }, [ano, isOrganizationLoading, organization?.id, requestKey, retryNonce]);
 
     const retry = useCallback(() => setRetryNonce((current) => current + 1), []);
+
+    useEffect(() => {
+        const handleRefresh = () => {
+            setRetryNonce((current) => current + 1);
+        };
+
+        window.addEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, handleRefresh);
+        return () => window.removeEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, handleRefresh);
+    }, []);
 
     return {
         semanasComDados: dataRequestKey === requestKey ? semanas : [],

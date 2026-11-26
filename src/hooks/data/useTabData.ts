@@ -7,7 +7,7 @@ import type { FilterPayload } from '@/types/filters';
 import { fetchTabData } from '@/utils/tabData/fetchTabData';
 import { createRequestKey } from '@/utils/request/createRequestKey';
 import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
-import { ENTREGADORES_REFRESH_COMPLETE_EVENT } from '@/utils/dashboard/dashboardDataRefreshEvents';
+import { clearAllClientDataCaches, ENTREGADORES_REFRESH_COMPLETE_EVENT } from '@/utils/dashboard/dashboardDataRefreshEvents';
 import { processTabSuccessData, getTabFallbackData, TabData } from './tabDataHelpers';
 import { useTopLoaderSync } from '@/components/ui/TopLoader';
 
@@ -257,10 +257,11 @@ export function useTabData(
   }, [activeTab, fetchData]);
 
   useEffect(() => {
-    if (activeTab !== 'entregadores' && activeTab !== 'prioridade') return;
+    if (!isManagedTab) return;
 
     const reloadAfterImport = () => {
-      clearSharedCacheByPrefix('entregadores_shared-');
+      clearAllClientDataCaches();
+      clearSharedCacheByPrefix(`${currentTabScope}-`);
       const currentPayload = stableFilterPayloadRef.current;
       if (!enabled || isOrgLoading || !currentPayload) return;
       if (retryTimeoutRef.current) {
@@ -273,7 +274,7 @@ export function useTabData(
 
     window.addEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, reloadAfterImport);
     return () => window.removeEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, reloadAfterImport);
-  }, [activeTab, enabled, fetchData, isOrgLoading]);
+  }, [activeTab, currentTabScope, enabled, fetchData, isManagedTab, isOrgLoading]);
 
   useEffect(() => {
     if (debounceRef.current) {

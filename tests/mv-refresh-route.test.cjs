@@ -20,6 +20,7 @@ function loadRoute(rpc) {
       loadCurrentUserProfile: async () => ({ profile: { role: 'admin' } }),
       hasElevatedRole: () => true,
     },
+    '@/utils/cache/organizationCacheRevision': { invalidateServerDataCaches: () => {} },
   };
   vm.runInNewContext(code, { exports, URL, require: (name) => {
     if (!(name in modules)) throw new Error(`Unexpected import: ${name}`);

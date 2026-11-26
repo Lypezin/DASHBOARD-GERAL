@@ -6,6 +6,7 @@ import {
     getServiceRoleConfigErrorPayload,
     isServiceRoleConfigError,
 } from '@/utils/supabase/admin';
+import { invalidateServerDataCaches } from '@/utils/cache/organizationCacheRevision';
 
 export const runtime = 'nodejs';
 
@@ -45,6 +46,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: false, error: error.message, details: error }, { status: 500 });
         }
 
+        invalidateServerDataCaches();
         return NextResponse.json(data || { success: true, view: refreshRpcFunction });
     } catch (error) {
         if (isServiceRoleConfigError(error)) {

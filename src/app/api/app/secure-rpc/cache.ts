@@ -1,5 +1,6 @@
-import { CurrentUserProfile, hasElevatedRole } from '@/app/api/_shared/currentUserProfile';
+import { CurrentUserProfile } from '@/app/api/_shared/currentUserProfile';
 import { createRequestKey } from '@/utils/request/createRequestKey';
+import { registerServerCacheInvalidator } from '@/utils/cache/organizationCacheRevision';
 
 const SECURE_RPC_CACHE_TTL_MS = 5 * 60_000;
 const SECURE_RPC_DETAIL_CACHE_TTL_MS = 20_000;
@@ -13,6 +14,10 @@ export type SecureRpcCacheEntry = {
 
 export const secureRpcCache = new Map<string, SecureRpcCacheEntry>();
 export const inFlightSecureRpc = new Map<string, Promise<unknown>>();
+
+registerServerCacheInvalidator(() => {
+  secureRpcCache.clear();
+});
 
 export function getSecureRpcCacheTtl(functionName: string) {
   return functionName === 'get_entregador_detail' || functionName === 'get_entregadores_details'
@@ -30,10 +35,16 @@ export function normalizeAssignedPracas(profile: CurrentUserProfile) {
     : [];
 }
 
-export function getSecureRpcCacheKey(functionName: string, params: Record<string, unknown>, profile: CurrentUserProfile) {
+export function getSecureRpcCacheKey(
+  functionName: string,
+  params: Record<string, unknown>,
+  profile: CurrentUserProfile,
+  cacheRevision: string | null = null,
+) {
   return createRequestKey({
     functionName,
     params,
+    cacheRevision,
     scope: {
       id: profile.id,
       role: profile.role,
@@ -81,8 +92,9 @@ export async function resolveSecureRpcWithCache(
   params: Record<string, unknown>,
   profile: CurrentUserProfile,
   fetcher: () => Promise<unknown>,
+  cacheRevision: string | null = null,
 ) {
-  const cacheKey = getSecureRpcCacheKey(functionName, params, profile);
+  const cacheKey = getSecureRpcCacheKey(functionName, params, profile, cacheRevision);
   const now = Date.now();
   const cached = secureRpcCache.get(cacheKey);
 

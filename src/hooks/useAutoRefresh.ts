@@ -7,6 +7,7 @@ import {
     getIncrementalRefreshPendingCount
 } from '@/hooks/upload/refreshUtils';
 import { REFRESH_MAX_MONITORING_MS, REFRESH_POLL_INTERVAL_MS, REFRESH_RETRY_POLL_INTERVAL_MS } from '@/hooks/upload/refreshTiming';
+import { notifyEntregadoresRefreshComplete } from '@/utils/dashboard/dashboardDataRefreshEvents';
 
 export function useAutoRefresh() {
     const { refreshState, setRefreshState, triggerRefresh } = useMVRefreshLogic();
@@ -18,6 +19,7 @@ export function useAutoRefresh() {
         let cancelled = false;
         let timeoutId: ReturnType<typeof setTimeout> | null = null;
         let completed = false;
+        let sawPendingQueue = false;
         const startedAt = Date.now();
 
         const scheduleNext = (delayMs: number) => {
@@ -57,9 +59,14 @@ export function useAutoRefresh() {
                             status: 'Dados agregados, Dashboard, Comparacao e UTR atualizados.'
                         };
                     });
+                    if (sawPendingQueue) {
+                        sawPendingQueue = false;
+                        notifyEntregadoresRefreshComplete();
+                    }
                     return;
                 }
 
+                sawPendingQueue = true;
                 setRefreshState(buildIncrementalRefreshStatusFromQueue(queueState));
                 scheduleNext(REFRESH_POLL_INTERVAL_MS);
             } catch {

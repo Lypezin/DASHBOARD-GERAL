@@ -4,6 +4,7 @@ import { fetchDedicadoApi } from '@/utils/dedicado/fetchDedicadoApi';
 import { createRequestKey } from '@/utils/request/createRequestKey';
 import { getTimedCacheValue, setTimedCacheValue, type TimedCacheEntry } from '@/utils/cache/timedLruCache';
 import type { AderenciaDiaOrigem, AderenciaOrigem } from '@/types';
+import { ENTREGADORES_REFRESH_COMPLETE_EVENT, registerClientRefreshCleanup } from '@/utils/dashboard/dashboardDataRefreshEvents';
 
 export type DedicadoOrigemRow = AderenciaOrigem & {
   segundos_realizados?: number;
@@ -40,6 +41,10 @@ const DEDICADO_ORIGENS_CACHE_POLICY = {
 } as const;
 const dedicadoOrigensCache = new Map<string, TimedCacheEntry<DedicadoOrigensPayload>>();
 const dedicadoOrigensRequests = new Map<string, Promise<DedicadoOrigensPayload>>();
+
+registerClientRefreshCleanup(() => {
+  dedicadoOrigensCache.clear();
+});
 
 function getCachedDedicadoOrigens(cacheKey: string) {
   return getTimedCacheValue(dedicadoOrigensCache, cacheKey, DEDICADO_ORIGENS_CACHE_POLICY);
@@ -174,6 +179,15 @@ export function useDedicadoOrigensData({
   }, [accessScopeKey, currentRequestKey, isEnabled, origemOrganizationId, requestWithMode, retryNonce, shouldLoadDiaOrigem]);
 
   const retry = React.useCallback(() => setRetryNonce((current) => current + 1), []);
+
+  React.useEffect(() => {
+    const handleRefresh = () => {
+      setRetryNonce((current) => current + 1);
+    };
+
+    window.addEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, handleRefresh);
+    return () => window.removeEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, handleRefresh);
+  }, []);
 
   const waitingForCurrentRequest = isEnabled && Boolean(origemOrganizationId)
     && resolvedRequestKey !== currentRequestKey;

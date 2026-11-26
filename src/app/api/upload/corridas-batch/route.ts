@@ -9,6 +9,7 @@ import {
     resolveAuthorizedOrganizationId,
 } from '@/app/api/_shared/currentUserProfile';
 import { readJsonBody } from '@/app/api/_shared/requestBody';
+import { invalidateServerDataCaches } from '@/utils/cache/organizationCacheRevision';
 
 export const runtime = 'nodejs';
 
@@ -67,6 +68,7 @@ export async function POST(request: Request) {
             );
         }
 
+        invalidateServerDataCaches(organizationAccess.organizationId);
         return NextResponse.json(data || { success: true, inserted: rows.length, errors: 0 });
     } catch (error) {
         if (isServiceRoleConfigError(error)) {
