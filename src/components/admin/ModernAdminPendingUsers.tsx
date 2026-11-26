@@ -40,14 +40,14 @@ export const ModernAdminPendingUsers: React.FC<AdminPendingUsersProps> = ({
                     <Card key={user.id} className="bg-white dark:bg-slate-950">
                         <CardContent className="p-4">
                             <div className="flex items-start justify-between">
-                                <div className="flex items-center gap-3">
-                                    <Avatar>
+                                <div className="flex min-w-0 items-center gap-3">
+                                    <Avatar className="shrink-0">
                                         <AvatarImage src={user.avatar_url} />
                                         <AvatarFallback>{getInitials(user.full_name)}</AvatarFallback>
                                     </Avatar>
-                                    <div>
-                                        <p className="font-semibold text-sm">{user.full_name}</p>
-                                        <p className="text-xs text-muted-foreground">{user.email}</p>
+                                    <div className="min-w-0 flex-1">
+                                        <p className="truncate font-semibold text-sm">{user.full_name}</p>
+                                        <p className="truncate text-xs text-muted-foreground">{user.email}</p>
                                         <p className="text-[10px] text-muted-foreground mt-1">
                                             {new Date(user.created_at).toLocaleDateString('pt-BR')}
                                         </p>
@@ -58,7 +58,7 @@ export const ModernAdminPendingUsers: React.FC<AdminPendingUsersProps> = ({
                                 onClick={() => onApprove(user)}
                                 className="w-full mt-4 bg-emerald-600 hover:bg-emerald-700 text-white h-8 text-xs"
                             >
-                                <CheckCircle className="mr-2 h-3 w-3" />
+                                <CheckCircle className="h-3.5 w-3.5" />
                                 Aprovar Acesso
                             </Button>
                         </CardContent>

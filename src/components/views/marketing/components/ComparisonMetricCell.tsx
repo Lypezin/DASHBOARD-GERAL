@@ -30,20 +30,20 @@ export const ComparisonMetricCell: React.FC<ComparisonMetricCellProps> = ({
         <>
             <TableCell className="border-l border-slate-100 py-4 align-middle text-right dark:border-slate-800">
                 <div className="flex flex-col items-end gap-1">
-                    <span className={`text-xs font-medium ${opsColorClass}`}>
+                    <span className={`text-xs font-medium tabular-nums ${opsColorClass}`}>
                         {formatValue(opsValue)}
                     </span>
-                    <span className="text-[10px] text-slate-400">
+                    <span className="text-[10px] tabular-nums text-slate-400">
                         {calculatePercentage(opsValue, total)}
                     </span>
                 </div>
             </TableCell>
             <TableCell className="py-4 align-middle text-right">
                 <div className="flex flex-col items-end gap-1">
-                    <span className={`text-xs font-semibold ${mktColorClass}`}>
+                    <span className={`text-xs font-semibold tabular-nums ${mktColorClass}`}>
                         {formatValue(mktValue)}
                     </span>
-                    <span className="text-[10px] text-sky-500/70 dark:text-sky-300/70">
+                    <span className="text-[10px] tabular-nums text-sky-500/70 dark:text-sky-300/70">
                         {calculatePercentage(mktValue, total)}
                     </span>
                 </div>

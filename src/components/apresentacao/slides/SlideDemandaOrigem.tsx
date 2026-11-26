@@ -52,7 +52,7 @@ const SlideDemandaOrigem: React.FC<SlideDemandaOrigemProps> = ({
                             <h3 className="text-base font-bold text-center px-4 py-2 bg-sky-50 dark:bg-sky-950/40 rounded-xl text-sky-800 dark:text-sky-300 border border-sky-100 dark:border-sky-900/60 uppercase tracking-wide">
                                 SEMANA {numeroSemana1}
                             </h3>
-                            <h3 className="text-base font-bold text-center px-4 py-2 bg-slate-50 dark:bg-slate-850 rounded-xl text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-700 uppercase tracking-wide">
+                            <h3 className="text-base font-bold text-center px-4 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl text-slate-500 dark:text-slate-400 border border-slate-100 dark:border-slate-700 uppercase tracking-wide">
                                 VARIAÇÕES
                             </h3>
                             <h3 className="text-base font-bold text-center px-4 py-2 bg-blue-600 dark:bg-blue-700 rounded-xl text-white shadow-md uppercase tracking-wide border border-blue-700 dark:border-blue-800">

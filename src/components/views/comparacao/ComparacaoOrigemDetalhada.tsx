@@ -55,7 +55,7 @@ export const ComparacaoOrigemDetalhada = React.memo(function ComparacaoOrigemDet
                                 <TableHeader>
                                     <TableRow className="bg-transparent hover:bg-transparent">
                                         <TableHead className="sticky left-0 z-20 min-w-[150px] border-r border-slate-100 bg-white pl-4 text-[10px] font-medium uppercase tracking-[0.16em] text-slate-400 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-500 sm:min-w-[170px] sm:pl-6 sm:text-[11px]">
-                                            Metrica
+                                            Métrica
                                         </TableHead>
                                         {semanasSelecionadas.map((semana) => (
                                             <TableHead key={semana} className="min-w-[96px] border-l border-slate-100 text-center text-[10px] font-medium uppercase tracking-[0.16em] text-slate-400 dark:border-slate-800 dark:text-slate-500 sm:min-w-[108px] sm:text-[11px]">
@@ -79,7 +79,7 @@ export const ComparacaoOrigemDetalhada = React.memo(function ComparacaoOrigemDet
                                                 key={metrica.campo}
                                                 className={`hover:bg-slate-50/60 dark:hover:bg-slate-900/55 ${metricIndex % 2 === 0 ? 'bg-white dark:bg-slate-950' : 'bg-slate-50/35 dark:bg-slate-900/35'}`}
                                             >
-                                                <TableCell className="sticky left-0 z-10 min-w-[150px] border-r border-slate-100 bg-inherit py-2.5 pl-4 text-xs font-medium text-slate-600 dark:border-slate-800 dark:text-slate-300 sm:min-w-[170px] sm:py-3 sm:pl-6 sm:text-sm">
+                                                <TableCell className={`sticky left-0 z-10 min-w-[150px] border-r border-slate-100 py-2.5 pl-4 text-xs font-medium text-slate-600 dark:border-slate-800 dark:text-slate-300 sm:min-w-[170px] sm:py-3 sm:pl-6 sm:text-sm ${metricIndex % 2 === 0 ? 'bg-white dark:bg-slate-950' : 'bg-[#f8fafc] dark:bg-slate-900'}`}>
                                                     {metrica.label}
                                                 </TableCell>
                                                 {valores.map((value, index) => (

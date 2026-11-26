@@ -2,7 +2,7 @@ import React from 'react';
 import { SubPracaComparativo } from '../SlideSubPracas';
 
 export const SubPracaModalMetrics = ({ selectedItem }: { selectedItem: SubPracaComparativo }) => (
-    <div className="grid grid-cols-2 gap-8 border-t border-slate-100 pt-8">
+    <div className="grid grid-cols-2 gap-8 border-t border-slate-100 pt-8 dark:border-slate-800">
         <div className="bg-slate-50 dark:bg-slate-800/50 rounded-xl p-5 border border-slate-100 dark:border-slate-700/50">
             <h4 className="text-base font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Planejado vs Entregue</h4>
             <div className="flex items-end justify-between">

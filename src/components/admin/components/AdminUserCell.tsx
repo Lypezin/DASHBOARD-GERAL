@@ -46,21 +46,23 @@ export const AdminUserCell: React.FC<AdminUserCellProps> = ({ user }) => {
                 <AvatarImage src={avatarUrl} />
                 <AvatarFallback>{getInitials(user.full_name)}</AvatarFallback>
             </Avatar>
-            <div className="flex flex-col">
-                <span className="font-medium">{user.full_name}</span>
-                <span className="text-xs text-muted-foreground">{user.email}</span>
-                <div className="mt-1 flex gap-1">
-                    {user.is_admin && (
-                        <Badge variant="secondary" className="text-[10px] px-1 py-0 h-5 gap-1">
-                            <Shield className="h-3 w-3" /> Admin
-                        </Badge>
-                    )}
-                    {user.role === 'marketing' && !user.is_admin && (
-                        <Badge variant="outline" className="text-[10px] px-1 py-0 h-5">
-                            Marketing
-                        </Badge>
-                    )}
-                </div>
+            <div className="flex min-w-0 flex-col">
+                <span className="truncate font-medium">{user.full_name}</span>
+                <span className="truncate text-xs text-muted-foreground">{user.email}</span>
+                {(user.is_admin || (user.role === 'marketing' && !user.is_admin)) && (
+                    <div className="mt-1 flex gap-1">
+                        {user.is_admin && (
+                            <Badge variant="secondary" className="text-[10px] px-1 py-0 h-5 gap-1">
+                                <Shield className="h-3 w-3" /> Admin
+                            </Badge>
+                        )}
+                        {user.role === 'marketing' && !user.is_admin && (
+                            <Badge variant="outline" className="text-[10px] px-1 py-0 h-5">
+                                Marketing
+                            </Badge>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -15,7 +15,8 @@ export const BadgeCard = ({ badge, isUnlocked, unlockedAt }: BadgeCardProps) => 
     return (
         <div
             className={cn(
-                "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-all duration-300 relative group",
+                "flex flex-col items-center justify-center p-4 rounded-xl border-2 transition-[border-color,background-color,box-shadow] duration-200 relative group",
+                isUnlocked && unlockedAt && "pt-8",
                 isUnlocked
                     ? "border-yellow-400 bg-yellow-50/50 dark:bg-yellow-900/10 dark:border-yellow-500/50"
                     : "border-slate-200 bg-slate-50 opacity-60 grayscale dark:border-slate-800 dark:bg-slate-900/50"

@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Image as ImageIcon, Type, Trash2 } from 'lucide-react';
+import { Image as ImageIcon, Loader2, Type, Trash2 } from 'lucide-react';
 import { SlideElement } from '@/types/presentation';
 
 interface EditorToolbarProps {
@@ -24,7 +24,11 @@ export function EditorToolbar({
                 onChange={handleAddImage}
             />
             <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} disabled={isUploading}>
-                <ImageIcon className="w-4 h-4 mr-2" />
+                {isUploading ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+                ) : (
+                    <ImageIcon className="mr-2 h-4 w-4" aria-hidden="true" />
+                )}
                 {isUploading ? 'Enviando...' : 'Foto'}
             </Button>
             <Button variant="outline" size="sm" onClick={handleAddText}>

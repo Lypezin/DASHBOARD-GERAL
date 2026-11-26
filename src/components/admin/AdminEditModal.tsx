@@ -11,10 +11,11 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Edit, Save, X } from 'lucide-react';
+import { Edit, Loader2, Save, X } from 'lucide-react';
 import { AdminUserAccessForm } from './components/AdminUserAccessForm';
 
 interface AdminEditModalProps {
+  open?: boolean;
   user: User;
   pracasDisponiveis: string[];
   organizations: Organization[];
@@ -30,6 +31,7 @@ interface AdminEditModalProps {
 }
 
 export const AdminEditModal: React.FC<AdminEditModalProps> = ({
+  open = true,
   user,
   pracasDisponiveis,
   organizations,
@@ -44,16 +46,16 @@ export const AdminEditModal: React.FC<AdminEditModalProps> = ({
   loading = false,
 }) => {
   return (
-    <Dialog open={true} onOpenChange={(open) => !open && onCancel()}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Edit className="h-5 w-5 text-primary" />
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px]">
+        <DialogHeader className="text-left">
+          <DialogTitle className="flex items-center gap-2 pr-8 text-xl">
+            <Edit className="h-5 w-5 shrink-0 text-primary" />
             Editar Praças
           </DialogTitle>
           <div className="text-sm text-muted-foreground">
             <p className="font-medium text-foreground">{user.full_name}</p>
-            <p>{user.email}</p>
+            <p className="truncate">{user.email}</p>
           </div>
         </DialogHeader>
 
@@ -68,9 +70,9 @@ export const AdminEditModal: React.FC<AdminEditModalProps> = ({
           onOrganizationChange={onOrganizationChange}
         />
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="gap-2">
           <Button variant="outline" onClick={onCancel} disabled={loading}>
-            <X className="mr-2 h-4 w-4" />
+            <X className="h-4 w-4" />
             Cancelar
           </Button>
           <Button
@@ -78,10 +80,13 @@ export const AdminEditModal: React.FC<AdminEditModalProps> = ({
             disabled={loading || !selectedOrganizationId || (selectedRole === 'user' && selectedPracas.length === 0)}
           >
             {loading ? (
-              'Salvando...'
+              <>
+                <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
+                Salvando...
+              </>
             ) : (
               <>
-                <Save className="mr-2 h-4 w-4" />
+                <Save className="h-4 w-4" />
                 Salvar Alterações
               </>
             )}

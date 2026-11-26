@@ -59,6 +59,7 @@ export const usePresentationPDF = ({ slides, numeroSemana1, numeroSemana2, conte
                         windowWidth: SLIDE_WIDTH,
                         windowHeight: SLIDE_HEIGHT,
                         onclone: (clonedDoc: Document) => {
+                            clonedDoc.documentElement.classList.add('pdf-export-static');
                             const hiddenElements = clonedDoc.querySelectorAll('[style*="display: none"], [style*="visibility: hidden"]');
                             hiddenElements.forEach((el: Element) => el.remove());
                         },

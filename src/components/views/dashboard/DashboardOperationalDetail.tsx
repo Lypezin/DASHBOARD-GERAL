@@ -92,25 +92,25 @@ export const DashboardOperationalDetail = React.memo(function DashboardOperation
                 <OperationalViewToggle viewMode={viewMode} onViewModeChange={setViewMode} className="w-full sm:w-auto" />
             </header>
 
-            {viewMode !== 'ranking' && dataToRender.length > 0 ? (
-                <dl className="flex flex-wrap gap-x-7 gap-y-2 border-y border-[#d8e4eb] px-1 py-2.5 dark:border-slate-800">
-                    <div>
-                        <dt className="text-[10px] text-slate-500 dark:text-slate-400">Média do recorte</dt>
-                        <dd className="mt-0.5 text-sm font-semibold tabular-nums text-[#183f58] dark:text-slate-100">{detailSummary.media.toFixed(1)}%</dd>
-                    </div>
-                    <div>
-                        <dt className="text-[10px] text-slate-500 dark:text-slate-400">Melhor aderência</dt>
-                        <dd className="mt-0.5 text-sm font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">{detailSummary.melhor?.aderencia.toFixed(1) || '0.0'}%</dd>
-                    </div>
-                    <div className="min-w-0 max-w-full">
-                        <dt className="text-[10px] text-slate-500 dark:text-slate-400">Melhor grupo</dt>
-                        <dd className="mt-0.5 max-w-[18rem] truncate text-sm font-semibold text-[#183f58] dark:text-slate-100" title={detailSummary.melhor?.label || 'N/A'}>{detailSummary.melhor?.label || 'N/A'}</dd>
-                    </div>
-                </dl>
-            ) : null}
-
             <div className="min-w-0">
-                <ViewTransition stateKey={viewMode} className="w-full" preventExitInteraction>
+                <ViewTransition stateKey={viewMode} className="w-full space-y-3" preventExitInteraction>
+                    {viewMode !== 'ranking' && dataToRender.length > 0 ? (
+                        <dl className="flex flex-wrap gap-x-7 gap-y-2 border-y border-[#d8e4eb] px-1 py-2.5 dark:border-slate-800">
+                            <div>
+                                <dt className="text-[10px] text-slate-500 dark:text-slate-400">Média do recorte</dt>
+                                <dd className="mt-0.5 text-sm font-semibold tabular-nums text-[#183f58] dark:text-slate-100">{detailSummary.media.toFixed(1)}%</dd>
+                            </div>
+                            <div>
+                                <dt className="text-[10px] text-slate-500 dark:text-slate-400">Melhor aderência</dt>
+                                <dd className="mt-0.5 text-sm font-semibold tabular-nums text-emerald-700 dark:text-emerald-300">{detailSummary.melhor?.aderencia.toFixed(1) || '0.0'}%</dd>
+                            </div>
+                            <div className="min-w-0 max-w-full">
+                                <dt className="text-[10px] text-slate-500 dark:text-slate-400">Melhor grupo</dt>
+                                <dd className="mt-0.5 max-w-[18rem] truncate text-sm font-semibold text-[#183f58] dark:text-slate-100" title={detailSummary.melhor?.label || 'N/A'}>{detailSummary.melhor?.label || 'N/A'}</dd>
+                            </div>
+                        </dl>
+                    ) : null}
+
                     {viewMode === 'ranking' ? (
                         aderenciaSubPraca.length > 0 ? (
                             <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">

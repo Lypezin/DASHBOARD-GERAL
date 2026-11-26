@@ -1,14 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { User } from '@/hooks/auth/useAdminData';
 import { UserProfile } from '@/hooks/auth/types';
 import { useAdminActions } from '@/hooks/auth/useAdminActions';
-import { useOrganizations, Organization } from '@/hooks/auth/useOrganizations';
+import { Organization } from '@/hooks/auth/useOrganizations';
 import { ModernAdminUsersTable } from '@/components/admin/ModernAdminUsersTable';
 import { ModernAdminPendingUsers } from '@/components/admin/ModernAdminPendingUsers';
 import { AdminApprovalModal } from '@/components/admin/AdminApprovalModal';
 import { AdminEditModal } from '@/components/admin/AdminEditModal';
 import { AlertCircle } from 'lucide-react';
-import { AdminLoadingSkeleton } from '@/components/admin/AdminLoadingSkeleton';
+import { AdminTableSkeleton } from '@/components/admin/AdminLoadingSkeleton';
 
 interface AdminUsersTabProps {
     currentUser: UserProfile | null; users: User[]; pendingUsers: User[]; pracasDisponiveis: string[];
@@ -16,15 +16,34 @@ interface AdminUsersTabProps {
 }
 
 export function AdminUsersTab({ currentUser, users, pendingUsers, pracasDisponiveis, loading, error, fetchData, organizations }: AdminUsersTabProps) {
+    const [submittingModal, setSubmittingModal] = useState(false);
 
     const { selectedUser, selectedPracas, selectedRole, selectedOrganizationId, showModal, showEditModal, editingUser, setSelectedPracas, setSelectedRole, setSelectedOrganizationId, handleApproveUser, handleSaveApproval, handleCancelApproval, handleEditPracas, handleSaveEditPracas, handleCancelEdit, handleRevokeAccess, handleToggleAdmin } = useAdminActions(currentUser, fetchData);
 
+    const onSaveEditWithLoading = async () => {
+        setSubmittingModal(true);
+        try {
+            await handleSaveEditPracas();
+        } finally {
+            setSubmittingModal(false);
+        }
+    };
+
+    const onSaveApprovalWithLoading = async () => {
+        setSubmittingModal(true);
+        try {
+            await handleSaveApproval();
+        } finally {
+            setSubmittingModal(false);
+        }
+    };
+
     if (loading) {
-        return <AdminLoadingSkeleton />;
+        return <AdminTableSkeleton />;
     }
 
     return (
-        <div className="space-y-6 animate-in fade-in-50 duration-500">
+        <div className="space-y-6">
             {/* Error Alerts */}
             {error && (
                 <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-destructive">
@@ -48,9 +67,10 @@ export function AdminUsersTab({ currentUser, users, pendingUsers, pracasDisponiv
                 onToggleAdmin={handleToggleAdmin}
             />
 
-            {/* Modals */}
-            {showEditModal && editingUser && (
+            {/* Modals (mantidos montados após abrir target user para preservar saída animada do Dialog) */}
+            {editingUser && (
                 <AdminEditModal
+                    open={showEditModal}
                     user={editingUser}
                     pracasDisponiveis={pracasDisponiveis}
                     organizations={organizations}
@@ -60,13 +80,15 @@ export function AdminUsersTab({ currentUser, users, pendingUsers, pracasDisponiv
                     onPracasChange={setSelectedPracas}
                     onRoleChange={setSelectedRole}
                     onOrganizationChange={setSelectedOrganizationId}
-                    onSave={handleSaveEditPracas}
+                    onSave={onSaveEditWithLoading}
                     onCancel={handleCancelEdit}
+                    loading={submittingModal}
                 />
             )}
 
-            {showModal && selectedUser && (
+            {selectedUser && (
                 <AdminApprovalModal
+                    open={showModal}
                     user={selectedUser}
                     pracasDisponiveis={pracasDisponiveis}
                     organizations={organizations}
@@ -76,8 +98,9 @@ export function AdminUsersTab({ currentUser, users, pendingUsers, pracasDisponiv
                     onPracasChange={setSelectedPracas}
                     onRoleChange={setSelectedRole}
                     onOrganizationChange={setSelectedOrganizationId}
-                    onApprove={handleSaveApproval}
+                    onApprove={onSaveApprovalWithLoading}
                     onCancel={handleCancelApproval}
+                    loading={submittingModal}
                 />
             )}
         </div>

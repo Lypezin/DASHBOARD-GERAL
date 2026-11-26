@@ -29,10 +29,10 @@ export const WeeklyPerformanceCard: React.FC<WeeklyPerformanceCardProps> = ({
     return (
         <motion.div 
             whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.01 }}
-            initial={{ opacity: 0, y: 15 }}
+            initial={shouldReduceMotion ? false : { opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: shouldReduceMotion ? 0.01 : 0.2, delay: shouldReduceMotion ? 0 : idx * 0.04 }}
-            className={`rounded-2xl border flex flex-col transition-all duration-300 ${
+            className={`flex flex-col rounded-2xl border transition-[background-color,box-shadow,transform] duration-200 ${
                 compact ? 'p-3.5 md:p-4 gap-1.5' : 'p-6'
             } ${
                 isDark 

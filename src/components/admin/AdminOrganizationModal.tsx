@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Building2, Plus } from 'lucide-react';
+import { Building2, Loader2, Plus } from 'lucide-react';
 import { AdminOrganizationForm } from './AdminOrganizationForm';
 import { useOrganizationForm } from './hooks/useOrganizationForm';
 
@@ -46,10 +46,10 @@ export const AdminOrganizationModal: React.FC<AdminOrganizationModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            {isEditing ? <Building2 className="h-5 w-5 text-primary" /> : <Plus className="h-5 w-5 text-primary" />}
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px]">
+        <DialogHeader className="text-left">
+          <DialogTitle className="flex items-center gap-2 pr-8 text-xl">
+            {isEditing ? <Building2 className="h-5 w-5 shrink-0 text-primary" /> : <Plus className="h-5 w-5 shrink-0 text-primary" />}
             {isEditing ? 'Editar Organização' : 'Nova Organização'}
           </DialogTitle>
           <div className="text-sm text-muted-foreground">
@@ -67,12 +67,17 @@ export const AdminOrganizationModal: React.FC<AdminOrganizationModalProps> = ({
           error={error}
         />
 
-        <DialogFooter>
+        <DialogFooter className="gap-2">
           <Button variant="outline" onClick={onClose} disabled={saving || isLoading}>
             Cancelar
           </Button>
           <Button onClick={() => handleSubmit()} disabled={saving || isLoading}>
-            {saving ? 'Salvando...' : isEditing ? 'Atualizar' : 'Criar'}
+            {saving ? (
+              <>
+                <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
+                Salvando...
+              </>
+            ) : isEditing ? 'Atualizar' : 'Criar'}
           </Button>
         </DialogFooter>
       </DialogContent>

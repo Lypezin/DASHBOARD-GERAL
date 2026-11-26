@@ -20,10 +20,15 @@ export default function PerfilPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.08),transparent_32%),linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] p-6 dark:bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_34%),linear-gradient(180deg,#020617_0%,#0f172a_100%)] md:p-8">
+      <div
+        role="status"
+        aria-busy="true"
+        aria-label="Carregando perfil"
+        className="min-h-full bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.08),transparent_32%),linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] px-4 py-8 dark:bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_34%),linear-gradient(180deg,#020617_0%,#0f172a_100%)] sm:px-6 lg:px-8"
+      >
         <div className="mx-auto max-w-5xl space-y-6">
           <Skeleton className="h-24 w-full rounded-[1.65rem]" />
-          <div className="grid gap-6 md:grid-cols-[300px_1fr]">
+          <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
             <Skeleton className="h-[400px] w-full rounded-[1.65rem]" />
             <Skeleton className="h-[400px] w-full rounded-[1.65rem]" />
           </div>
@@ -36,8 +41,8 @@ export default function PerfilPage() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.08),transparent_32%),linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] px-4 py-8 dark:bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_34%),linear-gradient(180deg,#020617_0%,#0f172a_100%)] sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-5xl space-y-6 animate-slide-up">
+      <div className="min-h-full bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.08),transparent_32%),linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] px-4 py-8 dark:bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_34%),linear-gradient(180deg,#020617_0%,#0f172a_100%)] sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-5xl space-y-6 motion-safe:animate-slide-up">
           <SaasPanel className="overflow-visible">
             <SaasPanelHeader
               eyebrow="Conta"
@@ -46,7 +51,7 @@ export default function PerfilPage() {
               icon={UserCircle}
               actions={(
                 <Link href="/">
-                  <Button variant="outline" className="h-10 gap-2 rounded-xl border-slate-200/80 bg-white/85 px-4 text-slate-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-white dark:border-slate-800/80 dark:bg-slate-950/80 dark:text-slate-200 dark:hover:bg-slate-900">
+                  <Button variant="outline" className="h-10 gap-2 rounded-xl border-slate-200/80 bg-white/85 px-4 text-slate-700 shadow-sm hover:-translate-y-0.5 hover:bg-white dark:border-slate-800/80 dark:bg-slate-950/80 dark:text-slate-200 dark:hover:bg-slate-900">
                     <ArrowLeft className="h-4 w-4" />
                     Voltar ao Dashboard
                   </Button>
@@ -55,13 +60,13 @@ export default function PerfilPage() {
             />
           </SaasPanel>
 
-          <div className="grid gap-6 md:grid-cols-[350px_1fr]">
-            <div className="space-y-6 animate-slide-in-left">
+          <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
+            <div className="min-w-0 space-y-6">
               <ProfileHeaderCard user={user} onAvatarUpdate={handleAvatarUpdate} />
               <ThemeSettingsCard />
             </div>
 
-            <div className="animate-slide-in-right">
+            <div className="min-w-0">
               <SaasPanel className="h-full">
                 <SaasPanelHeader
                   eyebrow="Perfil"

@@ -9,7 +9,7 @@ type BenchmarkMetric = 'aderencia' | 'completadas' | 'ofertadas' | 'aceitacao';
 
 const metricLabels: Record<BenchmarkMetric, string> = {
     aderencia: 'Aderência %',
-    completadas: 'Numero de Pedidos',
+    completadas: 'Número de Pedidos',
     ofertadas: 'Ofertadas',
     aceitacao: 'Taxa Aceitação'
 };
@@ -83,9 +83,9 @@ export const BenchmarkPracas = React.memo(function BenchmarkPracas({ subPracas }
                             <span className={`w-5 text-right text-xs font-bold ${isTop3 ? 'text-amber-500' : 'text-slate-400'}`}>
                                 {index + 1}
                             </span>
-                            <div className="flex-1">
-                                <div className="flex items-center justify-between mb-0.5">
-                                    <span className="text-xs font-medium text-slate-700 dark:text-slate-300 truncate max-w-[140px]">
+                            <div className="min-w-0 flex-1">
+                                <div className="mb-0.5 flex items-center justify-between gap-2">
+                                    <span className="min-w-0 flex-1 truncate text-xs font-medium text-slate-700 dark:text-slate-300" title={sp.sub_praca}>
                                         {sp.sub_praca}
                                     </span>
                                     <span className="text-xs font-bold text-slate-900 dark:text-slate-100 tabular-nums">

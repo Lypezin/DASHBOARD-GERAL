@@ -7,6 +7,7 @@ import { useReducedMotion } from 'framer-motion';
 import { Pause, Play, RefreshCw } from 'lucide-react';
 
 import { useCityLastUpdates } from '@/hooks/data/useCityLastUpdates';
+import { cn } from '@/lib/utils';
 
 const CITY_TICKER_MOTION_STORAGE_KEY = 'dashboard_city_ticker_motion_enabled';
 
@@ -54,7 +55,7 @@ export function CityLastUpdatesTicker({ className = '' }: { className?: string }
       return (
         <div
           role="status"
-          className={`w-full min-w-0 flex h-8 items-center gap-3 overflow-hidden select-none pl-1 ${className}`}
+          className={cn('flex h-8 w-full min-w-0 select-none items-center gap-3 overflow-hidden pl-1', className)}
         >
           <div className="flex items-center gap-1.5 shrink-0">
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-muted/70">
@@ -72,7 +73,7 @@ export function CityLastUpdatesTicker({ className = '' }: { className?: string }
       <div
         role="status"
         aria-label="Carregando atualização das cidades"
-        className={`w-full min-w-0 flex h-8 items-center gap-3 overflow-hidden select-none pl-1 ${className}`}
+        className={cn('flex h-8 w-full min-w-0 select-none items-center gap-3 overflow-hidden pl-1', className)}
       >
         <div className="flex items-center gap-1.5 shrink-0">
           <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/10 dark:bg-emerald-500/15">
@@ -87,9 +88,9 @@ export function CityLastUpdatesTicker({ className = '' }: { className?: string }
         </div>
         <div className="h-4 w-px bg-border shrink-0" />
         <div className="flex min-w-0 flex-1 items-center gap-3 overflow-hidden" aria-hidden="true">
-          <span className="h-5 w-24 shrink-0 rounded-full bg-slate-200/80 motion-safe:animate-pulse motion-reduce:animate-none dark:bg-slate-800" />
-          <span className="h-5 w-32 shrink-0 rounded-full bg-slate-200/80 motion-safe:animate-pulse motion-reduce:animate-none dark:bg-slate-800" />
-          <span className="h-5 w-28 shrink-0 rounded-full bg-slate-200/80 motion-safe:animate-pulse motion-reduce:animate-none dark:bg-slate-800" />
+          <span className="dashboard-loading-shimmer h-5 w-24 shrink-0 rounded-full" />
+          <span className="dashboard-loading-shimmer h-5 w-32 shrink-0 rounded-full" />
+          <span className="dashboard-loading-shimmer h-5 w-28 shrink-0 rounded-full" />
         </div>
       </div>
     );
@@ -102,7 +103,7 @@ export function CityLastUpdatesTicker({ className = '' }: { className?: string }
     : visibleItems;
 
   return (
-    <div className={`w-full flex h-8 items-center gap-3 overflow-hidden select-none pl-1 ${className}`}>
+    <div className={cn('flex h-8 w-full min-w-0 select-none items-center gap-3 overflow-hidden pl-1', className)}>
       {/* Indicador de Status / Refresh sutil */}
       <div className="flex items-center gap-1.5 shrink-0">
         <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/10 dark:bg-emerald-500/15">

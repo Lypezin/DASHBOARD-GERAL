@@ -18,7 +18,13 @@ export const SubPracaModal: React.FC<SubPracaModalProps> = ({
     onClose
 }) => {
     return (
-        <div className="fixed inset-0 z-[100010] bg-black/80 flex items-center justify-center p-8 animate-fade-in" onClick={onClose}>
+        <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={`Detalhes de ${selectedItem.nome}`}
+            className="fixed inset-0 z-[100010] bg-black/80 flex items-center justify-center p-8 animate-fade-in"
+            onClick={onClose}
+        >
             <div
                 className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden animate-scale-in border border-transparent dark:border-slate-800"
                 onClick={e => e.stopPropagation()}
@@ -26,6 +32,8 @@ export const SubPracaModal: React.FC<SubPracaModalProps> = ({
                 {/* Header */}
                 <div className="bg-gradient-to-r from-blue-900 to-blue-700 px-8 py-6 relative">
                     <button
+                        type="button"
+                        aria-label="Fechar detalhes"
                         onClick={onClose}
                         className="absolute top-6 right-6 text-white/80 hover:text-white transition-colors"
                     >
@@ -50,7 +58,7 @@ export const SubPracaModal: React.FC<SubPracaModalProps> = ({
                                 size="large"
                             />
                         </div>
-                        <div className="w-px h-32 bg-slate-200"></div>
+                        <div className="h-32 w-px bg-slate-200 dark:bg-slate-800"></div>
                         <div className="text-center transform scale-125">
                             <WeekComparisonCircle
                                 aderencia={selectedItem.semana2.aderencia}

@@ -77,7 +77,7 @@ export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProp
                             disabled={loading || exportLoading}
                             className="w-full gap-2 sm:w-auto"
                         >
-                            {exportLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4" />}
+                            {exportLoading ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : <FileSpreadsheet className="h-4 w-4" aria-hidden="true" />}
                             {exportLoading ? 'Preparando Excel...' : 'Exportar Excel'}
                         </Button>
                     </div>

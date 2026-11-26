@@ -1,5 +1,5 @@
 import React from 'react';
-import { Download, UsersRound } from 'lucide-react';
+import { Download, Loader2, UsersRound } from 'lucide-react';
 import { SaasPanel, SaasPanelHeader } from '@/components/views/shared/SaasPrimitives';
 
 interface EntregadoresHeaderProps {
@@ -42,7 +42,11 @@ export const EntregadoresHeader = React.memo(function EntregadoresHeader({
                 ? 'inline-flex h-10 items-center justify-center gap-2 rounded-md border border-white/30 bg-white px-3.5 text-sm font-semibold text-[#164a6b] shadow-sm transition-colors hover:bg-sky-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-[#174d70] disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/20 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white'
                 : 'group inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200/80 bg-white px-4 text-sm font-semibold text-slate-700 shadow-sm transition-[border-color,background-color,color,box-shadow,transform] duration-200 motion-safe:hover:-translate-y-0.5 hover:border-emerald-300 hover:text-emerald-600 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800/80 dark:bg-slate-950 dark:text-slate-300 dark:hover:border-emerald-500/40 dark:hover:text-emerald-300'}
         >
-            <Download className={`h-4 w-4 ${variant === 'entregadores' ? '' : 'text-slate-400 transition-[color,transform] group-hover:-translate-y-0.5 group-hover:text-emerald-500'}`} />
+            {isExporting ? (
+                <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+            ) : (
+                <Download className={`h-4 w-4 ${variant === 'entregadores' ? '' : 'text-slate-400 transition-[color,transform] group-hover:-translate-y-0.5 group-hover:text-emerald-500'}`} aria-hidden="true" />
+            )}
             {isExporting ? 'Exportando...' : disableExport ? 'Aguarde a busca' : 'Exportar Excel'}
         </button>
     );

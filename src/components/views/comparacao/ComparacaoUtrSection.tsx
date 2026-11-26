@@ -33,10 +33,10 @@ export const ComparacaoUtrSection: React.FC<ComparacaoUtrSectionProps> = ({
             return (
                 <SaasPanel className="rounded-xl border-[#d8e4eb] shadow-none dark:border-slate-800">
                     <div role="status" aria-busy="true" className="p-4 sm:p-5">
-                        <div className="h-4 w-24 animate-pulse rounded bg-slate-200 motion-reduce:animate-none dark:bg-slate-800" />
+                        <div className="dashboard-loading-shimmer h-4 w-24 rounded motion-reduce:animate-none" />
                         <div className="mt-4 grid grid-cols-2 gap-3">
-                        <div className="h-14 animate-pulse rounded-xl bg-slate-100 motion-reduce:animate-none dark:bg-slate-900" />
-                        <div className="h-14 animate-pulse rounded-xl bg-slate-100 motion-reduce:animate-none dark:bg-slate-900" />
+                        <div className="dashboard-loading-shimmer h-14 rounded-xl motion-reduce:animate-none" />
+                        <div className="dashboard-loading-shimmer h-14 rounded-xl motion-reduce:animate-none" />
                         </div>
                         <span className="sr-only">Carregando UTR das semanas selecionadas</span>
                     </div>

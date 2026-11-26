@@ -36,7 +36,6 @@ function TransitionPanel({ children, motionProps, preventExitInteraction }: Tran
       ref={setPanelRef}
       {...motionProps}
       aria-hidden={isExiting ? true : undefined}
-      style={{ willChange: 'transform, opacity' }}
       className="col-start-1 row-start-1 min-w-0 w-full"
     >
       {children}
@@ -64,10 +63,10 @@ export function ViewTransition({
         transition: { duration: 0.12, ease: 'easeOut' },
       }
     : {
-        initial: { opacity: 0, y: 8 },
+        initial: { opacity: 0, y: 6 },
         animate: { opacity: 1, y: 0 },
         exit: exitState,
-        transition: { duration: 0.15, ease: [0.22, 1, 0.36, 1] },
+        transition: { duration: 0.16, ease: [0.22, 1, 0.36, 1] },
       };
 
   return (

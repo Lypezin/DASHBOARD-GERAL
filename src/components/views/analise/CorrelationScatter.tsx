@@ -19,13 +19,13 @@ export const CorrelationScatter = React.memo(function CorrelationScatter({ entre
                     <div className="flex items-center gap-2"><ScatterChart className="h-4 w-4 text-slate-500" /><h3 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Correlação de Métricas</h3></div>
                     <div className="flex items-center gap-2">
                         <div className="relative">
-                            <select value={xAxis} onChange={(e) => setXAxis(e.target.value as AxisMetric)} className="appearance-none bg-white dark:bg-slate-900 border rounded-lg px-2 py-1 pr-6 text-xs focus:outline-none">{Object.entries(axisLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
-                            <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400 pointer-events-none" />
+                            <select value={xAxis} onChange={(e) => setXAxis(e.target.value as AxisMetric)} aria-label="Eixo horizontal" className="h-8 appearance-none rounded-lg border border-slate-200 bg-white px-2.5 py-1 pr-7 text-xs text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">{Object.entries(axisLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
+                            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-400" aria-hidden="true" />
                         </div>
                         <span className="text-xs text-slate-400">×</span>
                         <div className="relative">
-                            <select value={yAxis} onChange={(e) => setYAxis(e.target.value as AxisMetric)} className="appearance-none bg-white dark:bg-slate-900 border rounded-lg px-2 py-1 pr-6 text-xs focus:outline-none">{Object.entries(axisLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
-                            <ChevronDown className="absolute right-1 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400 pointer-events-none" />
+                            <select value={yAxis} onChange={(e) => setYAxis(e.target.value as AxisMetric)} aria-label="Eixo vertical" className="h-8 appearance-none rounded-lg border border-slate-200 bg-white px-2.5 py-1 pr-7 text-xs text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600/40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200">{Object.entries(axisLabels).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select>
+                            <ChevronDown className="pointer-events-none absolute right-2 top-1/2 h-3 w-3 -translate-y-1/2 text-slate-400" aria-hidden="true" />
                         </div>
                     </div>
                 </div>

@@ -2,6 +2,7 @@ import { ChatMessage } from '@/hooks/data/useOnlineUsers';
 import { Paperclip, Send, Reply, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import React, { memo, useEffect, useRef } from 'react';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 
 interface MessageInputProps {
   chatInput: string;
@@ -18,6 +19,7 @@ function MessageInputComponent({
   chatInput, setChatInput, handleSendMessage, replyingTo,
   setReplyingTo, fileInputRef, setTypingTo, activeUserId
 }: MessageInputProps) {
+  const shouldReduceMotion = useReducedMotion() ?? false;
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -46,24 +48,35 @@ function MessageInputComponent({
 
   return (
     <div className="border-t border-slate-200 bg-white p-3.5 dark:border-slate-800 dark:bg-slate-950">
-      {replyingTo && (
-        <div className="flex items-center justify-between rounded-t-lg border border-b-0 border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
-          <div className="flex items-center gap-2 overflow-hidden">
-            <Reply size={12} className="shrink-0 text-primary" />
-            <span className="max-w-[230px] truncate border-l-2 border-primary/40 pl-2 italic">
-              {replyingTo.content}
-            </span>
-          </div>
-          <button 
-            onClick={() => setReplyingTo(null)} 
-            type="button"
-            className="rounded-md p-1 transition-colors hover:bg-slate-200/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 dark:hover:bg-slate-800"
-            aria-label="Cancelar resposta"
+      <AnimatePresence initial={false}>
+        {replyingTo ? (
+          <motion.div
+            key="replying-banner"
+            initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, height: 0 }}
+            transition={{ duration: shouldReduceMotion ? 0.08 : 0.16, ease: 'easeOut' }}
+            className="overflow-hidden"
           >
-            <X size={12} />
-          </button>
-        </div>
-      )}
+            <div className="flex items-center justify-between rounded-t-lg border border-b-0 border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300">
+              <div className="flex min-w-0 items-center gap-2 overflow-hidden">
+                <Reply size={12} className="shrink-0 text-primary" />
+                <span className="max-w-[230px] truncate border-l-2 border-primary/40 pl-2 italic">
+                  {replyingTo.content}
+                </span>
+              </div>
+              <button 
+                onClick={() => setReplyingTo(null)} 
+                type="button"
+                className="shrink-0 rounded-md p-1 transition-colors hover:bg-slate-200/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 dark:hover:bg-slate-800"
+                aria-label="Cancelar resposta"
+              >
+                <X size={12} />
+              </button>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
 
       <form 
         onSubmit={(e) => { e.preventDefault(); handleSendMessage(); }} 
@@ -79,10 +92,10 @@ function MessageInputComponent({
           <Paperclip size={17} aria-hidden="true" />
         </button>
         
-        <div className="flex-1 relative">
+        <div className="relative min-w-0 flex-1">
           <textarea
             className={cn(
-              "subtle-scrollbar min-h-10 max-h-28 w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-[13px] leading-5 text-slate-900 placeholder:text-slate-400 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-100 dark:placeholder:text-slate-500",
+              "subtle-scrollbar block min-h-10 max-h-28 w-full resize-none rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] leading-5 text-slate-900 placeholder:text-slate-400 dark:border-slate-800 dark:bg-slate-900/70 dark:text-slate-100 dark:placeholder:text-slate-500",
               "transition-colors duration-150 focus:border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
             )}
             aria-label="Escreva uma mensagem"

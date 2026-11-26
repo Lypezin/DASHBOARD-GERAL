@@ -46,7 +46,7 @@ export default function GlobalError({
         <html lang="pt-BR">
             <body>
                 <div className="flex min-h-screen flex-col items-center justify-center bg-slate-50 p-4 text-center dark:bg-slate-900">
-                    <div className="max-w-md space-y-4 rounded-lg bg-white p-8 shadow-lg dark:bg-slate-800">
+                    <div className="w-full max-w-md space-y-4 rounded-lg bg-white p-8 shadow-lg dark:bg-slate-800">
                         <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
                             {error.name === 'ChunkLoadError' ? 'Atualização Disponível' : 'Ocorreu um Erro'}
                         </h2>

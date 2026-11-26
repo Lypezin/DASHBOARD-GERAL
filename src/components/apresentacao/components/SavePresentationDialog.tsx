@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -64,6 +65,7 @@ export const SavePresentationDialog: React.FC<SavePresentationDialogProps> = ({
                 <DialogFooter>
                     <Button variant="outline" onClick={onClose} disabled={isSaving}>Cancelar</Button>
                     <Button onClick={handleSave} disabled={!name.trim() || isSaving}>
+                        {isSaving ? <Loader2 className="mr-2 h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" /> : null}
                         {isSaving ? 'Salvando...' : 'Salvar'}
                     </Button>
                 </DialogFooter>

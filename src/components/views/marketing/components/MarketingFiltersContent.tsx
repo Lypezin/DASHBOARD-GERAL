@@ -54,11 +54,12 @@ export const MarketingFiltersContent: React.FC<MarketingFiltersContentProps> = (
                         Limpar Filtros
                     </Button>
                     <Button
+                        type="button"
                         onClick={handleApplyFilters}
                         disabled={!hasPendingChanges}
-                        className={`w-full transition-all duration-300 md:w-auto ${
+                        className={`w-full transition-[background-color,color,box-shadow,transform] duration-200 md:w-auto ${
                             hasPendingChanges
-                                ? 'bg-sky-600 shadow-md hover:-translate-y-0.5 hover:bg-sky-700 hover:shadow-lg'
+                                ? 'bg-sky-600 text-white shadow-md hover:-translate-y-0.5 hover:bg-sky-700 hover:shadow-lg'
                                 : 'bg-slate-200 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
                         }`}
                     >

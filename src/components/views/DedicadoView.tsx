@@ -213,7 +213,7 @@ const DedicadoView = React.memo(function DedicadoView({
         onExport={handleExportDedicado}
       />
 
-      <ViewTransition stateKey={activeSubTab}>
+      <ViewTransition stateKey={activeSubTab} preventExitInteraction>
           {activeSubTab === 'dashboard' ? (
             <DedicadoDashboard loading={dedicadoLoading} error={dedicadoError} onRetry={retryDedicadoOrigens} stats={stats} topOrigens={dedicatedOrigem.slice(0, 8)} />
           ) : null}
@@ -230,7 +230,7 @@ const DedicadoView = React.memo(function DedicadoView({
                 requestScopeKey={accessScopeKey}
               />
             ) : (
-              <DedicadoInlineNotice message="Selecione uma organizacao para carregar os entregadores dedicados." />
+              <DedicadoInlineNotice message="Selecione uma organização para carregar os entregadores dedicados." />
             )
           ) : null}
 
@@ -238,7 +238,7 @@ const DedicadoView = React.memo(function DedicadoView({
             hasOrganizationContext ? (
               <DedicadoRanking entregadores={rankingEntregadores} loading={loading} error={entregadoresError} onRetry={retryEntregadores} />
             ) : (
-              <DedicadoInlineNotice message="Selecione uma organizacao para montar o ranking do DEDICADO." />
+              <DedicadoInlineNotice message="Selecione uma organização para montar o ranking do DEDICADO." />
             )
           ) : null}
 

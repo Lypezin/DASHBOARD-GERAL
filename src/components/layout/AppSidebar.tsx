@@ -110,6 +110,7 @@ export function AppSidebar() {
               collapsed={collapsed && !isMobile}
               reducedMotion={shouldReduceMotion}
               displayLabel={displayLabel}
+              layoutIdPrefix={isMobile ? 'mobile' : 'desktop'}
               onClick={handleItemClick}
             />
           );
@@ -121,25 +122,26 @@ export function AppSidebar() {
   const sidebarContent = (isMobile = false) => (
     <>
       <div className={cn(
-        'relative flex h-[68px] shrink-0 items-center border-b border-border/80 px-3.5',
+        'relative flex h-14 shrink-0 items-center border-b border-border/80 px-3.5',
         collapsed && !isMobile ? 'justify-center px-0' : 'justify-between gap-2.5'
       )}>
         <Link
           href="/"
           aria-label="Dashboard Geral — início"
-          className={cn('flex min-w-0 items-center gap-3 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', collapsed && !isMobile && 'justify-center')}
+          className={cn('flex min-w-0 items-center gap-3 overflow-hidden rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring', collapsed && !isMobile && 'justify-center')}
         >
           <Image
             src="/logo.png"
             alt="GO Itaim"
-            width={38}
-            height={38}
+            width={36}
+            height={36}
             priority
-            className="h-[38px] w-[38px] shrink-0 rounded-xl border border-border/50 bg-card object-contain shadow-sm"
+            className="h-9 w-9 shrink-0 rounded-xl border border-border/50 bg-card object-contain shadow-sm"
           />
           <AnimatePresence initial={false}>
             {(!collapsed || isMobile) && (
               <motion.span
+                key="sidebar-brand-label"
                 initial={shouldReduceMotion ? false : { opacity: 0, x: -5 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: shouldReduceMotion ? 0 : -5 }}
@@ -168,7 +170,7 @@ export function AppSidebar() {
             onClick={toggleSidebar}
             className={cn(
               'grid h-8 w-8 shrink-0 place-items-center rounded-lg text-muted-foreground transition-[background-color,color,transform] duration-150 hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-              collapsed && 'absolute -right-3 z-10 h-7 w-7 border border-border bg-card shadow-sm hover:bg-muted'
+              collapsed && 'absolute -right-3.5 z-20 h-7 w-7 border border-border bg-card shadow-sm hover:bg-muted'
             )}
             title={collapsed ? 'Expandir menu' : 'Recolher menu'}
             aria-label={collapsed ? 'Expandir menu' : 'Recolher menu'}
@@ -244,37 +246,39 @@ export function AppSidebar() {
         transition={shouldReduceMotion
           ? { duration: 0 }
           : { type: 'tween', duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
-        className="sticky top-0 z-50 hidden h-dvh shrink-0 select-none flex-col overflow-hidden border-r border-border/80 bg-card md:flex"
+        className="sticky top-0 z-50 hidden h-dvh shrink-0 select-none flex-col border-r border-border/80 bg-card md:flex"
         aria-label="Menu lateral"
       >
         {sidebarContent()}
       </motion.aside>
 
       <AnimatePresence initial={false}>
-        {mobileOpen && (
-          <>
-            <motion.button
-              type="button"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 0.46 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: shouldReduceMotion ? 0 : 0.18 }}
-              onClick={() => setMobileOpen(false)}
-              className="fixed inset-0 z-50 cursor-default bg-slate-950 md:hidden"
-              aria-label="Fechar menu de navegação"
-            />
-            <motion.aside
-              initial={{ x: shouldReduceMotion ? 0 : '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: shouldReduceMotion ? 0 : '-100%' }}
-              transition={shouldReduceMotion ? { duration: 0 } : { type: 'tween', duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
-              className="fixed inset-y-0 left-0 z-50 flex w-[min(18rem,88vw)] flex-col overflow-hidden border-r border-border bg-card shadow-2xl md:hidden"
-              aria-label="Menu de navegação"
-            >
-              {sidebarContent(true)}
-            </motion.aside>
-          </>
-        )}
+        {mobileOpen ? (
+          <motion.button
+            key="mobile-sidebar-backdrop"
+            type="button"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.46 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: shouldReduceMotion ? 0 : 0.18 }}
+            onClick={() => setMobileOpen(false)}
+            className="fixed inset-0 z-50 cursor-default bg-slate-950 md:hidden"
+            aria-label="Fechar menu de navegação"
+          />
+        ) : null}
+        {mobileOpen ? (
+          <motion.aside
+            key="mobile-sidebar-drawer"
+            initial={{ x: shouldReduceMotion ? 0 : '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: shouldReduceMotion ? 0 : '-100%' }}
+            transition={shouldReduceMotion ? { duration: 0 } : { type: 'tween', duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+            className="fixed inset-y-0 left-0 z-50 flex w-[min(18rem,88vw)] flex-col overflow-hidden border-r border-border bg-card shadow-2xl md:hidden"
+            aria-label="Menu de navegação"
+          >
+            {sidebarContent(true)}
+          </motion.aside>
+        ) : null}
       </AnimatePresence>
     </>
   );

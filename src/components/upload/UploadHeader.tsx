@@ -44,14 +44,19 @@ export function UploadHeader({
                 </div>
 
                 {/* Seletor de organização visível apenas para admins globais/master. */}
-                {isAuthorized && user?.id && organizations.length > 0 && (
+                {isAuthorized && user?.id && isLoadingOrgs && organizations.length === 0 ? (
+                    <div className="flex w-full min-w-0 flex-col gap-2 md:w-[320px]" aria-label="Carregando organizações">
+                        <div className="dashboard-loading-shimmer h-3 w-24 rounded-full" />
+                        <div className="dashboard-loading-shimmer h-11 w-full rounded-xl" />
+                    </div>
+                ) : isAuthorized && user?.id && organizations.length > 0 ? (
                     <div className="flex w-full min-w-0 flex-col gap-2 md:w-[320px]">
                         <label className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 pl-0.5">
                             <Building2 className="h-3 w-3" />
                             Organização
                         </label>
                         <Select value={selectedOrgId} onValueChange={onOrgChange} disabled={isLoadingOrgs}>
-                            <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50/60 text-sm font-semibold text-slate-700 shadow-sm transition-all hover:bg-slate-100/80 focus:ring-4 focus:ring-blue-500/10 focus:outline-none dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:bg-slate-900/80">
+                            <SelectTrigger className="h-11 w-full rounded-xl border-slate-200 bg-slate-50/60 text-sm font-semibold text-slate-700 shadow-sm transition-colors hover:bg-slate-100/80 focus:ring-4 focus:ring-blue-500/10 focus:outline-none dark:border-slate-800 dark:bg-slate-900/60 dark:text-slate-200 dark:hover:bg-slate-900/80">
                                 <SelectValue placeholder="Selecione uma organização" />
                             </SelectTrigger>
                             <SelectContent>
@@ -63,7 +68,7 @@ export function UploadHeader({
                             </SelectContent>
                         </Select>
                     </div>
-                )}
+                ) : null}
             </div>
         </div>
     );

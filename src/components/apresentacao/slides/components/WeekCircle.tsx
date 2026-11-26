@@ -43,7 +43,7 @@ export const WeekCircle: React.FC<WeekCircleProps> = ({
             </span>
 
             {/* Progress Circle */}
-            <div className={`relative ${circleSize} animate-scale-in ${isActive ? 'animate-pulse-scale delay-500' : ''}`}>
+            <div className={`relative ${circleSize} animate-scale-in`}>
                 <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
                     <circle cx="50" cy="50" r="34" stroke="currentColor" className="text-slate-200 dark:text-slate-700" strokeWidth="7" fill="none" />
                     <circle

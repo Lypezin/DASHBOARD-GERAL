@@ -34,18 +34,6 @@
 }
 
 /* Tabelas responsivas e modernas */
-table {
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-table thead {
-    position: sticky;
-    top: 0;
-    z-index: 10;
-    background: var(--bg-secondary);
-}
-
 table tbody tr {
     transition: background-color 0.15s ease;
 }
@@ -54,14 +42,9 @@ table tbody tr:hover {
     background-color: rgba(59, 130, 246, 0.05);
 }
 
-.dark table tbody tr:hover {
-    background-color: rgba(59, 130, 246, 0.1);
-}
-
 /* Gráficos */
 canvas {
     max-width: 100%;
-    height: auto !important;
 }
 
 /* Loading states */

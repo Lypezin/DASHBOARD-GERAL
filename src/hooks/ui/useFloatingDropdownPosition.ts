@@ -39,21 +39,26 @@ export function useFloatingDropdownPosition({
       const rect = anchor.getBoundingClientRect();
       const viewportWidth = window.innerWidth;
       const viewportHeight = window.innerHeight;
+      if (rect.bottom <= 52 || rect.top >= viewportHeight) {
+        setPosition(null);
+        return;
+      }
       const margin = 12;
+      const offset = 8;
       const preferredWidth = Math.max(rect.width, minWidth);
       const width = Math.min(preferredWidth, viewportWidth - margin * 2);
       const left = Math.min(Math.max(margin, rect.left), viewportWidth - width - margin);
-      const spaceBelow = viewportHeight - rect.bottom - margin;
-      const spaceAbove = rect.top - margin;
-      const openAbove = spaceBelow < 260 && spaceAbove > spaceBelow;
-      const availableSpace = openAbove ? spaceAbove : spaceBelow;
+      const spaceBelow = Math.max(0, viewportHeight - rect.bottom - margin - offset);
+      const spaceAbove = Math.max(0, rect.top - margin - offset);
+      const openAbove = spaceBelow < 220 && spaceAbove > spaceBelow;
+      const availableSpace = Math.max(80, openAbove ? spaceAbove : spaceBelow);
       const estimatedHeight = Math.min(maxEstimatedHeight, Math.max(minHeight, itemCount * 46 + extraHeight));
-      const maxHeight = Math.max(minHeight, Math.min(estimatedHeight, availableSpace));
+      const maxHeight = Math.min(estimatedHeight, availableSpace);
 
       setPosition({
         left,
-        top: openAbove ? undefined : rect.bottom + 8,
-        bottom: openAbove ? viewportHeight - rect.top + 8 : undefined,
+        top: openAbove ? undefined : rect.bottom + offset,
+        bottom: openAbove ? viewportHeight - rect.top + offset : undefined,
         width,
         maxHeight,
       });

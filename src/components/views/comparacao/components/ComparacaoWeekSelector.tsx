@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 import { Button } from '@/components/ui/button';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Loader2 } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
@@ -98,7 +98,10 @@ export const ComparacaoWeekSelector = React.memo(function ComparacaoWeekSelector
                     Não foi possível carregar as semanas. Tentar novamente
                 </button>
             ) : loading ? (
-                <span className="text-[11px] font-medium text-slate-400">Carregando semanas disponíveis...</span>
+                <span role="status" className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+                    Carregando semanas disponíveis...
+                </span>
             ) : null}
 
             <div className="flex min-h-[44px] flex-1 flex-wrap items-center gap-2">

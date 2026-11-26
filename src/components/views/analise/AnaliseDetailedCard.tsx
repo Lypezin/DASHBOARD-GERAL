@@ -1,6 +1,7 @@
 import React from 'react';
 import { AnaliseTable } from '@/components/analise/AnaliseTable';
 import { AnaliseTableTabs } from '@/components/analise/AnaliseTableTabs';
+import { ViewTransition } from '@/components/ui/view-transition';
 import { BarChart3 } from 'lucide-react';
 import { TableType } from './useAnaliseViewController';
 import { AnaliseDiaOrigemTable } from './components/AnaliseDiaOrigemTable';
@@ -38,23 +39,28 @@ export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
             </div>
 
             <div className="min-w-0 p-3 sm:p-4">
-                {activeTable === 'dia_origem' ? (
-                    loadingDiaOrigem ? (
-                        <div className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-12 text-center dark:border-slate-800/80 dark:bg-slate-900/50">
-                            <div className="inline-flex flex-col items-center gap-3">
-                                <div className="h-8 w-8 animate-spin rounded-full border-2 border-blue-500 border-t-transparent" />
-                                <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Carregando matriz...</p>
+                <ViewTransition
+                    stateKey={activeTable === 'dia_origem' && loadingDiaOrigem ? 'dia_origem-loading' : String(activeTable)}
+                    preventExitInteraction
+                >
+                    {activeTable === 'dia_origem' ? (
+                        loadingDiaOrigem ? (
+                            <div role="status" aria-live="polite" className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-12 text-center dark:border-slate-800/80 dark:bg-slate-900/50">
+                                <div className="inline-flex flex-col items-center gap-3">
+                                    <div className="h-8 w-8 motion-safe:animate-spin rounded-full border-2 border-blue-500 border-t-transparent" aria-hidden="true" />
+                                    <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Carregando matriz...</p>
+                                </div>
                             </div>
-                        </div>
+                        ) : (
+                            <AnaliseDiaOrigemTable data={aderenciaDiaOrigem} dayDateMap={dayDateMap} />
+                        )
                     ) : (
-                        <AnaliseDiaOrigemTable data={aderenciaDiaOrigem} dayDateMap={dayDateMap} />
-                    )
-                ) : (
-                    <AnaliseTable
-                        data={tableData}
-                        labelColumn={labelColumn}
-                    />
-                )}
+                        <AnaliseTable
+                            data={tableData}
+                            labelColumn={labelColumn}
+                        />
+                    )}
+                </ViewTransition>
             </div>
         </section>
     );

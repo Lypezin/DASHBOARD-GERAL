@@ -6,6 +6,7 @@ import { ComparacaoFilters } from './ComparacaoFilters';
 import { ComparacaoContent } from './ComparacaoContent';
 import { FilterOption } from '@/types';
 import { ViewContainer } from '@/components/layout/ViewContainer';
+import { LoadingNotice } from '@/components/ui/loading-notice';
 import { ViewTransition } from '@/components/ui/view-transition';
 
 const ApresentacaoView = dynamic(() => import('@/components/ApresentacaoView'), {
@@ -167,12 +168,15 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                         className="min-w-0"
                     >
                         {state.loading ? (
-                            <div className="mb-4 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-medium text-sky-900 dark:border-sky-900/50 dark:bg-sky-950/25 dark:text-sky-200">
-                                Atualizando comparação com os filtros atuais...
-                            </div>
+                            <LoadingNotice
+                                className="mb-4"
+                                tone="sky"
+                                message="Atualizando comparação com os filtros atuais"
+                                detail="Os indicadores carregados continuam visíveis durante a atualização."
+                            />
                         ) : null}
                                 {state.error ? (
-                            <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
+                            <div role="alert" className="mb-4 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
                                 Não foi possível atualizar todos os dados da comparação. Exibindo a última resposta válida.
                             </div>
                         ) : null}

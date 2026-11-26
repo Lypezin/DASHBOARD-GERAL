@@ -41,9 +41,9 @@ export default function UploadPage() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-[linear-gradient(180deg,#f8fbff_0%,#f1f5f9_100%)] p-4 sm:p-6 md:p-10 dark:bg-[linear-gradient(180deg,#020617_0%,#0f172a_100%)]">
-        <div className="mx-auto max-w-[1600px] space-y-8 animate-fade-in">
-          <div className="animate-slide-up">
+      <div className="min-h-full bg-[linear-gradient(180deg,#f8fbff_0%,#f1f5f9_100%)] p-4 sm:p-6 md:p-10 dark:bg-[linear-gradient(180deg,#020617_0%,#0f172a_100%)]">
+        <div className="mx-auto max-w-[1600px] space-y-8 motion-safe:animate-fade-in">
+          <div className="motion-safe:animate-slide-up">
             <UploadHeader
               isAuthorized={isAuthorized} user={user}
               organizations={organizations} selectedOrgId={selectedOrgId}
@@ -51,7 +51,7 @@ export default function UploadPage() {
             />
           </div>
 
-          <div className="grid grid-cols-1 items-start gap-6 xl:grid-cols-3">
+          <div className="grid grid-cols-1 items-stretch gap-6 xl:grid-cols-3">
             <div className="h-full animate-slide-up">
               <UploadSection
                 title="Corridas" description="Upload de dados de corridas"

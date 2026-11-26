@@ -2,7 +2,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Trash2, Calendar, MapPin, Play, RefreshCw } from 'lucide-react';
+import { Trash2, Calendar, MapPin, Play, RefreshCw, Loader2 } from 'lucide-react';
 import { SavedPresentation } from '@/hooks/apresentacao/useSavedPresentations';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -30,16 +30,24 @@ export const PresentationManager: React.FC<PresentationManagerProps> = ({
 
                 <div className="mt-4">
                     {error && (
-                        <div role="alert" className="mb-4 flex flex-col gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 sm:flex-row sm:items-center sm:justify-between">
+                        <div role="alert" className="mb-4 flex flex-col gap-3 rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-200 sm:flex-row sm:items-center sm:justify-between">
                             <span>{error}</span>
                             <Button type="button" size="sm" variant="outline" onClick={onRetry} disabled={isLoading} className="shrink-0 gap-2">
-                                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin motion-reduce:animate-none' : ''}`} aria-hidden="true" />
                                 Tentar novamente
                             </Button>
                         </div>
                     )}
                     {isLoading && presentations.length === 0 ? (
-                        <div className="flex justify-center p-8 text-slate-500">Carregando...</div>
+                        <div role="status" aria-live="polite" className="space-y-3 py-4">
+                            <div className="flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                                <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+                                Carregando apresentações salvas…
+                            </div>
+                            <div className="dashboard-loading-shimmer h-16 w-full rounded-lg motion-reduce:animate-none" />
+                            <div className="dashboard-loading-shimmer h-16 w-full rounded-lg motion-reduce:animate-none" />
+                            <div className="dashboard-loading-shimmer h-16 w-full rounded-lg motion-reduce:animate-none" />
+                        </div>
                     ) : presentations.length === 0 ? (
                         error ? null : <div className="text-center p-8 text-slate-500">Nenhuma apresentação salva encontrada.</div>
                     ) : (
@@ -76,9 +84,11 @@ export const PresentationManager: React.FC<PresentationManagerProps> = ({
                                                 Abrir
                                             </Button>
                                             <Button
+                                                type="button"
                                                 size="sm"
                                                 variant="ghost"
-                                                className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                aria-label="Excluir apresentação"
+                                                className="text-red-500 hover:bg-red-50 hover:text-red-700 dark:hover:bg-rose-950/30 dark:hover:text-rose-300"
                                                 onClick={() => {
                                                     if (confirm('Tem certeza que deseja excluir esta apresentação?')) {
                                                         onDelete(pres.id);

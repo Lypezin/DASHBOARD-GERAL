@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { SaasSegmentedControl } from '@/components/views/shared/SaasPrimitives';
 
@@ -13,6 +14,7 @@ export const AnaliseTableTabs = React.memo(function AnaliseTableTabs({
   activeTable,
   onTableChange,
 }: AnaliseTableTabsProps) {
+  const prefersReducedMotion = useReducedMotion();
   const tabs: { id: TableType; label: string }[] = [
     { id: 'dia', label: 'Dia' },
     { id: 'turno', label: 'Turno' },
@@ -33,14 +35,22 @@ export const AnaliseTableTabs = React.memo(function AnaliseTableTabs({
               onClick={() => onTableChange(tab.id)}
               type="button"
               className={cn(
-                'inline-flex h-9 items-center justify-center whitespace-nowrap rounded-xl px-3.5 text-xs font-semibold transition-[background-color,color,box-shadow,transform] duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20',
+                'relative inline-flex h-9 items-center justify-center whitespace-nowrap rounded-xl px-3.5 text-xs font-semibold transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500/20',
                 isActive
-                  ? 'bg-[#174d70] text-white shadow-sm dark:bg-sky-800 dark:text-white'
-                  : 'text-slate-600 hover:bg-white hover:text-[#174d70] dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-slate-100'
+                  ? 'text-white'
+                  : 'text-slate-600 hover:bg-white/70 hover:text-[#174d70] dark:text-slate-400 dark:hover:bg-slate-800/70 dark:hover:text-slate-100'
               )}
               aria-pressed={isActive}
             >
-              {tab.label}
+              {isActive ? (
+                <motion.span
+                  layoutId="analise-table-tab-pill"
+                  transition={prefersReducedMotion ? { duration: 0.01 } : { type: 'spring', stiffness: 420, damping: 32 }}
+                  className="absolute inset-0 rounded-xl bg-[#174d70] shadow-sm dark:bg-sky-800"
+                  aria-hidden="true"
+                />
+              ) : null}
+              <span className="relative z-10">{tab.label}</span>
             </button>
           );
         })}

@@ -46,7 +46,7 @@ export const DayCard: React.FC<ComponentDayCardProps> = ({ dia, isSecondWeek = f
             </span>
 
             {/* Progress circle */}
-            <div className={`relative w-[72px] h-[72px] animate-scale-in ${isActive ? 'animate-pulse-scale delay-500' : ''}`}>
+            <div className={`relative w-[72px] h-[72px] animate-scale-in`}>
                 <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)' }}>
                     <circle cx="50" cy="50" r="34" stroke="currentColor" className="text-slate-200 dark:text-slate-700" strokeWidth="7" fill="none" />
                     <circle
@@ -56,7 +56,7 @@ export const DayCard: React.FC<ComponentDayCardProps> = ({ dia, isSecondWeek = f
                         stroke={isSecondWeek ? "#2563eb" : "#38bdf8"}
                         strokeWidth="7"
                         fill="none"
-                        strokeDasharray={buildCircleDasharray(animatedAderencia, 40)}
+                        strokeDasharray={buildCircleDasharray(animatedAderencia, 34)}
                         strokeLinecap="round"
                         className="transition-all duration-1000 ease-out"
                     />

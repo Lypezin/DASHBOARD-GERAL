@@ -9,10 +9,11 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, X } from 'lucide-react';
+import { CheckCircle, Loader2, X } from 'lucide-react';
 import { AdminUserAccessForm } from './components/AdminUserAccessForm';
 
 interface AdminApprovalModalProps {
+  open?: boolean;
   user: User;
   pracasDisponiveis: string[];
   organizations: Organization[];
@@ -28,6 +29,7 @@ interface AdminApprovalModalProps {
 }
 
 export const AdminApprovalModal: React.FC<AdminApprovalModalProps> = ({
+  open = true,
   user,
   pracasDisponiveis,
   organizations,
@@ -42,16 +44,16 @@ export const AdminApprovalModal: React.FC<AdminApprovalModalProps> = ({
   loading = false,
 }) => {
   return (
-    <Dialog open={true} onOpenChange={(open) => !open && onCancel()}>
-      <DialogContent className="sm:max-w-[500px]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl text-emerald-600 dark:text-emerald-500">
-            <CheckCircle className="h-6 w-6" />
+    <Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[500px]">
+        <DialogHeader className="text-left">
+          <DialogTitle className="flex items-center gap-2 pr-8 text-xl text-emerald-600 dark:text-emerald-500">
+            <CheckCircle className="h-6 w-6 shrink-0" />
             Aprovar Usuário
           </DialogTitle>
           <div className="text-sm text-muted-foreground">
             <p className="font-medium text-foreground">{user.full_name}</p>
-            <p>{user.email}</p>
+            <p className="truncate">{user.email}</p>
           </div>
         </DialogHeader>
 
@@ -66,9 +68,9 @@ export const AdminApprovalModal: React.FC<AdminApprovalModalProps> = ({
           onOrganizationChange={onOrganizationChange}
         />
 
-        <DialogFooter className="gap-2 sm:gap-0">
+        <DialogFooter className="gap-2">
           <Button variant="outline" onClick={onCancel} disabled={loading}>
-            <X className="mr-2 h-4 w-4" />
+            <X className="h-4 w-4" />
             Cancelar
           </Button>
           <Button
@@ -77,10 +79,13 @@ export const AdminApprovalModal: React.FC<AdminApprovalModalProps> = ({
             className="bg-emerald-600 hover:bg-emerald-700 text-white"
           >
             {loading ? (
-              'Aprovando...'
+              <>
+                <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
+                Aprovando...
+              </>
             ) : (
               <>
-                <CheckCircle className="mr-2 h-4 w-4" />
+                <CheckCircle className="h-4 w-4" />
                 Aprovar Acesso
               </>
             )}

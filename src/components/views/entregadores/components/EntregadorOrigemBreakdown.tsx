@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Store } from 'lucide-react';
+import { Loader2, Store } from 'lucide-react';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 
 interface OrigemBreakdownRow {
@@ -37,7 +37,12 @@ export const EntregadorOrigemBreakdown = React.memo(function EntregadorOrigemBre
             <p className="text-xs text-slate-500 dark:text-slate-400">Horas e corridas separadas por restaurante/origem</p>
           </div>
         </div>
-        {origemLoading ? <span className="text-xs font-semibold text-blue-600 dark:text-blue-300">Carregando...</span> : null}
+        {origemLoading ? (
+          <span role="status" className="inline-flex items-center gap-1.5 text-xs font-semibold text-blue-600 dark:text-blue-300">
+            <Loader2 className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+            Carregando...
+          </span>
+        ) : null}
       </div>
 
       {origemBreakdown.length > 0 ? (
@@ -65,9 +70,18 @@ export const EntregadorOrigemBreakdown = React.memo(function EntregadorOrigemBre
             ))}
           </div>
         </div>
+      ) : origemLoading ? (
+        <div role="status" aria-busy="true" className="space-y-2.5 rounded-2xl border border-blue-200/80 bg-white/80 p-4 dark:border-blue-900/50 dark:bg-slate-950/60">
+          <div className="flex items-center gap-2 text-xs font-medium text-blue-700 dark:text-blue-300">
+            <Loader2 className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+            Carregando origens...
+          </div>
+          <div className="dashboard-loading-shimmer h-8 w-full rounded-lg motion-reduce:animate-none" />
+          <div className="dashboard-loading-shimmer h-8 w-5/6 rounded-lg motion-reduce:animate-none" />
+        </div>
       ) : (
         <div className="rounded-2xl border border-dashed border-blue-200 bg-white/70 p-4 text-center text-xs text-slate-500 dark:border-blue-900/60 dark:bg-slate-950/40 dark:text-slate-400">
-          {origemLoading ? 'Carregando origens...' : 'Nenhum detalhamento por origem encontrado para o filtro atual.'}
+          Nenhum detalhamento por origem encontrado para o filtro atual.
         </div>
       )}
     </div>

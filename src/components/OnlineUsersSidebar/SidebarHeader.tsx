@@ -33,14 +33,12 @@ export function SidebarHeader({
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-600 text-white">
             <Users className="h-[18px] w-[18px]" aria-hidden="true" />
           </div>
-          {isOpen ? (
-            <div className="min-w-0">
-              <h3 className="truncate text-[15px] font-bold tracking-tight text-slate-950 dark:text-white">Equipe</h3>
-              <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
-                {availableCount}{availableCount === 1 ? ' disponível' : ' disponíveis'} de {onlineCount} online
-              </p>
-            </div>
-          ) : null}
+          <div className="min-w-0">
+            <h3 className="truncate text-[15px] font-bold tracking-tight text-slate-950 dark:text-white">Equipe</h3>
+            <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
+              {availableCount}{availableCount === 1 ? ' disponível' : ' disponíveis'} de {onlineCount} online
+            </p>
+          </div>
         </div>
 
         <div className="flex shrink-0 items-center gap-2">
@@ -64,8 +62,7 @@ export function SidebarHeader({
         </div>
       </div>
 
-      {isOpen ? (
-        <div className="mt-4 space-y-2.5 animate-in fade-in-50 duration-200">
+      <div className={cn('mt-4 space-y-2.5 transition-opacity duration-200', isOpen ? 'opacity-100' : 'opacity-0')}>
           <label className={cn(
             'flex h-10 items-center gap-2.5 rounded-lg border border-slate-200 bg-slate-50 px-3 text-slate-400 transition-colors dark:border-slate-800 dark:bg-slate-900/70',
             'focus-within:border-blue-400 focus-within:ring-2 focus-within:ring-blue-500/15'
@@ -103,7 +100,6 @@ export function SidebarHeader({
             />
           </label>
         </div>
-      ) : null}
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useEntradaSaidaData } from './useEntradaSaidaData';
-import { Activity, FileSpreadsheet } from 'lucide-react';
+import { Activity, FileSpreadsheet, Loader2 } from 'lucide-react';
 import { EntradaSaidaStatsCards } from './components/EntradaSaidaStatsCards';
 import { EntradaSaidaWeeklyGrid } from './components/EntradaSaidaWeeklyGrid';
 import { Button } from '@/components/ui/button';
@@ -79,83 +79,89 @@ export const EntradaSaidaView: React.FC<EntradaSaidaViewProps> = ({ dataInicial,
         }
     };
 
-    if (loading && !hasData) return (
-        <ViewTransition stateKey="marketing-entrada-saida-loading" className="min-h-[20rem]" preventExitInteraction>
-            <div className="flex h-80 items-center justify-center px-4">
-                <LoadingNotice
-                    className="w-full max-w-lg"
-                    message="Carregando fluxo semanal"
-                    detail="Buscando entradas e saídas para o período e a praça selecionados."
-                    tone="sky"
-                />
-            </div>
-        </ViewTransition>
-    );
-
-    if (error && !hasData) return (
-        <ViewTransition stateKey="marketing-entrada-saida-error" className="min-h-[20rem]" preventExitInteraction>
-            <div role="alert" className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-white p-8 text-center shadow-sm dark:border-rose-900/50 dark:from-rose-950/20 dark:to-slate-900">
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-900/40">
-                    <Activity className="h-7 w-7 text-rose-600 dark:text-rose-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-rose-900 dark:text-rose-100">Erro ao carregar dados</h3>
-                <p className="mx-auto mt-2 max-w-md text-rose-700 dark:text-rose-300">
-                    Não foi possível carregar o fluxo para este período e estes filtros. {error}
-                </p>
-            </div>
-        </ViewTransition>
-    );
-
-    if (!loading && !error && !hasData) return (
-        <ViewTransition stateKey="marketing-entrada-saida-empty" className="min-h-[20rem]" preventExitInteraction>
-            <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800">
-                    <Activity className="h-7 w-7 text-slate-500 dark:text-slate-400" />
-                </div>
-                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Nenhum dado neste período</h3>
-                <p className="mx-auto mt-2 max-w-md text-slate-600 dark:text-slate-400">
-                    Não há movimentação de entregadores para a praça e o intervalo selecionados.
-                </p>
-            </div>
-        </ViewTransition>
-    );
+    const viewStateKey = loading && !hasData
+        ? 'marketing-entrada-saida-loading'
+        : error && !hasData
+            ? 'marketing-entrada-saida-error'
+            : !loading && !error && !hasData
+                ? 'marketing-entrada-saida-empty'
+                : 'marketing-entrada-saida-data';
 
     return (
-        <ViewTransition stateKey="marketing-entrada-saida-data" className="space-y-8" preventExitInteraction>
-        <div className="mx-auto max-w-7xl space-y-8">
-            {loading ? (
-                <LoadingNotice
-                    message="Atualizando fluxo semanal com os filtros atuais"
-                    detail="Os dados anteriores continuam visíveis durante a atualização."
-                    tone="sky"
-                />
-            ) : null}
-
-            {error ? (
-                <div role="alert" className="rounded-2xl border border-amber-200/70 bg-amber-50/85 px-4 py-3 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
-                    {error}
+        <ViewTransition
+            stateKey={viewStateKey}
+            className={viewStateKey === 'marketing-entrada-saida-data' ? 'space-y-8' : 'min-h-[20rem]'}
+            preventExitInteraction
+        >
+            {loading && !hasData ? (
+                <div className="flex h-80 items-center justify-center px-4">
+                    <LoadingNotice
+                        className="w-full max-w-lg"
+                        message="Carregando fluxo semanal"
+                        detail="Buscando entradas e saídas para o período e a praça selecionados."
+                        tone="sky"
+                    />
                 </div>
-            ) : null}
+            ) : error && !hasData ? (
+                <div role="alert" className="rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 to-white p-8 text-center shadow-sm dark:border-rose-900/50 dark:from-rose-950/20 dark:to-slate-900">
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100 dark:bg-rose-900/40">
+                        <Activity className="h-7 w-7 text-rose-600 dark:text-rose-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-rose-900 dark:text-rose-100">Erro ao carregar dados</h3>
+                    <p className="mx-auto mt-2 max-w-md text-rose-700 dark:text-rose-300">
+                        Não foi possível carregar o fluxo para este período e estes filtros. {error}
+                    </p>
+                </div>
+            ) : !loading && !error && !hasData ? (
+                <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+                    <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 dark:bg-slate-800">
+                        <Activity className="h-7 w-7 text-slate-500 dark:text-slate-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Nenhum dado neste período</h3>
+                    <p className="mx-auto mt-2 max-w-md text-slate-600 dark:text-slate-400">
+                        Não há movimentação de entregadores para a praça e o intervalo selecionados.
+                    </p>
+                </div>
+            ) : (
+                <div className="mx-auto max-w-[1600px] space-y-8">
+                    {loading ? (
+                        <LoadingNotice
+                            message="Atualizando fluxo semanal com os filtros atuais"
+                            detail="Os dados anteriores continuam visíveis durante a atualização."
+                            tone="sky"
+                        />
+                    ) : null}
 
-            <div className="flex justify-end">
-                <Button
-                    onClick={handleExport}
-                    disabled={exportDisabled}
-                    variant="outline"
-                    className="gap-2 border-slate-200 bg-white text-slate-700 shadow-sm transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-sky-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-sky-500/40 dark:hover:bg-slate-700"
-                >
-                    <FileSpreadsheet className="h-4 w-4 text-emerald-600" />
-                    {isExporting ? 'Preparando Excel...' : 'Exportar Excel'}
-                </Button>
-            </div>
+                    {error ? (
+                        <div role="alert" className="rounded-2xl border border-amber-200/70 bg-amber-50/85 px-4 py-3 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
+                            {error}
+                        </div>
+                    ) : null}
 
-            <EntradaSaidaStatsCards data={data} />
-            <EntradaSaidaWeeklyGrid
-                data={data}
-                organizationId={organizationId}
-                praca={praca}
-            />
-        </div>
+                    <div className="flex justify-end">
+                        <Button
+                            onClick={handleExport}
+                            disabled={exportDisabled}
+                            variant="outline"
+                            className="gap-2 border-slate-200 bg-white text-slate-700 shadow-sm transition-[border-color,background-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-sky-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-sky-500/40 dark:hover:bg-slate-700"
+                        >
+                            {isExporting ? (
+                                <Loader2 className="h-4 w-4 animate-spin text-sky-600 motion-reduce:animate-none dark:text-sky-300" aria-hidden="true" />
+                            ) : (
+                                <FileSpreadsheet className="h-4 w-4 text-emerald-600" aria-hidden="true" />
+                            )}
+                            {isExporting ? 'Preparando Excel...' : 'Exportar Excel'}
+                        </Button>
+                    </div>
+
+                    <EntradaSaidaStatsCards data={data} />
+                    <EntradaSaidaWeeklyGrid
+                        data={data}
+                        organizationId={organizationId}
+                        praca={praca}
+                    />
+                </div>
+            )}
         </ViewTransition>
     );
 };

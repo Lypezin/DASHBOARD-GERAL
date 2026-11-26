@@ -111,8 +111,8 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = React.m
                         aria-label={isExportingExcel ? 'Preparando a planilha Excel' : exportDisabled ? 'Carregando dados dos entregadores' : 'Exportar planilha Excel'}
                     >
                         {isExportingExcel || exportDisabled
-                            ? <Loader2 className="h-4 w-4 animate-spin sm:mr-2" />
-                            : <FileSpreadsheet className="h-4 w-4 text-emerald-600 sm:mr-2" />}
+                            ? <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none sm:mr-2" aria-hidden="true" />
+                            : <FileSpreadsheet className="h-4 w-4 text-emerald-600 sm:mr-2" aria-hidden="true" />}
                         <span className="hidden sm:inline">{isExportingExcel ? 'Preparando...' : exportDisabled ? 'Carregando...' : 'Excel'}</span>
                     </Button>
                 )}
@@ -124,7 +124,11 @@ export const ApresentacaoControls: React.FC<ApresentacaoControlsProps> = React.m
                     disabled={isGenerating}
                     title="Exportar PDF"
                 >
-                    <Download className="h-4 w-4 text-sky-600 sm:mr-2" />
+                    {isGenerating ? (
+                        <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none sm:mr-2" aria-hidden="true" />
+                    ) : (
+                        <Download className="h-4 w-4 text-sky-600 sm:mr-2" aria-hidden="true" />
+                    )}
                     <span className="hidden sm:inline">PDF</span>
                 </Button>
 

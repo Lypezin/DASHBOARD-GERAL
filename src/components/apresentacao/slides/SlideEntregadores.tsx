@@ -71,7 +71,7 @@ export const SlideEntregadores: React.FC<SlideEntregadoresProps> = ({
         if (loading) {
             return (
                 <div role="status" className="flex h-full min-h-64 flex-col items-center justify-center gap-4 text-center">
-                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-sky-100 border-t-sky-600 dark:border-slate-700 dark:border-t-sky-300" />
+                    <div className="h-10 w-10 animate-spin rounded-full border-4 border-sky-100 border-t-sky-600 motion-reduce:animate-none dark:border-slate-700 dark:border-t-sky-300" aria-hidden="true" />
                     <p className="text-lg font-semibold text-slate-600 dark:text-slate-300">Carregando entregadores das duas semanas...</p>
                 </div>
             );

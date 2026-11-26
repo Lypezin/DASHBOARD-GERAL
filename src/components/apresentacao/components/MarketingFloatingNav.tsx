@@ -39,16 +39,17 @@ export const MarketingFloatingNav: React.FC = () => {
             >
                 {navItems.map((item) => (
                     <button
+                        type="button"
                         key={item.id}
                         onClick={() => scrollToSection(item.id)}
                         aria-label={`Ir para ${item.label}`}
                         title={item.label}
-                        className="group relative p-3.5 rounded-xl transition-all duration-300 hover:bg-white/10 active:scale-95"
+                        className="group relative rounded-xl p-3.5 transition-colors duration-200 hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 active:scale-95 motion-reduce:transition-none"
                     >
-                        <item.icon className="h-5 w-5 text-slate-400 transition-all duration-300 group-hover:text-blue-400 group-hover:scale-110" />
+                        <item.icon className="h-5 w-5 text-slate-400 transition-[color,transform] duration-200 group-hover:text-blue-400 motion-safe:group-hover:scale-110" aria-hidden="true" />
                         
                         {/* Tooltip sofisticado (agora embaixo) */}
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 pointer-events-none opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-0 group-hover:translate-y-2 mt-2">
+                        <div className="pointer-events-none absolute top-full left-1/2 mt-2 -translate-x-1/2 translate-y-0 opacity-0 transition-[opacity,transform] duration-200 group-hover:translate-y-2 group-hover:opacity-100 group-focus-visible:translate-y-2 group-focus-visible:opacity-100 motion-reduce:transition-none">
                             <div className="bg-slate-900/90 backdrop-blur-xl border border-white/10 px-3 py-1.5 rounded-lg shadow-xl">
                                 <span className="text-[10px] text-white font-black uppercase tracking-[0.2em] whitespace-nowrap">
                                     {item.label}

@@ -80,26 +80,10 @@
     background: #64748b;
 }
 
-/* Melhorias de contraste para modo escuro */
-.dark input,
-.dark select,
-.dark textarea,
-.dark button {
-    border-color: var(--border-color);
-}
-
-.dark input:focus,
-.dark select:focus,
-.dark textarea:focus {
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-/* Focus visible para acessibilidade */
-*:focus-visible {
-    outline: 2px solid #3b82f6;
+/* Focus visible para acessibilidade (baixa especificidade para não sobrescrever rings e rounded-* do Tailwind) */
+:where(*:focus-visible) {
+    outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
-    border-radius: 4px;
 }
 
 /* Responsividade */

@@ -82,7 +82,7 @@ const UtrView = React.memo(function UtrView({
           totalSlices={totalSlices}
         />
 
-        {loading ? <FilterRefreshIndicator isLoading={loading} viewName="a UTR" /> : null}
+        <FilterRefreshIndicator isLoading={loading} viewName="a UTR" />
 
         {error ? (
           <div role="alert" className="rounded-2xl border border-amber-200/70 bg-amber-50/85 px-4 py-3 text-sm font-semibold text-amber-800 shadow-sm dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">

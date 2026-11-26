@@ -17,11 +17,11 @@ const variantIconBg = {
 export const UploadHeader: React.FC<UploadHeaderProps> = ({ title, description, icon, variant = 'default' }) => {
     return (
         <div className="flex items-center gap-3.5 pb-2">
-            <div className={`flex h-10 w-10 items-center justify-center rounded-xl ${variantIconBg[variant]}`}>
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${variantIconBg[variant]}`}>
                 {icon}
             </div>
-            <div>
-                <h3 className="text-base font-semibold text-slate-900 dark:text-white leading-tight">{title}</h3>
+            <div className="min-w-0">
+                <h3 className="truncate text-base font-semibold text-slate-900 dark:text-white leading-tight">{title}</h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">{description}</p>
             </div>
         </div>

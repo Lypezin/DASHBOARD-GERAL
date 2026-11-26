@@ -62,11 +62,11 @@ export const WeekComparisonCircle: React.FC<WeekComparisonCircleProps> = ({
                         fill="none"
                         strokeDasharray={buildCircleDasharray(animatedAderencia, 34)}
                         strokeLinecap="round"
-                        className="transition-all duration-1000 ease-out"
+                        className="transition-[stroke-dasharray] duration-1000 ease-out motion-reduce:transition-none"
                     />
                 </svg>
                 <div className="absolute inset-0 flex items-center justify-center">
-                    <span className={`text-slate-900 dark:text-slate-100 font-black ${fontSizeClass} leading-none tracking-tight`}>
+                    <span className={`font-black leading-none tracking-tight tabular-nums text-slate-900 dark:text-slate-100 ${fontSizeClass}`}>
                         {aderencia.toFixed(2)}%
                     </span>
                 </div>

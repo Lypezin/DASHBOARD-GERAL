@@ -60,12 +60,14 @@ export const UploadSection = memo(function UploadSection({
         </div>
 
         {/* Status Area */}
-        <div className="space-y-4">
-          <FileList files={files} onRemove={onRemoveFile} disabled={uploading || disabled} variant={variant} />
-          <UploadMessage message={message} variant={variant} />
-          <UploadMVProgress isRefreshingMVs={isRefreshingMVs} mvRefreshProgress={mvRefreshProgress} mvRefreshStatus={mvRefreshStatus} />
-          <UploadProgress progress={progress} progressLabel={progressLabel} variant={variant} />
-        </div>
+        {(files.length > 0 || Boolean(message) || Boolean(isRefreshingMVs) || Boolean(progressLabel) || progress > 0) ? (
+          <div className="space-y-4">
+            <FileList files={files} onRemove={onRemoveFile} disabled={uploading || disabled} variant={variant} />
+            <UploadMessage message={message} variant={variant} />
+            <UploadMVProgress isRefreshingMVs={isRefreshingMVs} mvRefreshProgress={mvRefreshProgress} mvRefreshStatus={mvRefreshStatus} />
+            <UploadProgress progress={progress} progressLabel={progressLabel} variant={variant} />
+          </div>
+        ) : null}
 
         {/* Footer */}
         <UploadSectionFooter 

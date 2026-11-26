@@ -57,7 +57,7 @@ const SlideResumoSubPracas: React.FC<SlideResumoSubPracasProps> = ({
                                 <th className="px-4 py-3 text-center">Sem {numeroSemana2}</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-150 dark:divide-slate-800">
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {itens.map((item) => {
                                 const varHoras = item.variacoes?.[0] || { valor: '00:00:00', positivo: true };
                                 const varHorasPct = item.variacoes?.[1] || { valor: '0.0%', positivo: true };
@@ -66,7 +66,7 @@ const SlideResumoSubPracas: React.FC<SlideResumoSubPracasProps> = ({
                                 return (
                                     <tr 
                                         key={item.nome} 
-                                        className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors odd:bg-white even:bg-slate-50/20 dark:odd:bg-slate-900 dark:even:bg-slate-850/10"
+                                        className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors odd:bg-white even:bg-slate-50/20 dark:odd:bg-slate-900 dark:even:bg-slate-800/30"
                                     >
                                         {/* Name */}
                                         <td className="px-6 py-3.5 text-left font-bold text-slate-800 dark:text-slate-100 text-sm tracking-wide uppercase truncate max-w-[280px]" title={item.nome}>

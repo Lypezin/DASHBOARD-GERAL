@@ -54,18 +54,18 @@ export const AdminActionsMenu: React.FC<AdminActionsMenuProps> = ({
                 <DropdownMenuSeparator />
                 {!user.is_admin && !user.is_approved && (
                     <DropdownMenuItem onClick={() => onApprove(user)} className="text-emerald-600">
-                        <CheckCircle className="mr-2 h-4 w-4" />
+                        <CheckCircle className="h-4 w-4" />
                         Aprovar Acesso
                     </DropdownMenuItem>
                 )}
                 {user.is_approved && !user.is_admin && (
                     <>
                         <DropdownMenuItem onClick={() => onEditPracas(user)}>
-                            <Edit className="mr-2 h-4 w-4" />
+                            <Edit className="h-4 w-4" />
                             Editar Praças
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => onRevokeAccess(user.id)} className="text-rose-600">
-                            <XCircle className="mr-2 h-4 w-4" />
+                            <XCircle className="h-4 w-4" />
                             Revogar Acesso
                         </DropdownMenuItem>
                     </>
@@ -74,12 +74,12 @@ export const AdminActionsMenu: React.FC<AdminActionsMenuProps> = ({
                     <DropdownMenuItem onClick={() => onToggleAdmin(user.id, user.is_admin)}>
                         {user.is_admin ? (
                             <>
-                                <ShieldAlert className="mr-2 h-4 w-4" />
+                                <ShieldAlert className="h-4 w-4" />
                                 Remover Admin
                             </>
                         ) : (
                             <>
-                                <Shield className="mr-2 h-4 w-4" />
+                                <Shield className="h-4 w-4" />
                                 Tornar Admin
                             </>
                         )}

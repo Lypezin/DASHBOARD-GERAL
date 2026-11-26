@@ -23,7 +23,10 @@ function LoadingHeading({ title, description, appearance = 'default' }: { title:
         ? 'inline-flex shrink-0 items-center gap-2 text-xs font-medium text-sky-100/90'
         : 'inline-flex shrink-0 items-center gap-2 rounded-full border border-blue-200/70 bg-blue-50/80 px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] text-blue-700 dark:border-blue-900/60 dark:bg-blue-950/35 dark:text-blue-300'}>
         {quiet ? (
-          <span aria-hidden="true" className="h-1.5 w-1.5 rounded-full bg-sky-300" />
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full rounded-full bg-sky-300 opacity-50 motion-safe:animate-ping" />
+            <span aria-hidden="true" className="relative inline-flex h-2 w-2 rounded-full bg-sky-300" />
+          </span>
         ) : (
           <span className="relative flex h-2 w-2">
             <span className="absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-50 motion-safe:animate-ping" />
@@ -247,7 +250,7 @@ export function EntregadoresLoading({ appearance = 'default' }: { appearance?: '
             <Shimmer className="h-3 w-24 shrink-0 rounded" />
           </div>
           <div className="subtle-scrollbar overflow-x-auto">
-            <div className="min-w-[1080px]">
+            <div className="min-w-[1120px]">
               <div className={cn('grid', tableGrid, 'items-center gap-3 border-b border-[#d5e1e9] bg-[#f2f7fa] px-5 py-3 dark:border-slate-700 dark:bg-slate-800')}>
                 {Array.from({ length: 8 }, (_, index) => (
                   <Shimmer key={index} className="h-3 w-12 max-w-full rounded" />

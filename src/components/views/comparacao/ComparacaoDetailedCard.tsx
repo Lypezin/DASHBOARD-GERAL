@@ -5,6 +5,7 @@ import { ComparacaoCharts } from './ComparacaoCharts';
 import { ViewModeToggle } from './components/ViewModeToggle';
 import { SaasPanel } from '@/components/views/shared/SaasPrimitives';
 import { ComparacaoPanelHeader } from './ComparacaoSectionWrapper';
+import { ViewTransition } from '@/components/ui/view-transition';
 
 interface ComparacaoDetailedCardProps {
     dadosComparacao: any[];
@@ -25,23 +26,25 @@ export const ComparacaoDetailedCard = React.memo(function ComparacaoDetailedCard
                 title="Análise detalhada"
                 description="Indicadores consolidados das semanas selecionadas."
                 icon={BarChart3}
-                actions={<ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} />}
+                actions={<ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} layoutId="comparacao-view-detailed" />}
             />
-            {viewMode === 'table' ? (
-                <ComparacaoTabelaDetalhada
-                    dadosComparacao={dadosComparacao}
-                    semanasSelecionadas={semanasSelecionadas}
-                />
-            ) : (
-                <div className="p-4 sm:p-5">
-                    <ComparacaoCharts
+            <ViewTransition stateKey={`detailed-${viewMode}`} preventExitInteraction>
+                {viewMode === 'table' ? (
+                    <ComparacaoTabelaDetalhada
                         dadosComparacao={dadosComparacao}
                         semanasSelecionadas={semanasSelecionadas}
-                        viewMode={viewMode}
-                        chartType="detalhada"
                     />
-                </div>
-            )}
+                ) : (
+                    <div className="p-4 sm:p-5">
+                        <ComparacaoCharts
+                            dadosComparacao={dadosComparacao}
+                            semanasSelecionadas={semanasSelecionadas}
+                            viewMode={viewMode}
+                            chartType="detalhada"
+                        />
+                    </div>
+                )}
+            </ViewTransition>
         </SaasPanel>
     );
 });

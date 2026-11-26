@@ -6,6 +6,7 @@ import { ComparacaoDiaTable } from './components/ComparacaoDiaTable';
 import { ViewModeToggle } from './components/ViewModeToggle';
 import { SaasPanel } from '@/components/views/shared/SaasPrimitives';
 import { ComparacaoPanelHeader } from './ComparacaoSectionWrapper';
+import { ViewTransition } from '@/components/ui/view-transition';
 
 interface ComparacaoSectionProps {
     title: string;
@@ -36,24 +37,26 @@ export const ComparacaoSection = React.memo(function ComparacaoSection({
                     title={title}
                     description={description}
                     icon={CalendarDays}
-                    actions={<ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} size="sm" />}
+                    actions={<ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} size="sm" layoutId="comparacao-view-dia" />}
                 />
 
-                {viewMode === 'table' ? (
-                    <ComparacaoDiaTable
-                        semanasSelecionadas={semanasSelecionadas}
-                        dadosComparacao={dadosComparacao}
-                    />
-                ) : (
-                    <div className="p-4 sm:p-5">
-                        <ComparacaoCharts
-                            dadosComparacao={dadosComparacao}
+                <ViewTransition stateKey={`dia-${viewMode}`} preventExitInteraction>
+                    {viewMode === 'table' ? (
+                        <ComparacaoDiaTable
                             semanasSelecionadas={semanasSelecionadas}
-                            viewMode={viewMode}
-                            chartType="dia"
+                            dadosComparacao={dadosComparacao}
                         />
-                    </div>
-                )}
+                    ) : (
+                        <div className="p-4 sm:p-5">
+                            <ComparacaoCharts
+                                dadosComparacao={dadosComparacao}
+                                semanasSelecionadas={semanasSelecionadas}
+                                viewMode={viewMode}
+                                chartType="dia"
+                            />
+                        </div>
+                    )}
+                </ViewTransition>
             </SaasPanel>
         );
     }

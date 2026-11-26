@@ -13,9 +13,19 @@ const TypewriterText: React.FC<{ text: string; delay: number; start: boolean }> 
     const [started, setStarted] = useState(false);
 
     useEffect(() => {
+        const isCapturing = typeof window !== 'undefined' && Boolean((window as unknown as { isCapturingPDF?: boolean }).isCapturingPDF);
+        const prefersReducedMotion = typeof window !== 'undefined'
+            && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
         if (!start) {
             setDisplayedText('');
             setStarted(false);
+            return;
+        }
+
+        if (isCapturing || prefersReducedMotion) {
+            setDisplayedText(text);
+            setStarted(true);
             return;
         }
 
@@ -24,10 +34,14 @@ const TypewriterText: React.FC<{ text: string; delay: number; start: boolean }> 
         }, delay);
 
         return () => clearTimeout(startTimeout);
-    }, [start, delay]);
+    }, [start, delay, text]);
 
     useEffect(() => {
-        if (!started) return;
+        const isCapturing = typeof window !== 'undefined' && Boolean((window as unknown as { isCapturingPDF?: boolean }).isCapturingPDF);
+        const prefersReducedMotion = typeof window !== 'undefined'
+            && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (!started || isCapturing || prefersReducedMotion) return;
 
         let index = 0;
         const interval = setInterval(() => {
@@ -54,11 +68,11 @@ const SlideResumoIA: React.FC<SlideResumoIAProps> = ({ isVisible, insights }) =>
                 {insights.map((insight, index) => (
                     <div
                         key={index}
-                        className={`p-6 rounded-2xl border-l-4 shadow-sm transition-all duration-500 transform
+                        className={`transform rounded-2xl border-l-4 p-6 shadow-sm transition-[opacity,transform] duration-500 motion-reduce:transition-none
                     ${isVisible ? 'translate-x-0 opacity-100' : '-translate-x-10 opacity-0'}
-                    ${insight.type === 'positive' ? 'bg-emerald-50 border-emerald-500' :
-                                insight.type === 'negative' ? 'bg-rose-50 border-rose-500' :
-                                    insight.type === 'highlight' ? 'bg-yellow-50 border-yellow-500' : 'bg-slate-50 border-blue-500'}
+                    ${insight.type === 'positive' ? 'border-emerald-500 bg-emerald-50 dark:bg-emerald-950/30' :
+                                insight.type === 'negative' ? 'border-rose-500 bg-rose-50 dark:bg-rose-950/30' :
+                                    insight.type === 'highlight' ? 'border-yellow-500 bg-yellow-50 dark:bg-amber-950/30' : 'border-blue-500 bg-slate-50 dark:bg-slate-800/60'}
                 `}
                         style={{ transitionDelay: `${index * 800}ms` }}
                     >
@@ -69,9 +83,9 @@ const SlideResumoIA: React.FC<SlideResumoIAProps> = ({ isVisible, insights }) =>
                                         insight.type === 'highlight' ? '⭐' : 'ℹ️'}
                             </div>
                             <div>
-                                <p className={`text-lg font-medium ${insight.type === 'positive' ? 'text-emerald-800' :
-                                        insight.type === 'negative' ? 'text-rose-800' :
-                                            insight.type === 'highlight' ? 'text-yellow-800' : 'text-slate-700'}
+                                <p className={`text-lg font-medium ${insight.type === 'positive' ? 'text-emerald-800 dark:text-emerald-200' :
+                                        insight.type === 'negative' ? 'text-rose-800 dark:text-rose-200' :
+                                            insight.type === 'highlight' ? 'text-yellow-800 dark:text-amber-200' : 'text-slate-700 dark:text-slate-200'}
                         `}>
                                     <TypewriterText text={insight.text} delay={index * 800 + 300} start={isVisible} />
                                 </p>

@@ -26,7 +26,7 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
 
     return (
         <div className="w-full">
-            <div className="mb-5 flex flex-wrap gap-3 px-6 select-none sm:px-8">
+            <div className="mb-5 flex flex-wrap gap-3 px-6 pt-4 select-none sm:px-8">
                 <div className="flex items-center gap-2 rounded-full border border-slate-200/80 bg-slate-50 px-3.5 py-2 dark:border-slate-800 dark:bg-slate-900/65">
                     <div className="h-2 w-2 rounded-full bg-blue-500"></div>
                     <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Meta (H. plan)</span>

@@ -23,7 +23,7 @@ export const AnaliseStatCard = ({
     iconBgClass,
     progress
 }: AnaliseStatCardProps) => (
-    <Card className={`border-none shadow-sm hover:shadow-lg transition-all duration-300 group overflow-hidden relative ${bgClass}`}>
+    <Card className={`group relative overflow-hidden border-none shadow-sm transition-[box-shadow,transform] duration-200 hover:shadow-lg ${bgClass}`}>
 
 
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
@@ -35,7 +35,7 @@ export const AnaliseStatCard = ({
             </div>
         </CardHeader>
         <CardContent className="z-10 relative">
-            <div className={`text-2xl font-bold tracking-tight mb-1 ${colorClass} font-mono`}>
+            <div className={`mb-1 whitespace-nowrap font-mono text-2xl font-bold tracking-tight tabular-nums ${colorClass}`}>
                 {value}
             </div>
             {subtext && (

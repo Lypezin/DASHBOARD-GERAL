@@ -27,16 +27,16 @@ export function AchievementsDialog({ open, onOpenChange }: AchievementsDialogPro
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
-                <DialogHeader>
-                    <DialogTitle className="text-2xl font-bold flex items-center gap-2">
-                        🏆 Galeria de Conquistas <span className="text-[10px] uppercase font-bold tracking-wider bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 px-2 py-0.5 rounded-full animate-pulse ml-1 self-center">Beta</span>
+                <DialogHeader className="text-left pr-8">
+                    <DialogTitle className="text-2xl font-bold flex flex-wrap items-center gap-2">
+                        🏆 Galeria de Conquistas <span className="text-[10px] uppercase font-bold tracking-wider bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20 px-2 py-0.5 rounded-full motion-safe:animate-pulse self-center">Beta</span>
                     </DialogTitle>
                     <DialogDescription>Acompanhe seu progresso e conquiste medalhas exclusivas pelo seu uso do sistema.</DialogDescription>
                 </DialogHeader>
 
-                <div className="flex-1 overflow-hidden mt-4">
+                <div className="flex-1 min-h-0 overflow-hidden mt-4">
                     <Tabs defaultValue="todos" className="w-full h-full flex flex-col">
-                        <TabsList className="mb-4">
+                        <TabsList className="mb-4 w-full justify-start overflow-x-auto no-scrollbar shrink-0">
                             <TabsTrigger value="ranking">🏆 Ranking Global</TabsTrigger>
                             <TabsTrigger value="todos">Todas ({unlockedBadges.length}/{badges.length})</TabsTrigger>
                             {categories.map(cat => (
@@ -46,10 +46,10 @@ export function AchievementsDialog({ open, onOpenChange }: AchievementsDialogPro
                             ))}
                         </TabsList>
 
-                        <div className="flex-1 overflow-hidden relative">
-                            <ScrollArea className="h-[50vh]">
-                                <TabsContent value="ranking" className="mt-0">
-                                    <TabsContent value="ranking" className="mt-0"><LeaderboardRanking /></TabsContent>
+                        <div className="flex-1 min-h-0 overflow-hidden relative">
+                            <ScrollArea className="h-[min(50vh,460px)] pr-2">
+                                <TabsContent value="ranking" className="mt-0 p-1">
+                                    <LeaderboardRanking />
                                 </TabsContent>
                                 <TabsContent value="todos" className="mt-0">
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-1">

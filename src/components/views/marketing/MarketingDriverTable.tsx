@@ -26,8 +26,15 @@ export const MarketingDriverTable: React.FC<MarketingDriverTableProps> = ({
 
     if (loading && data.length === 0) {
         return (
-            <div className="flex h-40 items-center justify-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <div role="status" aria-busy="true" aria-live="polite" className="space-y-3 p-5">
+                <div className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                    <Loader2 className="h-4 w-4 animate-spin text-primary motion-reduce:animate-none" aria-hidden="true" />
+                    Carregando entregadores…
+                </div>
+                <div className="dashboard-loading-shimmer h-9 w-full rounded-lg motion-reduce:animate-none" />
+                <div className="dashboard-loading-shimmer h-9 w-full rounded-lg motion-reduce:animate-none" />
+                <div className="dashboard-loading-shimmer h-9 w-5/6 rounded-lg motion-reduce:animate-none" />
+                <div className="dashboard-loading-shimmer h-9 w-4/5 rounded-lg motion-reduce:animate-none" />
             </div>
         );
     }
@@ -70,7 +77,7 @@ export const MarketingDriverTable: React.FC<MarketingDriverTableProps> = ({
                         {loading && (
                             <TableRow>
                                 <TableCell colSpan={6} className="py-4 text-center">
-                                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground" />
+                                    <Loader2 className="mx-auto h-6 w-6 animate-spin text-muted-foreground motion-reduce:animate-none" />
                                 </TableCell>
                             </TableRow>
                         )}

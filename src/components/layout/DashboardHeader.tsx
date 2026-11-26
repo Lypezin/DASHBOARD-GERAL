@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { usePathname } from 'next/navigation';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useSidebar } from '@/contexts/SidebarContext';
 import { useDashboardActiveTab } from '@/hooks/dashboard/useDashboardActiveTab';
 import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
@@ -9,13 +11,23 @@ import { useHeaderAvatar } from '@/hooks/auth/useHeaderAvatar';
 import { useTheme } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { UserDropdown } from '@/components/Header/UserDropdown';
-import { Menu, Moon, Sun, Trophy, ChevronRight } from 'lucide-react';
+import { Menu, Moon, Sun, Trophy, ChevronRight, Loader2 } from 'lucide-react';
 import { TabType } from '@/types';
 import { CityLastUpdatesTicker } from '@/components/dashboard/CityLastUpdatesTicker';
 
 const DeferredAchievementsDialog = dynamic(
   () => import('@/components/achievements/AchievementsDialog').then((mod) => ({ default: mod.AchievementsDialog })),
-  { ssr: false }
+  {
+    ssr: false,
+    loading: () => (
+      <div role="status" aria-live="polite" className="fixed inset-0 z-[100050] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="flex items-center gap-3 rounded-2xl border border-border bg-card px-5 py-4 shadow-xl">
+          <Loader2 className="h-5 w-5 motion-safe:animate-spin text-primary" aria-hidden="true" />
+          <span className="text-sm font-semibold text-foreground">Carregando conquistas...</span>
+        </div>
+      </div>
+    ),
+  }
 );
 
 const BREADCRUMB_MAP: Record<TabType, { group: string; label: string }> = {
@@ -36,16 +48,34 @@ const BREADCRUMB_MAP: Record<TabType, { group: string; label: string }> = {
 
 export function DashboardHeader() {
   const { toggleSidebar, toggleMobileSidebar } = useSidebar();
+  const pathname = usePathname();
   const activeTab = useDashboardActiveTab();
   const { user, handleLogout } = useHeaderAuth();
   const avatarUrl = useHeaderAvatar(user);
   const { toggleTheme } = useTheme();
+  const shouldReduceMotion = useReducedMotion() ?? false;
   const [showAchievements, setShowAchievements] = useState(false);
+  const [hasOpenedAchievements, setHasOpenedAchievements] = useState(false);
 
-  const breadcrumb = BREADCRUMB_MAP[activeTab] || { group: 'Principal', label: 'Visão Geral' };
+  const routeBreadcrumb = pathname?.startsWith('/admin')
+    ? { key: 'admin', group: 'Sistema', label: 'Administração' }
+    : pathname?.startsWith('/upload')
+      ? { key: 'upload', group: 'Sistema', label: 'Upload de Dados' }
+      : pathname === '/perfil'
+        ? { key: 'perfil', group: 'Conta', label: 'Meu Perfil' }
+        : pathname?.startsWith('/perfil/')
+          ? { key: 'perfil-publico', group: 'Equipe', label: 'Perfil Público' }
+          : null;
+  const tabBreadcrumb = BREADCRUMB_MAP[activeTab] || { group: 'Principal', label: 'Visão Geral' };
+  const breadcrumb = routeBreadcrumb || { key: activeTab, ...tabBreadcrumb };
+
+  const handleOpenAchievements = () => {
+    setHasOpenedAchievements(true);
+    setShowAchievements(true);
+  };
 
   return (
-    <header className="sticky top-0 z-40 flex w-full min-w-0 flex-col border-b border-border bg-card/95 shadow-[0_1px_2px_0_rgba(0,0,0,0.03)] backdrop-blur transition-all duration-200">
+    <header className="sticky top-0 z-40 flex w-full min-w-0 flex-col border-b border-border bg-card/95 shadow-[0_1px_2px_0_rgba(0,0,0,0.03)] backdrop-blur transition-colors duration-200">
       <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] grid-rows-[3.5rem_2rem] items-center px-3 sm:px-6 lg:h-14 lg:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto] lg:grid-rows-1 lg:px-8">
       {/* Esquerda: Menu toggle + Breadcrumb */}
       <div className="col-start-1 row-start-1 flex h-14 min-w-0 items-center gap-2 sm:gap-3">
@@ -73,23 +103,34 @@ export function DashboardHeader() {
         <div className="hidden h-4 w-px bg-border/80 sm:block shrink-0" />
 
         {/* Breadcrumb */}
-        <nav className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-muted-foreground sm:text-sm">
-          <span className="hidden shrink-0 font-medium text-muted-foreground/72 xs:inline sm:inline">{breadcrumb.group}</span>
-          <ChevronRight className="hidden h-3.5 w-3.5 shrink-0 opacity-60 xs:block sm:block" />
-          <span className="min-w-0 truncate font-bold text-foreground">{breadcrumb.label}</span>
+        <nav aria-label="Localização atual" className="min-w-0 overflow-hidden text-xs font-semibold text-muted-foreground sm:text-sm">
+          <AnimatePresence mode="wait" initial={false}>
+            <motion.span
+              key={breadcrumb.key}
+              initial={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: 4 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={shouldReduceMotion ? { opacity: 0 } : { opacity: 0, y: -4 }}
+              transition={{ duration: shouldReduceMotion ? 0.08 : 0.15, ease: [0.22, 1, 0.36, 1] }}
+              className="flex min-w-0 items-center gap-1.5"
+            >
+              <span className="hidden shrink-0 font-medium text-muted-foreground/72 xs:inline sm:inline">{breadcrumb.group}</span>
+              <ChevronRight className="hidden h-3.5 w-3.5 shrink-0 opacity-60 xs:block sm:block" />
+              <span className="min-w-0 truncate font-bold text-foreground">{breadcrumb.label}</span>
+            </motion.span>
+          </AnimatePresence>
         </nav>
       </div>
 
       <CityLastUpdatesTicker className="col-span-2 row-start-2 min-w-0 px-0 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:max-w-[40rem] lg:px-4 xl:max-w-[62rem] xl:px-6" />
 
       {/* Direita: Conquistas + Tema + Perfil */}
-      <div className="relative z-10 isolate col-start-2 row-start-1 ml-auto flex h-14 shrink-0 items-center gap-1 bg-card/95 pl-2 sm:gap-2 lg:col-start-3">
+      <div className="relative z-10 isolate col-start-2 row-start-1 ml-auto flex h-14 shrink-0 items-center gap-1 pl-2 sm:gap-2 lg:col-start-3">
         {/* Conquistas (Apenas se logado) */}
         {user && (
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => setShowAchievements(true)}
+            onClick={handleOpenAchievements}
             className="h-9 w-9 text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 hover:bg-yellow-100/50 dark:hover:bg-yellow-900/20"
             title="Minhas Conquistas"
           >
@@ -102,11 +143,11 @@ export function DashboardHeader() {
           variant="ghost"
           size="icon"
           onClick={toggleTheme}
-          className="h-9 w-9 text-muted-foreground hover:text-foreground"
+          className="relative h-9 w-9 text-muted-foreground hover:text-foreground"
           title="Alternar Tema"
         >
-          <Sun className="h-4 w-4 rotate-0 scale-100 transition-transform duration-200 dark:-rotate-90 dark:scale-0 sm:h-[1.1rem] sm:w-[1.1rem]" />
-          <Moon className="absolute h-4 w-4 rotate-90 scale-0 transition-transform duration-200 dark:rotate-0 dark:scale-100 sm:h-[1.1rem] sm:w-[1.1rem]" />
+          <Sun data-theme-toggle-icon className="h-4 w-4 rotate-0 scale-100 transition-transform duration-200 dark:-rotate-90 dark:scale-0 sm:h-[1.1rem] sm:w-[1.1rem]" />
+          <Moon data-theme-toggle-icon className="absolute h-4 w-4 rotate-90 scale-0 transition-transform duration-200 dark:rotate-0 dark:scale-100 sm:h-[1.1rem] sm:w-[1.1rem]" />
         </Button>
 
         <div className="h-4 w-px bg-border/60 mx-1 shrink-0" />
@@ -116,8 +157,8 @@ export function DashboardHeader() {
       </div>
       </div>
 
-      {/* Modal Achievements */}
-      {showAchievements && (
+      {/* Modal Achievements (mantido montado após a primeira abertura para preservar animação de fechamento) */}
+      {(hasOpenedAchievements || showAchievements) && (
         <DeferredAchievementsDialog open={showAchievements} onOpenChange={setShowAchievements} />
       )}
     </header>

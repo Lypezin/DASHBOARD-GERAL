@@ -70,21 +70,26 @@ export const PerfilAvatarUpload: React.FC<PerfilAvatarUploadProps> = ({ avatarUr
       >
         <Avatar 
           className="h-28 w-28 cursor-pointer border-4 border-white shadow-2xl ring-1 ring-white/50 transition-all duration-200 hover:ring-blue-300 dark:border-slate-950 dark:ring-slate-700"
-          onClick={() => fileInputRef.current?.click()}
+          onClick={() => !uploading && fileInputRef.current?.click()}
         >
           <AvatarImage src={avatarUrl || ''} alt="Foto de perfil" className="object-cover" />
           <AvatarFallback className="bg-slate-100 text-slate-400 dark:bg-slate-900">
-            {uploading ? <Loader2 className="h-9 w-9 animate-spin text-blue-600" /> : <Camera className="h-9 w-9" />}
+            {uploading ? <Loader2 className="h-9 w-9 motion-safe:animate-spin text-blue-600" /> : <Camera className="h-9 w-9" />}
           </AvatarFallback>
         </Avatar>
 
         <button
           type="button"
+          disabled={uploading}
           onClick={() => fileInputRef.current?.click()}
-          className={`absolute inset-0 flex items-center justify-center rounded-full bg-slate-950/50 text-white transition-opacity duration-200 ${isHovered && !uploading ? 'opacity-100' : 'opacity-0'}`}
-          aria-label="Alterar foto de perfil"
+          className={`absolute inset-0 flex items-center justify-center rounded-full bg-slate-950/55 text-white transition-opacity duration-200 disabled:cursor-wait ${uploading || isHovered ? 'opacity-100' : 'opacity-0'}`}
+          aria-label={uploading ? 'Enviando foto de perfil' : 'Alterar foto de perfil'}
         >
-          <Camera className="h-7 w-7 drop-shadow-md" />
+          {uploading ? (
+            <Loader2 className="h-7 w-7 motion-safe:animate-spin drop-shadow-md" aria-hidden="true" />
+          ) : (
+            <Camera className="h-7 w-7 drop-shadow-md" aria-hidden="true" />
+          )}
         </button>
 
         {avatarUrl && !uploading ? (

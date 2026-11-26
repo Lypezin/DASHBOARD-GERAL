@@ -3,6 +3,7 @@ import { Trophy, User, Flame } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ICON_MAP } from '@/contexts/gamification/icons';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface LeaderboardRankingRowProps { entry: any; index: number; }
 
@@ -10,10 +11,10 @@ export const LeaderboardRankingRow: React.FC<LeaderboardRankingRowProps> = ({ en
     const [isTop1, isTop2, isTop3] = [index === 0, index === 1, index === 2];
 
     return (
-        <div className={cn("relative flex flex-col p-3 rounded-xl border transition-all hover:shadow-md", isTop1 ? "bg-gradient-to-br from-yellow-50 to-white border-yellow-200 dark:from-yellow-900/10 dark:to-slate-900 dark:border-yellow-500/30" : isTop2 ? "bg-gradient-to-br from-slate-50 to-white border-slate-300 dark:from-slate-800/50 dark:to-slate-900 dark:border-slate-600" : isTop3 ? "bg-gradient-to-br from-orange-50 to-white border-orange-200 dark:from-orange-900/10 dark:to-slate-900 dark:border-orange-500/30" : "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 shadow-sm")}>
+        <div className={cn("relative flex flex-col p-3.5 rounded-xl border transition-[box-shadow,border-color] duration-200 hover:shadow-md", isTop1 ? "bg-gradient-to-br from-yellow-50 to-white border-yellow-200 dark:from-yellow-900/10 dark:to-slate-900 dark:border-yellow-500/30" : isTop2 ? "bg-gradient-to-br from-slate-50 to-white border-slate-300 dark:from-slate-800/50 dark:to-slate-900 dark:border-slate-600" : isTop3 ? "bg-gradient-to-br from-orange-50 to-white border-orange-200 dark:from-orange-900/10 dark:to-slate-900 dark:border-orange-500/30" : "bg-white dark:bg-slate-900 border-slate-100 dark:border-slate-800 shadow-sm")}>
             {isTop1 && (
-                <div className="absolute -top-2 -right-2 transform rotate-12">
-                    <span className="text-2xl animate-pulse filter drop-shadow-md">👑</span>
+                <div className="pointer-events-none absolute right-2.5 top-2 rotate-12" aria-hidden="true">
+                    <span className="text-xl motion-safe:animate-pulse drop-shadow-sm">👑</span>
                 </div>
             )}
 
@@ -64,19 +65,25 @@ export const LeaderboardRankingRow: React.FC<LeaderboardRankingRowProps> = ({ en
                     {entry.badges_list.slice(0, 10).map((b: any, i: number) => {
                         const BadgeIcon = ICON_MAP[b.icon] || ICON_MAP['Star'];
                         return (
-                            <div key={i} className="group/badge relative">
-                                <div className={cn(
-                                    "w-7 h-7 rounded-full flex items-center justify-center border transition-all cursor-help hover:scale-110",
-                                    "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400",
-                                    "hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:border-yellow-200 dark:hover:border-yellow-500/50 hover:text-yellow-600 dark:hover:text-yellow-400"
-                                )}>
-                                    <BadgeIcon className="w-3.5 h-3.5" />
-                                </div>
-                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 px-2 py-1 bg-slate-900/90 text-white text-[10px] rounded-md whitespace-nowrap opacity-0 group-hover/badge:opacity-100 pointer-events-none transition-all transform scale-95 group-hover/badge:scale-100 z-50 shadow-xl border border-white/10">
-                                    <span className="font-semibold block text-yellow-400 text-center">{b.name}</span>
-                                    {b.description && <span className="block text-[0.65rem] opacity-80 max-w-[150px] whitespace-normal text-center leading-tight mt-0.5">{b.description}</span>}
-                                </div>
-                            </div>
+                            <Tooltip key={i} delayDuration={150}>
+                                <TooltipTrigger asChild>
+                                    <button
+                                        type="button"
+                                        className={cn(
+                                            "w-7 h-7 rounded-full flex items-center justify-center border transition-[transform,background-color,border-color,color] duration-150 hover:scale-110",
+                                            "bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 text-slate-400",
+                                            "hover:bg-yellow-50 dark:hover:bg-yellow-900/20 hover:border-yellow-200 dark:hover:border-yellow-500/50 hover:text-yellow-600 dark:hover:text-yellow-400"
+                                        )}
+                                        aria-label={b.name}
+                                    >
+                                        <BadgeIcon className="w-3.5 h-3.5" />
+                                    </button>
+                                </TooltipTrigger>
+                                <TooltipContent side="top" className="max-w-[180px] border-white/10 bg-slate-900/95 px-2.5 py-1.5 text-center text-[11px] text-white">
+                                    <span className="block font-semibold text-yellow-400">{b.name}</span>
+                                    {b.description && <span className="mt-0.5 block text-[10px] leading-tight opacity-85">{b.description}</span>}
+                                </TooltipContent>
+                            </Tooltip>
                         )
                     })}
                     {entry.badges_list.length > 10 && (

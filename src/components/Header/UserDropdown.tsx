@@ -29,7 +29,8 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({
       <DropdownMenuTrigger asChild>
         <Button
           variant="ghost"
-          className="relative ml-1 h-9 w-9 rounded-full group focus:outline-none"
+          size="icon"
+          className="relative ml-1 h-9 w-9 rounded-full p-0 group focus:outline-none"
         >
           <Avatar className="h-9 w-9 border border-border transition-transform duration-200 group-hover:scale-105">
             <AvatarImage src={avatarUrl || user?.avatar_url || undefined} alt={user?.full_name || 'Usuário'} />
@@ -53,15 +54,15 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({
         <DropdownMenuSeparator />
         
         <DropdownMenuItem asChild>
-          <Link href="/upload" className="w-full cursor-pointer rounded-xl transition-colors duration-155">
-            <Upload className="mr-2 h-4 w-4 text-blue-600 dark:text-blue-400" />
+          <Link href="/upload" className="w-full cursor-pointer rounded-xl transition-colors duration-150">
+            <Upload className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             <span className="font-medium">Upload de Dados</span>
           </Link>
         </DropdownMenuItem>
 
         <DropdownMenuItem asChild>
           <Link href="/perfil" className="w-full cursor-pointer rounded-xl">
-            <Settings className="mr-2 h-4 w-4" />
+            <Settings className="h-4 w-4" />
             <span className="font-medium">Meu perfil</span>
           </Link>
         </DropdownMenuItem>
@@ -69,7 +70,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({
         {user?.is_admin ? (
           <DropdownMenuItem asChild>
             <Link href="/admin" className="w-full cursor-pointer rounded-xl">
-              <Settings className="mr-2 h-4 w-4" />
+              <Settings className="h-4 w-4" />
               <span className="font-medium">Administração</span>
             </Link>
           </DropdownMenuItem>
@@ -80,7 +81,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({
           onClick={onLogout}
           className="cursor-pointer rounded-xl text-destructive focus:text-destructive font-medium"
         >
-          <LogOut className="mr-2 h-4 w-4" />
+          <LogOut className="h-4 w-4" />
           <span>Sair da conta</span>
         </DropdownMenuItem>
       </DropdownMenuContent>

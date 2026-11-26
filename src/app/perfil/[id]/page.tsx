@@ -79,8 +79,8 @@ export default function PublicPerfilPage() {
 
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.08),transparent_32%),linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] px-4 py-8 dark:bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_34%),linear-gradient(180deg,#020617_0%,#0f172a_100%)] sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-4xl space-y-6">
+      <div className="min-h-full bg-[radial-gradient(circle_at_top_left,rgba(37,99,235,0.08),transparent_32%),linear-gradient(180deg,#f8fafc_0%,#eef2f7_100%)] px-4 py-8 dark:bg-[radial-gradient(circle_at_top_left,rgba(59,130,246,0.12),transparent_34%),linear-gradient(180deg,#020617_0%,#0f172a_100%)] sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-4xl space-y-6 motion-safe:animate-slide-up">
           <SaasPanel className="overflow-visible">
             <SaasPanelHeader
               eyebrow="Equipe"
@@ -89,7 +89,7 @@ export default function PublicPerfilPage() {
               icon={UserCircle}
               actions={(
                 <Link href="/" prefetch>
-                  <Button variant="outline" className="h-10 gap-2 rounded-xl border-slate-200/80 bg-white/85 px-4 text-slate-700 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:bg-white dark:border-slate-800/80 dark:bg-slate-950/80 dark:text-slate-200 dark:hover:bg-slate-900">
+                  <Button variant="outline" className="h-10 gap-2 rounded-xl border-slate-200/80 bg-white/85 px-4 text-slate-700 shadow-sm hover:-translate-y-0.5 hover:bg-white dark:border-slate-800/80 dark:bg-slate-950/80 dark:text-slate-200 dark:hover:bg-slate-900">
                     <ArrowLeft className="h-4 w-4" />
                     Voltar ao Dashboard
                   </Button>
@@ -99,8 +99,12 @@ export default function PublicPerfilPage() {
           </SaasPanel>
 
           <div className="grid gap-6 lg:grid-cols-[320px_1fr]">
-            <ProfileHeader profile={profile} />
-            <ProfileDetails profile={profile} loading={loading} />
+            <div className="min-w-0">
+              <ProfileHeader profile={profile} />
+            </div>
+            <div className="min-w-0">
+              <ProfileDetails profile={profile} loading={loading} />
+            </div>
           </div>
         </div>
       </div>

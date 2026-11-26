@@ -11,6 +11,7 @@ import type {
 import type { FilterPayload } from '@/types/filters';
 import { safeLog } from '@/lib/errorHandler';
 import { ViewContainer } from '@/components/layout/ViewContainer';
+import { ViewTransition } from '@/components/ui/view-transition';
 import { AnalysisLoading, FilteredDataTransition } from '@/components/dashboard/OperationalLoading';
 import { DashboardDataStatus } from '@/components/dashboard/DashboardDataStatus';
 import { AnaliseHeader } from './analise/AnaliseHeader';
@@ -112,40 +113,53 @@ const AnaliseView = React.memo(function AnaliseView({
   const hasResolvedData = totals !== null || aderenciaDia.length > 0 || aderenciaTurno.length > 0
     || aderenciaSubPraca.length > 0 || aderenciaOrigem.length > 0 || aderenciaDiaOrigem.length > 0;
 
-  if (mainDataLoading && !hasResolvedData) return <AnalysisLoading />;
-  if (mainDataError && !hasResolvedData) {
-    return <div className="mx-auto w-full max-w-[1600px] px-4 pt-5 sm:px-6 lg:px-8"><DashboardDataStatus hasPreviousData={false} onRetry={retryMainData} /></div>;
-  }
+  const showInitialLoading = mainDataLoading && !hasResolvedData;
+  const showInitialError = Boolean(mainDataError && !hasResolvedData);
+  const viewStateKey = showInitialLoading
+    ? 'analise-loading'
+    : showInitialError
+      ? 'analise-error'
+      : 'analise-content';
 
   return (
-    <ViewContainer className="flex flex-col gap-5 pb-10 pt-4">
-      {mainDataError ? <DashboardDataStatus hasPreviousData={hasResolvedData} onRetry={retryMainData} /> : null}
-      <AnaliseHeader
-        isExporting={isExporting}
-        exportDisabled={exportDisabled}
-        onExport={handleExport}
-      />
-      <FilteredDataTransition isUpdating={mainDataLoading}>
-        <div className="flex flex-col gap-5">
-          <AnaliseMetricCards
-            totals={totals || { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }}
-            taxaAceitacao={taxaAceitacao}
-            taxaCompletude={taxaCompletude}
-            taxaRejeicao={taxaRejeicao}
-            totalHorasEntregues={totalHoras}
-          />
-
-          <AnaliseDetailedCard
-            activeTable={activeTable}
-            onTableChange={handleTableChange}
-            tableData={tableData}
-            labelColumn={labelColumn}
-            aderenciaDiaOrigem={aderenciaDiaOrigem || []}
-            dayDateMap={dayDateMap}
-          />
+    <ViewTransition stateKey={viewStateKey} preventExitInteraction>
+      {showInitialLoading ? (
+        <AnalysisLoading />
+      ) : showInitialError ? (
+        <div className="mx-auto w-full max-w-[1600px] px-4 pt-5 sm:px-6 lg:px-8">
+          <DashboardDataStatus hasPreviousData={false} onRetry={retryMainData} />
         </div>
-      </FilteredDataTransition>
-    </ViewContainer>
+      ) : (
+        <ViewContainer className="flex flex-col gap-5 pb-10 pt-4">
+          {mainDataError ? <DashboardDataStatus hasPreviousData={hasResolvedData} onRetry={retryMainData} /> : null}
+          <AnaliseHeader
+            isExporting={isExporting}
+            exportDisabled={exportDisabled}
+            onExport={handleExport}
+          />
+          <FilteredDataTransition isUpdating={mainDataLoading}>
+            <div className="flex flex-col gap-5">
+              <AnaliseMetricCards
+                totals={totals || { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }}
+                taxaAceitacao={taxaAceitacao}
+                taxaCompletude={taxaCompletude}
+                taxaRejeicao={taxaRejeicao}
+                totalHorasEntregues={totalHoras}
+              />
+
+              <AnaliseDetailedCard
+                activeTable={activeTable}
+                onTableChange={handleTableChange}
+                tableData={tableData}
+                labelColumn={labelColumn}
+                aderenciaDiaOrigem={aderenciaDiaOrigem || []}
+                dayDateMap={dayDateMap}
+              />
+            </div>
+          </FilteredDataTransition>
+        </ViewContainer>
+      )}
+    </ViewTransition>
   );
 });
 

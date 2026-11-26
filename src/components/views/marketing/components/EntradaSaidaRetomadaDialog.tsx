@@ -15,7 +15,8 @@ export const EntradaSaidaRetomadaDialog: React.FC<Props> = ({ item, totalRetomad
         <Dialog>
             <DialogTrigger asChild>
                 <button
-                    className="group/retomada -mx-2 -my-1 flex min-w-[80px] cursor-pointer flex-col items-center justify-center rounded-xl px-2 py-1 transition-all hover:bg-sky-50 dark:hover:bg-sky-950/20"
+                    type="button"
+                    className="group/retomada -mx-2 -my-1 flex min-w-[80px] cursor-pointer flex-col items-center justify-center rounded-xl px-2 py-1 transition-colors duration-150 hover:bg-sky-50 dark:hover:bg-sky-950/20"
                     onClick={(e) => e.stopPropagation()}
                 >
                     <span className="mb-0.5 text-[10px] font-bold uppercase tracking-wider text-sky-600/70 dark:text-sky-300/70">Retomada</span>
@@ -30,7 +31,7 @@ export const EntradaSaidaRetomadaDialog: React.FC<Props> = ({ item, totalRetomad
                     </span>
                 </button>
             </DialogTrigger>
-            <DialogContent className="max-w-[380px] gap-0 rounded-2xl p-0">
+            <DialogContent className="max-w-[380px] gap-0 overflow-hidden rounded-2xl p-0">
                 <div className="p-5 pb-3">
                     <DialogHeader>
                         <DialogTitle className="flex items-center gap-2 text-base text-sky-600 dark:text-sky-300">

@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Minus, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { Minus, ArrowUpRight, ArrowDownRight, Loader2 } from 'lucide-react';
 import { useWeekComparison } from '../hooks/useWeekComparison';
 import { AderenciaSemanal, CurrentUser } from '@/types';
 import type { Filters } from '@/types/filters';
@@ -36,13 +36,14 @@ export const MonthComparisonCards = React.memo(function MonthComparisonCards({
 
     if (loading) {
         return (
-            <div>
-                <p className="text-[11px] font-bold text-muted-foreground/60 mb-2 px-1 uppercase tracking-wider">
+            <div role="status" aria-busy="true">
+                <p className="mb-2 flex items-center gap-1.5 px-1 text-[11px] font-bold uppercase tracking-wider text-muted-foreground/80">
+                    <Loader2 className="h-3 w-3 animate-spin motion-reduce:animate-none" aria-hidden="true" />
                     Carregando comparativo...
                 </p>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                     {[1, 2, 3, 4].map((i) => (
-                        <div key={i} className="h-20 rounded-xl bg-muted animate-pulse border border-border" />
+                        <div key={i} className="dashboard-loading-shimmer h-20 rounded-xl border border-border motion-reduce:animate-none" />
                     ))}
                 </div>
             </div>
@@ -78,7 +79,7 @@ export const MonthComparisonCards = React.memo(function MonthComparisonCards({
                     return (
                         <div
                             key={metric.label}
-                            className="rounded-xl border border-border p-3 shadow-[0_1px_2px_rgba(0,0,0,0.01)] transition-all duration-200 bg-card hover:-translate-y-0.5 hover:border-border/80 hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)]"
+                            className="rounded-xl border border-border bg-card p-3 shadow-[0_1px_2px_rgba(0,0,0,0.01)] transition-[transform,border-color,box-shadow] duration-200 hover:-translate-y-0.5 hover:border-border/80 hover:shadow-[0_4px_12px_rgba(0,0,0,0.03)]"
                         >
                             <p className="text-[10px] font-bold text-muted-foreground/80 mb-1 uppercase tracking-wider">{metric.label}</p>
                             <div className="flex items-end gap-1.5">

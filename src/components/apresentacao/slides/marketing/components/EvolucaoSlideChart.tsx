@@ -161,7 +161,7 @@ export const EvolucaoSlideChart: React.FC<EvolucaoSlideChartProps> = ({ evolutio
     }, [animation]);
 
     return (
-        <div className={`flex-[1.5] min-h-[250px] mb-6 rounded-3xl p-6 border transition-all duration-500 ${
+        <div className={`mb-6 min-h-[250px] flex-[1.5] rounded-3xl border p-6 transition-colors duration-300 ${
             isDark ? 'bg-slate-900/20 border-slate-800' : 'bg-white border-slate-100 shadow-sm'
         }`}>
             <Line data={chartData} options={chartOptions} plugins={[customDataLabels]} />

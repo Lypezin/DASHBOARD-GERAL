@@ -24,6 +24,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { ViewContainer } from '@/components/layout/ViewContainer';
+import { LoadingNotice } from '@/components/ui/loading-notice';
+import { ViewTransition } from '@/components/ui/view-transition';
 import { cn } from '@/lib/utils';
 
 type ReportLead = {
@@ -420,8 +422,13 @@ function LeadList({
 
 function LoadingState() {
   return (
-    <div role="status" aria-live="polite" className="flex min-h-[360px] items-center justify-center rounded-xl border border-[#d6e2e9] bg-white text-sm text-slate-600 dark:border-slate-800 dark:bg-slate-950/80 dark:text-slate-300">
-      <div className="flex items-center gap-3"><Loader2 className="h-5 w-5 animate-spin text-[#1e5d80] motion-reduce:animate-none dark:text-sky-300" aria-hidden="true" />Consultando pipeline Status no DataCrazy…</div>
+    <div className="flex min-h-[360px] items-center justify-center rounded-xl border border-[#d6e2e9] bg-white px-4 dark:border-slate-800 dark:bg-slate-950/80">
+      <LoadingNotice
+        className="w-full max-w-lg"
+        tone="sky"
+        message="Consultando pipeline Status no DataCrazy…"
+        detail="Organizando métricas do período, região e atendentes."
+      />
     </div>
   );
 }
@@ -559,56 +566,61 @@ const MarketingApresentacaoView = React.memo(function MarketingApresentacaoView(
         </div>
       ) : null}
 
-      {loading && !snapshot ? <LoadingState /> : error && !snapshot ? (
-        <Alert variant="destructive" role="alert" className="rounded-xl">
-          <AlertCircle className="h-4 w-4" aria-hidden="true" />
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-            <div><AlertTitle>Não foi possível carregar os dados</AlertTitle><AlertDescription className="mt-1">{error}</AlertDescription></div>
-            <Button type="button" variant="outline" onClick={() => void loadReport(true, selectedDate)} disabled={loading} className="shrink-0 gap-2"><RefreshCw className="h-4 w-4" aria-hidden="true" />Tentar novamente</Button>
+      <ViewTransition
+        stateKey={loading && !snapshot ? 'mkt-pres-loading' : error && !snapshot ? 'mkt-pres-error' : snapshot ? `mkt-pres-${mode}` : 'mkt-pres-empty'}
+        preventExitInteraction
+      >
+        {loading && !snapshot ? <LoadingState /> : error && !snapshot ? (
+          <Alert variant="destructive" role="alert" className="rounded-xl">
+            <AlertCircle className="h-4 w-4" aria-hidden="true" />
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div><AlertTitle>Não foi possível carregar os dados</AlertTitle><AlertDescription className="mt-1">{error}</AlertDescription></div>
+              <Button type="button" variant="outline" onClick={() => void loadReport(true, selectedDate)} disabled={loading} className="shrink-0 gap-2"><RefreshCw className="h-4 w-4" aria-hidden="true" />Tentar novamente</Button>
+            </div>
+          </Alert>
+        ) : snapshot ? (
+          <div className="space-y-5 sm:space-y-6">
+            <section aria-label={`Resumo do período ${reportLabel}`} className="grid min-w-0 grid-cols-1 divide-y divide-[#e1eaf0] overflow-hidden rounded-xl border border-[#d6e2e9] bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-950/80 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+              <MetricCell label="Cadastros enviados" value={totals.sent} note={mode === 'day' ? `Data a enviar: ${formatDate(selectedReference)}` : 'Dentro da semana selecionada'} tone="blue" />
+              <MetricCell label="Cadastros liberados" value={totals.released} note={mode === 'day' ? 'Liberados na data selecionada' : 'Dentro da semana selecionada'} tone="teal" />
+              <MetricCell label={mode === 'day' ? 'Começou ontem' : 'Rodou no período'} value={totals.ran} note={mode === 'day' ? `RODOU em ${formatDate(shiftDate(selectedReference, -1))}` : 'Dentro da semana selecionada'} tone="slate" />
+            </section>
+
+            <section aria-label="Filtros por região e atendente" className="flex min-w-0 flex-col gap-3 rounded-lg border border-[#d6e2e9] bg-white px-3 py-3 dark:border-slate-800 dark:bg-slate-950/80 sm:flex-row sm:items-end sm:px-4">
+              <div className="flex items-center gap-2 pb-0.5 text-xs font-semibold text-[#173f59] dark:text-slate-200 sm:mr-1"><Users className="h-4 w-4 text-[#47718a] dark:text-sky-300" aria-hidden="true" />Filtrar resumo</div>
+              <label className="min-w-0 flex-1">
+                <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.08em] text-slate-600 dark:text-slate-400">Região</span>
+                <Select value={region} onValueChange={setRegion}>
+                  <SelectTrigger className="h-9 rounded-lg border-[#cfdae2] text-xs dark:border-slate-700 dark:bg-slate-900"><SelectValue placeholder="Todas as regiões" /></SelectTrigger>
+                  <SelectContent><SelectItem value="all">Todas as regiões</SelectItem>{availableRegions.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
+                </Select>
+              </label>
+              <label className="min-w-0 flex-1">
+                <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.08em] text-slate-600 dark:text-slate-400">Atendente</span>
+                <Select value={attendant} onValueChange={setAttendant}>
+                  <SelectTrigger className="h-9 rounded-lg border-[#cfdae2] text-xs dark:border-slate-700 dark:bg-slate-900"><SelectValue placeholder="Todos os atendentes" /></SelectTrigger>
+                  <SelectContent><SelectItem value="all">Todos os atendentes</SelectItem>{availableAttendants.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
+                </Select>
+              </label>
+              {(region !== 'all' || attendant !== 'all') ? (
+                <Button type="button" variant="ghost" onClick={() => { setRegion('all'); setAttendant('all'); }} className="h-9 gap-1.5 self-end px-2 text-xs text-slate-600 hover:text-[#1e5d80] dark:text-slate-400 dark:hover:text-sky-300"><X className="h-3.5 w-3.5" aria-hidden="true" />Limpar filtros</Button>
+              ) : null}
+            </section>
+
+            {mode === 'week' ? <WeeklyTrend leads={scopedRows} weekStart={weekStart} weekEnd={weekEnd} /> : null}
+
+            <div className="grid min-w-0 gap-5 lg:grid-cols-[1.12fr_0.88fr]">
+              <RegionBreakdown rows={scopedRows} mode={mode} referenceDate={selectedReference} />
+              <AttendantBreakdown rows={scopedRows} mode={mode} referenceDate={selectedReference} />
+            </div>
+
+            <LeadList rows={scopedRows} mode={mode} referenceDate={selectedReference} />
+            <p className="text-[11px] leading-5 text-slate-500 dark:text-slate-400">
+              Fonte: pipeline Status do DataCrazy. A seleção cobre toda a semana de segunda a domingo; no resumo diário, “Começou ontem” considera o campo RODOU DIA do dia anterior. Para semanas históricas, a análise considera os registros vinculados à pipeline Status no momento da consulta.
+            </p>
           </div>
-        </Alert>
-      ) : snapshot ? (
-        <div className="space-y-5 sm:space-y-6">
-          <section aria-label={`Resumo do período ${reportLabel}`} className="grid min-w-0 grid-cols-1 divide-y divide-[#e1eaf0] overflow-hidden rounded-xl border border-[#d6e2e9] bg-white dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-950/80 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-            <MetricCell label="Cadastros enviados" value={totals.sent} note={mode === 'day' ? `Data a enviar: ${formatDate(selectedReference)}` : 'Dentro da semana selecionada'} tone="blue" />
-            <MetricCell label="Cadastros liberados" value={totals.released} note={mode === 'day' ? 'Liberados na data selecionada' : 'Dentro da semana selecionada'} tone="teal" />
-            <MetricCell label={mode === 'day' ? 'Começou ontem' : 'Rodou no período'} value={totals.ran} note={mode === 'day' ? `RODOU em ${formatDate(shiftDate(selectedReference, -1))}` : 'Dentro da semana selecionada'} tone="slate" />
-          </section>
-
-          <section aria-label="Filtros por região e atendente" className="flex min-w-0 flex-col gap-3 rounded-lg border border-[#d6e2e9] bg-white px-3 py-3 dark:border-slate-800 dark:bg-slate-950/80 sm:flex-row sm:items-end sm:px-4">
-            <div className="flex items-center gap-2 pb-0.5 text-xs font-semibold text-[#173f59] dark:text-slate-200 sm:mr-1"><Users className="h-4 w-4 text-[#47718a] dark:text-sky-300" aria-hidden="true" />Filtrar resumo</div>
-            <label className="min-w-0 flex-1">
-              <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.08em] text-slate-600 dark:text-slate-400">Região</span>
-              <Select value={region} onValueChange={setRegion}>
-                <SelectTrigger className="h-9 rounded-lg border-[#cfdae2] text-xs dark:border-slate-700 dark:bg-slate-900"><SelectValue placeholder="Todas as regiões" /></SelectTrigger>
-                <SelectContent><SelectItem value="all">Todas as regiões</SelectItem>{availableRegions.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
-              </Select>
-            </label>
-            <label className="min-w-0 flex-1">
-              <span className="mb-1.5 block text-[10px] font-bold uppercase tracking-[0.08em] text-slate-600 dark:text-slate-400">Atendente</span>
-              <Select value={attendant} onValueChange={setAttendant}>
-                <SelectTrigger className="h-9 rounded-lg border-[#cfdae2] text-xs dark:border-slate-700 dark:bg-slate-900"><SelectValue placeholder="Todos os atendentes" /></SelectTrigger>
-                <SelectContent><SelectItem value="all">Todos os atendentes</SelectItem>{availableAttendants.map((item) => <SelectItem key={item} value={item}>{item}</SelectItem>)}</SelectContent>
-              </Select>
-            </label>
-            {(region !== 'all' || attendant !== 'all') ? (
-              <Button type="button" variant="ghost" onClick={() => { setRegion('all'); setAttendant('all'); }} className="h-9 gap-1.5 self-end px-2 text-xs text-slate-600 hover:text-[#1e5d80] dark:text-slate-400 dark:hover:text-sky-300"><X className="h-3.5 w-3.5" aria-hidden="true" />Limpar filtros</Button>
-            ) : null}
-          </section>
-
-          {mode === 'week' ? <WeeklyTrend leads={scopedRows} weekStart={weekStart} weekEnd={weekEnd} /> : null}
-
-          <div className="grid min-w-0 gap-5 lg:grid-cols-[1.12fr_0.88fr]">
-            <RegionBreakdown rows={scopedRows} mode={mode} referenceDate={selectedReference} />
-            <AttendantBreakdown rows={scopedRows} mode={mode} referenceDate={selectedReference} />
-          </div>
-
-          <LeadList rows={scopedRows} mode={mode} referenceDate={selectedReference} />
-          <p className="text-[11px] leading-5 text-slate-500 dark:text-slate-400">
-            Fonte: pipeline Status do DataCrazy. A seleção cobre toda a semana de segunda a domingo; no resumo diário, “Começou ontem” considera o campo RODOU DIA do dia anterior. Para semanas históricas, a análise considera os registros vinculados à pipeline Status no momento da consulta.
-          </p>
-        </div>
-      ) : null}
+        ) : null}
+      </ViewTransition>
     </ViewContainer>
   );
 });

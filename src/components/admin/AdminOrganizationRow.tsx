@@ -58,7 +58,7 @@ export const AdminOrganizationRow: React.FC<AdminOrganizationRowProps> = ({ org,
                     <DropdownMenuContent align="end">
                         <DropdownMenuLabel>Ações</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => onEdit(org)}>
-                            <Edit className="mr-2 h-4 w-4" />
+                            <Edit className="h-4 w-4" />
                             Editar Detalhes
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
@@ -68,12 +68,12 @@ export const AdminOrganizationRow: React.FC<AdminOrganizationRowProps> = ({ org,
                         >
                             {org.is_active ? (
                                 <>
-                                    <PowerOff className="mr-2 h-4 w-4" />
+                                    <PowerOff className="h-4 w-4" />
                                     Desativar
                                 </>
                             ) : (
                                 <>
-                                    <Power className="mr-2 h-4 w-4" />
+                                    <Power className="h-4 w-4" />
                                     Ativar
                                 </>
                             )}

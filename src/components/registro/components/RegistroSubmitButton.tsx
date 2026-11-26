@@ -14,13 +14,13 @@ export const RegistroSubmitButton: React.FC<RegistroSubmitButtonProps> = ({ load
     >
         {loading ? (
             <>
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
                 Criando conta...
             </>
         ) : (
             <>
                 Criar Conta
-                <ArrowRight className="ml-2 h-4 w-4" />
+                <ArrowRight className="h-4 w-4" />
             </>
         )}
     </Button>

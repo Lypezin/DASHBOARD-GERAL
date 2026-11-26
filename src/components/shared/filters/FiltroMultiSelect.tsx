@@ -1,6 +1,6 @@
 import React, { useState, useRef, useCallback } from 'react';
 import { useClickOutside } from '@/hooks/ui/useClickOutside';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { FiltroMultiSelectDropdown } from './FiltroMultiSelectDropdown';
 
@@ -25,6 +25,7 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
   const closeDropdown = useCallback(() => setIsOpen(false), []);
   const refsToCheck = useRef([wrapperRef, dropdownRef]);
   useClickOutside(refsToCheck.current, closeDropdown);
+  const isLoadingOptions = disabled && /carregando/i.test(placeholder);
 
   const handleSelect = (value: string) => {
     const isAlreadySelected = selected.includes(value);
@@ -52,20 +53,20 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
       <span className={cn("pl-1 text-[11px] font-bold text-slate-600 dark:text-slate-300", appearance === 'quiet' && "pl-0 font-semibold")}>
         {label}
       </span>
-      <div className="relative">
+      <div className={cn("relative transition-transform duration-200", appearance !== 'quiet' && !disabled && "motion-safe:hover:-translate-y-0.5")}>
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
           disabled={disabled}
           className={cn(
-            "h-[38px] w-full appearance-none rounded-lg border border-slate-200/80 text-left focus:outline-none dark:border-slate-800",
-            "bg-white px-3 py-1 pr-10 text-xs font-semibold text-slate-900 shadow-sm transition-[background-color,border-color,box-shadow,transform] duration-200 dark:bg-slate-900 dark:text-slate-100",
-            "hover:border-blue-300 hover:bg-white hover:shadow-md motion-safe:hover:-translate-y-0.5 dark:hover:border-blue-500/50 dark:hover:bg-slate-900",
+            "h-10 w-full appearance-none rounded-lg border border-slate-200/80 text-left focus:outline-none dark:border-slate-800",
+            "bg-white px-3 py-1 pr-10 text-xs font-semibold text-slate-900 shadow-sm transition-[background-color,border-color,box-shadow] duration-200 dark:bg-slate-900 dark:text-slate-100",
+            "hover:border-blue-300 hover:bg-white hover:shadow-md dark:hover:border-blue-500/50 dark:hover:bg-slate-900",
             isOpen
               ? appearance === 'quiet' ? "border-sky-700 ring-2 ring-sky-600/10 dark:border-sky-400" : "border-blue-400 ring-2 ring-blue-500/20"
               : "",
             "disabled:cursor-not-allowed disabled:opacity-50",
-            appearance === 'quiet' && "rounded-lg border-[#d3e1e9] bg-white font-medium shadow-none hover:translate-y-0 hover:border-sky-600 hover:bg-white hover:shadow-none dark:border-slate-700 dark:bg-slate-950 dark:hover:border-sky-400"
+            appearance === 'quiet' && "rounded-lg border-[#d3e1e9] bg-white font-medium shadow-none hover:border-sky-600 hover:bg-white hover:shadow-none dark:border-slate-700 dark:bg-slate-950 dark:hover:border-sky-400"
           )}
           data-filter-trigger="multi-select"
           title={selected.length > 0 ? selectedLabels.join(', ') : placeholder}
@@ -80,8 +81,12 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
             )}
           </span>
         </button>
-        <div className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}>
-          <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
+        <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
+          {isLoadingOptions ? (
+            <Loader2 className="h-3.5 w-3.5 motion-safe:animate-spin text-blue-500" aria-hidden="true" />
+          ) : (
+            <ChevronDown className={cn("h-3.5 w-3.5 text-slate-400 transition-transform duration-200", isOpen && "rotate-180")} aria-hidden="true" />
+          )}
         </div>
       </div>
 

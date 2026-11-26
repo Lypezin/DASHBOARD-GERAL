@@ -10,6 +10,7 @@ import { useDashboardEvolucao } from '@/hooks/dashboard/useDashboardEvolucao';
 import type { FilterPayload } from '@/types/filters';
 import { ViewContainer } from '@/components/layout/ViewContainer';
 import { RefreshCw } from 'lucide-react';
+import { LoadingNotice } from '@/components/ui/loading-notice';
 import { ViewTransition } from '@/components/ui/view-transition';
 
 const EvolucaoView = React.memo(function EvolucaoView({
@@ -67,16 +68,18 @@ const EvolucaoView = React.memo(function EvolucaoView({
               disabled={loading}
               className="mx-auto inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-rose-300 bg-white px-4 py-2 text-sm font-semibold text-rose-800 transition-colors duration-150 hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:border-rose-800 dark:bg-rose-950/70 dark:text-rose-100 dark:hover:bg-rose-900/60"
             >
-              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin motion-reduce:animate-none' : ''}`} />
               Tentar novamente
             </button>
           </div>
         ) : (
           <div className="min-w-0 space-y-5">
             {state.loading ? (
-              <div className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-sm font-medium text-sky-900 dark:border-sky-900/50 dark:bg-sky-950/25 dark:text-sky-200">
-                Atualizando a evolução com os filtros atuais...
-              </div>
+              <LoadingNotice
+                tone="sky"
+                message="Atualizando a evolução com os filtros atuais"
+                detail="Os dados exibidos permanecem visíveis durante a atualização."
+              />
             ) : null}
 
             {error ? (
@@ -91,7 +94,7 @@ const EvolucaoView = React.memo(function EvolucaoView({
                   disabled={loading}
                   className="inline-flex shrink-0 items-center justify-center gap-2 rounded-lg border border-rose-300 bg-white px-3 py-2 font-semibold text-rose-800 transition-colors duration-150 hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:border-rose-800 dark:bg-rose-950/70 dark:text-rose-100 dark:hover:bg-rose-900/60"
                 >
-                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+                  <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin motion-reduce:animate-none' : ''}`} />
                   Tentar novamente
                 </button>
               </div>

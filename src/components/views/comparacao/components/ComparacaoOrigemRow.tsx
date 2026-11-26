@@ -15,7 +15,7 @@ export const ComparacaoOrigemRow = React.memo(({ origem, index, semanasSeleciona
     return (
         <TableRow
             className={`
-                group border-b border-transparent transition-all duration-200
+                group border-b border-transparent transition-colors duration-150
                 ${isAverageRow
                     ? 'bg-sky-50/70 font-bold dark:bg-sky-950/18'
                     : index % 2 === 0 ? 'bg-white dark:bg-slate-950' : 'bg-slate-50/35 dark:bg-slate-900/30'}
@@ -24,8 +24,10 @@ export const ComparacaoOrigemRow = React.memo(({ origem, index, semanasSeleciona
         >
             <TableCell className={`sticky left-0 z-10 py-4 pl-6 text-[13px] font-semibold transition-colors sm:pl-8
                 ${isAverageRow
-                    ? 'bg-sky-50/90 text-sky-700 dark:bg-slate-950 dark:text-sky-300'
-                    : 'bg-inherit text-slate-800 group-hover:text-sky-600 dark:text-slate-200 dark:group-hover:text-sky-300'}
+                    ? 'bg-sky-50 text-sky-700 dark:bg-slate-950 dark:text-sky-300'
+                    : index % 2 === 0
+                        ? 'bg-white text-slate-800 group-hover:bg-slate-50 group-hover:text-sky-600 dark:bg-slate-950 dark:text-slate-200 dark:group-hover:bg-slate-900 dark:group-hover:text-sky-300'
+                        : 'bg-[#f8fafc] text-slate-800 group-hover:bg-slate-50 group-hover:text-sky-600 dark:bg-slate-900 dark:text-slate-200 dark:group-hover:text-sky-300'}
             `}>
                 {origem}
             </TableCell>

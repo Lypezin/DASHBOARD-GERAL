@@ -49,19 +49,50 @@ export function AppLayoutShell({ children }: { children: React.ReactNode }) {
             <SidebarProvider>
               {shouldMountActivityTracker ? <UserActivityTracker /> : null}
 
-              <div className="flex h-dvh min-h-0 w-full overflow-hidden bg-background font-sans text-foreground antialiased transition-colors duration-200">
+              <div className="relative flex h-dvh min-h-0 w-full overflow-hidden bg-background font-sans text-foreground antialiased transition-colors duration-200">
                 {/* Grade de fundo discreta Linear/Vercel */}
-                <div className="grid-pattern" />
+                <div className="grid-pattern !z-0" aria-hidden="true" />
 
                 {/* Sidebar colapsável protegida com React.Suspense para evitar erro de SSR do useSearchParams */}
-                <React.Suspense fallback={<div className="hidden md:block h-dvh w-16 shrink-0 border-r border-border bg-card" />}>
+                <React.Suspense fallback={
+                  <aside
+                    aria-label="Carregando menu lateral"
+                    className="hidden h-dvh w-[264px] shrink-0 flex-col border-r border-border/80 bg-card md:flex"
+                  >
+                    <div className="flex h-14 shrink-0 items-center gap-3 border-b border-border/80 px-3.5">
+                      <div className="dashboard-loading-shimmer h-[38px] w-[38px] shrink-0 rounded-xl" />
+                      <div className="flex-1 space-y-1.5">
+                        <div className="dashboard-loading-shimmer h-3 w-28 rounded-full" />
+                        <div className="dashboard-loading-shimmer h-2 w-20 rounded-full" />
+                      </div>
+                    </div>
+                    <div className="space-y-3 p-3">
+                      <div className="dashboard-loading-shimmer h-9 w-full rounded-[10px]" />
+                      {Array.from({ length: 7 }, (_, i) => (
+                        <div key={i} className="dashboard-loading-shimmer h-9 w-full rounded-[9px]" />
+                      ))}
+                    </div>
+                  </aside>
+                }>
                   <AppSidebar />
                 </React.Suspense>
 
                 {/* Área de Conteúdo à direita */}
-                <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+                <div className="relative z-10 flex min-h-0 min-w-0 flex-1 flex-col">
                   {/* Header compacto protegido com React.Suspense para evitar erro de SSR do useSearchParams */}
-                  <React.Suspense fallback={<div className="h-14 border-b border-border bg-card/95 w-full shrink-0 animate-pulse" />}>
+                  <React.Suspense fallback={
+                    <div
+                      aria-label="Carregando cabeçalho"
+                      className="flex h-[5.5rem] w-full shrink-0 items-center justify-between gap-4 border-b border-border bg-card/95 px-4 sm:px-6 lg:h-14 lg:px-8"
+                    >
+                      <div className="dashboard-loading-shimmer h-5 w-44 rounded-full" />
+                      <div className="dashboard-loading-shimmer hidden h-5 w-72 rounded-full lg:block" />
+                      <div className="flex items-center gap-2">
+                        <div className="dashboard-loading-shimmer h-9 w-9 rounded-full" />
+                        <div className="dashboard-loading-shimmer h-9 w-9 rounded-full" />
+                      </div>
+                    </div>
+                  }>
                     <DashboardHeader />
                   </React.Suspense>
 

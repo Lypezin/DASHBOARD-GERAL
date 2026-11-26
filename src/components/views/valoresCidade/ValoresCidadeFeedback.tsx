@@ -1,8 +1,9 @@
 'use client';
 
 import React from 'react';
-import { AlertCircle, LoaderCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { LoadingNotice } from '@/components/ui/loading-notice';
 
 interface ValoresCidadeFeedbackProps {
   loading: boolean;
@@ -12,11 +13,13 @@ interface ValoresCidadeFeedbackProps {
 export const ValoresCidadeFeedback: React.FC<ValoresCidadeFeedbackProps> = ({ loading, error }) => {
   if (loading) {
     return (
-      <div role="status" className="flex min-h-[18rem] items-center justify-center rounded-xl border border-slate-200/80 bg-white/70 dark:border-slate-800/80 dark:bg-slate-950/40">
-        <div className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-300">
-          <LoaderCircle className="h-5 w-5 animate-spin text-blue-600 dark:text-blue-400" aria-hidden="true" />
-          <span>Carregando valores por cidade…</span>
-        </div>
+      <div className="flex min-h-[18rem] items-center justify-center rounded-xl border border-slate-200/80 bg-white/70 px-4 dark:border-slate-800/80 dark:bg-slate-950/40">
+        <LoadingNotice
+          tone="blue"
+          message="Carregando valores por cidade"
+          detail="Buscando os indicadores de investimento para o período selecionado."
+          className="w-full max-w-lg"
+        />
       </div>
     );
   }

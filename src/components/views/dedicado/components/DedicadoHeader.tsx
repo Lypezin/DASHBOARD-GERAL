@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { BarChart3, Download } from 'lucide-react';
+import { BarChart3, Download, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 type DedicadoSubTab = 'dashboard' | 'entregadores' | 'ranking' | 'resumo' | 'dia_origem';
 
@@ -30,6 +30,8 @@ export const DedicadoHeader = React.memo(function DedicadoHeader({
   exportDisabled = false,
   onExport,
 }: DedicadoHeaderProps) {
+  const prefersReducedMotion = useReducedMotion();
+
   return (
     <div className="min-w-0 overflow-hidden rounded-3xl border border-blue-200/60 bg-gradient-to-br from-blue-50 via-white to-slate-50 p-5 shadow-sm dark:border-blue-900/40 dark:from-blue-950/30 dark:via-slate-950 dark:to-slate-950 sm:p-6">
       <div className="flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
@@ -42,7 +44,7 @@ export const DedicadoHeader = React.memo(function DedicadoHeader({
             DEDICADO
           </h2>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-            Visao separada para restaurantes e origens, com entregadores, resumo por origem e matriz Dia x Origem no mesmo lugar.
+            Visão separada para restaurantes e origens, com entregadores, resumo por origem e matriz Dia × Origem no mesmo lugar.
           </p>
         </div>
 
@@ -53,7 +55,11 @@ export const DedicadoHeader = React.memo(function DedicadoHeader({
             disabled={isExporting || exportDisabled}
             className="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-blue-200 bg-blue-600 px-4 py-2.5 text-xs font-black uppercase tracking-[0.16em] text-white shadow-sm shadow-blue-600/20 transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60 dark:border-blue-500/40 sm:w-auto xl:self-end"
           >
-            <Download className="h-4 w-4" />
+            {isExporting ? (
+              <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+            ) : (
+              <Download className="h-4 w-4" aria-hidden="true" />
+            )}
             {isExporting ? 'Exportando...' : 'Baixar Excel'}
           </button>
 
@@ -66,8 +72,10 @@ export const DedicadoHeader = React.memo(function DedicadoHeader({
                 <button
                   key={tab.id}
                   onClick={() => setActiveSubTab(tab.id)}
+                  type="button"
+                  aria-pressed={active}
                   className={cn(
-                    'relative inline-flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-2.5 py-2 text-[11px] font-bold transition-all sm:gap-2 sm:px-3.5 sm:text-xs focus:outline-none',
+                    'relative inline-flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-2.5 py-2 text-[11px] font-bold transition-colors duration-150 sm:gap-2 sm:px-3.5 sm:text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40',
                     active
                       ? 'text-white'
                       : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
@@ -77,11 +85,11 @@ export const DedicadoHeader = React.memo(function DedicadoHeader({
                     <motion.div
                       layoutId="activeSubTab"
                       className="absolute inset-0 rounded-xl bg-blue-600 shadow-sm shadow-blue-600/20"
-                      transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      transition={prefersReducedMotion ? { duration: 0.01 } : { type: 'spring', stiffness: 420, damping: 32 }}
                     />
                   )}
-                  <Icon className="h-4 w-4 shrink-0 relative z-10" />
-                  <span className="min-w-0 text-center leading-tight relative z-10">{tab.label}</span>
+                  <Icon className="relative z-10 h-4 w-4 shrink-0" aria-hidden="true" />
+                  <span className="relative z-10 min-w-0 text-center leading-tight">{tab.label}</span>
                 </button>
               );
             })}

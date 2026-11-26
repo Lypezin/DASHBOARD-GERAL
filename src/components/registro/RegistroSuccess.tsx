@@ -19,8 +19,8 @@ export const RegistroSuccess = React.memo(function RegistroSuccess() {
         <div className="group relative">
           <div className="absolute -inset-0.5 rounded-3xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 opacity-20 blur-xl"></div>
           <div className="relative rounded-3xl border border-white/10 bg-white/5 p-10 text-center backdrop-blur-2xl shadow-2xl ring-1 ring-white/20">
-            <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg ring-4 ring-emerald-500/20">
-              <span className="text-4xl">✓</span>
+            <div className="mb-6 inline-flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg ring-4 ring-emerald-500/20">
+              <span className="text-4xl text-white">✓</span>
             </div>
             <h2 className="mb-3 text-3xl font-bold text-white">Conta Criada!</h2>
             <p className="mb-8 text-slate-300">Seu cadastro foi realizado com sucesso.</p>
@@ -37,9 +37,9 @@ export const RegistroSuccess = React.memo(function RegistroSuccess() {
             </div>
 
             <div className="mt-8 flex items-center justify-center gap-2">
-              <div className="h-2 w-2 animate-bounce rounded-full bg-slate-400" style={{ animationDelay: '0ms' }}></div>
-              <div className="h-2 w-2 animate-bounce rounded-full bg-slate-400" style={{ animationDelay: '150ms' }}></div>
-              <div className="h-2 w-2 animate-bounce rounded-full bg-slate-400" style={{ animationDelay: '300ms' }}></div>
+              <div className="h-2 w-2 motion-safe:animate-bounce rounded-full bg-slate-400" style={{ animationDelay: '0ms' }}></div>
+              <div className="h-2 w-2 motion-safe:animate-bounce rounded-full bg-slate-400" style={{ animationDelay: '150ms' }}></div>
+              <div className="h-2 w-2 motion-safe:animate-bounce rounded-full bg-slate-400" style={{ animationDelay: '300ms' }}></div>
               <p className="ml-2 text-sm font-medium text-slate-400">Redirecionando para o login...</p>
             </div>
           </div>

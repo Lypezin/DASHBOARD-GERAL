@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Download } from 'lucide-react';
+import { Download, Loader2 } from 'lucide-react';
 import { Entregador } from '@/types';
 import { exportarPrioridadeParaExcel } from './PrioridadeExcelExport';
 import { safeLog } from '@/lib/errorHandler';
@@ -46,7 +46,11 @@ export const PrioridadeHeader: React.FC<PrioridadeHeaderProps> = ({ sortedEntreg
                 variant="outline"
                 className="h-10 shrink-0 gap-2 rounded-lg border-white bg-white px-3.5 text-sm font-semibold text-[#174d70] shadow-none transition-colors duration-150 hover:border-white hover:bg-sky-50 hover:text-[#103c59] focus-visible:ring-2 focus-visible:ring-white/80 focus-visible:ring-offset-2 focus-visible:ring-offset-[#174d70] dark:border-white dark:bg-white dark:text-[#174d70] dark:hover:bg-sky-50"
             >
-                <Download className="h-4 w-4" />
+                {isExporting ? (
+                    <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+                ) : (
+                    <Download className="h-4 w-4" aria-hidden="true" />
+                )}
                 {isExporting ? 'Preparando Excel...' : 'Exportar Excel'}
             </Button>
         </header>

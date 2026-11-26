@@ -53,7 +53,7 @@ export const EntradaSaidaStatsCards: React.FC<{ data: any[] }> = ({ data }) => {
         {
             title: 'Retomada',
             value: totals.retomada_total,
-            subtitle: 'Retornaram a base',
+            subtitle: 'Retornaram à base',
             icon: <RotateCcw className="h-5 w-5" />,
             colorTheme: 'blue' as const,
             breakdown: [

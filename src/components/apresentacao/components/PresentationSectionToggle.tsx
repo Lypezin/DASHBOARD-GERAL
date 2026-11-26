@@ -18,21 +18,21 @@ interface PresentationSectionToggleProps {
 const SECTION_LABELS: Record<string, string> = {
     capa: 'Capa',
     'resumo-ia': 'Resumo IA',
-    'aderencia-geral': 'Aderencia Geral',
+    'aderencia-geral': 'Aderência Geral',
     ranking: 'Ranking',
-    'resumo-sub-pracas': 'Resumo de Sub-pracas (Tabela)',
-    'sub-pracas': 'Sub-pracas',
-    'aderencia-diaria': 'Detalhamento Diario',
+    'resumo-sub-pracas': 'Resumo de Sub-praças (Tabela)',
+    'sub-pracas': 'Sub-praças',
+    'aderencia-diaria': 'Detalhamento Diário',
     utr: 'UTR',
     entregadores: 'Entregadores',
     'resumo-turnos': 'Resumo de Turnos (Tabela)',
     turnos: 'Turnos',
-    'media-origens': 'Media das Origens',
+    'media-origens': 'Média das Origens',
     'resumo-origens': 'Resumo de Origens (Tabela)',
     origens: 'Origens',
     'resumo-demanda-origem': 'Resumo de Demanda por Origem (Tabela)',
     'demanda-origem': 'Demanda por Origem',
-    demanda: 'Demanda e Rejeicoes',
+    demanda: 'Demanda e Rejeições',
     'capa-final': 'Capa Final',
 };
 
@@ -48,8 +48,8 @@ export const PresentationSectionToggle: React.FC<PresentationSectionToggleProps>
                     Personalizar
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="z-[100001] w-56">
-                <DropdownMenuLabel>Secoes do PDF</DropdownMenuLabel>
+            <DropdownMenuContent align="end" className="z-[100060] w-56">
+                <DropdownMenuLabel>Seções do PDF</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {Object.keys(visibleSections).map((key) => (
                     <DropdownMenuCheckboxItem

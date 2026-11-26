@@ -52,6 +52,13 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
   const { registerInteraction } = useGamification();
 
   useEffect(() => {
+    const contentScroll = document.getElementById('dashboard-content-scroll');
+    if (contentScroll) {
+      contentScroll.scrollTop = 0;
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
     const interactionMap = {
       comparacao: 'view_comparacao',
       dedicado: 'view_entregadores',
@@ -86,8 +93,8 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
 
   return (
     <ErrorBoundary>
-      <Suspense fallback={<DashboardSkeleton contentOnly />}>
-        <ViewTransition stateKey={viewStateKey} preventExitInteraction={activeTab !== 'dedicado'}>
+      <ViewTransition stateKey={viewStateKey} preventExitInteraction>
+        <Suspense fallback={<DashboardSkeleton contentOnly />}>
           {needsChart && !chartReady ? (
             <div className="min-w-0 w-full">
               <DashboardSkeleton contentOnly />
@@ -97,8 +104,8 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
               {renderActiveView(activeTab, props)}
             </div>
           )}
-        </ViewTransition>
-      </Suspense>
+        </Suspense>
+      </ViewTransition>
     </ErrorBoundary>
   );
 });

@@ -35,7 +35,7 @@ const SlideMediaOrigens: React.FC<SlideMediaOrigensProps> = ({
                 />
             </header>
 
-            <div className="flex w-full max-w-5xl flex-1 animate-slide-up items-start justify-evenly gap-12 px-8 pt-8" style={{ animationDelay: '100ms', animationFillMode: 'forwards' }}>
+            <div className="flex w-full max-w-5xl flex-1 animate-slide-up items-center justify-evenly gap-12 px-8 pt-8" style={{ animationDelay: '100ms', animationFillMode: 'both' }}>
                 <div className="flex flex-col items-center gap-6">
                     <WeekComparisonCircle
                         aderencia={media.semana1.aderencia}

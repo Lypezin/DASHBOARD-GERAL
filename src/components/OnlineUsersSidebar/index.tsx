@@ -56,7 +56,10 @@ export function OnlineUsersSidebar({
         onMinimizedChange?.(value);
     }, [onMinimizedChange]);
 
-    const handleCloseSidebar = useCallback(() => setIsOpen(false), [setIsOpen]);
+    const handleCloseSidebar = useCallback(() => {
+        setActiveChatUser(null);
+        setIsOpen(false);
+    }, [setActiveChatUser, setIsOpen]);
     const handleOpenUserChat = useCallback((user: OnlineUser) => {
         setActiveChatUser(user);
         setIsMinimized(false);

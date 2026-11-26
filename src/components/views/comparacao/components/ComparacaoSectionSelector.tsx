@@ -76,7 +76,7 @@ export const ComparacaoSectionSelector: React.FC<ComparacaoSectionSelectorProps>
                     <div
                         ref={dropdownRef}
                         style={{ left: position.left, top: position.top, width: position.width, maxHeight: position.maxHeight }}
-                        className="fixed z-[100000] overflow-hidden rounded-xl border border-slate-200 bg-white p-2.5 shadow-[0_12px_34px_-22px_rgba(15,23,42,0.4)] animate-in fade-in-0 zoom-in-95 slide-in-from-top-1 duration-150 dark:border-slate-800 dark:bg-slate-950 dark:shadow-black/40"
+                        className="fixed z-[100060] overflow-hidden rounded-xl border border-slate-200 bg-white p-2.5 shadow-[0_12px_34px_-22px_rgba(15,23,42,0.4)] animate-in fade-in-0 zoom-in-95 slide-in-from-top-1 duration-150 dark:border-slate-800 dark:bg-slate-950 dark:shadow-black/40"
                     >
                         <div className="mb-2 px-2 py-1.5">
                             <p className="text-xs font-semibold text-slate-600 dark:text-slate-300">

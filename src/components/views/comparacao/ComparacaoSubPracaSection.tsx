@@ -6,6 +6,7 @@ import { ComparacaoSubPracaTable } from './ComparacaoSubPracaTable';
 import { ViewModeToggle } from './components/ViewModeToggle';
 import { SaasPanel } from '@/components/views/shared/SaasPrimitives';
 import { ComparacaoPanelHeader } from './ComparacaoSectionWrapper';
+import { ViewTransition } from '@/components/ui/view-transition';
 
 interface ComparacaoSubPracaSectionProps {
     dadosComparacao: DashboardResumoData[];
@@ -30,23 +31,25 @@ export const ComparacaoSubPracaSection = React.memo(function ComparacaoSubPracaS
                 title="Por sub-praça"
                 description="Comparativo por recorte interno de operação."
                 icon={MapPin}
-                actions={<ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} size="sm" />}
+                actions={<ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} size="sm" layoutId="comparacao-view-subpraca" />}
             />
-            {viewMode === 'table' ? (
-                <ComparacaoSubPracaTable
-                    dadosComparacao={dadosComparacao}
-                    semanasSelecionadas={semanasSelecionadas}
-                />
-            ) : (
-                <div className="p-4 sm:p-5">
-                    <ComparacaoCharts
+            <ViewTransition stateKey={`subpraca-${viewMode}`} preventExitInteraction>
+                {viewMode === 'table' ? (
+                    <ComparacaoSubPracaTable
                         dadosComparacao={dadosComparacao}
                         semanasSelecionadas={semanasSelecionadas}
-                        viewMode={viewMode}
-                        chartType="subPraca"
                     />
-                </div>
-            )}
+                ) : (
+                    <div className="p-4 sm:p-5">
+                        <ComparacaoCharts
+                            dadosComparacao={dadosComparacao}
+                            semanasSelecionadas={semanasSelecionadas}
+                            viewMode={viewMode}
+                            chartType="subPraca"
+                        />
+                    </div>
+                )}
+            </ViewTransition>
         </SaasPanel>
     );
 });

@@ -175,7 +175,7 @@ export const ValoresTable = React.memo(function ValoresTable({
                                                 ).map((width, column) => (
                                                     <div
                                                         key={column}
-                                                        className="h-4 max-w-full animate-pulse rounded bg-slate-100 motion-reduce:animate-none dark:bg-slate-800"
+                                                        className="dashboard-loading-shimmer h-4 max-w-full rounded motion-reduce:animate-none"
                                                         style={{ width }}
                                                     />
                                                 ))}

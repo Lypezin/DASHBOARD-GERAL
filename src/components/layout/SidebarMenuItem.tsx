@@ -17,6 +17,7 @@ interface SidebarMenuItemProps {
   collapsed: boolean;
   reducedMotion: boolean;
   displayLabel: string;
+  layoutIdPrefix?: string;
   onClick: (value: TabType) => void;
 }
 
@@ -26,6 +27,7 @@ export const SidebarMenuItem = React.memo(function SidebarMenuItem({
   collapsed,
   reducedMotion,
   displayLabel,
+  layoutIdPrefix = 'desktop',
   onClick,
 }: SidebarMenuItemProps) {
   const Icon = item.icon;
@@ -39,8 +41,10 @@ export const SidebarMenuItem = React.memo(function SidebarMenuItem({
       aria-current={isActive ? 'page' : undefined}
       aria-label={collapsed ? displayLabel : undefined}
       className={cn(
-        'group relative flex min-h-10 w-full items-center gap-3 rounded-[9px] px-3 py-[9px] text-left text-[13px] font-semibold',
-        'transition-[background-color,color,transform] duration-150 hover:translate-x-px focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-card',
+        'group relative flex min-h-10 w-full items-center rounded-[9px] text-left text-[13px] font-semibold',
+        collapsed ? 'justify-center px-0' : 'gap-3 px-3 py-[9px]',
+        'transition-[background-color,color,transform] duration-150 motion-safe:active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-card',
+        !collapsed && 'hover:translate-x-px',
         isActive
           ? 'bg-primary/10 text-primary dark:bg-primary/15'
           : 'text-muted-foreground hover:bg-muted/80 hover:text-foreground'
@@ -48,21 +52,20 @@ export const SidebarMenuItem = React.memo(function SidebarMenuItem({
     >
       {isActive ? (
         <motion.span
-          initial={reducedMotion ? false : { opacity: 0, scaleY: 0.7 }}
-          animate={{ opacity: 1, scaleY: 1 }}
-          transition={reducedMotion ? { duration: 0 } : { duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
+          layoutId={reducedMotion ? undefined : `${layoutIdPrefix}-sidebar-active-indicator`}
+          transition={reducedMotion ? { duration: 0 } : { type: 'spring', stiffness: 460, damping: 36 }}
           className="absolute bottom-2 left-0 top-2 w-[3px] rounded-r-full bg-primary"
           aria-hidden="true"
         />
       ) : null}
 
       <Icon className={cn('h-[18px] w-[18px] shrink-0 transition-colors duration-150', isActive ? 'text-primary' : 'text-muted-foreground/80 group-hover:text-foreground')} />
-      
+
       {!collapsed && (
         <motion.span
-          initial={reducedMotion ? false : { opacity: 0, width: 0 }}
-          animate={{ opacity: 1, width: 'auto' }}
-          transition={reducedMotion ? { duration: 0 } : { duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+          initial={reducedMotion ? false : { opacity: 0, x: -4 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={reducedMotion ? { duration: 0 } : { duration: 0.14, ease: [0.22, 1, 0.36, 1] }}
           className="truncate"
         >
           {displayLabel}

@@ -21,7 +21,7 @@ const PodiumStep: React.FC<{ item: RankingItem; position: 1 | 2 | 3; isActive: b
         : position === 2
         ? 'bg-gradient-to-t from-slate-400 to-slate-300 dark:from-slate-500 dark:to-slate-400 shadow-lg shadow-slate-400/10'
         : 'bg-gradient-to-t from-amber-800 to-amber-600 dark:from-amber-900 dark:to-amber-700 shadow-lg shadow-amber-800/10';
-    const delay = position === 1 ? 'delay-500' : position === 2 ? 'delay-200' : 'delay-300';
+    const delay = position === 1 ? 'anim-delay-500' : position === 2 ? 'anim-delay-200' : 'anim-delay-300';
 
     // Animate score from 0
     const animatedScore = useAnimatedProgress(item.aderencia, 1500, 500, isActive);

@@ -36,7 +36,7 @@ export const MessageItem = memo(function MessageItem({
       )}
     >
       <div className={cn(
-        'absolute -top-4 z-20 flex items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5 opacity-100 shadow-md transition-[opacity,transform] duration-150 lg:scale-95 lg:opacity-0 lg:group-hover:scale-100 lg:group-hover:opacity-100 lg:group-focus-within:scale-100 lg:group-focus-within:opacity-100 dark:border-slate-700 dark:bg-slate-950',
+        'pointer-events-none absolute -top-3.5 z-20 flex scale-95 items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5 opacity-0 shadow-md transition-[opacity,transform] duration-150 group-hover:pointer-events-auto group-hover:scale-100 group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:scale-100 group-focus-within:opacity-100 dark:border-slate-700 dark:bg-slate-950',
         isMe ? 'right-2' : 'left-2'
       )}>
         <button
@@ -72,7 +72,7 @@ export const MessageItem = memo(function MessageItem({
         <div className={cn(
           'mb-[-1px] w-full rounded-t-2xl border-x border-t px-3 py-1.5 text-[10px] font-bold uppercase tracking-[0.12em] opacity-95',
           isMe
-            ? 'border-blue-400/30 bg-blue-500/15 text-blue-100'
+            ? 'border-blue-300 bg-blue-100/90 text-blue-900 dark:border-blue-400/30 dark:bg-blue-500/20 dark:text-blue-100'
             : 'border-slate-200/80 bg-slate-100/80 text-slate-500 dark:border-slate-800/80 dark:bg-slate-900/80 dark:text-slate-400'
         )}>
           <div className="mb-0.5 flex items-center gap-1 opacity-80">
@@ -87,6 +87,7 @@ export const MessageItem = memo(function MessageItem({
 
       <div className={cn(
         'relative rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed shadow-sm transition-colors duration-150',
+        msg.replyTo && 'rounded-t-none',
         isMe
           ? 'rounded-br-md bg-blue-600 text-white'
           : 'rounded-bl-md border border-slate-200/80 bg-white/90 text-slate-800 dark:border-slate-800/80 dark:bg-slate-900/80 dark:text-slate-100',

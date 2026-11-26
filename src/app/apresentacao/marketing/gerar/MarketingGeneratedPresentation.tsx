@@ -3,6 +3,7 @@
 import React from 'react';
 import { AlertCircle, Loader2, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ViewTransition } from '@/components/ui/view-transition';
 import { MarketingReportSlides } from '@/app/apresentacao/marketing/components/MarketingReportSlides';
 import type { MarketingPresentationReport } from '@/utils/marketing/buildMarketingPresentation';
 
@@ -31,10 +32,13 @@ function formatShortRange(start: string, end: string) {
 function PresentationLoading() {
   return (
     <main role="status" aria-live="polite" className="flex min-h-screen items-center justify-center bg-slate-50 px-5 text-center text-slate-700 dark:bg-slate-950 dark:text-slate-200">
-      <div className="max-w-md">
+      <div className="w-full max-w-md rounded-2xl border border-slate-200/80 bg-white/90 p-7 shadow-sm dark:border-slate-800 dark:bg-slate-900/85">
         <Loader2 className="mx-auto h-8 w-8 animate-spin text-blue-700 motion-reduce:animate-none dark:text-sky-300" aria-hidden="true" />
         <h1 className="mt-5 text-lg font-semibold">Montando a apresentação</h1>
         <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-400">Consultando a pipeline Status e os custos da planilha importada. A primeira consulta pode levar alguns instantes.</p>
+        <div aria-hidden="true" className="mt-5 h-1.5 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+          <div className="dashboard-loading-progress h-full w-2/5 rounded-full bg-[#174d70] motion-reduce:animate-none dark:bg-sky-400" />
+        </div>
       </div>
     </main>
   );
@@ -72,44 +76,56 @@ export function MarketingGeneratedPresentation({ reportDate }: { reportDate: str
     return () => { active = false; };
   }, [reportDate, retry]);
 
-  if (loading && !report) return <PresentationLoading />;
+  const showLoading = loading && !report;
+  const showError = Boolean(!showLoading && (error || !report));
+  const viewStateKey = showLoading
+    ? 'mkt-generated-loading'
+    : showError
+      ? 'mkt-generated-error'
+      : 'mkt-generated-ready';
 
-  if (error || !report) {
-    return (
-      <main className="flex min-h-screen items-center justify-center bg-slate-50 px-5 dark:bg-slate-950">
-        <section role="alert" className="w-full max-w-xl rounded-xl border border-rose-200 bg-white p-6 text-slate-900 shadow-sm dark:border-rose-900/60 dark:bg-slate-900 dark:text-white sm:p-8">
-          <AlertCircle className="h-6 w-6 text-rose-600 dark:text-rose-300" aria-hidden="true" />
-          <h1 className="mt-4 text-lg font-semibold">Não foi possível montar a apresentação</h1>
-          <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{error || 'Nenhum dado foi recebido.'}</p>
-          <Button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-5 gap-2 bg-[#1e5d80] text-white hover:bg-[#174966]">
-            <RefreshCw className="h-4 w-4" aria-hidden="true" />Tentar novamente
-          </Button>
-        </section>
-      </main>
-    );
-  }
-
-  const period = report.monthEnd < report.monthStart
+  const period = report && report.monthEnd < report.monthStart
     ? 'Sem dados no período mensal'
-    : `${formatDate(report.monthStart)} a ${formatDate(report.monthEnd)}`;
-  const sourceNote = stale ? `${report.dataNote} A consulta do DataCrazy usou o último resultado disponível em cache.` : report.dataNote;
+    : report
+      ? `${formatDate(report.monthStart)} a ${formatDate(report.monthEnd)}`
+      : '';
+  const sourceNote = report
+    ? (stale ? `${report.dataNote} A consulta do DataCrazy usou o último resultado disponível em cache.` : report.dataNote)
+    : '';
 
   return (
-    <>
-      {stale ? <div role="status" className="fixed bottom-4 left-1/2 z-[100] -translate-x-1/2 rounded-full bg-amber-100 px-4 py-2 text-xs font-medium text-amber-950 shadow-lg dark:bg-amber-950 dark:text-amber-100">Dados operacionais em cache</div> : null}
-      <MarketingReportSlides
-        citiesData={report.citiesData}
-        evolutionData={report.evolutionData}
-        weeklyData={report.weeklyData}
-        weeklyDataByCity={report.weeklyDataByCity}
-        costsComparison={report.costsComparison}
-        titulo="APRESENTAÇÃO MARKETING"
-        periodoFormatado={period}
-        subtitulo="Resumo executivo e resultados por cidade"
-        sourceNote={sourceNote}
-        costsCurrentPeriod={formatShortRange(report.trafficCurrentStart, report.trafficCurrentEnd)}
-        costsPreviousPeriod={formatShortRange(report.trafficPreviousStart, report.trafficPreviousEnd)}
-      />
-    </>
+    <ViewTransition stateKey={viewStateKey} preventExitInteraction>
+      {showLoading ? (
+        <PresentationLoading />
+      ) : !report || error ? (
+        <main className="flex min-h-screen items-center justify-center bg-slate-50 px-5 dark:bg-slate-950">
+          <section role="alert" className="w-full max-w-xl rounded-xl border border-rose-200 bg-white p-6 text-slate-900 shadow-sm dark:border-rose-900/60 dark:bg-slate-900 dark:text-white sm:p-8">
+            <AlertCircle className="h-6 w-6 text-rose-600 dark:text-rose-300" aria-hidden="true" />
+            <h1 className="mt-4 text-lg font-semibold">Não foi possível montar a apresentação</h1>
+            <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{error || 'Nenhum dado foi recebido.'}</p>
+            <Button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-5 gap-2 bg-[#1e5d80] text-white hover:bg-[#174966]">
+              <RefreshCw className="h-4 w-4" aria-hidden="true" />Tentar novamente
+            </Button>
+          </section>
+        </main>
+      ) : (
+        <>
+          {stale ? <div role="status" className="fixed bottom-4 left-1/2 z-[100] -translate-x-1/2 rounded-full bg-amber-100 px-4 py-2 text-xs font-medium text-amber-950 shadow-lg dark:bg-amber-950 dark:text-amber-100">Dados operacionais em cache</div> : null}
+          <MarketingReportSlides
+            citiesData={report.citiesData}
+            evolutionData={report.evolutionData}
+            weeklyData={report.weeklyData}
+            weeklyDataByCity={report.weeklyDataByCity}
+            costsComparison={report.costsComparison}
+            titulo="APRESENTAÇÃO MARKETING"
+            periodoFormatado={period}
+            subtitulo="Resumo executivo e resultados por cidade"
+            sourceNote={sourceNote}
+            costsCurrentPeriod={formatShortRange(report.trafficCurrentStart, report.trafficCurrentEnd)}
+            costsPreviousPeriod={formatShortRange(report.trafficPreviousStart, report.trafficPreviousEnd)}
+          />
+        </>
+      )}
+    </ViewTransition>
   );
 }

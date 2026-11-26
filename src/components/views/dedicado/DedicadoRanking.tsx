@@ -6,6 +6,7 @@ import { normalizeMetricNumber } from './metrics';
 import { formatarHorasParaHMS } from '@/utils/formatters';
 import type { Entregador } from '@/types';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+import { LoadingNotice } from '@/components/ui/loading-notice';
 import { Button } from '@/components/ui/button';
 
 interface DedicadoRankingProps {
@@ -42,9 +43,11 @@ export function DedicadoRanking({ entregadores, loading, error, onRetry }: Dedic
     <Card className="min-w-0 overflow-hidden border-slate-200/70 bg-white/90 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/85">
       {loading ? (
         <CardContent className="pb-0 pt-6">
-          <p className="rounded-2xl border border-blue-200/70 bg-blue-50/80 px-4 py-3 text-sm font-semibold text-blue-800 shadow-sm dark:border-blue-900/50 dark:bg-blue-950/25 dark:text-blue-200">
-            Atualizando ranking dedicado com os filtros atuais...
-          </p>
+          <LoadingNotice
+            tone="blue"
+            message="Atualizando ranking dedicado com os filtros atuais"
+            detail="O ranking anterior continua visível durante a atualização."
+          />
         </CardContent>
       ) : null}
       {error ? (

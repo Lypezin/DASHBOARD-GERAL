@@ -24,7 +24,7 @@ export const PasswordStrengthIndicator = React.memo(function PasswordStrengthInd
 
   return (
     <div className="space-y-1.5">
-      <div className="flex h-1.5 overflow-hidden rounded-full bg-white/5">
+      <div className="flex h-1.5 overflow-hidden rounded-full bg-slate-200/80 dark:bg-slate-700/60">
         <div 
           className={`h-full transition-all duration-300 ${color}`}
           style={{ width: `${(strength / 5) * 100}%` }}

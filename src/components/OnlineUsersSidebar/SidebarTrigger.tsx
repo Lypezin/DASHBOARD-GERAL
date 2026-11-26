@@ -31,7 +31,7 @@ export function SidebarTrigger({
     return (
         <div
             className={cn(
-                'group fixed bottom-5 right-5 z-[99999] text-slate-700 transition-[transform,opacity,box-shadow,background-color,border-color] duration-200 ease-out dark:text-slate-100',
+                'group fixed bottom-5 right-5 z-[45] text-slate-700 transition-[transform,opacity,box-shadow,background-color,border-color,width] duration-200 ease-out dark:text-slate-100',
                 isOpen && 'pointer-events-none translate-y-4 opacity-0',
                 isMinimized
                     ? 'w-12'
@@ -42,13 +42,13 @@ export function SidebarTrigger({
                 <button
                     type="button"
                     onClick={handleOpen}
-                    className="relative flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white shadow-[0_12px_36px_rgba(15,23,42,0.14)] transition-[transform,background-color] hover:scale-[1.03] hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900"
+                    className="relative flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white shadow-[0_12px_36px_rgba(15,23,42,0.14)] transition-[transform,background-color] hover:scale-[1.03] hover:bg-slate-50 motion-safe:active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40 dark:border-slate-800 dark:bg-slate-950 dark:hover:bg-slate-900"
                     title="Mostrar painel da equipe"
                     aria-label="Mostrar painel da equipe"
                 >
                     <div className="relative flex h-9 w-9 items-center justify-center rounded-lg bg-blue-600 text-white transition-colors group-hover:bg-blue-700">
                         <MessageSquareMore size={18} aria-hidden="true" />
-                        <span className="absolute -right-1 -top-1 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-white dark:ring-slate-950" />
+                        <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-white dark:ring-slate-950" />
                         {unreadCount > 0 ? (
                             <span className="absolute -right-2 -top-2 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-rose-600 px-1 text-[10px] font-bold tabular-nums text-white ring-2 ring-white dark:ring-slate-950">
                                 {unreadCount > 9 ? '9+' : unreadCount}
@@ -80,7 +80,7 @@ export function SidebarTrigger({
                         <span className="absolute right-1 top-1 h-2 w-2 rounded-full bg-emerald-400 ring-2 ring-blue-600" />
                     </div>
 
-                    <div className="min-w-0 text-left">
+                    <div className="min-w-0 flex-1 text-left">
                         <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
                             Chat da equipe
                         </p>
@@ -88,14 +88,14 @@ export function SidebarTrigger({
                             {onlineCount} online · {unreadCount} não lidas
                         </p>
 
-                        <div className="mt-1 flex flex-wrap items-center gap-1.5">
-                            <span className="inline-flex items-center gap-1.5 text-[10px] font-medium text-slate-500 dark:text-slate-400">
-                                <Wifi size={10} />
-                                Abra para encontrar alguém e conversar
+                        <div className="mt-1 flex items-center gap-1.5">
+                            <Wifi size={10} className="shrink-0 text-slate-400" aria-hidden="true" />
+                            <span className="truncate text-[10px] font-medium text-slate-500 dark:text-slate-400">
+                                Abra para conversar
                             </span>
                         </div>
                     </div>
-                    <ChevronRight className="ml-auto h-4 w-4 text-slate-400" aria-hidden="true" />
+                    <ChevronRight className="ml-auto h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
                 </button>
                 </>
             )}

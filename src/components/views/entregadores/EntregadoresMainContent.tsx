@@ -32,17 +32,17 @@ function TopBottomPerformersSkeleton({ rows = 10 }: { rows?: number }) {
     >
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-2">
-          <div className="h-5 w-40 animate-pulse rounded bg-slate-200 motion-reduce:animate-none dark:bg-slate-700" />
-          <div className="h-4 w-64 max-w-full animate-pulse rounded bg-slate-100 motion-reduce:animate-none dark:bg-slate-800" />
+          <div className="dashboard-loading-shimmer h-5 w-40 rounded motion-reduce:animate-none" />
+          <div className="dashboard-loading-shimmer h-4 w-64 max-w-full rounded motion-reduce:animate-none" />
         </div>
-        <div className="h-10 w-32 animate-pulse rounded-2xl bg-slate-100 motion-reduce:animate-none dark:bg-slate-800" />
+        <div className="dashboard-loading-shimmer h-10 w-32 rounded-2xl motion-reduce:animate-none" />
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {[0, 1].map((column) => (
           <div key={column} className="space-y-3 rounded-2xl border border-slate-200/70 p-4 dark:border-slate-800/70">
-            <div className="h-5 w-36 animate-pulse rounded bg-slate-100 motion-reduce:animate-none dark:bg-slate-800" />
+            <div className="dashboard-loading-shimmer h-5 w-36 rounded motion-reduce:animate-none" />
             {Array.from({ length: rows }, (_, row) => (
-              <div key={row} className="h-10 animate-pulse rounded-lg bg-slate-50 motion-reduce:animate-none dark:bg-slate-900" />
+              <div key={row} className="dashboard-loading-shimmer h-10 rounded-lg motion-reduce:animate-none" />
             ))}
           </div>
         ))}
@@ -59,7 +59,21 @@ const DeferredTopBottomPerformers = dynamic(
 
 const DeferredEntregadorProfileDialog = dynamic(
   () => import('./EntregadorProfileDialog').then((mod) => ({ default: mod.EntregadorProfileDialog })),
-  { ssr: false }
+  {
+    ssr: false,
+    loading: () => (
+      <div
+        role="status"
+        aria-live="polite"
+        className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/35 backdrop-blur-[1px]"
+      >
+        <div className="flex items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:text-slate-200">
+          <span className="h-4 w-4 motion-safe:animate-spin rounded-full border-2 border-[#d6e3ea] border-t-[#174d70] dark:border-slate-700 dark:border-t-sky-300" aria-hidden="true" />
+          Abrindo perfil do entregador…
+        </div>
+      </div>
+    ),
+  }
 );
 
 interface EntregadoresMainContentProps {
@@ -256,147 +270,148 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
     onServerViewChange({ sortField, sortDirection, showInactiveOnly });
   }, [isDedicado, onServerViewChange, showInactiveOnly, sortDirection, sortField]);
 
-  if (loading && !hasEntregadores) {
-    return (
-      <ViewTransition stateKey={`${variant}-loading`} preventExitInteraction={!isDedicado}>
-        <EntregadoresLoading appearance={isDedicado ? 'default' : 'quiet'} />
-      </ViewTransition>
-    );
-  }
+  const showInitialLoading = loading && !hasEntregadores;
 
   return (
-    <ViewTransition stateKey={`${variant}-content`} preventExitInteraction={!isDedicado}>
-      <ViewContainer
-        data-entregadores-design={isDedicado ? undefined : 'v4'}
-        className={isDedicado ? 'space-y-5' : 'space-y-5'}
-      >
-        <EntregadoresHeader
-          onExport={handleExport}
-          isExporting={isExporting}
-          disableExport={loading || Boolean(error) || isRefreshing || isFilteringDeferred}
-          exportDisabledReason={error
-            ? 'A atualização falhou; tente novamente antes de exportar.'
-            : 'Aguarde a busca terminar para exportar os dados corretos.'}
-          title={isDedicado ? 'Entregadores por Origem' : undefined}
-          description={resolvedDescription}
-          periodoResolvido={entregadoresData?.periodo_resolvido}
-          variant={variant}
-        />
+    <ViewTransition
+      stateKey={showInitialLoading ? `${variant}-loading` : `${variant}-content`}
+      preventExitInteraction={!isDedicado}
+    >
+      {showInitialLoading ? (
+        <EntregadoresLoading appearance={isDedicado ? 'default' : 'quiet'} />
+      ) : (
+        <ViewContainer
+          data-entregadores-design={isDedicado ? undefined : 'v4'}
+          className={isDedicado ? 'space-y-5' : 'space-y-5 pb-10 pt-4'}
+        >
+          <EntregadoresHeader
+            onExport={handleExport}
+            isExporting={isExporting}
+            disableExport={loading || Boolean(error) || isRefreshing || isFilteringDeferred}
+            exportDisabledReason={error
+              ? 'A atualização falhou; tente novamente antes de exportar.'
+              : 'Aguarde a busca terminar para exportar os dados corretos.'}
+            title={isDedicado ? 'Entregadores por Origem' : undefined}
+            description={resolvedDescription}
+            periodoResolvido={entregadoresData?.periodo_resolvido}
+            variant={variant}
+          />
 
-        {error && !hasEntregadores ? (
-          <div role="alert" className="flex flex-col gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-rose-900 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
-              <div>
-                <p className="font-semibold">Não foi possível carregar os entregadores.</p>
-                <p className="mt-1 text-sm text-rose-800">Os indicadores não foram carregados. Tente novamente em instantes.</p>
+          {error && !hasEntregadores ? (
+            <div role="alert" className="flex flex-col gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-4 text-rose-900 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-100 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                <div>
+                  <p className="font-semibold">Não foi possível carregar os entregadores.</p>
+                  <p className="mt-1 text-sm text-rose-800 dark:text-rose-200">Os indicadores não foram carregados. Tente novamente em instantes.</p>
+                </div>
               </div>
+              {onRetry ? (
+                <button
+                  type="button"
+                  onClick={onRetry}
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl border border-rose-300 bg-white px-4 text-sm font-semibold text-rose-900 transition-colors hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2 dark:border-rose-800 dark:bg-rose-950/70 dark:text-rose-100 dark:hover:bg-rose-900/60"
+                >
+                  Tentar novamente
+                </button>
+              ) : null}
             </div>
-            {onRetry ? (
-              <button
-                type="button"
-                onClick={onRetry}
-                className="inline-flex min-h-10 items-center justify-center rounded-xl border border-rose-300 bg-white px-4 text-sm font-semibold text-rose-900 transition-colors hover:bg-rose-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500 focus-visible:ring-offset-2"
-              >
-                Tentar novamente
-              </button>
-            ) : null}
-          </div>
-        ) : null}
+          ) : null}
 
-        {error && hasEntregadores ? (
-          <div role="alert" className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-950 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
-              <div>
-                <p className="font-semibold">Não foi possível atualizar os entregadores.</p>
-                <p className="mt-1 text-sm text-amber-900">Os dados da consulta anterior continuam visíveis. Tente atualizar novamente.</p>
+          {error && hasEntregadores ? (
+            <div role="alert" className="flex flex-col gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-amber-950 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-100 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0" aria-hidden="true" />
+                <div>
+                  <p className="font-semibold">Não foi possível atualizar os entregadores.</p>
+                  <p className="mt-1 text-sm text-amber-900 dark:text-amber-200">Os dados da consulta anterior continuam visíveis. Tente atualizar novamente.</p>
+                </div>
               </div>
+              {onRetry ? (
+                <button
+                  type="button"
+                  onClick={onRetry}
+                  className="inline-flex min-h-10 items-center justify-center rounded-xl border border-amber-300 bg-white px-4 text-sm font-semibold text-amber-950 transition-colors hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 dark:border-amber-800 dark:bg-amber-950/70 dark:text-amber-100 dark:hover:bg-amber-900/60"
+                >
+                  Tentar novamente
+                </button>
+              ) : null}
             </div>
-            {onRetry ? (
-              <button
-                type="button"
-                onClick={onRetry}
-                className="inline-flex min-h-10 items-center justify-center rounded-xl border border-amber-300 bg-white px-4 text-sm font-semibold text-amber-950 transition-colors hover:bg-amber-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2"
-              >
-                Tentar novamente
-              </button>
-            ) : null}
-          </div>
-        ) : null}
+          ) : null}
 
-        {error && !hasEntregadores ? null : (
-          <FilteredDataTransition
-            isUpdating={isUpdatingResults}
-            className={isDedicado ? 'space-y-5' : 'space-y-4'}
-          >
-            <EntregadoresMainStatsCards
-              variant={variant}
-              totalEntregadores={displayStats.totalEntregadores}
-              aderenciaMedia={displayStats.aderenciaMedia}
-              rejeicaoMedia={displayStats.rejeicaoMedia}
-              totalCorridas={displayStats.totalCorridasCompletadas}
-              totalHoras={formatarHorasParaHMS(displayStats.totalSegundos / 3600)}
-              totalTitle={isDedicado ? 'Total de Entregadores' : undefined}
-              totalSubtext={isDedicado ? 'Entregadores nas origens do filtro' : undefined}
-              corridasTitle={isDedicado ? 'Completadas' : undefined}
-              corridasSubtext={isDedicado ? 'Total completado nas origens' : undefined}
-            />
-
-            <EntregadoresMainSearch
-              variant={variant}
-              searchTerm={effectiveSearchTerm}
-              onSearchChange={handleSearchChange}
-              showInactiveOnly={showInactiveOnly}
-              onShowInactiveOnlyChange={setShowInactiveOnly}
-              isSearching={isUpdatingResults}
-            />
-
-            <FilterRefreshIndicator
-              isLoading={isUpdatingResults}
-              viewName="a lista de entregadores"
-              appearance={isDedicado ? 'default' : 'quiet'}
-            />
-
-            <EntregadoresMainTable
-              variant={variant}
-              sortedEntregadores={sortedEntregadores}
-              sortField={sortField}
-              sortDirection={sortDirection}
-              onSort={handleSort}
-              searchTerm={effectiveSearchTerm}
-              onRowClick={handleRowClick}
+          {error && !hasEntregadores ? null : (
+            <FilteredDataTransition
               isUpdating={isUpdatingResults}
-              serverPagination={serverPage ? {
-                ...serverPage,
-                loadedPage: entregadoresData?.page,
-                totalItems: entregadoresData?.total ?? 0,
-              } : undefined}
-            />
-
-            {isDedicado && hasPerformers ? (
-              showPerformers ? (
-                <DeferredTopBottomPerformers
-                  entregadores={sortedEntregadores}
-                  totalEntregadores={displayStats.totalEntregadores}
-                />
-              ) : <TopBottomPerformersSkeleton rows={Math.min(10, Math.max(1, Math.floor(performerCount)))} />
-            ) : null}
-
-            {selectedEntregador ? (
-              <DeferredEntregadorProfileDialog
-                entregador={selectedEntregador}
-                open={profileOpen}
-                onOpenChange={setProfileOpen}
-                organizationId={organizationId || undefined}
+              className={isDedicado ? 'space-y-5' : 'space-y-4'}
+            >
+              <EntregadoresMainStatsCards
                 variant={variant}
-                filterPayload={filterPayload}
-                requestScopeKey={requestScopeKey}
+                totalEntregadores={displayStats.totalEntregadores}
+                aderenciaMedia={displayStats.aderenciaMedia}
+                rejeicaoMedia={displayStats.rejeicaoMedia}
+                totalCorridas={displayStats.totalCorridasCompletadas}
+                totalHoras={formatarHorasParaHMS(displayStats.totalSegundos / 3600)}
+                totalTitle={isDedicado ? 'Total de Entregadores' : undefined}
+                totalSubtext={isDedicado ? 'Entregadores nas origens do filtro' : undefined}
+                corridasTitle={isDedicado ? 'Completadas' : undefined}
+                corridasSubtext={isDedicado ? 'Total completado nas origens' : undefined}
               />
-            ) : null}
-          </FilteredDataTransition>
-        )}
-      </ViewContainer>
+
+              <EntregadoresMainSearch
+                variant={variant}
+                searchTerm={effectiveSearchTerm}
+                onSearchChange={handleSearchChange}
+                showInactiveOnly={showInactiveOnly}
+                onShowInactiveOnlyChange={setShowInactiveOnly}
+                isSearching={isUpdatingResults}
+              />
+
+              <FilterRefreshIndicator
+                isLoading={isUpdatingResults}
+                viewName="a lista de entregadores"
+                appearance={isDedicado ? 'default' : 'quiet'}
+              />
+
+              <EntregadoresMainTable
+                variant={variant}
+                sortedEntregadores={sortedEntregadores}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+                searchTerm={effectiveSearchTerm}
+                onRowClick={handleRowClick}
+                isUpdating={isUpdatingResults}
+                serverPagination={serverPage ? {
+                  ...serverPage,
+                  loadedPage: entregadoresData?.page,
+                  totalItems: entregadoresData?.total ?? 0,
+                } : undefined}
+              />
+
+              {isDedicado && hasPerformers ? (
+                showPerformers ? (
+                  <DeferredTopBottomPerformers
+                    entregadores={sortedEntregadores}
+                    totalEntregadores={displayStats.totalEntregadores}
+                  />
+                ) : <TopBottomPerformersSkeleton rows={Math.min(10, Math.max(1, Math.floor(performerCount)))} />
+              ) : null}
+
+              {selectedEntregador ? (
+                <DeferredEntregadorProfileDialog
+                  entregador={selectedEntregador}
+                  open={profileOpen}
+                  onOpenChange={setProfileOpen}
+                  organizationId={organizationId || undefined}
+                  variant={variant}
+                  filterPayload={filterPayload}
+                  requestScopeKey={requestScopeKey}
+                />
+              ) : null}
+            </FilteredDataTransition>
+          )}
+        </ViewContainer>
+      )}
     </ViewTransition>
   );
 });

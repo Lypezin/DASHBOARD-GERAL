@@ -72,8 +72,8 @@ export function FileList({ files, onRemove, disabled = false, variant = 'default
       {files.map((file, index) => (
         <div
           key={index}
-          className={`group/item flex items-center gap-3 rounded-xl border ${styles.border} bg-white p-3 transition-all duration-200 hover:bg-slate-50/80 dark:bg-slate-900/40 dark:hover:bg-slate-800/60 animate-in fade-in slide-in-from-top-1 duration-200`}
-          style={{ animationDelay: `${index * 50}ms` }}
+          className={`group/item flex items-center gap-3 rounded-xl border ${styles.border} bg-white p-3 transition-[background-color,border-color] duration-200 hover:bg-slate-50/80 dark:bg-slate-900/40 dark:hover:bg-slate-800/60 animate-in fade-in slide-in-from-top-1 duration-200`}
+          style={{ animationDelay: `${index * 50}ms`, animationFillMode: 'both' }}
         >
           {/* File Icon */}
           <div className={`flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg ${styles.iconBg}`}>
@@ -83,14 +83,14 @@ export function FileList({ files, onRemove, disabled = false, variant = 'default
           {/* File Info */}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-slate-900 dark:text-white truncate">{file.name}</p>
-            <div className="flex items-center gap-3 mt-0.5">
+            <div className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1">
               <span className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
-                <HardDrive className="h-3 w-3" />
+                <HardDrive className="h-3 w-3 shrink-0" />
                 {formatFileSize(file.size)}
               </span>
               {file.lastModified && (
                 <span className="flex items-center gap-1 text-[11px] text-slate-400 dark:text-slate-500">
-                  <Clock className="h-3 w-3" />
+                  <Clock className="h-3 w-3 shrink-0" />
                   {formatDate(file.lastModified)}
                 </span>
               )}
@@ -102,9 +102,11 @@ export function FileList({ files, onRemove, disabled = false, variant = 'default
 
           {/* Remove Button */}
           <button
+            type="button"
             onClick={() => onRemove(index)}
             disabled={disabled}
-            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 transition-all hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-950/30 dark:hover:text-rose-400 disabled:opacity-40 disabled:pointer-events-none opacity-0 group-hover/item:opacity-100"
+            aria-label={`Remover ${file.name}`}
+            className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg text-slate-400 opacity-100 transition-[opacity,background-color,color] duration-150 hover:bg-rose-50 hover:text-rose-500 focus-visible:opacity-100 disabled:pointer-events-none disabled:opacity-40 sm:opacity-0 sm:group-hover/item:opacity-100 dark:hover:bg-rose-950/30 dark:hover:text-rose-400"
             title="Remover arquivo"
           >
             <X className="h-4 w-4" />

@@ -6,6 +6,7 @@ import { ComparacaoOrigemTable } from './ComparacaoOrigemTable';
 import { ViewModeToggle } from './components/ViewModeToggle';
 import { SaasPanel } from '@/components/views/shared/SaasPrimitives';
 import { ComparacaoPanelHeader } from './ComparacaoSectionWrapper';
+import { ViewTransition } from '@/components/ui/view-transition';
 
 interface ComparacaoOrigemSectionProps {
     dadosComparacao: DashboardResumoData[];
@@ -31,24 +32,26 @@ export const ComparacaoOrigemSection = React.memo(function ComparacaoOrigemSecti
                 title="Por origem"
                 description="Comparativo por canal operacional."
                 icon={Route}
-                actions={<ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} size="sm" />}
+                actions={<ViewModeToggle viewMode={viewMode} onViewModeChange={onViewModeChange} size="sm" layoutId="comparacao-view-origem" />}
             />
-            {viewMode === 'table' ? (
-                <ComparacaoOrigemTable
-                    semanasSelecionadas={semanasSelecionadas}
-                    dadosComparacao={dadosComparacao}
-                />
-            ) : (
-                <div className="p-4 sm:p-5">
-                    <ComparacaoCharts
-                        dadosComparacao={dadosComparacao}
+            <ViewTransition stateKey={`origem-${viewMode}`} preventExitInteraction>
+                {viewMode === 'table' ? (
+                    <ComparacaoOrigemTable
                         semanasSelecionadas={semanasSelecionadas}
-                        viewMode={viewMode}
-                        chartType="origem"
-                        origensDisponiveis={origensDisponiveis}
+                        dadosComparacao={dadosComparacao}
                     />
-                </div>
-            )}
+                ) : (
+                    <div className="p-4 sm:p-5">
+                        <ComparacaoCharts
+                            dadosComparacao={dadosComparacao}
+                            semanasSelecionadas={semanasSelecionadas}
+                            viewMode={viewMode}
+                            chartType="origem"
+                            origensDisponiveis={origensDisponiveis}
+                        />
+                    </div>
+                )}
+            </ViewTransition>
         </SaasPanel>
     );
 });

@@ -33,9 +33,9 @@ export const ResetPasswordForm = React.memo(function ResetPasswordForm() {
     return (
         <>
             <div className="mb-8 text-center">
-                <h2 className="mb-2 text-2xl font-bold text-slate-800">Nova Senha</h2>
-                <p className="text-sm font-medium text-slate-500">
-                    {checkingRecovery ? 'Validando seu link de redefinicao...' : 'Crie uma senha forte para sua conta'}
+                <h2 className="mb-2 text-2xl font-bold text-slate-800 dark:text-slate-100">Nova Senha</h2>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
+                    {checkingRecovery ? 'Validando seu link de redefinição...' : 'Crie uma senha forte para sua conta'}
                 </p>
             </div>
 
@@ -70,11 +70,11 @@ export const ResetPasswordForm = React.memo(function ResetPasswordForm() {
                 <Button
                     type="submit"
                     disabled={loading || checkingRecovery || !canReset || password !== confirmPassword || password.length < 6}
-                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white h-11 px-8 shadow-lg shadow-blue-500/25 border-0 transition-all active:scale-[0.98]"
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white h-11 px-8 shadow-lg shadow-blue-500/25 border-0"
                 >
                     {loading || checkingRecovery ? (
                         <>
-                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
                             {checkingRecovery ? 'Validando link...' : 'Redefinindo...'}
                         </>
                     ) : (

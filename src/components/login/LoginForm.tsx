@@ -65,20 +65,15 @@ export const LoginForm = React.memo(function LoginForm({
 
         {/* Submit Button */}
         <Button type="submit" disabled={loading} className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white h-11 px-8 shadow-lg shadow-blue-500/25 border-0">
-          {loading ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" /> Entrando...</> : <>Entrar <ArrowRight className="ml-2 h-4 w-4" /></>}
+          {loading ? <><Loader2 className="h-4 w-4 motion-safe:animate-spin" /> Entrando...</> : <>Entrar <ArrowRight className="h-4 w-4" /></>}
         </Button>
       </form>
 
       {/* Divider */}
-      <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-slate-200" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-transparent px-2 text-slate-400 font-medium">
-            ou
-          </span>
-        </div>
+      <div className="my-6 flex items-center gap-3 text-xs uppercase text-slate-400">
+        <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
+        <span className="font-medium">ou</span>
+        <span className="h-px flex-1 bg-slate-200 dark:bg-slate-700" />
       </div>
 
       {/* Register Link */}

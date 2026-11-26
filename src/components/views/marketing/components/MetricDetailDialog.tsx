@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Eye, ArrowUpRight, ArrowDownRight, RotateCcw } from 'lucide-react';
+import { Eye, Loader2, ArrowUpRight, ArrowDownRight, RotateCcw } from 'lucide-react';
 import { MetricDetailList } from './MetricDetailList';
 import { DesistenciasList } from './DesistenciasList';
 import { CITY_DB_MAPPING } from '@/constants/marketing';
@@ -162,15 +162,23 @@ export const MetricDetailDialog: React.FC<MetricDetailDialogProps> = ({
                 <ScrollArea className="max-h-[60vh] w-full px-5 pb-4">
                     <div className="space-y-4">
                         {loadingDetails && (
-                            <div className="text-sm text-slate-500 text-center py-4">Carregando nomes...</div>
+                            <div role="status" aria-live="polite" className="space-y-2.5 py-4">
+                                <div className="flex items-center justify-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                                    <Loader2 className="h-4 w-4 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+                                    Carregando nomes...
+                                </div>
+                                <div className="dashboard-loading-shimmer h-7 w-full rounded-md motion-reduce:animate-none" />
+                                <div className="dashboard-loading-shimmer h-7 w-5/6 rounded-md motion-reduce:animate-none" />
+                                <div className="dashboard-loading-shimmer h-7 w-4/6 rounded-md motion-reduce:animate-none" />
+                            </div>
                         )}
 
                         {detailsError && (
-                            <div className="text-sm text-rose-500 text-center py-4">{detailsError}</div>
+                            <div role="alert" className="py-4 text-center text-sm text-rose-500 dark:text-rose-400">{detailsError}</div>
                         )}
 
                         {!loadingDetails && !detailsError && hasNoRecords && (
-                            <div className="text-sm text-slate-500 text-center py-4">Nenhum registro.</div>
+                            <div className="py-4 text-center text-sm text-slate-500 dark:text-slate-400">Nenhum registro.</div>
                         )}
 
                         <MetricDetailList

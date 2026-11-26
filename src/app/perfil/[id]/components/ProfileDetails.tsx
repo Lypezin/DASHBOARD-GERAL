@@ -1,4 +1,4 @@
-import { Activity, Clock3, Shield, User2 } from 'lucide-react';
+import { Activity, Clock3, Loader2, Shield, User2 } from 'lucide-react';
 import { PublicProfileData } from '../types';
 import { SaasPanel, SaasPanelHeader } from '@/components/views/shared/SaasPrimitives';
 import type { ElementType, ReactNode } from 'react';
@@ -45,9 +45,14 @@ export function ProfileDetails({ profile, loading }: ProfileDetailsProps) {
         ) : null}
 
         {loading ? (
-          <p className="rounded-2xl border border-slate-200/70 bg-slate-50/80 px-4 py-3 text-sm font-medium text-slate-500 dark:border-slate-800/80 dark:bg-slate-900/55 dark:text-slate-400">
-            Carregando informações adicionais do perfil...
-          </p>
+          <div
+            role="status"
+            aria-live="polite"
+            className="flex items-center gap-3 rounded-2xl border border-slate-200/70 bg-slate-50/80 px-4 py-3 text-sm font-medium text-slate-600 dark:border-slate-800/80 dark:bg-slate-900/55 dark:text-slate-300"
+          >
+            <Loader2 className="h-4 w-4 shrink-0 motion-safe:animate-spin text-blue-600 dark:text-blue-400" aria-hidden="true" />
+            <span>Carregando informações adicionais do perfil...</span>
+          </div>
         ) : null}
       </div>
     </SaasPanel>

@@ -73,7 +73,7 @@ const SlideResumoDemandaOrigem: React.FC<SlideResumoDemandaOrigemProps> = ({
                                 <th className="px-2 py-2.5 text-center">Var</th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-150 dark:divide-slate-800">
+                        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                             {itens.map((item) => {
                                 const mOfertadas = getMetrica(item, 'Ofertadas');
                                 const mAceitas = getMetrica(item, 'Aceitas');
@@ -97,7 +97,7 @@ const SlideResumoDemandaOrigem: React.FC<SlideResumoDemandaOrigemProps> = ({
                                 return (
                                     <tr 
                                         key={item.nome} 
-                                        className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors odd:bg-white even:bg-slate-50/20 dark:odd:bg-slate-900 dark:even:bg-slate-850/10"
+                                        className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors odd:bg-white even:bg-slate-50/20 dark:odd:bg-slate-900 dark:even:bg-slate-800/30"
                                     >
                                         {/* Name */}
                                         <td className="px-5 py-3 text-left font-bold text-slate-800 dark:text-slate-100 text-[12px] tracking-wide uppercase truncate max-w-[200px]" title={item.nome}>

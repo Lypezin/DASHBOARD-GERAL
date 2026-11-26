@@ -25,7 +25,7 @@ export const SubPracaCard: React.FC<SubPracaCardProps> = ({
         <div
             onClick={() => onClick(item)}
             className={`rounded-2xl bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 border border-slate-200 dark:border-slate-700 shadow-lg ${isSingleItem ? 'w-full max-w-7xl mx-auto' : 'min-h-[360px] flex flex-col'} animate-slide-up cursor-pointer hover:scale-[1.02] transition-transform duration-200`}
-            style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'forwards' }}
+            style={{ animationDelay: `${index * 100}ms`, animationFillMode: 'both' }}
         >
             {/* Card Header - Fixed height for alignment */}
             <div className="bg-gradient-to-r from-blue-800 to-blue-600 dark:from-blue-900 dark:to-blue-800 px-5 py-3 flex items-center justify-between gap-4 h-[5.5rem] flex-shrink-0 rounded-t-2xl">
@@ -66,7 +66,7 @@ export const SubPracaCard: React.FC<SubPracaCardProps> = ({
                 </div>
 
                 {/* Variations Row */}
-                <div className="grid grid-cols-3 gap-2 lg:gap-3 animate-float-up w-full mt-auto" style={{ animationDelay: '400ms', animationFillMode: 'forwards' }}>
+                <div className="grid grid-cols-3 gap-2 lg:gap-3 animate-float-up w-full mt-auto" style={{ animationDelay: '400ms', animationFillMode: 'both' }}>
                     {item.variacoes.map((variacao) => (
                         <VariationBadge
                             key={variacao.label}

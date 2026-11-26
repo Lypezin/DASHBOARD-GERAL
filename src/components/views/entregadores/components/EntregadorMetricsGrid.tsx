@@ -22,6 +22,18 @@ export const EntregadorMetricsGrid = React.memo(function EntregadorMetricsGrid({
   const percentualAceitas = calcularPercentualAceitas(entregador);
   const percentualCompletadas = calcularPercentualCompletadas(entregador);
 
+  const renderDynamicValue = (value: string) => {
+    if (value === 'Carregando...') {
+      return (
+        <span role="status" className="inline-flex items-center">
+          <span className="dashboard-loading-shimmer inline-block h-4 w-24 rounded align-middle motion-reduce:animate-none" aria-hidden="true" />
+          <span className="sr-only">Carregando…</span>
+        </span>
+      );
+    }
+    return value;
+  };
+
   const highlights = [
     { label: 'Corridas completadas', value: entregador.corridas_completadas.toLocaleString('pt-BR'), icon: Activity, color: 'text-sky-700 dark:text-sky-300', tint: 'bg-sky-100 dark:bg-sky-400/10' },
     { label: 'Aderência', value: `${entregador.aderencia_percentual.toFixed(1)}%`, icon: Target, color: 'text-blue-700 dark:text-blue-300', tint: 'bg-blue-100 dark:bg-blue-400/10' },
@@ -46,11 +58,11 @@ export const EntregadorMetricsGrid = React.memo(function EntregadorMetricsGrid({
         <div className="mt-3 grid gap-3 rounded-xl border border-slate-200/80 bg-slate-50/70 px-4 py-3.5 dark:border-slate-800 dark:bg-slate-900/45 sm:grid-cols-2 sm:gap-5">
           <div className="flex min-w-0 items-start gap-2.5">
             <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
-            <div className="min-w-0"><p className="text-xs text-slate-500 dark:text-slate-400">Cidade na última aparição</p><p className="mt-1 break-words text-sm font-semibold text-slate-900 dark:text-slate-100">{cityLabel}</p></div>
+            <div className="min-w-0"><p className="text-xs text-slate-500 dark:text-slate-400">Cidade na última aparição</p><div className="mt-1 break-words text-sm font-semibold text-slate-900 dark:text-slate-100">{renderDynamicValue(cityLabel)}</div></div>
           </div>
           <div className="flex min-w-0 items-start gap-2.5">
             <CalendarDays className="mt-0.5 h-4 w-4 shrink-0 text-sky-700 dark:text-sky-300" aria-hidden="true" />
-            <div className="min-w-0"><p className="text-xs text-slate-500 dark:text-slate-400">Última aparição</p><p className="mt-1 break-words text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100">{lastSeenLabel}</p></div>
+            <div className="min-w-0"><p className="text-xs text-slate-500 dark:text-slate-400">Última aparição</p><div className="mt-1 break-words text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100">{renderDynamicValue(lastSeenLabel)}</div></div>
           </div>
         </div>
       </section>
@@ -70,7 +82,7 @@ export const EntregadorMetricsGrid = React.memo(function EntregadorMetricsGrid({
                 </span>
                 <span className="text-[11px] font-semibold leading-tight text-slate-500 dark:text-slate-400">{metric.label}</span>
               </div>
-              <p className="truncate text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100" title={metric.value}>{metric.value}</p>
+              <div className="truncate text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100" title={metric.value}>{renderDynamicValue(metric.value)}</div>
             </div>
           ))}
         </div>

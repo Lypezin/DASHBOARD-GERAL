@@ -16,7 +16,7 @@ export const FilterModeSwitch: React.FC<FilterModeSwitchProps> = ({ isModoInterv
         "select-none pl-1 text-[11px] font-semibold text-slate-400",
         appearance === 'quiet' && "pl-0 text-slate-600 dark:text-slate-300"
       )}>
-        Periodo
+        Período
       </span>
       <div className={cn(
         "flex h-10 w-full items-center gap-2 rounded-xl border border-slate-200/80 bg-white px-3 text-xs shadow-sm transition-[border-color,background-color,box-shadow] duration-200 hover:border-blue-300 dark:border-slate-800 dark:bg-slate-900 dark:hover:border-blue-500/50 sm:w-auto",
@@ -48,7 +48,7 @@ export const FilterModeSwitch: React.FC<FilterModeSwitchProps> = ({ isModoInterv
           <span
             className={cn(
               "inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200",
-              isModoIntervalo ? "translate-x-4" : "translate-x-0.5"
+              isModoIntervalo ? "translate-x-[18px]" : "translate-x-0.5"
             )}
           />
         </button>

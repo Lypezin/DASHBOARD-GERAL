@@ -7,7 +7,10 @@ export const useAnimatedProgress = (targetValue: number, duration: number = 1000
     const [progress, setProgress] = useState(isCapturing ? targetValue : 0);
 
     useEffect(() => {
-        if (isCapturing) {
+        const prefersReducedMotion = typeof window !== 'undefined'
+            && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        if (isCapturing || prefersReducedMotion) {
             setProgress(targetValue);
             return;
         }

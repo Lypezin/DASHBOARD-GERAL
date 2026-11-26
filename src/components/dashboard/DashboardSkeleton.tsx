@@ -7,14 +7,13 @@ interface DashboardSkeletonProps {
 }
 
 const FILTER_SKELETONS = Array.from({ length: 4 });
-const TAB_SKELETONS = Array.from({ length: 5 });
 const LIST_SKELETONS = Array.from({ length: 3 });
 const SUMMARY_CARD_SKELETONS = Array.from({ length: 3 });
 const SECONDARY_CHART_SKELETONS = Array.from({ length: 2 });
 
 export function DashboardSkeleton({ contentOnly = false }: DashboardSkeletonProps) {
     return (
-        <div className="space-y-4 motion-safe:animate-fade-in w-full">
+        <div role="status" aria-busy="true" aria-label="Carregando painel" className="space-y-4 motion-safe:animate-fade-in w-full">
             {/* Filtros Skeleton */}
             {!contentOnly && (
                 <div className="grid grid-cols-1 gap-4 rounded-3xl border border-slate-200/70 bg-white/90 p-4 shadow-[0_16px_42px_-38px_rgba(15,23,42,0.55)] dark:border-slate-800/70 dark:bg-slate-900/80 md:grid-cols-2 lg:grid-cols-4">
@@ -24,17 +23,6 @@ export function DashboardSkeleton({ contentOnly = false }: DashboardSkeletonProp
                             <Skeleton className="h-11 w-full rounded-2xl" />
                         </div>
                     ))}
-                </div>
-            )}
-
-            {/* Tabs Skeleton */}
-            {!contentOnly && (
-                <div className="w-full">
-                    <div className="subtle-scrollbar flex gap-2 overflow-x-auto pb-2">
-                        {TAB_SKELETONS.map((_, i) => (
-                            <Skeleton key={i} className="h-11 w-32 rounded-2xl" />
-                        ))}
-                    </div>
                 </div>
             )}
 

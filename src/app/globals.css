@@ -92,24 +92,6 @@
     background-image: radial-gradient(hsl(var(--foreground) / 0.05) 1.2px, transparent 1.2px);
   }
 
-  /* Blur-in animation */
-  .animate-blur-in {
-    animation: blur-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-
-  @keyframes blur-in {
-    0% {
-      opacity: 0;
-      filter: blur(16px);
-      transform: scale(0.97);
-    }
-    100% {
-      opacity: 1;
-      filter: blur(0px);
-      transform: scale(1);
-    }
-  }
-
   @keyframes loading-bar {
     0% {
       transform: translateX(-110%);
@@ -144,7 +126,7 @@
   }
 
   .theme-switching,
-  .theme-switching *,
+  .theme-switching *:not([data-theme-toggle-icon]),
   .theme-switching *::before,
   .theme-switching *::after {
     transition: none !important;

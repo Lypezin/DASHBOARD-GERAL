@@ -1,5 +1,6 @@
 import React from 'react';
 import { Calendar, BarChart2 } from 'lucide-react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
 interface EvolucaoViewToggleProps {
@@ -30,20 +31,30 @@ function ToggleButton({
     icon: React.ElementType;
     label: string;
 }) {
+    const prefersReducedMotion = useReducedMotion();
+
     return (
         <button
             onClick={onClick}
             type="button"
             aria-pressed={active}
             className={cn(
-                "inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#38708e] focus-visible:ring-offset-1 motion-reduce:transition-none",
+                "relative inline-flex h-9 items-center gap-2 rounded-md px-3 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#38708e] focus-visible:ring-offset-1 motion-reduce:transition-none",
                 active
-                    ? "bg-white text-[#174d70] shadow-sm dark:bg-slate-800 dark:text-sky-200"
+                    ? "text-[#174d70] dark:text-sky-200"
                     : "text-slate-600 hover:text-[#183f58] dark:text-slate-400 dark:hover:text-slate-100"
             )}
         >
-            <Icon className="h-4 w-4" />
-            {label}
+            {active ? (
+                <motion.span
+                    layoutId="evolucao-view-toggle-pill"
+                    transition={prefersReducedMotion ? { duration: 0.01 } : { type: 'spring', stiffness: 420, damping: 32 }}
+                    className="absolute inset-0 rounded-md bg-white shadow-sm dark:bg-slate-800"
+                    aria-hidden="true"
+                />
+            ) : null}
+            <Icon className="relative z-10 h-4 w-4" aria-hidden="true" />
+            <span className="relative z-10">{label}</span>
         </button>
     );
 }

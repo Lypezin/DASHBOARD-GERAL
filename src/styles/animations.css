@@ -83,28 +83,28 @@
   to { transform: scale(1); }
 }
 
-.animate-slide-up { animation: slide-up 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; }
-.animate-slide-down { animation: slide-down 0.24s ease-out; }
-.animate-scale-in { animation: scale-in 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; }
-.animate-pop-in { animation: pop-in 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
+.animate-slide-up { animation: slide-up 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.animate-slide-down { animation: slide-down 0.24s ease-out both; }
+.animate-scale-in { animation: scale-in 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.animate-pop-in { animation: pop-in 0.34s cubic-bezier(0.175, 0.885, 0.32, 1.275) both; }
 .animate-pulse-scale { animation: pulse-scale 3s infinite ease-in-out; }
 
 /* Presentation animations */
-.animate-slide-in-left { animation: slide-in-left 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; }
-.animate-slide-in-right { animation: slide-in-right 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; }
-.animate-float-up { animation: float-up 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; }
+.animate-slide-in-left { animation: slide-in-left 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.animate-slide-in-right { animation: slide-in-right 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+.animate-float-up { animation: float-up 0.32s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
 .animate-glow-pulse { animation: glow-pulse 4s infinite ease-in-out; }
-.animate-count-in { animation: count-in 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; }
+.animate-count-in { animation: count-in 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
 
-/* Staggered animation delays */
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
-.delay-400 { animation-delay: 400ms; }
-.delay-500 { animation-delay: 500ms; }
-.delay-600 { animation-delay: 600ms; }
-.delay-700 { animation-delay: 700ms; }
-.delay-800 { animation-delay: 800ms; }
+/* Staggered animation delays (isolated from Tailwind transition-delay .delay-*) */
+.anim-delay-100 { animation-delay: 100ms; }
+.anim-delay-200 { animation-delay: 200ms; }
+.anim-delay-300 { animation-delay: 300ms; }
+.anim-delay-400 { animation-delay: 400ms; }
+.anim-delay-500 { animation-delay: 500ms; }
+.anim-delay-600 { animation-delay: 600ms; }
+.anim-delay-700 { animation-delay: 700ms; }
+.anim-delay-800 { animation-delay: 800ms; }
 
 /* City updates ticker animations */
 @keyframes city-updates-spin {
@@ -169,41 +169,46 @@
 /* Apply to a visible slide container to cascade animations on children */
 .slide-animate > header,
 .slide-animate > .slide-anim-header {
-  opacity: 0;
-  animation: slide-header-enter 0.38s cubic-bezier(0.22, 0.61, 0.36, 1) 0.06s forwards;
+  animation: slide-header-enter 0.38s cubic-bezier(0.22, 0.61, 0.36, 1) 0.06s both;
 }
 
 .slide-animate > header .h-1\.5,
-.slide-animate > header [class*="bg-gradient"],
 .slide-animate .slide-anim-bar {
   transform-origin: left center;
-  animation: slide-bar-expand 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) 0.22s forwards;
-  transform: scaleX(0);
+  animation: slide-bar-expand 0.5s cubic-bezier(0.22, 0.61, 0.36, 1) 0.22s both;
 }
 
 /* Primary content blocks — tables, cards grids, main content */
-.slide-animate > div:not(header),
+.slide-animate > div:not(header):not([data-slide-static]):not([role="dialog"]),
 .slide-animate > .slide-anim-content {
-  opacity: 0;
-  animation: slide-content-fade-rise 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) 0.15s forwards;
+  animation: slide-content-fade-rise 0.42s cubic-bezier(0.22, 0.61, 0.36, 1) 0.15s both;
 }
 
 /* Second-level children get staggered delays */
-.slide-animate > div:nth-child(3) {
+.slide-animate > div:not([data-slide-static]):not([role="dialog"]):nth-child(3) {
   animation-delay: 0.22s;
 }
 
-.slide-animate > div:nth-child(4) {
+.slide-animate > div:not([data-slide-static]):not([role="dialog"]):nth-child(4) {
   animation-delay: 0.28s;
 }
 
-.slide-animate > div:nth-child(5) {
+.slide-animate > div:not([data-slide-static]):not([role="dialog"]):nth-child(5) {
   animation-delay: 0.34s;
 }
 
 .slide-animate > p {
-  opacity: 0;
-  animation: slide-content-fade-rise 0.36s cubic-bezier(0.22, 0.61, 0.36, 1) 0.12s forwards;
+  animation: slide-content-fade-rise 0.36s cubic-bezier(0.22, 0.61, 0.36, 1) 0.12s both;
+}
+
+.pdf-export-static,
+.pdf-export-static *,
+.pdf-export-static *::before,
+.pdf-export-static *::after {
+  animation: none !important;
+  transition: none !important;
+  opacity: 1 !important;
+  transform: none !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -224,9 +229,8 @@
   .slide-animate > header,
   .slide-animate > .slide-anim-header,
   .slide-animate > header .h-1\.5,
-  .slide-animate > header [class*="bg-gradient"],
   .slide-animate .slide-anim-bar,
-  .slide-animate > div:not(header),
+  .slide-animate > div:not(header):not([data-slide-static]):not([role="dialog"]),
   .slide-animate > .slide-anim-content,
   .slide-animate > p {
     animation: none !important;
