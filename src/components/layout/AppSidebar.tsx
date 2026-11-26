@@ -21,7 +21,7 @@ export function AppSidebar() {
   const { activeTab, handleTabChange } = useDashboardTabs();
   const { user } = useHeaderAuth();
   const avatarUrl = useHeaderAvatar(user);
-  const shouldReduceMotion = useReducedMotion() ?? true;
+  const shouldReduceMotion = useReducedMotion() ?? false;
   const [search, setSearch] = React.useState('');
   const [searchShortcut, setSearchShortcut] = React.useState('Ctrl K');
   const searchRef = React.useRef<HTMLInputElement>(null);

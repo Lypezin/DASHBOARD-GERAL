@@ -330,7 +330,7 @@ export function FilterRefreshIndicator({
   viewName: string;
   appearance?: 'default' | 'quiet';
 }) {
-  const shouldReduceMotion = useReducedMotion() ?? true;
+  const shouldReduceMotion = useReducedMotion() ?? false;
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -400,7 +400,7 @@ export function FilteredDataTransition({
   children: React.ReactNode;
   className?: string;
 }) {
-  const shouldReduceMotion = useReducedMotion() ?? true;
+  const shouldReduceMotion = useReducedMotion() ?? false;
 
   return (
     <motion.div

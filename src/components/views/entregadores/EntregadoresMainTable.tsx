@@ -4,7 +4,7 @@ import { EntregadoresMainTableHeaderCard } from './components/EntregadoresMainTa
 import { EntregadoresMainTableHeader } from './components/EntregadoresMainTableHeader';
 import { EntregadoresMainTableRow } from './components/EntregadoresMainTableRow';
 import { EntregadoresPagination } from './components/EntregadoresPagination';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 
 interface EntregadoresMainTableProps {
     sortedEntregadores: Entregador[];
@@ -39,7 +39,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
     serverPagination,
     variant = 'entregadores',
 }: EntregadoresMainTableProps) {
-    const shouldReduceMotion = useReducedMotion() ?? true;
+    const shouldReduceMotion = useReducedMotion() ?? false;
     const itemsPerPage = sortedEntregadores.length > 1000
         ? VERY_HEAVY_DATASET_ITEMS_PER_PAGE
         : sortedEntregadores.length > 400
@@ -65,7 +65,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
         const start = (currentPage - 1) * pageSize;
         return sortedEntregadores.slice(start, start + pageSize);
     }, [serverPagination, sortedEntregadores, currentPage, pageSize]);
-    const pageContentKey = `${currentPage}:${sortField}:${sortDirection}:${searchTerm}:${currentItems.map((item) => item.id_entregador).join('|')}`;
+    const pageContentKey = `${currentPage}:${sortField}:${sortDirection}:${searchTerm}`;
 
     return (
         <div
@@ -86,45 +86,43 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                     />
 
                     <div className={`subtle-scrollbar overflow-y-auto ${variant === 'entregadores' ? 'max-h-[510px]' : 'max-h-[640px]'}`}>
-                        <AnimatePresence mode="wait" initial={false}>
-                            {currentItems.length > 0 ? (
-                                <motion.div
-                                    key={pageContentKey}
-                                    initial={shouldReduceMotion ? false : { opacity: 0, y: 5 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: shouldReduceMotion ? 0 : -3, pointerEvents: 'none' }}
-                                    transition={{ duration: shouldReduceMotion ? 0.08 : 0.16, ease: 'easeOut' }}
-                                    className={variant === 'entregadores' ? 'divide-y divide-[#e7eef3] dark:divide-slate-800/80' : 'divide-y divide-slate-100/80 dark:divide-slate-800/80'}
-                                >
-                                    {currentItems.map((entregador) => (
-                                        <EntregadoresMainTableRow
-                                            key={entregador.id_entregador}
-                                            entregador={entregador}
-                                            variant={variant}
-                                            onClick={isUpdating ? undefined : onRowClick}
-                                        />
-                                    ))}
-                                </motion.div>
-                            ) : (
-                                <motion.div
-                                    key={`empty:${currentPage}:${searchTerm}`}
-                                    initial={shouldReduceMotion ? false : { opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    transition={{ duration: shouldReduceMotion ? 0.08 : 0.14, ease: 'easeOut' }}
-                                    className="px-6 py-14 text-center"
-                                >
-                                    <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                                        {searchTerm
-                                            ? `Nenhum entregador encontrado com o termo "${searchTerm}"`
-                                            : 'Nenhum entregador disponível'}
-                                    </p>
-                                    <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                                        Ajuste os filtros ou refine a busca para localizar registros.
-                                    </p>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
+                        {currentItems.length > 0 ? (
+                            <motion.div
+                                key={pageContentKey}
+                                initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: shouldReduceMotion ? 0 : 0.16, ease: [0.22, 1, 0.36, 1] }}
+                                style={{ willChange: 'transform, opacity' }}
+                                className={variant === 'entregadores' ? 'divide-y divide-[#e7eef3] dark:divide-slate-800/80' : 'divide-y divide-slate-100/80 dark:divide-slate-800/80'}
+                            >
+                                {currentItems.map((entregador) => (
+                                    <EntregadoresMainTableRow
+                                        key={entregador.id_entregador}
+                                        entregador={entregador}
+                                        variant={variant}
+                                        onClick={isUpdating ? undefined : onRowClick}
+                                    />
+                                ))}
+                            </motion.div>
+                        ) : (
+                            <motion.div
+                                key={`empty:${currentPage}:${searchTerm}`}
+                                initial={shouldReduceMotion ? false : { opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: shouldReduceMotion ? 0 : 0.14, ease: 'easeOut' }}
+                                style={{ willChange: 'opacity' }}
+                                className="px-6 py-14 text-center"
+                            >
+                                <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                                    {searchTerm
+                                        ? `Nenhum entregador encontrado com o termo "${searchTerm}"`
+                                        : 'Nenhum entregador disponível'}
+                                </p>
+                                <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                    Ajuste os filtros ou refine a busca para localizar registros.
+                                </p>
+                            </motion.div>
+                        )}
                     </div>
                 </div>
             </div>

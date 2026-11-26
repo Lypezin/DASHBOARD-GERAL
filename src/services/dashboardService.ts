@@ -437,9 +437,55 @@ function compareText(left: string, right: string) {
 }
 
 const DAY_MS = 86_400_000;
-const ENTREGADORES_RANGE_CHUNK_CONCURRENCY = 1;
+const ENTREGADORES_RANGE_CHUNK_CONCURRENCY = 3;
 const MAX_SINGLE_YEAR_ENTREGADORES_CHUNK_DAYS = 30;
 const ENTREGADORES_SHARED_CACHE_TABLE = 'dashboard_entregadores_month_cache';
+const ROLLOUT_STATE_CACHE_TTL_MS = 30_000;
+const SHOULD_LOG_DASHBOARD_PERF = typeof process !== 'undefined' && process.env?.DASHBOARD_PERF_LOG === 'true';
+
+let rolloutStateCache: { enabled: boolean; expiresAt: number } | null = null;
+let inFlightRolloutStatePromise: Promise<boolean> | null = null;
+
+async function getEntregadoresRolloutEnabled(admin: ReturnType<typeof createServiceRoleClient>): Promise<boolean> {
+  if (rolloutStateCache && rolloutStateCache.expiresAt > Date.now()) {
+      return rolloutStateCache.enabled;
+  }
+
+  if (inFlightRolloutStatePromise) {
+      return inFlightRolloutStatePromise;
+  }
+
+  inFlightRolloutStatePromise = (async () => {
+      const { data: rolloutState, error: rolloutError } = await admin
+          .from('dashboard_entregadores_rollout_state')
+          .select('enabled')
+          .eq('singleton', true)
+          .maybeSingle();
+      if (rolloutError) {
+          rolloutStateCache = null;
+          if (SHOULD_LOG_DASHBOARD_PERF) {
+              console.info('[dashboard-performance]', JSON.stringify({
+                  phase: 'rollout_config',
+                  mode: 'entregadores_page',
+                  success: false,
+                  error_code: rolloutError.code || null,
+              }));
+          }
+          throw toDashboardRpcError(rolloutError);
+      }
+      if (!rolloutState) {
+          rolloutStateCache = null;
+          throw new Error('A configuração da leitura de Entregadores está indisponível. Tente novamente.');
+      }
+      const enabled = rolloutState.enabled === true;
+      rolloutStateCache = { enabled, expiresAt: Date.now() + ROLLOUT_STATE_CACHE_TTL_MS };
+      return enabled;
+  })().finally(() => {
+      inFlightRolloutStatePromise = null;
+  });
+
+  return inFlightRolloutStatePromise;
+}
 
 function getEntregadoresMonthCacheKey(payload: Record<string, unknown>, revision: string | null) {
   return createHash('sha256')
@@ -1065,11 +1111,23 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
   }
 
   const admin = createServiceRoleClient();
-  const entregadoresRevision = mode === 'entregadores' || mode === 'entregadores_page'
-      ? inheritedEntregadoresRevision !== undefined
+  let entregadoresRevision: string | null = null;
+  let weeklyEntregadoresPageEnabled = false;
+
+  if (mode === 'entregadores_page') {
+      const [revisionResult, rolloutEnabled] = await Promise.all([
+          inheritedEntregadoresRevision !== undefined
+              ? Promise.resolve(inheritedEntregadoresRevision)
+              : getEntregadoresRevision(admin, organizationId),
+          getEntregadoresRolloutEnabled(admin),
+      ]);
+      entregadoresRevision = revisionResult;
+      weeklyEntregadoresPageEnabled = rolloutEnabled;
+  } else if (mode === 'entregadores') {
+      entregadoresRevision = inheritedEntregadoresRevision !== undefined
           ? inheritedEntregadoresRevision
-          : await getEntregadoresRevision(admin, organizationId)
-      : null;
+          : await getEntregadoresRevision(admin, organizationId);
+  }
 
   if (mode === 'resumo_local') {
       const year = Number(source.p_ano);
@@ -1131,28 +1189,6 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
       payload.p_only_inactive = payload.p_only_inactive === true;
   }
 
-  let weeklyEntregadoresPageEnabled = false;
-  if (mode === 'entregadores_page') {
-      const { data: rolloutState, error: rolloutError } = await admin
-          .from('dashboard_entregadores_rollout_state')
-          .select('enabled')
-          .eq('singleton', true)
-          .maybeSingle();
-      if (rolloutError) {
-          console.info('[dashboard-performance]', JSON.stringify({
-              phase: 'rollout_config',
-              mode,
-              success: false,
-              error_code: rolloutError.code || null,
-          }));
-          throw toDashboardRpcError(rolloutError);
-      }
-      if (!rolloutState) {
-          throw new Error('A configuração da leitura de Entregadores está indisponível. Tente novamente.');
-      }
-      weeklyEntregadoresPageEnabled = rolloutState.enabled === true;
-  }
-
   if (mode === 'entregadores_page' && !weeklyEntregadoresPageEnabled && canUseInMemoryEntregadoresPage(payload)) {
       // Keep the existing result-cache path during the reversible rollout.
       // Once the weekly table passes parity/load checks, its DB flag makes all
@@ -1183,47 +1219,49 @@ export async function fetchDashboardData(mode: DashboardDataMode, source: Record
               : 'listar_valores_entregadores';
 
   if (mode === 'entregadores_page' && weeklyEntregadoresPageEnabled) {
-      // Page reads are always fresh. The database feature gate selects the
-      // weekly source when ready and keeps the old RPC available for rollback.
-      const rpcStartedAt = performance.now();
-      const { data: rpcData, error } = await admin.rpc(rpcName, payload);
-      const rpcDurationMs = Math.round((performance.now() - rpcStartedAt) * 100) / 100;
-      if (error) {
-          console.info('[dashboard-performance]', JSON.stringify({
-              mode,
-              rpc: rpcName,
-              rpc_ms: rpcDurationMs,
-              response_bytes: 0,
-              error_code: error.code || null,
-              success: false,
-          }));
-          throw toDashboardRpcError(error);
-      }
-
-      let responseData: unknown = rpcData ?? null;
-      let aggregationMs: number | null = null;
-      if (responseData && typeof responseData === 'object' && !Array.isArray(responseData)) {
-          const result = responseData as Record<string, unknown>;
-          const diagnostics = result._diagnostics;
-          if (diagnostics && typeof diagnostics === 'object') {
-              const value = Number((diagnostics as Record<string, unknown>).aggregation_ms);
-              if (Number.isFinite(value)) aggregationMs = value;
-              const publicResult = { ...result };
-              delete publicResult._diagnostics;
-              responseData = publicResult;
+      return resolveEntregadoresWithRevision(mode, payload, entregadoresRevision, async () => {
+          const rpcStartedAt = performance.now();
+          const { data: rpcData, error } = await admin.rpc(rpcName, payload);
+          const rpcDurationMs = Math.round((performance.now() - rpcStartedAt) * 100) / 100;
+          if (error) {
+              console.info('[dashboard-performance]', JSON.stringify({
+                  mode,
+                  rpc: rpcName,
+                  rpc_ms: rpcDurationMs,
+                  response_bytes: 0,
+                  error_code: error.code || null,
+                  success: false,
+              }));
+              throw toDashboardRpcError(error);
           }
-      }
 
-      console.info('[dashboard-performance]', JSON.stringify({
-          mode,
-          rpc: rpcName,
-          rpc_ms: rpcDurationMs,
-          aggregation_ms: aggregationMs,
-          response_bytes: Buffer.byteLength(JSON.stringify(responseData ?? null), 'utf8'),
-          error_code: null,
-          success: true,
-      }));
-      return { data: responseData, cached: false };
+          let responseData: unknown = rpcData ?? null;
+          let aggregationMs: number | null = null;
+          if (responseData && typeof responseData === 'object' && !Array.isArray(responseData)) {
+              const result = responseData as Record<string, unknown>;
+              const diagnostics = result._diagnostics;
+              if (diagnostics && typeof diagnostics === 'object') {
+                  const value = Number((diagnostics as Record<string, unknown>).aggregation_ms);
+                  if (Number.isFinite(value)) aggregationMs = value;
+                  const publicResult = { ...result };
+                  delete publicResult._diagnostics;
+                  responseData = publicResult;
+              }
+          }
+
+          if (SHOULD_LOG_DASHBOARD_PERF) {
+              console.info('[dashboard-performance]', JSON.stringify({
+                  mode,
+                  rpc: rpcName,
+                  rpc_ms: rpcDurationMs,
+                  aggregation_ms: aggregationMs,
+                  response_bytes: Buffer.byteLength(JSON.stringify(responseData ?? null), 'utf8'),
+                  error_code: null,
+                  success: true,
+              }));
+          }
+          return responseData;
+      });
   }
 
   const fetchResult = async () => {

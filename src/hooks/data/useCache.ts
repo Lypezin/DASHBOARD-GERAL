@@ -13,6 +13,7 @@ import { scheduleIdleTask } from '@/utils/scheduling/idleTask';
 interface UseCacheOptions<T> {
   ttl?: number;
   getCacheKey: (params: any) => string;
+  persistToSession?: boolean;
 }
 
 const globalCache = new Map<string, CacheEntry<unknown>>();
@@ -38,13 +39,29 @@ function pruneGlobalCache(ttl: number): void {
   }
 }
 
-export function readSharedCacheEntry<T>(key: string, ttl: number = DEFAULT_TAB_DATA_TTL_MS): T | null {
+export function clearSharedCacheByPrefix(prefix: string): void {
+  for (const key of globalCache.keys()) {
+    if (key.startsWith(prefix)) {
+      globalCache.delete(key);
+    }
+  }
+}
+
+export function readSharedCacheEntry<T>(
+  key: string,
+  ttl: number = DEFAULT_TAB_DATA_TTL_MS,
+  readFromSession: boolean = true
+): T | null {
   pruneGlobalCache(ttl);
 
   const cached = globalCache.get(key);
   if (cached && isCacheValid(cached, ttl)) {
     touchGlobalCacheEntry(key, cached);
     return cached.data as T;
+  }
+
+  if (!readFromSession) {
+    return null;
   }
 
   const sessionData = getFromSessionStorage<T>(key, ttl);
@@ -56,35 +73,44 @@ export function readSharedCacheEntry<T>(key: string, ttl: number = DEFAULT_TAB_D
   return null;
 }
 
-export function writeSharedCacheEntry<T>(key: string, data: T, ttl: number = DEFAULT_TAB_DATA_TTL_MS): void {
+export function writeSharedCacheEntry<T>(
+  key: string,
+  data: T,
+  ttl: number = DEFAULT_TAB_DATA_TTL_MS,
+  persistToSession: boolean = true
+): void {
   touchGlobalCacheEntry(key, createCacheEntry(data, ttl) as CacheEntry<unknown>);
   pruneGlobalCache(ttl);
-  scheduleIdleTask(() => setToSessionStorage(key, data, ttl), {
-    timeoutMs: 1500,
-    fallbackDelayMs: 250,
-  });
+  if (persistToSession) {
+    scheduleIdleTask(() => setToSessionStorage(key, data, ttl), {
+      timeoutMs: 1500,
+      fallbackDelayMs: 250,
+    });
+  }
 }
 
 export function useCache<T>(options: UseCacheOptions<T>) {
-  const { ttl = DEFAULT_TAB_DATA_TTL_MS, getCacheKey } = options;
+  const { ttl = DEFAULT_TAB_DATA_TTL_MS, getCacheKey, persistToSession = true } = options;
   const ttlRef = useRef<number>(ttl);
   const getCacheKeyRef = useRef(getCacheKey);
+  const persistToSessionRef = useRef<boolean>(persistToSession);
 
   ttlRef.current = ttl;
   getCacheKeyRef.current = getCacheKey;
+  persistToSessionRef.current = persistToSession;
 
   const getCached = useCallback((params: any): T | null => {
     const key = getCacheKeyRef.current(params);
     const ttlMs = ttlRef.current;
 
-    return readSharedCacheEntry<T>(key, ttlMs);
+    return readSharedCacheEntry<T>(key, ttlMs, persistToSessionRef.current);
   }, []);
 
   const setCached = useCallback((params: any, data: T): void => {
     const key = getCacheKeyRef.current(params);
     const ttlMs = ttlRef.current;
 
-    writeSharedCacheEntry<T>(key, data, ttlMs);
+    writeSharedCacheEntry<T>(key, data, ttlMs, persistToSessionRef.current);
   }, []);
 
   const clearCache = useCallback((): void => {

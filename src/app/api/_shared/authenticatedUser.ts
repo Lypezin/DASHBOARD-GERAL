@@ -17,10 +17,36 @@ type LoadAuthenticatedUserResult =
   | { user: AuthenticatedUser; accessToken?: string }
   | { failure: AuthenticatedUserFailure };
 
-const AUTHENTICATED_USER_CACHE_TTL_MS = 10_000;
+const AUTHENTICATED_USER_CACHE_TTL_MS = 60_000;
 const AUTHENTICATED_USER_CACHE_POLICY = { ttlMs: AUTHENTICATED_USER_CACHE_TTL_MS, maxEntries: 512 } as const;
 const authenticatedUserCache = new Map<string, TimedCacheEntry<AuthenticatedUser>>();
 const inFlightAuthenticatedUserRequests = new Map<string, Promise<AuthenticatedUser | null>>();
+
+async function resolveCachedAuthenticatedUser(
+  cacheKey: string,
+  fetcher: () => Promise<AuthenticatedUser | null>
+): Promise<AuthenticatedUser | null> {
+  const cached = getTimedCacheValue(authenticatedUserCache, cacheKey, AUTHENTICATED_USER_CACHE_POLICY);
+  if (cached) return cached;
+
+  const existingRequest = inFlightAuthenticatedUserRequests.get(cacheKey);
+  const user = existingRequest
+    ? await existingRequest
+    : await (async () => {
+      const request = fetcher().finally(() => {
+        inFlightAuthenticatedUserRequests.delete(cacheKey);
+      });
+
+      inFlightAuthenticatedUserRequests.set(cacheKey, request);
+      return request;
+    })();
+
+  if (user) {
+    setTimedCacheValue(authenticatedUserCache, cacheKey, user, AUTHENTICATED_USER_CACHE_POLICY);
+  }
+
+  return user;
+}
 
 function getBearerToken() {
   const authorization = headers().get('authorization');
@@ -43,32 +69,15 @@ export async function loadAuthenticatedUser(
   const bearerToken = getBearerToken();
 
   if (bearerToken) {
-    const cached = getTimedCacheValue(authenticatedUserCache, bearerToken, AUTHENTICATED_USER_CACHE_POLICY);
-    if (cached) return { user: cached, accessToken: bearerToken };
-
-    const existingRequest = inFlightAuthenticatedUserRequests.get(bearerToken);
-    const user = existingRequest
-      ? await existingRequest
-      : await (async () => {
-        const request = (async () => {
-          const { data: bearerUserData, error: bearerUserError } = await supabase.auth.getUser(bearerToken);
-
-          if (bearerUserError || !bearerUserData.user) {
-            return null;
-          }
-
-          return bearerUserData.user as AuthenticatedUser;
-        })().finally(() => {
-          inFlightAuthenticatedUserRequests.delete(bearerToken);
-        });
-
-        inFlightAuthenticatedUserRequests.set(bearerToken, request);
-        return request;
-      })();
+    const user = await resolveCachedAuthenticatedUser(bearerToken, async () => {
+      const { data: bearerUserData, error: bearerUserError } = await supabase.auth.getUser(bearerToken);
+      if (bearerUserError || !bearerUserData.user) {
+        return null;
+      }
+      return bearerUserData.user as AuthenticatedUser;
+    });
 
     if (user) {
-      setTimedCacheValue(authenticatedUserCache, bearerToken, user, AUTHENTICATED_USER_CACHE_POLICY);
-
       return {
         user,
         accessToken: bearerToken,
@@ -76,18 +85,32 @@ export async function loadAuthenticatedUser(
     }
   }
 
-  const { data: userData, error: userError } = await supabase.auth.getUser();
+  const { data: sessionData } = await supabase.auth.getSession();
+  const sessionToken = sessionData.session?.access_token;
 
-  if (!userError && userData.user) {
-    const { data: sessionData } = await supabase.auth.getSession();
-    const accessToken = sessionData.session?.user.id === userData.user.id
-      ? sessionData.session.access_token
-      : undefined;
+  if (sessionToken) {
+    const user = await resolveCachedAuthenticatedUser(`session:${sessionToken}`, async () => {
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        return null;
+      }
+      return userData.user as AuthenticatedUser;
+    });
 
-    return {
-      user: userData.user as AuthenticatedUser,
-      accessToken,
-    };
+    if (user) {
+      return {
+        user,
+        accessToken: sessionData.session?.user.id === user.id ? sessionToken : undefined,
+      };
+    }
+  } else {
+    const { data: userData, error: userError } = await supabase.auth.getUser();
+
+    if (!userError && userData.user) {
+      return {
+        user: userData.user as AuthenticatedUser,
+      };
+    }
   }
 
   return {

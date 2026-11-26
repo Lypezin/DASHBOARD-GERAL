@@ -105,14 +105,16 @@ export async function POST(request: Request) {
 
         const { data, cached } = await fetchDashboardData(mode, plazaAccess.source, organizationAccess.organizationId);
         const responsePayload = { data, error: null, cached };
-        console.info('[dashboard-performance]', JSON.stringify({
-            phase: 'api',
-            mode,
-            api_ms: Math.round((performance.now() - apiStartedAt) * 100) / 100,
-            response_bytes: Buffer.byteLength(JSON.stringify(responsePayload), 'utf8'),
-            cached,
-            success: true,
-        }));
+        if (process.env.DASHBOARD_PERF_LOG === 'true') {
+            console.info('[dashboard-performance]', JSON.stringify({
+                phase: 'api',
+                mode,
+                api_ms: Math.round((performance.now() - apiStartedAt) * 100) / 100,
+                response_bytes: Buffer.byteLength(JSON.stringify(responsePayload), 'utf8'),
+                cached,
+                success: true,
+            }));
+        }
         return NextResponse.json(responsePayload);
     } catch (error) {
         const errorCode = error && typeof error === 'object' && 'code' in error

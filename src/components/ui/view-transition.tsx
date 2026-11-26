@@ -36,6 +36,7 @@ function TransitionPanel({ children, motionProps, preventExitInteraction }: Tran
       ref={setPanelRef}
       {...motionProps}
       aria-hidden={isExiting ? true : undefined}
+      style={{ willChange: 'transform, opacity' }}
       className="col-start-1 row-start-1 min-w-0 w-full"
     >
       {children}
@@ -49,7 +50,7 @@ export function ViewTransition({
   className,
   preventExitInteraction = false,
 }: ViewTransitionProps) {
-  const shouldReduceMotion = useReducedMotion() ?? true;
+  const shouldReduceMotion = useReducedMotion() ?? false;
   const exitState = {
     opacity: 0,
     y: shouldReduceMotion ? 0 : -4,

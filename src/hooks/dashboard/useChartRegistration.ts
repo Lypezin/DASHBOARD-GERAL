@@ -7,7 +7,7 @@ import { IS_DEV } from '@/constants/environment';
 let chartRegistered = false;
 let chartRegistrationPromise: Promise<void> | null = null;
 
-function ensureChartRegistration() {
+export function ensureChartRegistration() {
     if (chartRegistered) {
         return Promise.resolve();
     }

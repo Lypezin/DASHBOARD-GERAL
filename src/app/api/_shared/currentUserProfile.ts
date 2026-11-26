@@ -38,7 +38,7 @@ type LoadCurrentUserProfileResult =
   | { failure: ProfileFailure };
 
 const PROFILE_SELECT = 'id, email, full_name, role, is_admin, is_approved, organization_id, assigned_pracas, avatar_url, created_at, updated_at';
-const PROFILE_CACHE_TTL_MS = 10_000;
+const PROFILE_CACHE_TTL_MS = 30_000;
 const PROFILE_CACHE_POLICY = { ttlMs: PROFILE_CACHE_TTL_MS, maxEntries: 512 } as const;
 const profileCache = new Map<string, TimedCacheEntry<CurrentUserProfile>>();
 const inFlightProfileRequests = new Map<string, Promise<{ profile: CurrentUserProfile | null; error: unknown }>>();

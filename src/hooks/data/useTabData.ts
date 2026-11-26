@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { CurrentUser } from '@/types';
-import { useCache } from './useCache';
+import { useCache, clearSharedCacheByPrefix } from './useCache';
 import { CACHE, DELAYS } from '@/constants/config';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import type { FilterPayload } from '@/types/filters';
@@ -10,6 +10,7 @@ import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
 import { ENTREGADORES_REFRESH_COMPLETE_EVENT } from '@/utils/dashboard/dashboardDataRefreshEvents';
 import { processTabSuccessData, getTabFallbackData, TabData } from './tabDataHelpers';
 
+const ENTREGADORES_CLIENT_CACHE_TTL_MS = 60_000;
 const SELF_MANAGED_TABS = ['evolucao', 'dashboard', 'analise', 'comparacao', 'marketing', 'entrada_saida', 'marketing_apresentacao'];
 const SHARED_TAB_SCOPES: Record<string, string> = {
   entregadores: 'entregadores_shared',
@@ -75,9 +76,11 @@ export function useTabData(
   const { isLoading: isOrgLoading } = useOrganization();
   const enabled = options.enabled ?? true;
 
+  const isEntregadoresRequestTab = getRequestTab(activeTab) === 'entregadores';
   const { getCached, setCached } = useCache<TabData>({
-    ttl: CACHE.TAB_DATA_TTL,
+    ttl: isEntregadoresRequestTab ? ENTREGADORES_CLIENT_CACHE_TTL_MS : CACHE.TAB_DATA_TTL,
     getCacheKey: (params) => getTabCacheKey(params.tab, params.filterPayloadKey),
+    persistToSession: !isEntregadoresRequestTab,
   });
 
   const payloadOrganizationId = resolvePayloadOrganizationId(filterPayload as FilterPayload, currentUser?.organization_id);
@@ -131,10 +134,9 @@ export function useTabData(
   ) => {
     const tabScope = getTabScope(tab);
     const requestTab = getRequestTab(tab);
-    const cacheEnabled = requestTab !== 'entregadores';
     const requestKey = getTabCacheKey(tabScope, filterPayloadKey);
     const cacheParams = { tab: tabScope, filterPayloadKey };
-    const cached = cacheEnabled && !forceFresh ? getCached(cacheParams) : null;
+    const cached = !forceFresh ? getCached(cacheParams) : null;
 
     if (cached !== null) {
       if (fetchIdRef.current === fetchId) {
@@ -184,7 +186,7 @@ export function useTabData(
       setDataTabScope(tabScope);
       setDataAccessScopeKey(accessScopeKey);
       setResolvedRequestKey(requestKey);
-      if (cacheEnabled) setCached(cacheParams, processedData);
+      setCached(cacheParams, processedData);
       setLoading(false);
       setError(null);
     } catch (error) {
@@ -257,6 +259,7 @@ export function useTabData(
     if (activeTab !== 'entregadores' && activeTab !== 'prioridade') return;
 
     const reloadAfterImport = () => {
+      clearSharedCacheByPrefix('entregadores_shared-');
       const currentPayload = stableFilterPayloadRef.current;
       if (!enabled || isOrgLoading || !currentPayload) return;
       if (retryTimeoutRef.current) {
@@ -304,8 +307,7 @@ export function useTabData(
 
     const currentFetchId = ++fetchIdRef.current;
     const tabScope = getTabScope(activeTab);
-    const cacheEnabled = getRequestTab(activeTab) !== 'entregadores';
-    const cached = cacheEnabled ? getCached({ tab: tabScope, filterPayloadKey: filterPayloadStr }) : null;
+    const cached = getCached({ tab: tabScope, filterPayloadKey: filterPayloadStr });
 
     if (cached !== null) {
       setData(activeTab === 'valores' ? (Array.isArray(cached) ? cached : []) : cached);
