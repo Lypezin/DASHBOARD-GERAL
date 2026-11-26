@@ -12,7 +12,7 @@ interface TabButtonProps {
 }
 
 const TabButton = React.memo(({ label, active, onClick, onFocus, onMouseEnter }: TabButtonProps) => {
-  const shouldReduceMotion = useReducedMotion() ?? true;
+  const shouldReduceMotion = useReducedMotion() ?? false;
 
   return (
     <button

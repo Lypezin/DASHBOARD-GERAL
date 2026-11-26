@@ -68,7 +68,7 @@ export const BATCH_SIZE = 100;
  * Lote maior para corridas reduz o número de chamadas RPC e de upserts
  * repetidos na fila de impactos durante a mesma importação.
  */
-export const CORRIDAS_BATCH_SIZE = 500;
+export const CORRIDAS_BATCH_SIZE = 1000;
 
 /**
  * Tamanho máximo do arquivo em bytes (50MB)

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { Badge, LeaderboardEntry } from '@/types/gamification';
 import { useGamificationCelebration } from '@/hooks/gamification/useGamificationCelebration';
@@ -31,9 +31,8 @@ export function useGamificationState() {
     const fetchState = useCallback(async () => {
         if (!currentUser?.id) return;
 
-        await refreshLeaderboard();
-
-        const [{ data: allBadges }, { data: unlocked }] = await Promise.all([
+        const [, { data: allBadges }, { data: unlocked }] = await Promise.all([
+            refreshLeaderboard(),
             supabase.from('gamification_badges').select('slug, name, description, icon, category'),
             supabase.from('gamification_user_badges').select('badge_slug, unlocked_at').eq('user_id', currentUser.id)
         ]);
@@ -114,12 +113,12 @@ export function useGamificationState() {
         }
     }, [currentUser?.id, fetchState, hasResolved, isAuthenticated, registerInteraction, shouldBootstrapGamification]);
 
-    return {
+    return useMemo(() => ({
         badges,
         unlockedBadges,
         recentUnlock,
         leaderboard,
         refreshLeaderboard,
         registerInteraction
-    };
+    }), [badges, leaderboard, recentUnlock, refreshLeaderboard, registerInteraction, unlockedBadges]);
 }

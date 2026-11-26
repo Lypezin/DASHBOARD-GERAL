@@ -9,6 +9,7 @@ import type { FilterPayload } from '@/types/filters';
 import { getTimedCacheValue, setTimedCacheValue, type TimedCacheEntry } from '@/utils/cache/timedLruCache';
 import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
 import { createRequestKey } from '@/utils/request/createRequestKey';
+import { ENTREGADORES_REFRESH_COMPLETE_EVENT } from '@/utils/dashboard/dashboardDataRefreshEvents';
 import { fetchDashboardEvolucaoData } from './utils/fetchEvolucao';
 
 interface UseDashboardEvolucaoOptions {
@@ -27,19 +28,8 @@ const evolucaoInFlight = new Map<string, Promise<EvolucaoRequestData>>();
 const evolucaoCachePolicy = { ttlMs: CACHE.EVOLUCAO_TTL, maxEntries: 12 } as const;
 
 export function useDashboardEvolucao({ filterPayload, anoEvolucao }: UseDashboardEvolucaoOptions) {
-  const [evolucaoMensal, setEvolucaoMensal] = useState<EvolucaoMensal[]>([]);
-  const [evolucaoSemanal, setEvolucaoSemanal] = useState<EvolucaoSemanal[]>([]);
-  const [utrSemanal, setUtrSemanal] = useState<UtrSemanal[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
-  const [refreshVersion, setRefreshVersion] = useState(0);
-
   const { organizationId, isLoading: isOrgLoading } = useOrganization();
   const { currentUser } = useAppBootstrap();
-  const [resolvedSignature, setResolvedSignature] = useState<string | null>(null);
-  const [dataSignature, setDataSignature] = useState<string | null>(null);
-  const [dataOrganizationId, setDataOrganizationId] = useState<string | null>(null);
-  const [dataAccessScopeKey, setDataAccessScopeKey] = useState<string | null>(null);
   const stableFilterPayloadRef = useRef<{ key: string; payload: FilterPayload } | null>(null);
   const filterPayloadKey = createRequestKey(filterPayload);
   if (!stableFilterPayloadRef.current || stableFilterPayloadRef.current.key !== filterPayloadKey) {
@@ -56,6 +46,30 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao }: UseDashboar
     accessScopeKey,
     anoEvolucao,
   });
+
+  const initialCachedRef = useRef<EvolucaoRequestData | null | undefined>();
+  if (initialCachedRef.current === undefined) {
+    initialCachedRef.current = anoEvolucao
+      ? getTimedCacheValue(evolucaoCache, currentSignature, evolucaoCachePolicy)
+      : null;
+  }
+  const initialCached = initialCachedRef.current;
+
+  const [evolucaoMensal, setEvolucaoMensal] = useState<EvolucaoMensal[]>(() => initialCached?.mensalData ?? []);
+  const [evolucaoSemanal, setEvolucaoSemanal] = useState<EvolucaoSemanal[]>(() => initialCached?.semanalData ?? []);
+  const [utrSemanal, setUtrSemanal] = useState<UtrSemanal[]>(() => initialCached?.utrData ?? []);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  const [refreshVersion, setRefreshVersion] = useState(0);
+  const [resolvedSignature, setResolvedSignature] = useState<string | null>(() => (initialCached ? currentSignature : null));
+  const [dataSignature, setDataSignature] = useState<string | null>(() => (initialCached ? currentSignature : null));
+  const [dataOrganizationId, setDataOrganizationId] = useState<string | null>(() => (initialCached ? currentOrganizationId : null));
+  const [dataAccessScopeKey, setDataAccessScopeKey] = useState<string | null>(() => (initialCached ? accessScopeKey : null));
+  const hasVisibleDataRef = useRef(false);
+  hasVisibleDataRef.current = dataSignature === currentSignature
+    && dataOrganizationId === currentOrganizationId
+    && dataAccessScopeKey === accessScopeKey
+    && (evolucaoMensal.length > 0 || evolucaoSemanal.length > 0 || utrSemanal.length > 0);
 
   useEffect(() => {
     if (isOrgLoading) return;
@@ -119,17 +133,24 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao }: UseDashboar
       }
     };
 
-    const hasVisibleData = dataSignature === currentSignature
-      && dataOrganizationId === currentOrganizationId
-      && dataAccessScopeKey === accessScopeKey
-      && (evolucaoMensal.length > 0 || evolucaoSemanal.length > 0 || utrSemanal.length > 0);
-    const timeoutId = setTimeout(fetchEvolucao, hasVisibleData ? DELAYS.DEBOUNCE : 0);
+    const timeoutId = setTimeout(fetchEvolucao, hasVisibleDataRef.current ? DELAYS.DEBOUNCE : 0);
 
     return () => {
       mounted = false;
       clearTimeout(timeoutId);
     };
-  }, [accessScopeKey, anoEvolucao, currentOrganizationId, currentSignature, dataAccessScopeKey, dataOrganizationId, dataSignature, filterPayloadKey, isOrgLoading, refreshVersion, stableFilterPayload, evolucaoMensal.length, evolucaoSemanal.length, utrSemanal.length]);
+  }, [accessScopeKey, anoEvolucao, currentOrganizationId, currentSignature, filterPayloadKey, isOrgLoading, refreshVersion, stableFilterPayload]);
+
+  useEffect(() => {
+    const handleRefresh = () => {
+      evolucaoCache.clear();
+      setResolvedSignature(null);
+      setRefreshVersion((version) => version + 1);
+    };
+
+    window.addEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, handleRefresh);
+    return () => window.removeEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, handleRefresh);
+  }, []);
 
   const refetch = useCallback(() => {
     const payload = stableFilterPayloadRef.current?.payload || filterPayload;

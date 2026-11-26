@@ -8,7 +8,7 @@ type ChartAnimation = false | { duration: number; easing: 'easeOutQuart' };
 /** Keep canvas animations consistent with the user's motion preference. */
 export function useChartAnimation(duration = 520) {
   const motionPreference = useReducedMotion();
-  const prefersReducedMotion = motionPreference !== false;
+  const prefersReducedMotion = motionPreference === true;
 
   return useMemo<ChartAnimation>(
     () => prefersReducedMotion ? false : { duration, easing: 'easeOutQuart' },

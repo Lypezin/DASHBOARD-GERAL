@@ -29,7 +29,7 @@ export const ValoresStatsCards = React.memo(function ValoresStatsCards({
   taxaMediaGeral,
   formatarReal,
 }: ValoresStatsCardsProps) {
-  const reduceMotion = useReducedMotion() ?? true;
+  const reduceMotion = useReducedMotion() ?? false;
   const metrics = [
     { label: 'Total geral', value: formatarReal(totalGeral), meta: 'Soma das taxas', icon: DollarSign },
     { label: 'Entregadores', value: totalEntregadores.toLocaleString('pt-BR'), meta: 'No período selecionado', icon: Users },

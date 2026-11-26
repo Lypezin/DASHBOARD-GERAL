@@ -25,7 +25,7 @@ export const WeeklyPerformanceCard: React.FC<WeeklyPerformanceCardProps> = ({
     isDark,
     compact = false
 }) => {
-    const shouldReduceMotion = useReducedMotion() ?? true;
+    const shouldReduceMotion = useReducedMotion() ?? false;
     return (
         <motion.div 
             whileHover={shouldReduceMotion ? undefined : { y: -4, scale: 1.01 }}

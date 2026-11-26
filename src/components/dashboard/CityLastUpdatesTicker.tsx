@@ -13,7 +13,7 @@ const CITY_TICKER_MOTION_STORAGE_KEY = 'dashboard_city_ticker_motion_enabled';
 export function CityLastUpdatesTicker({ className = '' }: { className?: string }) {
   const { data, loading } = useCityLastUpdates();
   const motionPreference = useReducedMotion();
-  const prefersReducedMotion = motionPreference ?? true;
+  const prefersReducedMotion = motionPreference ?? false;
   const [tickerMotionEnabled, setTickerMotionEnabled] = useState(false);
   const shouldAnimateTicker = !prefersReducedMotion || tickerMotionEnabled;
 

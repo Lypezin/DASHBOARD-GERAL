@@ -31,6 +31,10 @@ const nextConfig = {
   reactStrictMode: true,
   swcMinify: true,
 
+  experimental: {
+    optimizePackageImports: ['lucide-react', 'framer-motion', 'recharts', 'date-fns'],
+  },
+
   output: 'standalone',
 
   images: {

@@ -47,7 +47,7 @@ export const PresentationViewport: React.FC<PresentationViewportProps> = React.m
     const animationFrameRef = useRef<number | null>(null);
     const [direction, setDirection] = useState<'forward' | 'backward'>('forward');
     const [isCompactViewport, setIsCompactViewport] = useState(false);
-    const shouldReduceMotion = useReducedMotion() ?? true;
+    const shouldReduceMotion = useReducedMotion() ?? false;
 
     const renderedSlide = useMemo(() => {
         if (!activeSlide) return null;

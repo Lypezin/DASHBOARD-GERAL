@@ -28,7 +28,7 @@ export const EntregadoresMainStatsCards = React.memo(function EntregadoresMainSt
     variant = 'entregadores',
     ...stats
 }: EntregadoresMainStatsCardsProps) {
-    const reduceMotion = useReducedMotion() ?? true;
+    const reduceMotion = useReducedMotion() ?? false;
     const metrics = createEntregadoresMetrics(stats);
 
     if (variant === 'dedicado') {

@@ -28,7 +28,7 @@ export function useDashboardPage() {
     assignedPracas: [...(currentUser?.assigned_pracas || [])].sort(),
   }), [currentUser?.assigned_pracas, currentUser?.id, currentUser?.is_admin, currentUser?.role, filterPayload.p_organization_id]);
   const { anosDisponiveis, semanasDisponiveis, dimensoes, loadingDimensions, dimensionsError, retryDimensions } = useDashboardDimensions({
-    fetchRemote: true,
+    fetchRemote: isAuthenticated && !isCheckingAuth && Boolean(filterPayload.p_organization_id),
     cacheScopeKey: dimensionCacheScopeKey,
     organizationId: filterPayload.p_organization_id,
   });

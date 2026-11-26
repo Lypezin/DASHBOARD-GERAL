@@ -1,6 +1,6 @@
 'use client';
 
-import { AnimatePresence, motion, type Variants } from 'framer-motion';
+import { motion, type Variants } from 'framer-motion';
 import type { EntregadoresMetricItem } from '../utils/entregadoresMetrics';
 
 const toneStyles: Record<EntregadoresMetricItem['tone'], string> = {
@@ -36,18 +36,16 @@ export function EntregadoresOverviewMetric({
             </div>
 
             <dd className="mt-2 min-h-7 font-sans text-[23px] font-semibold tracking-tight text-[#173f5a] tabular-nums dark:text-slate-50">
-                <AnimatePresence initial={false} mode="wait">
-                    <motion.span
-                        key={value}
-                        initial={{ opacity: 0, y: reduceMotion ? 0 : 4 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: reduceMotion ? 0 : -2 }}
-                        transition={{ duration: reduceMotion ? 0.08 : 0.12, ease: 'easeOut' }}
-                        className="block"
-                    >
-                        {value}
-                    </motion.span>
-                </AnimatePresence>
+                <motion.span
+                    key={value}
+                    initial={reduceMotion ? false : { opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: reduceMotion ? 0 : 0.14, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ willChange: 'transform, opacity' }}
+                    className="block"
+                >
+                    {value}
+                </motion.span>
                 <span className="sr-only">{meta}</span>
             </dd>
         </motion.div>

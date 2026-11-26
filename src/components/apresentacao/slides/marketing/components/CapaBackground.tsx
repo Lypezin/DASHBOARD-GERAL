@@ -8,7 +8,7 @@ interface CapaBackgroundProps {
 }
 
 export const CapaBackground: React.FC<CapaBackgroundProps> = ({ isDark }) => {
-    const shouldReduceMotion = useReducedMotion() ?? true;
+    const shouldReduceMotion = useReducedMotion() ?? false;
 
     return (
         <>

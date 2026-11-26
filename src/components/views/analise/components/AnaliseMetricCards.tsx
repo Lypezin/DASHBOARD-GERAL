@@ -13,7 +13,7 @@ interface AnaliseMetricCardsProps {
 }
 
 export const AnaliseMetricCards: React.FC<AnaliseMetricCardsProps> = ({ totals, taxaAceitacao, taxaCompletude, taxaRejeicao, totalHorasEntregues }) => {
-    const reduceMotion = useReducedMotion() ?? true;
+    const reduceMotion = useReducedMotion() ?? false;
     const metrics = [
         { title: 'Horas entregues', value: formatarHorasParaHMS(totalHorasEntregues), meta: 'Tempo operacional', icon: Clock, tone: 'blue' as const },
         { title: 'Ofertadas', value: totals.ofertadas.toLocaleString('pt-BR'), meta: 'Corridas oferecidas', icon: Megaphone, tone: 'blue' as const },

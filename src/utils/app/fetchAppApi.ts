@@ -6,14 +6,14 @@ type ApiErrorShape = {
     code?: string | null;
 };
 
-type AppApiGetResult = { data: unknown | null; error: string | null };
+type AppApiGetResult = { data: unknown | null; organization?: unknown; error: string | null };
 type InFlightGetRequest = {
     promise: Promise<AppApiGetResult> | null;
     invalidated: boolean;
 };
 
 const inFlightGetRequests = new Map<string, InFlightGetRequest>();
-const completedGetCache = new Map<string, { data: unknown | null; expiresAt: number }>();
+const completedGetCache = new Map<string, { data: unknown | null; organization?: unknown; expiresAt: number }>();
 const COMPLETED_GET_CACHE_TTL_MS = 10_000;
 const MAX_COMPLETED_GET_CACHE_ENTRIES = 128;
 const CURRENT_USER_PROFILE_PATH = '/api/app/current-user-profile';
@@ -111,7 +111,7 @@ async function sendAppApiData<T>(
 export async function getAppApiData<T>(
     path: string,
     options: { accessToken?: string; bypassCache?: boolean } = {}
-): Promise<{ data: T | null; error: string | null }> {
+): Promise<{ data: T | null; organization?: unknown; error: string | null }> {
     const authContext = await buildAppAuthContext({}, options.accessToken);
     // City updates are filtered by profile permissions on the server; don't
     // reuse a prior plaza scope after an in-place profile change.
@@ -125,7 +125,11 @@ export async function getAppApiData<T>(
     const cached = cacheKey ? completedGetCache.get(cacheKey) : null;
 
     if (cached && cached.expiresAt > Date.now()) {
-        return { data: cached.data as T | null, error: null };
+        return {
+            data: cached.data as T | null,
+            ...(cached.organization !== undefined ? { organization: cached.organization } : {}),
+            error: null,
+        };
     }
 
     if (cached) {
@@ -135,19 +139,19 @@ export async function getAppApiData<T>(
     const existingRequest = cacheKey ? inFlightGetRequests.get(cacheKey) : null;
 
     if (existingRequest?.promise) {
-        return existingRequest.promise as Promise<{ data: T | null; error: string | null }>;
+        return existingRequest.promise as Promise<{ data: T | null; organization?: unknown; error: string | null }>;
     }
 
     const normalizedPath = path.split('?')[0];
     const requestState: InFlightGetRequest = { promise: null, invalidated: false };
-    const request = (async (): Promise<{ data: T | null; error: string | null }> => {
+    const request = (async (): Promise<{ data: T | null; organization?: unknown; error: string | null }> => {
         const response = await fetch(path, {
             method: 'GET',
             ...INTERNAL_FETCH_OPTIONS,
             headers: authContext.headers,
         });
 
-        const payload = await response.json().catch(() => null) as ({ data?: T | null } & ApiErrorShape) | null;
+        const payload = await response.json().catch(() => null) as ({ data?: T | null; organization?: unknown } & ApiErrorShape) | null;
 
         if (!response.ok) {
             const apiError = payload?.error || 'Erro ao consultar API interna.';
@@ -168,15 +172,22 @@ export async function getAppApiData<T>(
         }
 
         const data = (payload?.data ?? null) as T | null;
+        const hasOrgField = Object.prototype.hasOwnProperty.call(payload, 'organization');
+        const organization = hasOrgField ? (payload.organization ?? null) : undefined;
         if (cacheKey && !requestState.invalidated) {
             pruneCompletedGetCache(Date.now(), true);
             completedGetCache.set(cacheKey, {
                 data,
+                ...(hasOrgField ? { organization } : {}),
                 expiresAt: Date.now() + COMPLETED_GET_CACHE_TTL_MS,
             });
         }
 
-        return { data, error: null };
+        return {
+            data,
+            ...(hasOrgField ? { organization } : {}),
+            error: null,
+        };
     })().finally(() => {
         if (cacheKey && inFlightGetRequests.get(cacheKey) === requestState) {
             inFlightGetRequests.delete(cacheKey);
@@ -194,7 +205,7 @@ export async function postAppApiData<T>(path: string, body?: Record<string, unkn
     return sendAppApiData<T>('POST', path, body);
 }
 
-export async function getCurrentUserProfileData<T>(accessToken?: string): Promise<{ data: T | null; error: string | null }> {
+export async function getCurrentUserProfileData<T>(accessToken?: string): Promise<{ data: T | null; organization?: unknown; error: string | null }> {
     return getAppApiData<T>(CURRENT_USER_PROFILE_PATH, {
         accessToken,
         bypassCache: Boolean(accessToken),

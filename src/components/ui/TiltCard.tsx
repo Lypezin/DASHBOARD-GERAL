@@ -9,7 +9,7 @@ interface TiltCardProps {
 }
 
 export const TiltCard: React.FC<TiltCardProps> = ({ children, className }) => {
-    const shouldReduceMotion = useReducedMotion() ?? true;
+    const shouldReduceMotion = useReducedMotion() ?? false;
     const x = useMotionValue(0);
     const y = useMotionValue(0);
 

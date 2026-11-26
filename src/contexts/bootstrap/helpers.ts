@@ -24,15 +24,21 @@ export function createCurrentUser(profile: BootstrapProfile | null): CurrentUser
   };
 }
 
-export async function fetchProfileWithRetry(): Promise<BootstrapProfile | null> {
+export async function fetchProfileWithRetry(): Promise<{
+  profile: BootstrapProfile | null;
+  organization?: Organization | null;
+}> {
   let lastError: unknown = null;
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
-      const { data, error } = await getCurrentUserProfileData<BootstrapProfile>();
+      const { data, organization, error } = await getCurrentUserProfileData<BootstrapProfile>();
 
       if (!error && data) {
-        return data;
+        return {
+          profile: data,
+          organization: organization !== undefined ? ((organization as Organization | null) ?? null) : undefined,
+        };
       }
 
       lastError = error;
@@ -49,7 +55,7 @@ export async function fetchProfileWithRetry(): Promise<BootstrapProfile | null> 
     safeLog.warn('[AppBootstrap] Falha ao carregar perfil:', lastError);
   }
 
-  return null;
+  return { profile: null };
 }
 
 export async function hydrateAvatarUrl(

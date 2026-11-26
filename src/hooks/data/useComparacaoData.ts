@@ -8,6 +8,7 @@ import { fetchComparisonUtr } from '@/hooks/comparacao/useComparisonUtr';
 import { createRequestKey } from '@/utils/request/createRequestKey';
 import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
 import type { ComparisonDimensionFilters } from '@/utils/comparacao/filters';
+import { ENTREGADORES_REFRESH_COMPLETE_EVENT } from '@/utils/dashboard/dashboardDataRefreshEvents';
 import { getTimedCacheValue, setTimedCacheValue, type TimedCacheEntry } from '@/utils/cache/timedLruCache';
 
 interface UseComparacaoDataOptions {
@@ -118,14 +119,22 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
     dimensionFilters
   ), [accessScopeKey, anoSelecionado, currentOrganizationId, dimensionFilters, pracaSelecionada, semanasSelecionadas]);
 
+  const initialCachedRef = useRef<ComparacaoDataResult | null | undefined>();
+  if (initialCachedRef.current === undefined) {
+    initialCachedRef.current = semanasSelecionadas?.length === 2
+      ? getCachedComparacaoData(cacheKey)
+      : null;
+  }
+  const initialCached = initialCachedRef.current;
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [utrError, setUtrError] = useState<string | null>(null);
-  const [dadosComparacao, setDadosComparacao] = useState<DashboardResumoData[]>([]);
-  const [utrComparacao, setUtrComparacao] = useState<Array<{ semana: string | number; utr: UtrData | null }>>([]);
-  const [resolvedCacheKey, setResolvedCacheKey] = useState<string | null>(null);
-  const [dataOrganizationId, setDataOrganizationId] = useState<string | null>(null);
-  const [dataAccessScopeKey, setDataAccessScopeKey] = useState<string | null>(null);
+  const [utrError, setUtrError] = useState<string | null>(() => initialCached?.utrError ?? null);
+  const [dadosComparacao, setDadosComparacao] = useState<DashboardResumoData[]>(() => initialCached?.dadosComparacao ?? []);
+  const [utrComparacao, setUtrComparacao] = useState<Array<{ semana: string | number; utr: UtrData | null }>>(() => initialCached?.utrComparacao ?? []);
+  const [resolvedCacheKey, setResolvedCacheKey] = useState<string | null>(() => (initialCached ? cacheKey : null));
+  const [dataOrganizationId, setDataOrganizationId] = useState<string | null>(() => (initialCached ? currentOrganizationId : null));
+  const [dataAccessScopeKey, setDataAccessScopeKey] = useState<string | null>(() => (initialCached ? accessScopeKey : null));
   const [retryNonce, setRetryNonce] = useState(0);
   const cacheKeyRef = useRef(cacheKey);
   cacheKeyRef.current = cacheKey;
@@ -226,6 +235,16 @@ export function useComparacaoData(options: UseComparacaoDataOptions) {
   const retryData = useCallback(() => {
     comparacaoDataCache.delete(cacheKeyRef.current);
     setRetryNonce((current) => current + 1);
+  }, []);
+
+  useEffect(() => {
+    const handleRefresh = () => {
+      comparacaoDataCache.clear();
+      setRetryNonce((current) => current + 1);
+    };
+
+    window.addEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, handleRefresh);
+    return () => window.removeEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, handleRefresh);
   }, []);
 
   const hasValidComparisonSelection = Boolean(semanasSelecionadas && semanasSelecionadas.length === 2);

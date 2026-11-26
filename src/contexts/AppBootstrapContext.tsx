@@ -63,15 +63,22 @@ async function resolveBootstrapState(force: boolean = false): Promise<AppBootstr
         return cachedState;
       }
 
-      const rawProfile = await fetchProfileWithRetry();
+      const { profile: rawProfile, organization: bundledOrganization } = await fetchProfileWithRetry();
       const profile = await hydrateAvatarUrl(authUser, rawProfile);
       const organizationId = profile?.organization_id || null;
-        
-      const organization = await resolveOrganization(
-        organizationId, 
-        cachedOrganization,
-        (cache) => { cachedOrganization = cache; }
-      );
+
+      const organization = bundledOrganization !== undefined
+        ? (() => {
+            if (organizationId) {
+              cachedOrganization = { id: organizationId, value: bundledOrganization };
+            }
+            return bundledOrganization;
+          })()
+        : await resolveOrganization(
+            organizationId,
+            cachedOrganization,
+            (cache) => { cachedOrganization = cache; }
+          );
 
       const nextState = buildSnapshot(authUser, profile, organization, profile ? null : 'profile_unavailable');
       cachedState = nextState;
@@ -103,6 +110,11 @@ export function AppBootstrapProvider({ children }: { children: React.ReactNode }
   const requestIdRef = useRef(0);
 
   const refresh = useCallback(async (force: boolean = false) => {
+    if (!force && cachedState?.hasResolved) {
+      setState((prev) => (prev.hasResolved && !prev.isLoading ? prev : cachedState!));
+      return;
+    }
+
     const requestId = ++requestIdRef.current;
 
     setState((prev) => ({

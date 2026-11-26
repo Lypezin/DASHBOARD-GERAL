@@ -224,3 +224,52 @@ $function$;
 -- VACUUM ANALYZE public.dashboard_entregadores_month_cache;
 -- VACUUM ANALYZE public.mv_refresh_control;
 -- VACUUM ANALYZE public.dados_corridas;
+
+-- =============================================================================
+-- PASS 2 SAFE MAINTENANCE (Run in Supabase Dashboard -> SQL Editor)
+-- No index drops included; all statements below only reclaim space/Visibility Map
+-- and upgrade row-level triggers to statement-level triggers.
+-- =============================================================================
+
+-- 5. Clean up already-processed rows older than 7 days in mv_refresh_impacts
+DELETE FROM public.mv_refresh_impacts
+WHERE dashboard_resumo_processed_at IS NOT NULL
+  AND entregadores_agregado_processed_at IS NOT NULL
+  AND comparison_weekly_processed_at IS NOT NULL
+  AND corridas_agregadas_processed_at IS NOT NULL
+  AND updated_at < now() - interval '7 days';
+
+-- 6. Upgrade dados_marketing & dados_valores_cidade triggers to FOR EACH STATEMENT
+--    and remove the duplicate updated_at trigger on user_profiles.
+DROP TRIGGER IF EXISTS trigger_mark_mv_refresh_marketing ON public.dados_marketing;
+CREATE TRIGGER trigger_mark_mv_refresh_marketing
+  AFTER INSERT OR DELETE OR UPDATE ON public.dados_marketing
+  FOR EACH STATEMENT EXECUTE FUNCTION public.mark_mv_marketing_refresh_needed();
+
+DROP TRIGGER IF EXISTS trigger_mark_mv_refresh_valores ON public.dados_valores_cidade;
+CREATE TRIGGER trigger_mark_mv_refresh_valores
+  AFTER INSERT OR DELETE OR UPDATE ON public.dados_valores_cidade
+  FOR EACH STATEMENT EXECUTE FUNCTION public.mark_mv_valores_refresh_needed();
+
+DROP TRIGGER IF EXISTS on_user_profile_updated ON public.user_profiles;
+
+-- 7. Rebuild Visibility Map & planner stats (run each VACUUM individually, outside transactions):
+--    Fixing the Visibility Map on dados_corridas eliminates ~342k Heap Fetches in
+--    resumo_semanal_drivers (bringing ~27s down toward sub-second Index Only Scans).
+-- VACUUM (ANALYZE) public.dados_corridas;
+-- VACUUM (ANALYZE) public.tb_dashboard_resumo_incremental;
+-- VACUUM (ANALYZE) public.dashboard_entregadores_agregado_semanal;
+-- VACUUM (ANALYZE) public.dashboard_entregadores_agregado_semanal_entregador;
+-- VACUUM (ANALYZE) public.tb_corridas_agregadas_incremental;
+-- VACUUM (ANALYZE) public.tb_comparison_weekly_incremental;
+-- VACUUM (ANALYZE) public.mv_refresh_impacts;
+
+-- 8. Optional off-hours MV consolidation (run only during low-traffic maintenance window):
+--    Also note: mv_entregadores_agregado has a historical +1,672 ride drift in ISO 2026 W38
+--    vs dados_corridas (190,750 vs 189,078); a full refresh reconciles it before rebuilding W38.
+-- SELECT public.refresh_single_mv('mv_dashboard_resumo');
+-- SELECT public.refresh_single_mv('mv_entregadores_agregado');
+-- SELECT public.refresh_single_mv('mv_corridas_agregadas');
+-- SELECT public.refresh_single_mv('mv_comparison_weekly');
+-- Note: Only truncate incremental tables if all pending mv_refresh_impacts are processed
+-- immediately after the corresponding MV refresh completes cleanly.

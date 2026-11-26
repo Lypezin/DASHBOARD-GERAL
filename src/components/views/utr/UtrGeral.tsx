@@ -12,7 +12,7 @@ export const UtrGeral = React.memo(function UtrGeral({ data }: UtrGeralProps) {
     const fullTime = formatarHorasParaHMS(data.tempo_horas ?? 0);
     const compactTime = formatCompactTime(fullTime);
     const formattedCorridas = (data.corridas ?? 0).toLocaleString('pt-BR');
-    const reduceMotion = useReducedMotion() ?? true;
+    const reduceMotion = useReducedMotion() ?? false;
     const metrics = [
         { title: 'UTR consolidada', value: (data.utr ?? 0).toFixed(2), meta: 'Média do período', icon: Activity },
         { title: 'Tempo total', value: compactTime, meta: `${fullTime} · Horas operacionais`, icon: Timer },

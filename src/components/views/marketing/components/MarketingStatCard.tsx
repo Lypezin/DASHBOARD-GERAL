@@ -23,7 +23,7 @@ export const MarketingStatCard: React.FC<MarketingStatCardProps> = ({
     bgClass,
     iconBgClass
 }) => (
-    <Card className="border-none shadow-sm hover:shadow-md transition-all duration-300 group overflow-hidden relative bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800/50 backdrop-blur-sm">
+    <Card className="border-none shadow-sm hover:shadow-md transition-all duration-300 group overflow-hidden relative bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800/50">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
             <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 {title}

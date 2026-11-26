@@ -1,6 +1,7 @@
 /** Hook para buscar dados principais do dashboard */
 
-import { useCallback, useState, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useState, useMemo, useRef } from 'react';
+import { ENTREGADORES_REFRESH_COMPLETE_EVENT } from '@/utils/dashboard/dashboardDataRefreshEvents';
 import type {
   Totals,
   AderenciaSemanal,
@@ -81,6 +82,16 @@ export function useDashboardMainData(options: UseDashboardMainDataOptions) {
     setResolvedPayloadKey(null);
     setRetryNonce((current) => current + 1);
   }, [pendingPayloadKeyRef, previousPayloadRef]);
+
+  useEffect(() => {
+    const handleRefresh = () => {
+      clearCache();
+      if (enabled) retryMainData();
+    };
+
+    window.addEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, handleRefresh);
+    return () => window.removeEventListener(ENTREGADORES_REFRESH_COMPLETE_EVENT, handleRefresh);
+  }, [clearCache, enabled, retryMainData]);
 
   const setters = useMemo(() => ({
     setTotals,

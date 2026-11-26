@@ -31,7 +31,7 @@ export const ValoresCidadeCards: React.FC<ValoresCidadeCardsProps> = ({
   custoPorLiberado,
   cidadesData,
 }) => {
-  const reduceMotion = useReducedMotion() ?? true;
+  const reduceMotion = useReducedMotion() ?? false;
   const summary = [
     { label: 'Total geral', value: formatCurrency(totalGeral), meta: 'Investimento no período', icon: DollarSign },
     { label: 'Custo por liberado', value: formatCurrency(custoPorLiberado), meta: 'Média por entregador liberado', icon: BarChart3 },

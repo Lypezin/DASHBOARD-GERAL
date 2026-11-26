@@ -9,7 +9,7 @@ interface CountUpProps {
 }
 
 export const CountUp: React.FC<CountUpProps> = ({ value, duration = 2 }) => {
-    const shouldReduceMotion = useReducedMotion() ?? true;
+    const shouldReduceMotion = useReducedMotion() ?? false;
     const motionValue = useMotionValue(value);
     const springValue = useSpring(motionValue, {
         stiffness: 100,

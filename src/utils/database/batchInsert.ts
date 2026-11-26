@@ -30,6 +30,29 @@ export function isNonRetryableBatchInsertError(error: unknown): error is NonRetr
                 (error as { code?: unknown }).code === 'SERVER_SUPABASE_SERVICE_ROLE_MISSING'));
 }
 
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function normalizeBatchRows(
+    rows: Record<string, unknown>[],
+    normalizedOrgId: string | null,
+): Record<string, unknown>[] {
+    const result: Record<string, unknown>[] = new Array(rows.length);
+    for (let i = 0; i < rows.length; i++) {
+        const source = rows[i];
+        const normalized: Record<string, unknown> = {};
+        for (const key in source) {
+            if (Object.prototype.hasOwnProperty.call(source, key)) {
+                normalized[key] = source[key] ?? null;
+            }
+        }
+        if (normalizedOrgId) {
+            normalized.organization_id = normalizedOrgId;
+        }
+        result[i] = normalized;
+    }
+    return result;
+}
+
 export async function insertInBatches<T extends Record<string, unknown> = Record<string, unknown>>(
     table: string,
     data: T[],
@@ -40,16 +63,18 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
     const errors: string[] = [];
     let insertedRows = 0;
     const useInternalUploadApi = table === 'dados_marketing' || table === 'dados_valores_cidade';
+    const normalizedOrgId = organizationId && UUID_REGEX.test(organizationId) ? organizationId : null;
 
     safeLog.info(`Iniciando insercao em lotes na tabela ${table}...`);
 
     for (let i = 0; i < totalRows; i += batchSize) {
-        let batch = data.slice(i, i + batchSize);
+        const rawSlice = data.slice(i, i + batchSize);
+        const batch = (table === 'dados_corridas' || useInternalUploadApi)
+            ? normalizeBatchRows(rawSlice, normalizedOrgId)
+            : normalizedOrgId
+                ? rawSlice.map((item) => ({ ...item, organization_id: normalizedOrgId }))
+                : rawSlice;
         const batchNumber = Math.floor(i / batchSize) + 1;
-
-        if (organizationId && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(organizationId)) {
-            batch = batch.map((item) => ({ ...item, organization_id: organizationId }));
-        }
 
         try {
             if (table === 'dados_corridas') {
@@ -93,12 +118,11 @@ export async function insertInBatches<T extends Record<string, unknown> = Record
 }
 
 async function insertCorridasViaApi(
-    batch: Record<string, unknown>[],
+    dados: Record<string, unknown>[],
     organizationId: string | undefined,
     batchNum: number,
     importId: string | undefined,
 ) {
-    const dados = batch.map((item) => Object.fromEntries(Object.entries(item).map(([key, value]) => [key, value ?? null])));
     const { ok, status, payload } = await postUploadApi<{
         success?: boolean;
         inserted?: number;
@@ -126,19 +150,18 @@ async function insertCorridasViaApi(
     if (errCount > 0) {
         throw new Error(`Lote ${batchNum}: ${payload?.error_messages?.[0] || 'falha ao gravar os dados.'}`);
     }
-    if (!payload || payload.success !== true || payload.inserted !== batch.length || payload.errors !== 0) {
+    if (!payload || payload.success !== true || payload.inserted !== dados.length || payload.errors !== 0) {
         throw new Error(`Lote ${batchNum}: não foi possível confirmar a quantidade gravada. Confira os dados antes de reenviar.`);
     }
 }
 
 async function insertTableViaApi(
     table: string,
-    batch: Record<string, unknown>[],
+    rows: Record<string, unknown>[],
     organizationId: string | undefined,
     batchNum: number,
     errors: string[]
 ) {
-    const rows = batch.map((item) => Object.fromEntries(Object.entries(item).map(([key, value]) => [key, value ?? null])));
     const { ok, status, payload } = await postUploadApi<{
         errors?: number;
         error_messages?: string[];
