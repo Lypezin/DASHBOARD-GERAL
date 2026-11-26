@@ -23,7 +23,7 @@ export const PresentationManager: React.FC<PresentationManagerProps> = ({
 }) => {
     return (
         <Dialog open={isOpen} onOpenChange={onClose}>
-            <DialogContent className="max-w-2xl bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
+            <DialogContent className="w-[calc(100vw-1.5rem)] max-w-2xl max-h-[90vh] bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800">
                 <DialogHeader>
                     <DialogTitle>Apresentações Salvas</DialogTitle>
                 </DialogHeader>
@@ -54,26 +54,26 @@ export const PresentationManager: React.FC<PresentationManagerProps> = ({
                         <ScrollArea className="h-[400px] w-full pr-4">
                             <div className="space-y-3">
                                 {presentations.map((pres) => (
-                                    <div key={pres.id} className="flex items-center justify-between p-4 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                        <div className="flex-1">
-                                            <h3 className="font-medium text-slate-900 dark:text-slate-100">{pres.name}</h3>
-                                            <div className="flex items-center gap-4 mt-1 text-xs text-slate-500">
+                                    <div key={pres.id} className="flex items-center justify-between gap-3 p-4 rounded-lg border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                        <div className="min-w-0 flex-1">
+                                            <h3 className="truncate font-medium text-slate-900 dark:text-slate-100" title={pres.name}>{pres.name}</h3>
+                                            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 mt-1 text-xs text-slate-500 dark:text-slate-400">
                                                 <span className="flex items-center gap-1">
-                                                    <Calendar className="w-3 h-3" />
+                                                    <Calendar className="w-3 h-3 shrink-0" />
                                                     {format(new Date(pres.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
                                                 </span>
                                                 {pres.filters?.praca && (
                                                     <span className="flex items-center gap-1">
-                                                        <MapPin className="w-3 h-3" />
+                                                        <MapPin className="w-3 h-3 shrink-0" />
                                                         {pres.filters.praca}
                                                     </span>
                                                 )}
-                                                <span className="flex items-center gap-1">
+                                                <span className="flex items-center gap-1 tabular-nums">
                                                     Slides: {pres.slides?.length || 0}
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex shrink-0 items-center gap-2">
                                             <Button
                                                 size="sm"
                                                 variant="outline"

@@ -3,6 +3,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { LucideIcon } from 'lucide-react';
+import { AnimatedNumberText } from '@/components/ui/animated-counter';
 
 interface MarketingStatCardProps {
     title: string;
@@ -23,7 +24,7 @@ export const MarketingStatCard: React.FC<MarketingStatCardProps> = ({
     bgClass,
     iconBgClass
 }) => (
-    <Card className="border-none shadow-sm hover:shadow-md transition-all duration-300 group overflow-hidden relative bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800/50">
+    <Card className="border-none shadow-sm hover:shadow-md transition-shadow duration-300 group overflow-hidden relative bg-white dark:bg-slate-900 ring-1 ring-slate-100 dark:ring-slate-800/50">
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 z-10 relative">
             <CardTitle className="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
                 {title}
@@ -33,8 +34,8 @@ export const MarketingStatCard: React.FC<MarketingStatCardProps> = ({
             </div>
         </CardHeader>
         <CardContent className="z-10 relative">
-            <div className={`text-3xl font-bold tracking-tight ${colorClass} mb-2 truncate`}>
-                {value}
+            <div className={`text-3xl font-bold tracking-tight tabular-nums ${colorClass} mb-2 truncate`}>
+                <AnimatedNumberText value={value} />
             </div>
             <div className="flex items-center gap-2">
                 <div className={`h-1.5 w-1.5 rounded-full ${iconBgClass}`} />

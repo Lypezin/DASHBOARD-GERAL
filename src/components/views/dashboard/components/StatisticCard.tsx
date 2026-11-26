@@ -33,7 +33,7 @@ export const StatisticCard = React.memo(function StatisticCard({
     const valueString = String(value);
 
     return (
-        <div className="group min-w-0 border-t-[3px] border-t-[#9ac8de] bg-white px-4 py-3 dark:border-t-sky-700 dark:bg-slate-900 sm:px-5 interactive-card">
+        <div className="group min-w-0 border-t-[3px] border-t-[#9ac8de] bg-white px-4 py-3 transition-colors duration-150 hover:bg-[#f8fbfc] dark:border-t-sky-700 dark:bg-slate-900 dark:hover:bg-slate-800/50 sm:px-5">
             <div className="flex min-w-0 items-center gap-2">
                 <Icon className="h-3.5 w-3.5 shrink-0 text-[#347ca3] dark:text-sky-200" aria-hidden="true" />
                 <dt className="truncate text-[11px] font-medium text-slate-500 dark:text-slate-300">{title}</dt>

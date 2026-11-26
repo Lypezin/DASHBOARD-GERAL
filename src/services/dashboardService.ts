@@ -149,8 +149,13 @@ function setCachedData(cacheKey: string, mode: DashboardDataMode, data: unknown)
       }
 
       while (entriesForMode >= modeLimit) {
-          const oldestKeyForMode = Array.from(dashboardDataCache.entries())
-              .find(([, entry]) => entry.mode === mode)?.[0];
+          let oldestKeyForMode: string | undefined;
+          for (const [key, entry] of dashboardDataCache.entries()) {
+              if (entry.mode === mode) {
+                  oldestKeyForMode = key;
+                  break;
+              }
+          }
           if (!oldestKeyForMode) break;
           dashboardDataCache.delete(oldestKeyForMode);
           entriesForMode--;
@@ -493,18 +498,32 @@ function getEntregadoresMonthCacheKey(payload: Record<string, unknown>, revision
       .digest('hex');
 }
 
+const inFlightRevisionRequests = new Map<string, Promise<string | null>>();
+
 async function getEntregadoresRevision(admin: ReturnType<typeof createServiceRoleClient>, organizationId: string) {
-  try {
-      const { data, error } = await admin.rpc('get_dashboard_cache_revision', { p_organization_id: organizationId });
-      if (error || typeof data !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:\d+$/i.test(data)) {
+  const existing = inFlightRevisionRequests.get(organizationId);
+  if (existing) return existing;
+
+  const request = (async () => {
+      try {
+          const { data, error } = await admin.rpc('get_dashboard_cache_revision', { p_organization_id: organizationId });
+          if (error || typeof data !== 'string' || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}:\d+$/i.test(data)) {
+              console.warn('Versão de cache indisponível; consulta de Entregadores sem cache.');
+              return null;
+          }
+          return data;
+      } catch {
           console.warn('Versão de cache indisponível; consulta de Entregadores sem cache.');
           return null;
       }
-      return data;
-  } catch {
-      console.warn('Versão de cache indisponível; consulta de Entregadores sem cache.');
-      return null;
-  }
+  })().finally(() => {
+      if (inFlightRevisionRequests.get(organizationId) === request) {
+          inFlightRevisionRequests.delete(organizationId);
+      }
+  });
+
+  inFlightRevisionRequests.set(organizationId, request);
+  return request;
 }
 
 async function resolveEntregadoresWithRevision(
@@ -638,14 +657,16 @@ function mergeChunkedEntregadoresResults(results: unknown[], payload: Record<str
       || compareText(left.id_entregador, right.id_entregador)
   );
 
-  console.info('[dashboard-performance]', JSON.stringify({
-      phase: 'consolidation',
-      mode: 'entregadores',
-      chunk_count: results.length,
-      input_rows: inputRows,
-      output_rows: entregadores.length,
-      consolidation_ms: Math.round((performance.now() - consolidationStartedAt) * 100) / 100,
-  }));
+  if (SHOULD_LOG_DASHBOARD_PERF) {
+      console.info('[dashboard-performance]', JSON.stringify({
+          phase: 'consolidation',
+          mode: 'entregadores',
+          chunk_count: results.length,
+          input_rows: inputRows,
+          output_rows: entregadores.length,
+          consolidation_ms: Math.round((performance.now() - consolidationStartedAt) * 100) / 100,
+      }));
+  }
 
   return {
       entregadores,
@@ -858,9 +879,12 @@ function sortEntregadoresRows(
           const rightNumeric = /^\d+$/.test(rightId);
           if (leftNumeric !== rightNumeric) return leftNumeric ? -1 : 1;
           if (leftNumeric && rightNumeric) {
-              const a = BigInt(leftId);
-              const b = BigInt(rightId);
-              return (a < b ? -1 : a > b ? 1 : 0) * sign || compareText(leftId, rightId);
+              const a = leftId.replace(/^0+/, '') || '0';
+              const b = rightId.replace(/^0+/, '') || '0';
+              const numericCmp = a.length !== b.length
+                  ? (a.length < b.length ? -1 : 1)
+                  : compareText(a, b);
+              return numericCmp * sign || compareText(leftId, rightId);
           }
           return compareText(leftId.toLowerCase(), rightId.toLowerCase()) * sign || compareText(leftId, rightId);
       }
@@ -874,16 +898,59 @@ function sortEntregadoresRows(
   });
 }
 
+function selectTopAndBottomPerformers(
+  rows: Entregador[],
+  field: 'aderencia_percentual' | 'corridas_completadas' | 'total_segundos' | 'rejeicao_percentual',
+  bottomFirst = false,
+  limit = 10,
+) {
+  const dirSign = bottomFirst ? 1 : -1;
+  const compare = (left: Entregador, right: Entregador) =>
+      (left[field] - right[field]) * dirSign || compareText(left.id_entregador, right.id_entregador);
+
+  const insertSorted = (bucket: Entregador[], item: Entregador, shouldComeBefore: (a: Entregador, b: Entregador) => boolean) => {
+      let pos = bucket.length;
+      while (pos > 0 && shouldComeBefore(item, bucket[pos - 1])) {
+          pos -= 1;
+      }
+      if (pos < limit) {
+          bucket.splice(pos, 0, item);
+          if (bucket.length > limit) bucket.pop();
+      }
+  };
+
+  const top: Entregador[] = [];
+  const bottom: Entregador[] = [];
+  for (const row of rows) {
+      insertSorted(top, row, (a, b) => compare(a, b) < 0);
+      insertSorted(bottom, row, (a, b) => compare(b, a) < 0);
+  }
+  return { top, bottom };
+}
+
 function buildEntregadoresPage(
   sourceValue: unknown,
   payload: Record<string, unknown>,
 ) {
   const allRows = normalizeEntregadoresRows(sourceValue);
   const search = typeof payload.p_search === 'string' ? payload.p_search.trim().toLowerCase() : '';
-  const filteredRows = allRows.filter((row) =>
-      (!search || `${row.nome_entregador} ${row.id_entregador}`.toLowerCase().includes(search))
-      && (payload.p_only_inactive !== true || row.corridas_completadas === 0)
-  );
+  const onlyInactive = payload.p_only_inactive === true;
+  const filteredRows: Entregador[] = [];
+  let corridasCompletadas = 0;
+  let totalSegundos = 0;
+  let aderenciaSum = 0;
+  let rejeicaoSum = 0;
+
+  for (const row of allRows) {
+      if (onlyInactive && row.corridas_completadas !== 0) continue;
+      if (search && !row.nome_entregador.toLowerCase().includes(search) && !row.id_entregador.toLowerCase().includes(search)) continue;
+      filteredRows.push(row);
+      corridasCompletadas += row.corridas_completadas;
+      totalSegundos += row.total_segundos;
+      aderenciaSum += row.aderencia_percentual;
+      rejeicaoSum += row.rejeicao_percentual;
+  }
+
   const total = filteredRows.length;
   const requestedLimit = Number(payload.p_limit);
   const limit = Number.isInteger(requestedLimit) ? requestedLimit : -1;
@@ -898,20 +965,6 @@ function buildEntregadoresPage(
   const sortDirection = payload.p_sort_direction === 'asc' ? 'asc' : 'desc';
   const sortedRows = sortEntregadoresRows(filteredRows, sortField, sortDirection);
   const pageRows = limit === 0 ? sortedRows : sortedRows.slice((page - 1) * pageSize, page * pageSize);
-  const sum = (field: 'corridas_completadas' | 'total_segundos') => filteredRows.reduce((totalValue, row) => totalValue + row[field], 0);
-  const average = (field: 'aderencia_percentual' | 'rejeicao_percentual') =>
-      total > 0 ? filteredRows.reduce((totalValue, row) => totalValue + row[field], 0) / total : 0;
-  const performers = (
-      field: 'aderencia_percentual' | 'corridas_completadas' | 'total_segundos' | 'rejeicao_percentual',
-      bottomFirst = false,
-  ) => {
-      const direction = bottomFirst ? 'asc' : 'desc';
-      const ordered = [...filteredRows].sort((left, right) =>
-          (left[field] - right[field]) * (direction === 'asc' ? 1 : -1)
-          || compareText(left.id_entregador, right.id_entregador)
-      );
-      return { top: ordered.slice(0, 10), bottom: ordered.slice(-10).reverse() };
-  };
 
   const sourceData = sourceValue && typeof sourceValue === 'object' && !Array.isArray(sourceValue)
       ? sourceValue as Record<string, unknown>
@@ -931,16 +984,16 @@ function buildEntregadoresPage(
       },
       summary: {
           total_entregadores: total,
-          aderencia_media: average('aderencia_percentual'),
-          rejeicao_media: average('rejeicao_percentual'),
-          corridas_completadas: sum('corridas_completadas'),
-          total_segundos: sum('total_segundos'),
+          aderencia_media: total > 0 ? aderenciaSum / total : 0,
+          rejeicao_media: total > 0 ? rejeicaoSum / total : 0,
+          corridas_completadas: corridasCompletadas,
+          total_segundos: totalSegundos,
       },
       performers_by_metric: {
-          aderencia: performers('aderencia_percentual'),
-          completadas: performers('corridas_completadas'),
-          horas: performers('total_segundos'),
-          rejeicao: performers('rejeicao_percentual', true),
+          aderencia: selectTopAndBottomPerformers(filteredRows, 'aderencia_percentual'),
+          completadas: selectTopAndBottomPerformers(filteredRows, 'corridas_completadas'),
+          horas: selectTopAndBottomPerformers(filteredRows, 'total_segundos'),
+          rejeicao: selectTopAndBottomPerformers(filteredRows, 'rejeicao_percentual', true),
       },
   };
 }

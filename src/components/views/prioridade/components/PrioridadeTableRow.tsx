@@ -26,28 +26,28 @@ export const PrioridadeTableRow = React.memo<PrioridadeTableRowProps>(({
 
     return (
         <tr className="transition-colors duration-150 hover:bg-[#f6f9fb] dark:hover:bg-slate-900/60">
-            <td className="px-6 py-4 font-semibold text-slate-900 dark:text-white leading-normal pr-4">{entregador.nome_entregador}</td>
-            <td className="whitespace-nowrap px-3 py-4 text-center font-mono font-medium tabular-nums text-slate-700 dark:text-slate-300 sm:px-4">{entregador.corridas_ofertadas.toLocaleString('pt-BR')}</td>
-            <td className="whitespace-nowrap px-3 py-4 text-center font-mono font-medium tabular-nums text-emerald-700 dark:text-emerald-300 sm:px-4">{entregador.corridas_aceitas.toLocaleString('pt-BR')}</td>
-            <td className="whitespace-nowrap px-3 py-4 text-center font-mono font-medium tabular-nums text-rose-700 dark:text-rose-300 sm:px-4">{entregador.corridas_rejeitadas.toLocaleString('pt-BR')}</td>
-            <td className="px-6 py-4 text-center">
-                <Badge variant="outline" className={`font-mono font-bold ${getAceitasBg(percentualAceitas)} ${getAceitasColor(percentualAceitas)} whitespace-nowrap rounded-lg px-2 py-0.5`}>
+            <td className="px-4 py-4 font-semibold text-slate-900 dark:text-white leading-normal sm:px-5">{entregador.nome_entregador}</td>
+            <td className="whitespace-nowrap px-4 py-4 text-center font-mono font-medium tabular-nums text-slate-700 dark:text-slate-300 sm:px-5">{entregador.corridas_ofertadas.toLocaleString('pt-BR')}</td>
+            <td className="whitespace-nowrap px-4 py-4 text-center font-mono font-medium tabular-nums text-emerald-700 dark:text-emerald-300 sm:px-5">{entregador.corridas_aceitas.toLocaleString('pt-BR')}</td>
+            <td className="whitespace-nowrap px-4 py-4 text-center font-mono font-medium tabular-nums text-rose-700 dark:text-rose-300 sm:px-5">{entregador.corridas_rejeitadas.toLocaleString('pt-BR')}</td>
+            <td className="px-4 py-4 text-center sm:px-5">
+                <Badge variant="outline" className={`font-mono font-bold tabular-nums ${getAceitasBg(percentualAceitas)} ${getAceitasColor(percentualAceitas)} whitespace-nowrap rounded-lg px-2 py-0.5`}>
                     {percentualAceitas.toFixed(1)}%
                 </Badge>
             </td>
-            <td className="whitespace-nowrap px-3 py-4 text-center font-mono font-medium tabular-nums text-[#285d79] dark:text-sky-200 sm:px-4">{entregador.corridas_completadas.toLocaleString('pt-BR')}</td>
-            <td className="px-6 py-4 text-center">
-                <Badge variant="outline" className={`font-mono font-bold ${getCompletadasBg(percentualCompletadas)} ${getCompletadasColor(percentualCompletadas)} whitespace-nowrap rounded-lg px-2 py-0.5`}>
+            <td className="whitespace-nowrap px-4 py-4 text-center font-mono font-medium tabular-nums text-[#285d79] dark:text-sky-200 sm:px-5">{entregador.corridas_completadas.toLocaleString('pt-BR')}</td>
+            <td className="px-4 py-4 text-center sm:px-5">
+                <Badge variant="outline" className={`font-mono font-bold tabular-nums ${getCompletadasBg(percentualCompletadas)} ${getCompletadasColor(percentualCompletadas)} whitespace-nowrap rounded-lg px-2 py-0.5`}>
                     {percentualCompletadas.toFixed(1)}%
                 </Badge>
             </td>
-            <td className="px-6 py-4 text-center">
-                <Badge variant="outline" className={`font-mono font-extrabold ${getAderenciaBg(entregador.aderencia_percentual ?? 0)} ${getAderenciaColor(entregador.aderencia_percentual ?? 0)} whitespace-nowrap rounded-lg px-2 py-0.5`}>
+            <td className="px-4 py-4 text-center sm:px-5">
+                <Badge variant="outline" className={`font-mono font-extrabold tabular-nums ${getAderenciaBg(entregador.aderencia_percentual ?? 0)} ${getAderenciaColor(entregador.aderencia_percentual ?? 0)} whitespace-nowrap rounded-lg px-2 py-0.5`}>
                     {(entregador.aderencia_percentual ?? 0).toFixed(1)}%
                 </Badge>
             </td>
-            <td className="px-6 py-4 text-center">
-                <Badge variant="outline" className={`font-mono font-extrabold ${getRejeicaoBg(entregador.rejeicao_percentual ?? 0)} ${getRejeicaoColor(entregador.rejeicao_percentual ?? 0)} whitespace-nowrap rounded-lg px-2 py-0.5`}>
+            <td className="px-4 py-4 text-center sm:px-5">
+                <Badge variant="outline" className={`font-mono font-extrabold tabular-nums ${getRejeicaoBg(entregador.rejeicao_percentual ?? 0)} ${getRejeicaoColor(entregador.rejeicao_percentual ?? 0)} whitespace-nowrap rounded-lg px-2 py-0.5`}>
                     {(entregador.rejeicao_percentual ?? 0).toFixed(1)}%
                 </Badge>
             </td>

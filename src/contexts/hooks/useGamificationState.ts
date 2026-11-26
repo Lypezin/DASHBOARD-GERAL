@@ -43,12 +43,15 @@ export function useGamificationState() {
         if (badgeRows.length > 0) setBadges(badgeRows);
 
         if (badgeRows.length > 0 && unlockedRows.length > 0) {
-            const unlockedSlugs = new Set(unlockedRows.map((userBadge) => userBadge.badge_slug));
+            const unlockedBySlug = new Map<string, string | null>();
+            for (const userBadge of unlockedRows) {
+                unlockedBySlug.set(userBadge.badge_slug, userBadge.unlocked_at);
+            }
             const unlockedList = badgeRows
-                .filter((badge) => unlockedSlugs.has(badge.slug))
+                .filter((badge) => unlockedBySlug.has(badge.slug))
                 .map((badge) => ({
                     ...badge,
-                    unlocked_at: unlockedRows.find((userBadge) => userBadge.badge_slug === badge.slug)?.unlocked_at || undefined
+                    unlocked_at: unlockedBySlug.get(badge.slug) || undefined
                 }));
             setUnlockedBadges(unlockedList);
         }

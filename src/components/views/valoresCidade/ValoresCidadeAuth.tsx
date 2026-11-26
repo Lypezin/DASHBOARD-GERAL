@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Lock } from 'lucide-react';
+import { Loader2, Lock } from 'lucide-react';
 
 interface ValoresCidadeAuthProps {
   loading: boolean;
@@ -15,7 +15,7 @@ export const ValoresCidadeAuth: React.FC<ValoresCidadeAuthProps> = ({
     return (
       <div role="status" className="flex min-h-[18rem] items-center justify-center rounded-xl border border-[#d8e4eb] bg-white dark:border-slate-800 dark:bg-slate-950/70">
         <div className="flex items-center gap-3 text-sm font-medium text-slate-600 dark:text-slate-300">
-          <span className="h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600 dark:border-slate-700 dark:border-t-blue-300" aria-hidden="true" />
+          <Loader2 className="h-5 w-5 motion-safe:animate-spin text-blue-600 dark:text-blue-300" aria-hidden="true" />
           <span>Validando acesso…</span>
         </div>
       </div>

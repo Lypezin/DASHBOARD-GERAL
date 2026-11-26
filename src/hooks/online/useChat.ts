@@ -42,9 +42,12 @@ export function useChat(userId: string | null, enabled: boolean) {
                         type: data.type
                     } : message);
 
-                    return normalized.filter((message, index, arr) =>
-                        arr.findIndex((candidate) => candidate.id === message.id) === index
-                    );
+                    const seenIds = new Set<string>();
+                    return normalized.filter((message) => {
+                        if (seenIds.has(message.id)) return false;
+                        seenIds.add(message.id);
+                        return true;
+                    });
                 });
             }
         } catch (error) {

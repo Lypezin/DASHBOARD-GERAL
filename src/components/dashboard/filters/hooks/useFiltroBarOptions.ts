@@ -42,25 +42,17 @@ export function useFiltroBarOptions(
         }
 
         // Fallback: usar semanas passadas como props (comportamento anterior)
-        return semanas
-            .filter(sem => sem && sem !== '' && sem !== 'NaN')
-            .filter(sem => {
-                // Para o ano atual, filtrar semanas futuras
-                if (selectedYear === currentYear) {
-                    const parsed = parseInt(sem, 10);
-                    return !isNaN(parsed) && parsed <= currentWeek;
-                }
-                return true;
-            })
-            .map((sem) => {
-                const parsed = parseInt(sem, 10);
-                if (isNaN(parsed)) return null;
-                return { value: String(parsed), label: `Semana ${parsed}` };
-            })
-            .filter((opt): opt is { value: string; label: string } => opt !== null)
-            .filter((opt, index, self) =>
-                index === self.findIndex((o) => o.value === opt.value)
-            );
+        const seenWeeks = new Set<number>();
+        const options: { value: string; label: string }[] = [];
+        for (const sem of semanas) {
+            if (!sem || sem === 'NaN') continue;
+            const parsed = parseInt(sem, 10);
+            if (isNaN(parsed) || seenWeeks.has(parsed)) continue;
+            if (selectedYear === currentYear && parsed > currentWeek) continue;
+            seenWeeks.add(parsed);
+            options.push({ value: String(parsed), label: `Semana ${parsed}` });
+        }
+        return options;
     }, [semanas, selectedYear, semanasComDados, error]);
 
     return {

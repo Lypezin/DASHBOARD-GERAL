@@ -2,7 +2,7 @@ import React from 'react';
 import { AnaliseTable } from '@/components/analise/AnaliseTable';
 import { AnaliseTableTabs } from '@/components/analise/AnaliseTableTabs';
 import { ViewTransition } from '@/components/ui/view-transition';
-import { BarChart3 } from 'lucide-react';
+import { BarChart3, Loader2 } from 'lucide-react';
 import { TableType } from './useAnaliseViewController';
 import { AnaliseDiaOrigemTable } from './components/AnaliseDiaOrigemTable';
 
@@ -47,7 +47,7 @@ export const AnaliseDetailedCard = React.memo(function AnaliseDetailedCard({
                         loadingDiaOrigem ? (
                             <div role="status" aria-live="polite" className="rounded-2xl border border-slate-200/70 bg-slate-50/80 p-12 text-center dark:border-slate-800/80 dark:bg-slate-900/50">
                                 <div className="inline-flex flex-col items-center gap-3">
-                                    <div className="h-8 w-8 motion-safe:animate-spin rounded-full border-2 border-blue-500 border-t-transparent" aria-hidden="true" />
+                                    <Loader2 className="h-7 w-7 motion-safe:animate-spin text-blue-600 dark:text-sky-400" aria-hidden="true" />
                                     <p className="text-sm font-semibold text-slate-500 dark:text-slate-400">Carregando matriz...</p>
                                 </div>
                             </div>

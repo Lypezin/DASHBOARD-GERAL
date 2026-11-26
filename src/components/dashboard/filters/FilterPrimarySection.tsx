@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import FiltroDateRange from '@/components/shared/filters/FiltroDateRange';
 import FiltroMultiSelect from '@/components/shared/filters/FiltroMultiSelect';
 import FiltroSelect from '@/components/shared/filters/FiltroSelect';
 import { Filters } from '@/types';
 import type { FiltroBarChangeHandler } from '@/hooks/ui/useFiltroBar';
+
+const EMPTY_STRING_ARRAY: string[] = [];
 
 interface FilterPrimarySectionProps {
     appearance?: 'default' | 'quiet';
@@ -30,6 +32,55 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
     onRetrySemanas,
     handleChange
 }) => {
+    const handleRangeApply = useCallback((dataInicial: string | null, dataFinal: string | null) => {
+        setFilters(prev => {
+            if (!prev) return prev;
+
+            if (!dataInicial && !dataFinal) {
+                return {
+                    ...prev,
+                    dataInicial: null,
+                    dataFinal: null,
+                };
+            }
+
+            return {
+                ...prev,
+                filtroModo: 'intervalo',
+                ano: null,
+                semana: null,
+                semanas: [],
+                dataInicial,
+                dataFinal,
+            };
+        });
+    }, [setFilters]);
+
+    const handleAnoChange = useCallback((value: string | null) => {
+        handleChange('ano', value);
+    }, [handleChange]);
+
+    const handleSemanasChange = useCallback((values: string[]) => {
+        setFilters(prev => {
+            const semanas = values
+                .map((value) => parseInt(value, 10))
+                .filter((value) => Number.isFinite(value))
+                .sort((a, b) => a - b);
+
+            return {
+                ...prev,
+                semana: semanas.length === 1 ? semanas[0] : null,
+                semanas
+            };
+        });
+    }, [setFilters]);
+
+    const selectedWeeks = useMemo(() => {
+        if (filters.semanas?.length) return filters.semanas.map(String);
+        if (filters.semana !== null && filters.semana !== undefined) return [String(filters.semana)];
+        return EMPTY_STRING_ARRAY;
+    }, [filters.semanas, filters.semana]);
+
     if (isModoIntervalo) {
         return (
             <div className="col-span-1 min-w-0 sm:col-span-2 xl:col-span-3" data-filter-role="date-range">
@@ -37,39 +88,11 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
                     appearance={appearance}
                     dataInicial={filters?.dataInicial ?? null}
                     dataFinal={filters?.dataFinal ?? null}
-                    onRangeApply={(dataInicial, dataFinal) => {
-                        setFilters(prev => {
-                            if (!prev) return prev;
-
-                            if (!dataInicial && !dataFinal) {
-                                return {
-                                    ...prev,
-                                    dataInicial: null,
-                                    dataFinal: null,
-                                };
-                            }
-
-                            return {
-                                ...prev,
-                                filtroModo: 'intervalo',
-                                ano: null,
-                                semana: null,
-                                semanas: [],
-                                dataInicial,
-                                dataFinal,
-                            };
-                        });
-                    }}
+                    onRangeApply={handleRangeApply}
                 />
             </div>
         );
     }
-
-    const selectedWeeks = filters.semanas?.length
-        ? filters.semanas.map(String)
-        : filters.semana !== null && filters.semana !== undefined
-            ? [String(filters.semana)]
-            : [];
 
     return (
         <>
@@ -79,7 +102,7 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
                 value={filters.ano !== null ? String(filters.ano) : ''}
                 options={anosOptions}
                 placeholder="Todos"
-                onChange={(value) => handleChange('ano', value)}
+                onChange={handleAnoChange}
             />
             <div className="min-w-0">
                 <FiltroMultiSelect
@@ -89,20 +112,7 @@ export const FilterPrimarySection: React.FC<FilterPrimarySectionProps> = ({
                     options={semanasOptions}
                     placeholder={loadingSemanas ? 'Carregando semanas...' : errorSemanas ? 'Semanas indisponíveis' : 'Todas'}
                     disabled={loadingSemanas}
-                    onSelectionChange={(values) => {
-                        setFilters(prev => {
-                            const semanas = values
-                                .map((value) => parseInt(value, 10))
-                                .filter((value) => Number.isFinite(value))
-                                .sort((a, b) => a - b);
-
-                            return {
-                                ...prev,
-                                semana: semanas.length === 1 ? semanas[0] : null,
-                                semanas
-                            };
-                        });
-                    }}
+                    onSelectionChange={handleSemanasChange}
                 />
                 {errorSemanas ? (
                     <button

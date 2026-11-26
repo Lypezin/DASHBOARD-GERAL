@@ -10,7 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Settings, LogOut, Upload } from 'lucide-react';
+import { Shield, LogOut, Upload, User } from 'lucide-react';
 import { UserProfile } from '@/hooks/auth/types';
 
 interface UserDropdownProps {
@@ -30,7 +30,8 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({
         <Button
           variant="ghost"
           size="icon"
-          className="relative ml-1 h-9 w-9 rounded-full p-0 group focus:outline-none"
+          aria-label="Menu do usuário"
+          className="relative ml-1 h-9 w-9 rounded-full p-0 group focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Avatar className="h-9 w-9 border border-border transition-transform duration-200 group-hover:scale-105">
             <AvatarImage src={avatarUrl || user?.avatar_url || undefined} alt={user?.full_name || 'Usuário'} />
@@ -62,7 +63,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({
 
         <DropdownMenuItem asChild>
           <Link href="/perfil" className="w-full cursor-pointer rounded-xl">
-            <Settings className="h-4 w-4" />
+            <User className="h-4 w-4" />
             <span className="font-medium">Meu perfil</span>
           </Link>
         </DropdownMenuItem>
@@ -70,7 +71,7 @@ export const UserDropdown: React.FC<UserDropdownProps> = ({
         {user?.is_admin ? (
           <DropdownMenuItem asChild>
             <Link href="/admin" className="w-full cursor-pointer rounded-xl">
-              <Settings className="h-4 w-4" />
+              <Shield className="h-4 w-4" />
               <span className="font-medium">Administração</span>
             </Link>
           </DropdownMenuItem>

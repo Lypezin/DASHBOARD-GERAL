@@ -56,7 +56,7 @@ export const LoginStreakBadge = React.memo(function LoginStreakBadge({ className
                 </button>
             </TooltipTrigger>
             <TooltipContent>
-                <p className="font-medium">Sequencia de {streak.current} dia{streak.current > 1 ? 's' : ''}</p>
+                <p className="font-medium">Sequência de {streak.current} dia{streak.current > 1 ? 's' : ''}</p>
                 <p className="text-xs text-muted-foreground">Recorde: {streak.longest} dias consecutivos</p>
             </TooltipContent>
         </Tooltip>

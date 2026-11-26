@@ -44,12 +44,20 @@ export const PrioridadeTable = React.memo<PrioridadeTableProps>(({
                             onSort={onSort}
                         />
                         <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                            {sortedEntregadores.map((entregador) => (
-                                <PrioridadeTableRow
-                                    key={entregador.id_entregador}
-                                    entregador={entregador}
-                                />
-                            ))}
+                            {sortedEntregadores.length === 0 ? (
+                                <tr>
+                                    <td colSpan={9} className="px-6 py-12 text-center text-sm text-slate-500 dark:text-slate-400">
+                                        Nenhum entregador encontrado para os filtros ou pesquisa atual.
+                                    </td>
+                                </tr>
+                            ) : (
+                                sortedEntregadores.map((entregador) => (
+                                    <PrioridadeTableRow
+                                        key={entregador.id_entregador}
+                                        entregador={entregador}
+                                    />
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>

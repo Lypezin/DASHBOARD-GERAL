@@ -17,9 +17,11 @@ export const PrioridadeErrorState: React.FC<{ onRetry: () => void }> = ({ onRetr
 );
 
 export const PrioridadeEmptyState: React.FC = () => (
-    <div className="flex flex-col items-center justify-center py-12 text-center border rounded-xl border-dashed border-slate-300 dark:border-slate-700">
-        <Users className="h-10 w-10 text-slate-400 mb-3" />
-        <p className="text-lg font-medium text-slate-900 dark:text-white">Nenhum entregador encontrado</p>
-        <p className="text-sm text-slate-500">Tente ajustar os filtros para ver os dados.</p>
+    <div className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8">
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white/70 px-6 py-12 text-center dark:border-slate-700 dark:bg-slate-900/40">
+            <Users className="mb-3 h-10 w-10 text-slate-400" aria-hidden="true" />
+            <p className="text-lg font-medium text-slate-900 dark:text-white">Nenhum entregador encontrado</p>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Tente ajustar os filtros para ver os dados.</p>
+        </div>
     </div>
 );

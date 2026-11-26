@@ -11,6 +11,7 @@ import { EXCEL_MAX_DATA_ROWS } from '@/utils/excel/workbookStyle';
 import { formatarReal } from './utils/formatters';
 import { useValoresSearch } from './hooks/useValoresSearch';
 import { useValoresSort } from './hooks/useValoresSort';
+import { useTopLoaderSync } from '@/components/ui/TopLoader';
 
 const PAGE_SIZE = 100;
 const PAGE_ENGINE_VERSION = 'annual-db-page-v1';
@@ -146,6 +147,7 @@ export function useValoresData(filterPayload: FilterPayload, currentUser: Curren
     const hasCurrentQueryData = Boolean(hasResolvedData && pageState && pageState.requestKey === requestKey);
     const error = errorState?.requestKey === requestKey ? errorState.message : null;
     const loading = loadingRequestKey === requestKey || (!hasCurrentQueryData && !error);
+    useTopLoaderSync(loading);
     const visibleRows = hasResolvedData && pageState ? pageState.entregadores : EMPTY_VALORES;
     const totalGeral = hasResolvedData && pageState ? pageState.total_geral : 0;
     const totalCorridas = hasResolvedData && pageState ? pageState.total_corridas : 0;

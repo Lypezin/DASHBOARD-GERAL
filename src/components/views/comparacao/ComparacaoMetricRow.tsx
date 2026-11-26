@@ -25,6 +25,14 @@ export const ComparacaoMetricRow: React.FC<ComparacaoMetricRowProps> = ({
     invertVariationColors = false,
     valueClassName = "text-slate-600 dark:text-slate-400"
 }) => {
+    const rawValues = React.useMemo(
+        () => dadosComparacao.map((dados) => {
+            const subPracaData = (dados.aderencia_sub_praca || dados.sub_praca)?.find((sp) => sp.sub_praca === subPraca);
+            return subPracaData ? getValue(subPracaData) : 0;
+        }),
+        [dadosComparacao, getValue, subPraca]
+    );
+
     return (
         <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
             <td className="px-6 py-4 font-medium text-slate-700 dark:text-slate-300">
@@ -33,17 +41,11 @@ export const ComparacaoMetricRow: React.FC<ComparacaoMetricRowProps> = ({
                     {label}
                 </div>
             </td>
-            {dadosComparacao.map((dados, idx) => {
-                const subPracaData = (dados.aderencia_sub_praca || dados.sub_praca)?.find(sp => sp.sub_praca === subPraca);
-                const rawValue = subPracaData ? getValue(subPracaData) : 0;
-
+            {rawValues.map((rawValue, idx) => {
                 let variacao: number | null = null;
 
                 if (idx > 0 && showVariation) {
-                    const dadosAnterior = dadosComparacao[idx - 1];
-                    const subPracaDataAnterior = (dadosAnterior.aderencia_sub_praca || dadosAnterior.sub_praca)?.find(sp => sp.sub_praca === subPraca);
-                    const rawValueAnterior = subPracaDataAnterior ? getValue(subPracaDataAnterior) : 0;
-
+                    const rawValueAnterior = rawValues[idx - 1];
                     const currentNum = typeof rawValue === 'number' ? rawValue : 0;
                     const prevNum = typeof rawValueAnterior === 'number' ? rawValueAnterior : 0;
 

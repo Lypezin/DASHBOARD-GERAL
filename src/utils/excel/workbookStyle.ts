@@ -158,9 +158,9 @@ function cellAddress(XLSX: typeof XLSXType, row: number, col: number) {
   return XLSX.utils.encode_cell({ r: row, c: col });
 }
 
-function getCellFormat(header: string, value: unknown) {
-  if (typeof value !== 'number') return undefined;
+type ColumnNumberKind = 'currency' | 'percent' | 'number';
 
+function resolveColumnNumberKind(header: string): ColumnNumberKind {
   const normalizedHeader = header
     .toLocaleLowerCase('pt-BR')
     .normalize('NFD')
@@ -172,7 +172,7 @@ function getCellFormat(header: string, value: unknown) {
     normalizedHeader.includes('gasto') ||
     normalizedHeader.includes('taxa media')
   ) {
-    return '"R$" #,##0.00';
+    return 'currency';
   }
 
   if (
@@ -184,14 +184,17 @@ function getCellFormat(header: string, value: unknown) {
     normalizedHeader.includes('rejeicao') ||
     normalizedHeader.includes('percentual')
   ) {
-    return '0.0"%"';
+    return 'percent';
   }
 
-  if (!Number.isInteger(value)) {
-    return '#,##0.00';
-  }
+  return 'number';
+}
 
-  return '#,##0';
+function getCellFormatFromKind(kind: ColumnNumberKind, value: unknown) {
+  if (typeof value !== 'number') return undefined;
+  if (kind === 'currency') return '"R$" #,##0.00';
+  if (kind === 'percent') return '0.0"%"';
+  return Number.isInteger(value) ? '#,##0' : '#,##0.00';
 }
 
 function getDataCellStyle(isEven: boolean, highlight: boolean, alignment: 'left' | 'center' | 'right') {
@@ -252,6 +255,7 @@ export function createStyledJsonSheet(
   rowHeights.fill(DATA_ROW_HEIGHT, headerRowIndex + 1);
   ws['!rows'] = rowHeights;
   ws['!cols'] = calculateRecordColumnWidths(headers, dataRows);
+  const columnNumberKinds = headers.map((header) => resolveColumnNumberKind(header));
 
   for (let row = 0; row <= range.e.r; row += 1) {
     for (let col = 0; col <= range.e.c; col += 1) {
@@ -286,12 +290,11 @@ export function createStyledJsonSheet(
         };
       } else if (row > headerRowIndex) {
         const isEven = (row - headerRowIndex) % 2 === 0;
-        const header = headers[col] || '';
         const isNumeric = typeof cell.v === 'number';
         const highlightCell = options.highlightFirstColumn && col === 0;
         const alignment = col === 0 ? 'left' : isNumeric ? 'right' : 'center';
         cell.s = getDataCellStyle(isEven, Boolean(highlightCell), alignment);
-        cell.z = getCellFormat(header, cell.v);
+        cell.z = getCellFormatFromKind(columnNumberKinds[col] || 'number', cell.v);
       }
     }
   }

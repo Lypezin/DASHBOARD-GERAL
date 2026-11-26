@@ -21,8 +21,8 @@ export const SidebarContainer: React.FC<SidebarContainerProps> = ({ isOpen, onCl
                 aria-hidden={!isOpen}
                 onClick={onClose}
                 className={cn(
-                    'fixed inset-0 z-[60] bg-slate-950/25 backdrop-blur-[1px] transition-opacity duration-300 dark:bg-slate-950/50',
-                    isOpen ? 'opacity-100' : 'pointer-events-none opacity-0'
+                    'fixed inset-0 z-[60] bg-slate-950/25 transition-opacity duration-300 dark:bg-slate-950/50',
+                    isOpen ? 'opacity-100 backdrop-blur-[1px]' : 'pointer-events-none opacity-0'
                 )}
             />
 

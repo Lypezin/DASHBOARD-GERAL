@@ -7,13 +7,20 @@ import { COMPARACAO_METRICS, getRawValue, formatValue, calculateVariation } from
 interface ComparacaoDiaGroupProps { dia: string; diaIdx: number; semanasSelecionadas: (number | string)[]; dadosComparacao: DashboardResumoData[]; }
 
 export const ComparacaoDiaGroup = React.memo<ComparacaoDiaGroupProps>(({ dia, diaIdx, semanasSelecionadas, dadosComparacao }) => {
+    const dayDataByWeek = React.useMemo(
+        () => dadosComparacao.map((weeklyData) =>
+            weeklyData?.aderencia_dia?.find((d) => d.dia_semana === dia || d.dia === dia)
+        ),
+        [dadosComparacao, dia]
+    );
+
     return (
         <React.Fragment key={dia}>
             {COMPARACAO_METRICS.map((metric, metricIdx) => (
                 <TableRow
                     key={`${dia}-${metric.key}`}
                     className={`
-                      group transition-all duration-200 border-b border-transparent hover:bg-slate-50/50 dark:hover:bg-slate-800/20
+                      group transition-colors duration-200 border-b border-transparent hover:bg-slate-50/50 dark:hover:bg-slate-800/20
                       ${diaIdx % 2 === 0 ? '' : 'bg-slate-50/20 dark:bg-slate-900/10'}
                     `}
                 >
@@ -37,8 +44,7 @@ export const ComparacaoDiaGroup = React.memo<ComparacaoDiaGroupProps>(({ dia, di
 
                     {/* Week columns */}
                     {semanasSelecionadas.map((_, weekIdx) => {
-                        const weeklyData = dadosComparacao[weekIdx];
-                        const dayData = weeklyData?.aderencia_dia?.find(d => d.dia_semana === dia || d.dia === dia);
+                        const dayData = dayDataByWeek[weekIdx];
 
                         const rawValue = getRawValue(dayData, metric.key);
                         const displayValue = dayData ? formatValue(rawValue, metric) : '–';
@@ -53,8 +59,7 @@ export const ComparacaoDiaGroup = React.memo<ComparacaoDiaGroupProps>(({ dia, di
 
                         let variacao: number | null = null;
                         if (weekIdx > 0) {
-                            const prevWeeklyData = dadosComparacao[weekIdx - 1];
-                            const prevDayData = prevWeeklyData?.aderencia_dia?.find(d => d.dia_semana === dia || d.dia === dia);
+                            const prevDayData = dayDataByWeek[weekIdx - 1];
                             const prevValue = getRawValue(prevDayData, metric.key);
                             variacao = calculateVariation(rawValue, prevValue, metric);
                         }
@@ -68,7 +73,7 @@ export const ComparacaoDiaGroup = React.memo<ComparacaoDiaGroupProps>(({ dia, di
                                         {isAderencia && dayData && (
                                             <div className="w-14 h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
                                                 <div
-                                                    className={`h-full ${barColor} rounded-full transition-all duration-300`}
+                                                    className={`h-full ${barColor} rounded-full transition-[width] duration-300`}
                                                     style={{ width: `${Math.min(percentValue, 100)}%` }}
                                                 />
                                             </div>

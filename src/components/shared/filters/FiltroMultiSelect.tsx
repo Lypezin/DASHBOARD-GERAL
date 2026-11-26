@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useMemo } from 'react';
 import { useClickOutside } from '@/hooks/ui/useClickOutside';
 import { ChevronDown, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -24,21 +24,29 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
 
   const closeDropdown = useCallback(() => setIsOpen(false), []);
   const refsToCheck = useRef([wrapperRef, dropdownRef]);
-  useClickOutside(refsToCheck.current, closeDropdown);
+  useClickOutside(refsToCheck.current, closeDropdown, isOpen);
   const isLoadingOptions = disabled && /carregando/i.test(placeholder);
 
-  const handleSelect = (value: string) => {
+  const handleSelect = useCallback((value: string) => {
     const isAlreadySelected = selected.includes(value);
     const newSelected = isAlreadySelected
       ? selected.filter(item => item !== value)
       : [...selected, value];
     onSelectionChange(newSelected);
-  };
+  }, [selected, onSelectionChange]);
+
+  const optionLabelMap = useMemo(
+    () => new Map(options.map((option) => [option.value, option.label])),
+    [options]
+  );
 
   const isWeekFilter = label.toLowerCase().includes('semana');
-  const selectedLabels = selected
-    .map((item) => options.find((option) => option.value === item)?.label || item)
-    .map((item) => isWeekFilter ? item.replace(/^Semana\s*/i, '') : item);
+  const selectedLabels = useMemo(
+    () => selected
+      .map((item) => optionLabelMap.get(item) || item)
+      .map((item) => isWeekFilter ? item.replace(/^Semana\s*/i, '') : item),
+    [selected, optionLabelMap, isWeekFilter]
+  );
 
   const selectedDisplay = isWeekFilter
     ? selectedLabels.length <= 2
@@ -59,7 +67,7 @@ const FiltroMultiSelect = React.memo(({ label, placeholder, options, selected, o
           onClick={() => setIsOpen(!isOpen)}
           disabled={disabled}
           className={cn(
-            "h-10 w-full appearance-none rounded-lg border border-slate-200/80 text-left focus:outline-none dark:border-slate-800",
+            "h-10 w-full appearance-none rounded-lg border border-slate-200/80 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-slate-800",
             "bg-white px-3 py-1 pr-10 text-xs font-semibold text-slate-900 shadow-sm transition-[background-color,border-color,box-shadow] duration-200 dark:bg-slate-900 dark:text-slate-100",
             "hover:border-blue-300 hover:bg-white hover:shadow-md dark:hover:border-blue-500/50 dark:hover:bg-slate-900",
             isOpen

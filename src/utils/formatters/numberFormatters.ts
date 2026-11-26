@@ -24,12 +24,25 @@ export const formatSignedPercent = (value: number): string => {
     return `${sign}${percentFormatter.format(Math.abs(value))}%`;
 };
 
+const numberFormatterCache = new Map<number, Intl.NumberFormat>([[0, numberFormatter]]);
+const percentFormatterCache = new Map<number, Intl.NumberFormat>([[1, percentFormatter]]);
+
 export const formatNumber = (value: number | undefined | null, fractionDigits: number = 0): string => {
     if (value === undefined || value === null || !Number.isFinite(value)) return '0';
-    return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: fractionDigits }).format(value);
+    let formatter = numberFormatterCache.get(fractionDigits);
+    if (!formatter) {
+        formatter = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: fractionDigits });
+        numberFormatterCache.set(fractionDigits, formatter);
+    }
+    return formatter.format(value);
 };
 
 export const formatPercent = (value: number | undefined | null, fractionDigits: number = 1): string => {
     if (value === undefined || value === null || !Number.isFinite(value)) return '0,0%';
-    return new Intl.NumberFormat('pt-BR', { maximumFractionDigits: fractionDigits, minimumFractionDigits: fractionDigits }).format(value) + '%';
+    let formatter = percentFormatterCache.get(fractionDigits);
+    if (!formatter) {
+        formatter = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: fractionDigits, minimumFractionDigits: fractionDigits });
+        percentFormatterCache.set(fractionDigits, formatter);
+    }
+    return formatter.format(value) + '%';
 };

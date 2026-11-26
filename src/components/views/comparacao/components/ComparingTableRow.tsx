@@ -47,7 +47,7 @@ export const ComparingTableRow: React.FC<ComparingTableRowProps> = ({
 
                 return (
                     <React.Fragment key={idx}>
-                        <TableCell className={`py-4 text-center font-mono text-[13px] ${valueClassName}`}>
+                        <TableCell className={`py-4 text-center font-mono text-[13px] tabular-nums ${valueClassName}`}>
                             <span>{formatValue(rawValue)}</span>
                         </TableCell>
                         {idx > 0 && (

@@ -76,7 +76,7 @@ export const ComparacaoDiaTable = React.memo(function ComparacaoDiaTable({
                                 return (
                                     <React.Fragment key={idx}>
                                         <td className="px-4 py-4 text-center sm:px-6">
-                                            <span className="font-semibold text-slate-700 dark:text-slate-300">
+                                            <span className="font-semibold tabular-nums text-slate-700 dark:text-slate-300">
                                                 {aderencia.toFixed(1)}%
                                             </span>
                                         </td>

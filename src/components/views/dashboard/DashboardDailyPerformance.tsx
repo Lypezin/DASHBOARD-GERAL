@@ -52,7 +52,7 @@ export const DashboardDailyPerformance = React.memo(function DashboardDailyPerfo
             </header>
 
             <div className="subtle-scrollbar overflow-x-auto">
-                <div className="grid min-w-[1180px] grid-cols-7 divide-x divide-[#e2ebf0] dark:divide-slate-800">
+                <div className="grid min-w-[840px] grid-cols-7 divide-x divide-[#e2ebf0] dark:divide-slate-800">
                     {aderenciaDiaOrdenada.map((dia, index) => (
                         <DailyPerformanceCard
                             key={`dia-${index}`}

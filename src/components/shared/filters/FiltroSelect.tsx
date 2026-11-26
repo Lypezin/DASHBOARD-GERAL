@@ -24,15 +24,15 @@ const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange,
 
   const closeDropdown = useCallback(() => setIsOpen(false), []);
   const refsToCheck = useRef([wrapperRef, dropdownRef]);
-  useClickOutside(refsToCheck.current, closeDropdown);
+  useClickOutside(refsToCheck.current, closeDropdown, isOpen);
 
   const selectedOption = options.find(opt => opt.value === value);
   const isLoadingOptions = disabled && /carregando/i.test(placeholder);
 
-  const handleSelect = (selectedValue: string | null) => {
+  const handleSelect = useCallback((selectedValue: string | null) => {
     onChange(selectedValue);
     setIsOpen(false);
-  };
+  }, [onChange]);
 
   return (
     <div className="group relative flex min-w-0 flex-col gap-1" ref={wrapperRef} data-filter-role="single-select">
@@ -45,7 +45,7 @@ const FiltroSelect = React.memo(({ label, placeholder, options, value, onChange,
           onClick={() => setIsOpen(!isOpen)}
           disabled={disabled}
           className={cn(
-            "h-10 w-full appearance-none rounded-lg border border-slate-200/80 text-left focus:outline-none dark:border-slate-800",
+            "h-10 w-full appearance-none rounded-lg border border-slate-200/80 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/30 dark:border-slate-800",
             "bg-white px-3 py-1 text-xs font-semibold text-slate-900 shadow-sm transition-[background-color,border-color,box-shadow] duration-200 dark:bg-slate-900 dark:text-slate-100",
             "hover:border-blue-300 hover:bg-white hover:shadow-md dark:hover:border-blue-500/50 dark:hover:bg-slate-900",
             isOpen

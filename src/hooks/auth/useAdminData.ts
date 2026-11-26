@@ -2,7 +2,6 @@ import { useCallback, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { adminRpc } from '@/services/adminRpcClient';
 import { fetchPracasWithFallback } from '@/hooks/admin/utils/pracasFetcher';
-import { postAppApiData } from '@/utils/app/fetchAppApi';
 import { IS_DEV } from '@/constants/environment';
 
 
@@ -23,46 +22,24 @@ export function useAdminData() {
     setError(null);
 
     try {
-      const [usersPromise, pendingPromise, pracasPromise] = await Promise.allSettled([
+      const [usersPromise, pracasPromise] = await Promise.allSettled([
         adminRpc<User[]>('list_all_users'),
-        adminRpc<User[]>('list_pending_users'),
         fetchPracasWithFallback(),
       ]);
 
       const usersLoaded = usersPromise.status === 'fulfilled'
         && !usersPromise.value.error
         && Array.isArray(usersPromise.value.data);
-      const pendingLoaded = pendingPromise.status === 'fulfilled'
-        && !pendingPromise.value.error
-        && Array.isArray(pendingPromise.value.data);
       const pracasLoaded = pracasPromise.status === 'fulfilled';
       const rawUsers = usersLoaded ? usersPromise.value.data ?? [] : [];
-      const rawPendingUsers = pendingLoaded ? pendingPromise.value.data ?? [] : [];
       const failures: string[] = [];
-      const avatarIds = Array.from(new Set([...rawUsers, ...rawPendingUsers].map((user) => user.id).filter(Boolean)));
-      const profilesMap = new Map<string, string>();
-
-      if (avatarIds.length > 0) {
-        const { data: profiles } = await postAppApiData<Array<{ id: string; avatar_url: string | null }>>('/api/profile/avatars', {
-          ids: avatarIds,
-        });
-        profiles?.forEach((profile) => {
-          if (profile.avatar_url) profilesMap.set(profile.id, profile.avatar_url);
-        });
-      }
 
       if (usersLoaded) {
-        setUsers(rawUsers.map(u => ({ ...u, avatar_url: profilesMap.get(u.id) || u.avatar_url })));
+        setUsers(rawUsers);
+        setPendingUsers(rawUsers.filter((user) => !user.is_approved));
       } else {
         failures.push('usuários');
         if (IS_DEV) safeLog.warn('Erro ao buscar usuários:', usersPromise.status === 'fulfilled' ? usersPromise.value.error : 'Erro desconhecido');
-      }
-
-      if (pendingLoaded) {
-        setPendingUsers(rawPendingUsers.map(u => ({ ...u, avatar_url: profilesMap.get(u.id) || u.avatar_url })));
-      } else {
-        failures.push('usuários pendentes');
-        if (IS_DEV) safeLog.warn('Erro ao buscar usuários pendentes:', pendingPromise.status === 'fulfilled' ? pendingPromise.value.error : 'Erro desconhecido');
       }
 
       if (pracasLoaded) setPracasDisponiveis(pracasPromise.value);

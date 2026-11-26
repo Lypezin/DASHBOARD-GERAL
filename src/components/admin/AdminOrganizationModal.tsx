@@ -67,7 +67,7 @@ export const AdminOrganizationModal: React.FC<AdminOrganizationModalProps> = ({
           error={error}
         />
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="gap-2 sm:space-x-0">
           <Button variant="outline" onClick={onClose} disabled={saving || isLoading}>
             Cancelar
           </Button>

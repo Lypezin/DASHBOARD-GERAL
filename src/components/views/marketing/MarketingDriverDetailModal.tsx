@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ViewTransition } from '@/components/ui/view-transition';
 import { Button } from '@/components/ui/button';
 import { FileSpreadsheet, Loader2 } from 'lucide-react';
 import { useMarketingDriverDetails } from './useMarketingDriverDetails';
@@ -83,25 +84,17 @@ export const MarketingDriverDetailModal: React.FC<MarketingDriverDetailModalProp
                     </div>
 
                     <div className="min-h-0 flex-1 px-5 pb-5 sm:px-6 sm:pb-6">
-                        <TabsContent value="marketing" className="mt-0 h-full min-h-0 rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                            <MarketingDriverTable
-                                loading={loading}
-                                error={error}
-                                data={data}
-                                totalCount={totalCount}
-                                onLoadMore={handleLoadMore}
-                            />
-                        </TabsContent>
-
-                        <TabsContent value="operacional" className="mt-0 h-full min-h-0 rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
-                            <MarketingDriverTable
-                                loading={loading}
-                                error={error}
-                                data={data}
-                                totalCount={totalCount}
-                                onLoadMore={handleLoadMore}
-                            />
-                        </TabsContent>
+                        <ViewTransition stateKey={activeTab} className="h-full" preventExitInteraction>
+                            <div className="h-full min-h-0 rounded-lg border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+                                <MarketingDriverTable
+                                    loading={loading}
+                                    error={error}
+                                    data={data}
+                                    totalCount={totalCount}
+                                    onLoadMore={handleLoadMore}
+                                />
+                            </div>
+                        </ViewTransition>
                     </div>
                 </Tabs>
             </DialogContent>

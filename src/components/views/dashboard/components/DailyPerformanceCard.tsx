@@ -44,7 +44,7 @@ export const DailyPerformanceCard = React.memo(function DailyPerformanceCard({
       <TooltipTrigger asChild>
         <article
           className={cn(
-            "group relative flex min-h-[194px] min-w-0 cursor-help select-none flex-col gap-3 p-3.5 transition-all duration-150 motion-safe:hover:-translate-y-0.5 hover:bg-[#f5f9fb] dark:hover:bg-slate-800/40",
+            "group relative flex min-h-[194px] min-w-0 cursor-help select-none flex-col gap-3 p-3.5 transition-[background-color,transform] duration-150 motion-safe:hover:-translate-y-0.5 hover:bg-[#f5f9fb] dark:hover:bg-slate-800/40",
             isToday ? "bg-[#f2f7fa] dark:bg-slate-800/50" : ""
           )}
           aria-label={`${dia.dia_da_semana || 'Dia'}, aderência ${aderencia.toFixed(1)}%`}

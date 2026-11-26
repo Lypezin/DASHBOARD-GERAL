@@ -65,12 +65,18 @@ function getBearerToken() {
 export async function loadAuthenticatedUser(
   unauthenticatedMessage = 'Usuario nao autenticado.'
 ): Promise<LoadAuthenticatedUserResult> {
-  const supabase = createClient();
+  let supabase: ReturnType<typeof createClient> | null = null;
+  const getSupabase = () => {
+    if (!supabase) {
+      supabase = createClient();
+    }
+    return supabase;
+  };
   const bearerToken = getBearerToken();
 
   if (bearerToken) {
     const user = await resolveCachedAuthenticatedUser(bearerToken, async () => {
-      const { data: bearerUserData, error: bearerUserError } = await supabase.auth.getUser(bearerToken);
+      const { data: bearerUserData, error: bearerUserError } = await getSupabase().auth.getUser(bearerToken);
       if (bearerUserError || !bearerUserData.user) {
         return null;
       }
@@ -85,12 +91,12 @@ export async function loadAuthenticatedUser(
     }
   }
 
-  const { data: sessionData } = await supabase.auth.getSession();
+  const { data: sessionData } = await getSupabase().auth.getSession();
   const sessionToken = sessionData.session?.access_token;
 
   if (sessionToken) {
     const user = await resolveCachedAuthenticatedUser(`session:${sessionToken}`, async () => {
-      const { data: userData, error: userError } = await supabase.auth.getUser();
+      const { data: userData, error: userError } = await getSupabase().auth.getUser();
       if (userError || !userData.user) {
         return null;
       }
@@ -104,7 +110,7 @@ export async function loadAuthenticatedUser(
       };
     }
   } else {
-    const { data: userData, error: userError } = await supabase.auth.getUser();
+    const { data: userData, error: userError } = await getSupabase().auth.getUser();
 
     if (!userError && userData.user) {
       return {

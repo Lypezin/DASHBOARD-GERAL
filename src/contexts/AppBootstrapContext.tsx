@@ -117,7 +117,7 @@ export function AppBootstrapProvider({ children }: { children: React.ReactNode }
 
     const requestId = ++requestIdRef.current;
 
-    setState((prev) => ({
+    setState((prev) => (prev.isLoading ? prev : {
       ...prev,
       isLoading: true,
     }));

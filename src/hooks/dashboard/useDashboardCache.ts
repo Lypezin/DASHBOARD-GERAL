@@ -20,17 +20,24 @@ export function getInitialCacheData(payloadKey?: string): DashboardResumoData | 
     return getTimedCacheValue(globalDashboardCache, payloadKey, dashboardCachePolicy);
 }
 
-function getCacheKey(): string {
+function getLatestCachedKey(): string {
     pruneTimedCacheEntries(globalDashboardCache, CACHE.TAB_DATA_TTL);
-    const latestKey = Array.from(globalDashboardCache.keys()).pop();
-    return latestKey || '';
+    let latestKey = '';
+    for (const key of globalDashboardCache.keys()) {
+        latestKey = key;
+    }
+    return latestKey;
 }
 
 export function useDashboardCache() {
-    pruneTimedCacheEntries(globalDashboardCache, CACHE.TAB_DATA_TTL);
-
-    const previousPayloadRef = useRef<string>(getCacheKey());
-    const isFirstExecutionRef = useRef<boolean>(globalDashboardCache.size === 0);
+    const previousPayloadRef = useRef<string>('');
+    const initializedRef = useRef(false);
+    const isFirstExecutionRef = useRef<boolean>(false);
+    if (!initializedRef.current) {
+        initializedRef.current = true;
+        previousPayloadRef.current = getLatestCachedKey();
+        isFirstExecutionRef.current = globalDashboardCache.size === 0;
+    }
     const pendingPayloadKeyRef = useRef<string>('');
 
     const checkCache = useCallback((payloadKey: string) => {

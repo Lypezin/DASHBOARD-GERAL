@@ -25,11 +25,11 @@ export const UploadActions: React.FC<UploadActionsProps> = ({
         <button
             onClick={onUpload}
             disabled={isDisabled}
-            className={`w-full flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-40 disabled:pointer-events-none ${variantButton[variant]}`}
+            className={`w-full flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-sm transition-[background-color,opacity,box-shadow] duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:opacity-40 disabled:pointer-events-none ${variantButton[variant]}`}
         >
             {uploading ? (
                 <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
                     <span>Processando...</span>
                 </>
             ) : (

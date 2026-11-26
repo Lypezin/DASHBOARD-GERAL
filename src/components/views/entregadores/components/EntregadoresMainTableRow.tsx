@@ -6,6 +6,8 @@ import { formatarHorasParaHMS } from '@/utils/formatters';
 import { calculateHealthScore, HealthBadge } from '@/components/ui/HealthBadge';
 import { ENTREGADORES_OVERVIEW_TABLE_GRID, ENTREGADORES_TABLE_GRID } from './EntregadoresMainTableHeader';
 
+const INTEGER_FORMATTER = new Intl.NumberFormat('pt-BR');
+
 interface EntregadoresTableRowProps {
     entregador: Entregador;
     onClick?: (entregador: Entregador) => void;
@@ -17,17 +19,19 @@ export const EntregadoresMainTableRow = React.memo(function EntregadoresMainTabl
     onClick,
     variant = 'entregadores',
 }: EntregadoresTableRowProps) {
+    const isEntregadores = variant === 'entregadores';
     const horas = (entregador.total_segundos || 0) / 3600;
-    const hs = calculateHealthScore(
-        entregador.aderencia_percentual,
-        entregador.corridas_completadas,
-        entregador.corridas_ofertadas,
-        entregador.total_segundos
-    );
+    const hs = isEntregadores
+        ? null
+        : calculateHealthScore(
+            entregador.aderencia_percentual,
+            entregador.corridas_completadas,
+            entregador.corridas_ofertadas,
+            entregador.total_segundos
+        );
     const aderencia = entregador.aderencia_percentual || 0;
     const horasLabel = formatarHorasParaHMS(horas);
-    const gridClass = variant === 'entregadores' ? ENTREGADORES_OVERVIEW_TABLE_GRID : ENTREGADORES_TABLE_GRID;
-    const isEntregadores = variant === 'entregadores';
+    const gridClass = isEntregadores ? ENTREGADORES_OVERVIEW_TABLE_GRID : ENTREGADORES_TABLE_GRID;
 
     return (
         <div
@@ -38,7 +42,7 @@ export const EntregadoresMainTableRow = React.memo(function EntregadoresMainTabl
             style={{ contentVisibility: 'auto', containIntrinsicSize: isEntregadores ? '68px' : '72px' }}
             onClick={isEntregadores ? undefined : () => onClick?.(entregador)}
         >
-            {!isEntregadores && <div className="flex justify-center"><HealthBadge grade={hs.grade} score={hs.score} /></div>}
+            {hs ? <div className="flex justify-center"><HealthBadge grade={hs.grade} score={hs.score} /></div> : null}
 
             <div className="min-w-0">
                 {isEntregadores ? (
@@ -84,7 +88,7 @@ export const EntregadoresMainTableRow = React.memo(function EntregadoresMainTabl
 });
 
 function NumericCell({ value, variant }: { value: number; variant: 'entregadores' | 'dedicado' }) {
-    const label = value.toLocaleString('pt-BR');
+    const label = INTEGER_FORMATTER.format(value);
     return (
         <div className={variant === 'entregadores'
             ? 'whitespace-nowrap text-right text-[13px] font-medium text-[#4f5c53] tabular-nums dark:text-slate-300'

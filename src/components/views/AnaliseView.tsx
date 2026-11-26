@@ -17,6 +17,9 @@ import { AnalysisLoading, FilteredDataTransition } from '@/components/dashboard/
 import { DashboardDataStatus } from '@/components/dashboard/DashboardDataStatus';
 import { AnaliseHeader } from './analise/AnaliseHeader';
 
+const EMPTY_TOTALS: Totals = { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 };
+const EMPTY_ARRAY: never[] = [];
+
 const AnaliseView = React.memo(function AnaliseView({
   filterPayload,
   totals,
@@ -55,12 +58,12 @@ const AnaliseView = React.memo(function AnaliseView({
     labelColumn,
     totalHoras
   } = useAnaliseViewController(
-    totals || { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 },
-    aderenciaDia || [],
-    aderenciaTurno || [],
-    aderenciaSubPraca || [],
-    aderenciaOrigem || [],
-    aderenciaDiaOrigem || [],
+    totals || EMPTY_TOTALS,
+    aderenciaDia || EMPTY_ARRAY,
+    aderenciaTurno || EMPTY_ARRAY,
+    aderenciaSubPraca || EMPTY_ARRAY,
+    aderenciaOrigem || EMPTY_ARRAY,
+    aderenciaDiaOrigem || EMPTY_ARRAY,
     mainDataLoading || Boolean(mainDataError),
     filterPayload
   );
@@ -127,9 +130,9 @@ const AnaliseView = React.memo(function AnaliseView({
       {showInitialLoading ? (
         <AnalysisLoading />
       ) : showInitialError ? (
-        <div className="mx-auto w-full max-w-[1600px] px-4 pt-5 sm:px-6 lg:px-8">
+        <ViewContainer className="pt-5">
           <DashboardDataStatus hasPreviousData={false} onRetry={retryMainData} />
-        </div>
+        </ViewContainer>
       ) : (
         <ViewContainer className="flex flex-col gap-5 pb-10 pt-4">
           {mainDataError ? <DashboardDataStatus hasPreviousData={hasResolvedData} onRetry={retryMainData} /> : null}
@@ -142,7 +145,7 @@ const AnaliseView = React.memo(function AnaliseView({
             <StaggerContainer className="flex flex-col gap-5">
               <StaggerItem>
                 <AnaliseMetricCards
-                  totals={totals || { ofertadas: 0, aceitas: 0, rejeitadas: 0, completadas: 0 }}
+                  totals={totals || EMPTY_TOTALS}
                   taxaAceitacao={taxaAceitacao}
                   taxaCompletude={taxaCompletude}
                   taxaRejeicao={taxaRejeicao}
@@ -156,7 +159,8 @@ const AnaliseView = React.memo(function AnaliseView({
                   onTableChange={handleTableChange}
                   tableData={tableData}
                   labelColumn={labelColumn}
-                  aderenciaDiaOrigem={aderenciaDiaOrigem || []}
+                  aderenciaDiaOrigem={aderenciaDiaOrigem || EMPTY_ARRAY}
+                  loadingDiaOrigem={mainDataLoading && aderenciaDiaOrigem.length === 0}
                   dayDateMap={dayDateMap}
                 />
               </StaggerItem>

@@ -25,30 +25,34 @@ export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
 export const metadata: Metadata = {
-    title: 'Apresentacao Marketing',
+    title: 'Apresentação Marketing',
 };
 
 function renderAccessRestricted(message: string) {
     return (
-        <div style={{ background: '#0f172a', color: 'white', padding: 48, textAlign: 'center', fontFamily: 'sans-serif', minHeight: '100vh' }}>
-            <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Acesso Restrito</h1>
-            <p>{message}</p>
-        </div>
+        <main className="flex min-h-screen items-center justify-center bg-slate-950 px-5 text-center text-white">
+            <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/85 p-7 shadow-xl">
+                <h1 className="text-xl font-bold tracking-tight">Acesso Restrito</h1>
+                <p className="mt-2.5 text-sm leading-6 text-slate-300">{message}</p>
+            </div>
+        </main>
     );
 }
 
 function renderDataUnavailable() {
     return (
-        <div role="alert" style={{ background: '#0f172a', color: 'white', padding: 48, textAlign: 'center', fontFamily: 'sans-serif', minHeight: '100vh' }}>
-            <h1 style={{ fontSize: '2rem', marginBottom: '1rem' }}>Dados temporariamente indisponíveis</h1>
-            <p>Não foi possível carregar todos os dados da apresentação. Atualize a página em alguns instantes.</p>
-        </div>
+        <main role="alert" className="flex min-h-screen items-center justify-center bg-slate-950 px-5 text-center text-white">
+            <div className="w-full max-w-md rounded-2xl border border-rose-900/60 bg-slate-900/85 p-7 shadow-xl">
+                <h1 className="text-xl font-bold tracking-tight text-rose-200">Dados temporariamente indisponíveis</h1>
+                <p className="mt-2.5 text-sm leading-6 text-slate-300">Não foi possível carregar todos os dados da apresentação. Atualize a página em alguns instantes.</p>
+            </div>
+        </main>
     );
 }
 
 export default async function MarketingPrintablePage({ searchParams }: PageProps) {
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
-        return renderAccessRestricted('Configuracao do Supabase indisponivel neste ambiente.');
+        return renderAccessRestricted('Configuração do Supabase indisponível neste ambiente.');
     }
 
     const profileResult = await loadCurrentUserProfile({ requireApproved: true });
@@ -64,7 +68,7 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
     } | null;
 
     if (!profile) {
-        return renderAccessRestricted('Nao foi possivel validar seu perfil agora.');
+        return renderAccessRestricted('Não foi possível validar seu perfil agora.');
     }
 
     const isMarketing =
@@ -74,7 +78,7 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
         profile.is_admin;
 
     if (!isMarketing) {
-        return renderAccessRestricted('Voce nao tem permissao para acessar esta apresentacao.');
+        return renderAccessRestricted('Você não tem permissão para acessar esta apresentação.');
     }
 
     const canAccessAllOrganizations =
@@ -83,7 +87,7 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
         Boolean(profile.is_admin);
 
     if (!profile.organization_id && !canAccessAllOrganizations) {
-        return renderAccessRestricted('Seu perfil de Marketing nao esta vinculado a uma organizacao.');
+        return renderAccessRestricted('Seu perfil de Marketing não está vinculado a uma organização.');
     }
 
     const today = new Date();
@@ -192,7 +196,7 @@ export default async function MarketingPrintablePage({ searchParams }: PageProps
                 weeklyData={generalWeeklyData as any}
                 weeklyDataByCity={weeklyDataByCity as any}
                 costsComparison={costsComparison}
-                titulo="APRESENTACAO MARKETING"
+                titulo="APRESENTAÇÃO MARKETING"
                 periodoFormatado={periodoFormatado}
             />
         </div>

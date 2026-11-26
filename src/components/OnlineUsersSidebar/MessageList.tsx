@@ -54,7 +54,7 @@ function MessageListComponent({ messages, currentUser, onReact, onPin, onReply, 
       ) : null}
 
       {hasPinnedMessages ? (
-        <div className="sticky top-0 z-10 -mb-1 flex items-center gap-2 rounded-lg border border-amber-500/20 bg-amber-50 px-3 py-2 text-[11px] text-amber-700 shadow-sm select-none dark:bg-amber-400/10 dark:text-amber-300">
+        <div className="sticky top-0 z-10 -mb-1 flex items-center gap-2 rounded-lg border border-amber-500/25 bg-amber-50 px-3 py-2 text-[11px] text-amber-800 shadow-sm select-none dark:border-amber-500/30 dark:bg-slate-900 dark:text-amber-300">
           <Pin size={10} className="fill-current text-amber-500" />
           <span className="flex-1 truncate font-semibold">
             Mensagens fixadas

@@ -50,7 +50,7 @@ export const ValoresTableRow = React.memo(({ entregador, ranking, formatarReal, 
                     {numeroCorridas.toLocaleString('pt-BR')}
                 </span>
             </TableCell>
-            <TableCell className="py-3 pr-6 text-right">
+            <TableCell className="py-3 pr-4 text-right">
                 <span className="font-mono text-sm tabular-nums text-slate-600 dark:text-slate-400">
                     {formatarReal(taxaMedia)}
                 </span>

@@ -49,6 +49,18 @@ function getExcelNumberFormat(header: string, value: unknown) {
     return '#,##0';
 }
 
+function buildByKeyMap<T extends Record<string, any>>(items: T[] | undefined, key: string): Map<string, T> {
+    const map = new Map<string, T>();
+    if (!items) return map;
+    for (const item of items) {
+        const value = item?.[key];
+        if (value && !map.has(value)) {
+            map.set(value, item);
+        }
+    }
+    return map;
+}
+
 function getVariation(val1: number, val2: number) {
     if (val1 === 0 && val2 === 0) return 0;
     if (val1 === 0) return null;
@@ -147,6 +159,15 @@ function styleWorksheet(
         };
     });
 
+    const colMeta = headers.map((header) => {
+        const normalizedHeader = (header || '').toLocaleLowerCase('pt-BR');
+        const isPercentHeader = normalizedHeader.includes('%') || normalizedHeader.includes('taxa') || normalizedHeader.includes('aderencia') || normalizedHeader.includes('aderência');
+        return {
+            isVariationColumn: normalizedHeader.includes('varia') || normalizedHeader.includes('%'),
+            isPercentHeader,
+        };
+    });
+
     for (let rowIndex = 0; rowIndex <= range.e.r; rowIndex += 1) {
         for (let colIndex = 0; colIndex <= range.e.c; colIndex += 1) {
             const cell = ws[xlsx.utils.encode_cell({ r: rowIndex, c: colIndex })];
@@ -171,12 +192,10 @@ function styleWorksheet(
 
             const isTotal = totalRowIndex !== undefined && rowIndex === totalRowIndex;
             const isEven = (rowIndex - headerRowIndex) % 2 === 0;
-            const header = headers[colIndex] || '';
+            const meta = colMeta[colIndex];
             const stringValue = String(cell.v ?? '');
-            const normalizedHeader = header.toLocaleLowerCase('pt-BR');
-            const isVariationColumn = normalizedHeader.includes('varia') || normalizedHeader.includes('%');
-            const isPositiveVariation = isVariationColumn && stringValue.startsWith('+');
-            const isNegativeVariation = isVariationColumn && stringValue.startsWith('-');
+            const isPositiveVariation = Boolean(meta?.isVariationColumn) && stringValue.startsWith('+');
+            const isNegativeVariation = Boolean(meta?.isVariationColumn) && stringValue.startsWith('-');
 
             cell.s = {
                 font: {
@@ -194,7 +213,13 @@ function styleWorksheet(
                     right: { style: 'thin', color: { rgb: 'CBD5E1' } },
                 },
             };
-            cell.z = getExcelNumberFormat(header, cell.v);
+            cell.z = typeof cell.v !== 'number'
+                ? undefined
+                : meta?.isPercentHeader
+                    ? '0.0"%"'
+                    : !Number.isInteger(cell.v)
+                        ? '#,##0.00'
+                        : '#,##0';
         }
     }
 }
@@ -323,18 +348,14 @@ export async function exportComparacaoToExcel(
         ];
     });
 
-    const subPracasSet = new Set<string>();
-    [d1, d2].forEach((dados) => {
-        const arr = dados?.aderencia_sub_praca || dados?.sub_praca || [];
-        arr.forEach((item: any) => {
-            if (item?.sub_praca) subPracasSet.add(item.sub_praca);
-        });
-    });
+    const sub1Map = buildByKeyMap(d1?.aderencia_sub_praca || d1?.sub_praca, 'sub_praca');
+    const sub2Map = buildByKeyMap(d2?.aderencia_sub_praca || d2?.sub_praca, 'sub_praca');
+    const subPracasSet = new Set<string>([...sub1Map.keys(), ...sub2Map.keys()]);
 
     const headersSub = ['Cidade / Sub-Praça', `Aderência Sem ${sem1} (%)`, `Aderência Sem ${sem2} (%)`, 'Variação %', `Horas Planejadas Sem ${sem1}`, `Horas Planejadas Sem ${sem2}`, `Horas Realizadas Sem ${sem1}`, `Horas Realizadas Sem ${sem2}`, `Ofertadas Sem ${sem1}`, `Ofertadas Sem ${sem2}`, `Aceitas Sem ${sem1}`, `Aceitas Sem ${sem2}`];
     const rowsSub = Array.from(subPracasSet).sort().map((sp) => {
-        const item1 = (d1?.aderencia_sub_praca || d1?.sub_praca || []).find((x: any) => x.sub_praca === sp);
-        const item2 = (d2?.aderencia_sub_praca || d2?.sub_praca || []).find((x: any) => x.sub_praca === sp);
+        const item1 = sub1Map.get(sp);
+        const item2 = sub2Map.get(sp);
         const a1 = getMetricValue(item1, 'aderencia_percentual');
         const a2 = getMetricValue(item2, 'aderencia_percentual');
 
@@ -354,18 +375,14 @@ export async function exportComparacaoToExcel(
         ];
     });
 
-    const turnosSet = new Set<string>();
-    [d1, d2].forEach((dados) => {
-        const arr = dados?.aderencia_turno || dados?.turno || [];
-        arr.forEach((item: any) => {
-            if (item?.turno) turnosSet.add(item.turno);
-        });
-    });
+    const turno1Map = buildByKeyMap(d1?.aderencia_turno || d1?.turno, 'turno');
+    const turno2Map = buildByKeyMap(d2?.aderencia_turno || d2?.turno, 'turno');
+    const turnosSet = new Set<string>([...turno1Map.keys(), ...turno2Map.keys()]);
 
     const headersTurnos = ['Turno', `Aderência Sem ${sem1} (%)`, `Aderência Sem ${sem2} (%)`, 'Variação %', `Horas Planejadas Sem ${sem1}`, `Horas Planejadas Sem ${sem2}`, `Horas Realizadas Sem ${sem1}`, `Horas Realizadas Sem ${sem2}`];
     const rowsTurnos = Array.from(turnosSet).sort().map((turno) => {
-        const item1 = (d1?.aderencia_turno || d1?.turno || []).find((x: any) => x.turno === turno);
-        const item2 = (d2?.aderencia_turno || d2?.turno || []).find((x: any) => x.turno === turno);
+        const item1 = turno1Map.get(turno);
+        const item2 = turno2Map.get(turno);
         const a1 = getMetricValue(item1, 'aderencia_percentual');
         const a2 = getMetricValue(item2, 'aderencia_percentual');
 
@@ -381,18 +398,14 @@ export async function exportComparacaoToExcel(
         ];
     });
 
-    const origensSet = new Set<string>();
-    [d1, d2].forEach((dados) => {
-        const arr = dados?.aderencia_origem || dados?.origem || [];
-        arr.forEach((item: any) => {
-            if (item?.origem) origensSet.add(item.origem);
-        });
-    });
+    const origem1Map = buildByKeyMap(d1?.aderencia_origem || d1?.origem, 'origem');
+    const origem2Map = buildByKeyMap(d2?.aderencia_origem || d2?.origem, 'origem');
+    const origensSet = new Set<string>([...origem1Map.keys(), ...origem2Map.keys()]);
 
     const headersOrigens = ['Origem', `Aderência Sem ${sem1} (%)`, `Aderência Sem ${sem2} (%)`, 'Variação %', `Horas Planejadas Sem ${sem1}`, `Horas Planejadas Sem ${sem2}`, `Horas Realizadas Sem ${sem1}`, `Horas Realizadas Sem ${sem2}`, `Ofertadas Sem ${sem1}`, `Ofertadas Sem ${sem2}`, `Aceitas Sem ${sem1}`, `Aceitas Sem ${sem2}`];
     const rowsOrigens = Array.from(origensSet).sort().map((origem) => {
-        const item1 = (d1?.aderencia_origem || d1?.origem || []).find((x: any) => x.origem === origem);
-        const item2 = (d2?.aderencia_origem || d2?.origem || []).find((x: any) => x.origem === origem);
+        const item1 = origem1Map.get(origem);
+        const item2 = origem2Map.get(origem);
         const a1 = getMetricValue(item1, 'aderencia_percentual');
         const a2 = getMetricValue(item2, 'aderencia_percentual');
 

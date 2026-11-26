@@ -13,6 +13,11 @@ import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
 import { MotionConfig } from 'framer-motion';
 import { TopLoader } from '@/components/ui/TopLoader';
 
+function DeferredUserActivityTracker() {
+  const ready = useDeferredMount({ timeoutMs: 1400 });
+  return ready ? <UserActivityTracker /> : null;
+}
+
 const PUBLIC_LAYOUT_ROUTES = new Set([
   '/login',
   '/registro',
@@ -28,7 +33,6 @@ export function AppLayoutShell({ children }: { children: React.ReactNode }) {
       pathname.startsWith('/visual-smoke/') ||
       pathname.startsWith('/apresentacao/')
     : false;
-  const shouldMountActivityTracker = useDeferredMount({ timeoutMs: 1400 });
 
   // Layout para rotas públicas (Login, Registro, etc.)
   if (usePublicLayout) {
@@ -54,7 +58,7 @@ export function AppLayoutShell({ children }: { children: React.ReactNode }) {
         <OrganizationProvider>
           <GamificationProvider>
             <SidebarProvider>
-              {shouldMountActivityTracker ? <UserActivityTracker /> : null}
+              <DeferredUserActivityTracker />
 
               <div className="relative flex h-dvh min-h-0 w-full overflow-hidden bg-background font-sans text-foreground antialiased transition-colors duration-200">
                 {/* Grade de fundo discreta Linear/Vercel */}

@@ -82,7 +82,7 @@ export const EntregadorMetricsGrid = React.memo(function EntregadorMetricsGrid({
                 </span>
                 <span className="text-[11px] font-semibold leading-tight text-slate-500 dark:text-slate-400">{metric.label}</span>
               </div>
-              <div className="truncate text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100" title={metric.value}>{renderDynamicValue(metric.value)}</div>
+              <div className="truncate text-lg font-bold tracking-tight tabular-nums text-slate-900 dark:text-slate-100" title={metric.value}>{renderDynamicValue(metric.value)}</div>
             </div>
           ))}
         </div>
@@ -95,7 +95,7 @@ export const EntregadorMetricsGrid = React.memo(function EntregadorMetricsGrid({
         </div>
         <div className="grid grid-cols-2 gap-x-4 gap-y-0 rounded-xl border border-slate-200/80 bg-slate-50/70 px-3.5 dark:border-slate-800 dark:bg-slate-900/45 sm:grid-cols-3 sm:px-4">
           {details.map((metric) => (
-            <div key={metric.label} className="flex min-w-0 items-center justify-between gap-2 border-b border-slate-200/70 py-3 last:border-b-0 dark:border-slate-800 sm:[&:nth-last-child(-n+3)]:border-b-0">
+            <div key={metric.label} className="flex min-w-0 items-center justify-between gap-2 border-b border-slate-200/70 py-3 [&:nth-last-child(-n+2)]:border-b-0 dark:border-slate-800 sm:[&:nth-last-child(-n+3)]:border-b-0">
               <span className="flex min-w-0 items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
                 <metric.icon className={`h-3.5 w-3.5 shrink-0 ${metric.color}`} aria-hidden="true" />
                 <span className="truncate">{metric.label}</span>

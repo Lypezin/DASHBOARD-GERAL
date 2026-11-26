@@ -53,7 +53,7 @@ function SortHeader({
         <th
             scope="col"
             aria-sort={isActive ? direction === 'asc' ? 'ascending' : 'descending' : 'none'}
-            className={`whitespace-nowrap px-3 py-3 text-xs font-semibold text-slate-600 dark:text-slate-300 sm:px-4 ${align === 'left' ? 'text-left' : 'text-center'}`}
+            className={`whitespace-nowrap px-4 py-3 text-xs font-semibold text-slate-600 dark:text-slate-300 sm:px-5 ${align === 'left' ? 'text-left' : 'text-center'}`}
         >
             <button
                 type="button"

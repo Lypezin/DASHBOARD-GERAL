@@ -61,9 +61,9 @@ const DashboardView = React.memo(function DashboardView({
       {showInitialLoading ? (
         <DashboardOverviewLoading />
       ) : showInitialError ? (
-        <div className="mx-auto w-full max-w-[1600px] px-4 pt-5 sm:px-6 lg:px-8">
+        <ViewContainer className="pt-5">
           <DashboardDataStatus hasPreviousData={false} onRetry={retryMainData} />
-        </div>
+        </ViewContainer>
       ) : (
         <ViewContainer className="space-y-5 pb-10 pt-4">
           {mainDataError ? <DashboardDataStatus hasPreviousData={hasResolvedData} onRetry={retryMainData} /> : null}

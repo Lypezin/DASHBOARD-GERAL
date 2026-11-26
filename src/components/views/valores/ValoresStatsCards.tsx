@@ -3,6 +3,7 @@
 import React from 'react';
 import { BarChart3, Car, DollarSign, Users } from 'lucide-react';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
+import { AnimatedNumberText } from '@/components/ui/animated-counter';
 
 interface ValoresStatsCardsProps {
   totalGeral: number;
@@ -66,7 +67,7 @@ export const ValoresStatsCards = React.memo(function ValoresStatsCards({
             </div>
             <dd className="mt-2 min-h-[3.75rem] min-w-0 text-[#173f5a] dark:text-slate-50">
               <span className="block truncate text-[22px] font-semibold leading-7 tracking-tight tabular-nums" title={value}>
-                {value}
+                <AnimatedNumberText value={value} />
               </span>
               <span className="mt-1 block truncate text-[11px] leading-4 text-slate-500 dark:text-slate-400">
                 {meta}

@@ -9,6 +9,7 @@ import { createRequestKey } from '@/utils/request/createRequestKey';
 import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
 import { ENTREGADORES_REFRESH_COMPLETE_EVENT } from '@/utils/dashboard/dashboardDataRefreshEvents';
 import { processTabSuccessData, getTabFallbackData, TabData } from './tabDataHelpers';
+import { useTopLoaderSync } from '@/components/ui/TopLoader';
 
 const ENTREGADORES_CLIENT_CACHE_TTL_MS = 60_000;
 const SELF_MANAGED_TABS = ['evolucao', 'dashboard', 'analise', 'comparacao', 'marketing', 'entrada_saida', 'marketing_apresentacao'];
@@ -344,10 +345,12 @@ export function useTabData(
   );
   const isCurrentDataScope = dataOrganizationId === currentOrganizationId
     && dataAccessScopeKey === accessScopeKey;
+  const isTabLoading = enabled && isManagedTab && (loading || waitingForCurrentRequest);
+  useTopLoaderSync(isTabLoading);
 
   return {
     data: isManagedTab && (!isCurrentDataScope || dataTabScope !== currentTabScope) ? null : visibleData,
-    loading: enabled && isManagedTab && (loading || waitingForCurrentRequest),
+    loading: isTabLoading,
     error: resolvedRequestKey === currentRequestKey ? error : null,
     retry,
   };

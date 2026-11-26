@@ -32,7 +32,7 @@ const nextConfig = {
   swcMinify: true,
 
   experimental: {
-    optimizePackageImports: ['lucide-react', 'framer-motion', 'recharts', 'date-fns'],
+    optimizePackageImports: ['lucide-react', 'framer-motion', 'chart.js', 'date-fns'],
   },
 
   output: 'standalone',

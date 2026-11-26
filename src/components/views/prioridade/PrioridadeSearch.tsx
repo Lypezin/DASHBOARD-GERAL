@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, X } from 'lucide-react';
+import { Loader2, Search, X } from 'lucide-react';
 
 interface PrioridadeSearchProps {
   searchTerm: string;
@@ -40,7 +40,7 @@ export const PrioridadeSearch: React.FC<PrioridadeSearchProps> = ({
       ) : null}
       {isSearching ? (
         <span role="status" aria-label="Pesquisando" className="absolute right-3 top-1/2 -translate-y-1/2">
-          <span className="block h-4 w-4 animate-spin rounded-full border-2 border-slate-200 border-t-[#174d70] motion-reduce:animate-none dark:border-slate-700 dark:border-t-sky-300" />
+          <Loader2 className="h-4 w-4 motion-safe:animate-spin text-[#174d70] dark:text-sky-300" aria-hidden="true" />
         </span>
       ) : null}
     </div>

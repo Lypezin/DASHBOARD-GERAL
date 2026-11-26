@@ -81,6 +81,20 @@ export function getServiceRoleConfigErrorPayload() {
     };
 }
 
+function buildServiceRoleClient(supabaseUrl: string, serviceRoleKey: string) {
+    return createClient(supabaseUrl, serviceRoleKey, {
+        auth: {
+            autoRefreshToken: false,
+            persistSession: false
+        }
+    });
+}
+
+let cachedServiceRole: {
+    cacheKey: string;
+    client: ReturnType<typeof buildServiceRoleClient>;
+} | null = null;
+
 export function createServiceRoleClient() {
     const { supabaseUrl, serviceRoleKey, missing } = readServiceRoleConfig();
 
@@ -88,10 +102,12 @@ export function createServiceRoleClient() {
         throw new ServiceRoleConfigError(missing);
     }
 
-    return createClient(supabaseUrl, serviceRoleKey, {
-        auth: {
-            autoRefreshToken: false,
-            persistSession: false
-        }
-    });
+    const cacheKey = `${supabaseUrl}::${serviceRoleKey}`;
+    if (cachedServiceRole && cachedServiceRole.cacheKey === cacheKey) {
+        return cachedServiceRole.client;
+    }
+
+    const client = buildServiceRoleClient(supabaseUrl, serviceRoleKey);
+    cachedServiceRole = { cacheKey, client };
+    return client;
 }

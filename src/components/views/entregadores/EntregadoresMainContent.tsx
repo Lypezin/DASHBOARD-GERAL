@@ -22,6 +22,8 @@ import { fetchEntregadoresData } from '@/utils/tabData/fetchers/entregadoresFetc
 import { filterAndSortEntregadores } from './hooks/useEntregadoresMainSort';
 import { EntregadoresLoading, FilteredDataTransition, FilterRefreshIndicator } from '@/components/dashboard/OperationalLoading';
 
+const EMPTY_ENTREGADORES: Entregador[] = [];
+
 function TopBottomPerformersSkeleton({ rows = 10 }: { rows?: number }) {
   return (
     <section
@@ -230,7 +232,8 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
     { loadCompleteRows: isDedicado ? undefined : loadCompleteRows }
   );
   const { selectedEntregador, profileOpen, setProfileOpen, handleRowClick } = useEntregadorProfile();
-  const stats = useEntregadoresMainStats(sortedEntregadores);
+  const hasServerSummary = !isDedicado && Boolean(entregadoresData?.summary);
+  const stats = useEntregadoresMainStats(hasServerSummary ? EMPTY_ENTREGADORES : sortedEntregadores);
   const displayStats = !isDedicado && entregadoresData?.summary
     ? {
         totalEntregadores: entregadoresData.summary.total_entregadores,
@@ -240,6 +243,14 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
         totalSegundos: entregadoresData.summary.total_segundos,
       }
     : stats;
+  const serverPagination = React.useMemo(
+    () => serverPage ? {
+      ...serverPage,
+      loadedPage: entregadoresData?.page,
+      totalItems: entregadoresData?.total ?? 0,
+    } : undefined,
+    [entregadoresData?.page, entregadoresData?.total, serverPage]
+  );
   const hasEntregadores = (entregadoresData?.entregadores.length || 0) > 0;
   const pageResultIsStale = Boolean(
     serverPage
@@ -381,11 +392,7 @@ export const EntregadoresMainContent = React.memo(function EntregadoresMainConte
                 searchTerm={effectiveSearchTerm}
                 onRowClick={handleRowClick}
                 isUpdating={isUpdatingResults}
-                serverPagination={serverPage ? {
-                  ...serverPage,
-                  loadedPage: entregadoresData?.page,
-                  totalItems: entregadoresData?.total ?? 0,
-                } : undefined}
+                serverPagination={serverPagination}
               />
 
               {isDedicado && hasPerformers ? (

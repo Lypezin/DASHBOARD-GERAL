@@ -105,7 +105,7 @@ export const EntradaSaidaRow: React.FC<EntradaSaidaRowProps> = React.memo(functi
                         </div>
                     ) : null}
 
-                    <div className={`flex h-7 w-7 items-center justify-center rounded-full bg-slate-50 transition-all duration-300 dark:bg-slate-800 ${isExpanded ? 'rotate-180 bg-slate-100' : ''}`}>
+                    <div className={`flex h-7 w-7 items-center justify-center rounded-full bg-slate-50 transition-[transform,background-color] duration-300 dark:bg-slate-800 ${isExpanded ? 'rotate-180 bg-slate-100' : ''}`}>
                         <ChevronDown className="h-3.5 w-3.5 text-slate-400" />
                     </div>
                 </div>

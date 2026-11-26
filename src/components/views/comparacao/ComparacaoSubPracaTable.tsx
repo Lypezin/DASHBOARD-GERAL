@@ -41,7 +41,7 @@ export const ComparacaoSubPracaTable: React.FC<ComparacaoSubPracaTableProps> = (
                 <Table className="min-w-[1040px]">
                     <TableHeader>
                         <TableRow className="border-none hover:bg-transparent">
-                            <TableHead rowSpan={2} className="sticky left-0 z-20 w-[170px] bg-white pb-4 pl-6 align-bottom text-[13px] font-bold uppercase tracking-[0.16em] text-slate-400 dark:bg-slate-950 dark:text-slate-500 sm:w-[210px] sm:pl-8">
+                            <TableHead rowSpan={2} className="sticky left-0 z-20 w-[170px] border-r border-slate-100 bg-white pb-4 pl-6 align-bottom text-[13px] font-bold uppercase tracking-[0.16em] text-slate-400 dark:border-slate-800/80 dark:bg-slate-950 dark:text-slate-500 sm:w-[210px] sm:pl-8">
                                 Sub-praça
                             </TableHead>
                             {semanasSelecionadas.map((semana) => {

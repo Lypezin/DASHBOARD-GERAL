@@ -119,9 +119,11 @@ export async function GET(request: Request) {
         if ('error' in auth) return auth.error;
 
         const admin = createServiceRoleClient();
-        const stateData = await healRefreshQueueSnapshot(admin);
         const incrementalOnly = new URL(request.url).searchParams.get('incremental') === '1';
-        const pending = incrementalOnly ? [] : await fetchPendingMVs(admin);
+        const [stateData, pending] = await Promise.all([
+            healRefreshQueueSnapshot(admin),
+            incrementalOnly ? Promise.resolve([]) : fetchPendingMVs(admin),
+        ]);
 
         return NextResponse.json({ success: true, pending, queue_state: stateData ?? null });
     } catch (error) {

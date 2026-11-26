@@ -3,6 +3,7 @@ import { Activity, Car, Timer } from 'lucide-react';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
 import { UtrGeral as UtrGeralType } from '@/types';
 import { formatCompactTime, formatarHorasParaHMS } from '@/utils/formatters';
+import { AnimatedNumberText } from '@/components/ui/animated-counter';
 
 interface UtrGeralProps {
     data: UtrGeralType;
@@ -42,7 +43,9 @@ export const UtrGeral = React.memo(function UtrGeral({ data }: UtrGeralProps) {
                             <dt className="truncate text-[11px] font-medium text-slate-500 dark:text-slate-300">{title}</dt>
                         </div>
                         <dd className="mt-2 min-h-[3.75rem] min-w-0 text-[#173f5a] dark:text-slate-50">
-                            <span className="block truncate text-[22px] font-semibold leading-7 tracking-tight tabular-nums" title={value}>{value}</span>
+                            <span className="block truncate text-[22px] font-semibold leading-7 tracking-tight tabular-nums" title={value}>
+                                <AnimatedNumberText value={value} />
+                            </span>
                             <span className="mt-1 block truncate text-[11px] leading-4 text-slate-500 dark:text-slate-400" title={meta}>{meta}</span>
                         </dd>
                     </motion.div>

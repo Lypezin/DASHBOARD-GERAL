@@ -5,6 +5,18 @@ import { ATENDENTE_TO_ID } from '@/utils/atendenteMappers';
 import { ensureMarketingDateFilter } from '@/utils/marketingQueries';
 import { IS_DEV } from '@/constants/environment';
 
+const ID_TO_ATENDENTE_NOME = (() => {
+    const map = new Map<string, string>();
+    for (const [nome, ids] of Object.entries(ATENDENTE_TO_ID)) {
+        const idArray = Array.isArray(ids) ? ids : [ids];
+        for (const id of idArray) {
+            const normalized = String(id).trim();
+            if (normalized) map.set(normalized, nome);
+        }
+    }
+    return map;
+})();
+
 
 export async function fetchAndProcessValores(filtroEnviadosLiberados: MarketingDateFilter) {
     const safeFilter = ensureMarketingDateFilter(filtroEnviadosLiberados);
@@ -31,15 +43,7 @@ export async function fetchAndProcessValores(filtroEnviadosLiberados: MarketingD
             const cidade = String(row.cidade || 'Não especificada').trim();
             const valor = Number(row.valor) || 0;
 
-            let atendenteNome = '';
-            for (const [nome, ids] of Object.entries(ATENDENTE_TO_ID)) {
-                // Suporta tanto string única quanto array de IDs
-                const idArray = Array.isArray(ids) ? ids : [ids];
-                if (idArray.some(id => String(id).trim() === idAtendente)) {
-                    atendenteNome = nome;
-                    break;
-                }
-            }
+            const atendenteNome = idAtendente ? ID_TO_ATENDENTE_NOME.get(idAtendente) || '' : '';
 
             if (atendenteNome) {
                 if (!valoresPorAtendenteECidade.has(atendenteNome)) {

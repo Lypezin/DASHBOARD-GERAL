@@ -3,6 +3,7 @@ import CustoPorLiberadoCard from '@/components/CustoPorLiberadoCard';
 import { ValoresCidadePorCidade } from '@/types';
 import { BarChart3 } from 'lucide-react';
 import { SaasPanel } from '@/components/views/shared/SaasPrimitives';
+import { StaggerContainer, StaggerItem } from '@/components/ui/stagger';
 
 interface CityCostGridProps {
     cidadesData: ValoresCidadePorCidade[];
@@ -31,18 +32,19 @@ export const CityCostGrid: React.FC<CityCostGridProps> = ({ cidadesData }) => {
                     </p>
                 </SaasPanel>
             ) : (
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <StaggerContainer className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3" staggerDelay={0.04}>
                     {cidadesData.map((cidadeData) => (
-                        <CustoPorLiberadoCard
-                            key={`custo-${cidadeData.cidade}`}
-                            cidade={cidadeData.cidade}
-                            custoPorLiberado={cidadeData.custo_por_liberado || 0}
-                            quantidadeLiberados={cidadeData.quantidade_liberados || 0}
-                            valorTotalEnviados={cidadeData.valor_total_enviados || 0}
-                            color="blue"
-                        />
+                        <StaggerItem key={`custo-${cidadeData.cidade}`}>
+                            <CustoPorLiberadoCard
+                                cidade={cidadeData.cidade}
+                                custoPorLiberado={cidadeData.custo_por_liberado || 0}
+                                quantidadeLiberados={cidadeData.quantidade_liberados || 0}
+                                valorTotalEnviados={cidadeData.valor_total_enviados || 0}
+                                color="blue"
+                            />
+                        </StaggerItem>
                     ))}
-                </div>
+                </StaggerContainer>
             )}
         </section>
     );

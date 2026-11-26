@@ -4,11 +4,11 @@ import React, { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { usePathname } from 'next/navigation';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { useSidebar } from '@/contexts/SidebarContext';
+import { useSidebarActions } from '@/contexts/SidebarContext';
 import { useDashboardActiveTab } from '@/hooks/dashboard/useDashboardActiveTab';
 import { useHeaderAuth } from '@/hooks/auth/useHeaderAuth';
 import { useHeaderAvatar } from '@/hooks/auth/useHeaderAvatar';
-import { useTheme } from '@/contexts/ThemeContext';
+import { useThemeActions } from '@/contexts/ThemeContext';
 import { Button } from '@/components/ui/button';
 import { UserDropdown } from '@/components/Header/UserDropdown';
 import { Menu, Moon, Sun, Trophy, ChevronRight, Loader2 } from 'lucide-react';
@@ -47,12 +47,12 @@ const BREADCRUMB_MAP: Record<TabType, { group: string; label: string }> = {
 };
 
 export function DashboardHeader() {
-  const { toggleSidebar, toggleMobileSidebar } = useSidebar();
+  const { toggleSidebar, toggleMobileSidebar } = useSidebarActions();
   const pathname = usePathname();
   const activeTab = useDashboardActiveTab();
   const { user, handleLogout } = useHeaderAuth();
   const avatarUrl = useHeaderAvatar(user);
-  const { toggleTheme } = useTheme();
+  const { toggleTheme } = useThemeActions();
   const shouldReduceMotion = useReducedMotion() ?? false;
   const [showAchievements, setShowAchievements] = useState(false);
   const [hasOpenedAchievements, setHasOpenedAchievements] = useState(false);
@@ -75,7 +75,7 @@ export function DashboardHeader() {
   };
 
   return (
-    <header className="sticky top-0 z-40 flex w-full min-w-0 flex-col border-b border-border bg-card/95 shadow-[0_1px_2px_0_rgba(0,0,0,0.03)] backdrop-blur transition-colors duration-200">
+    <header className="sticky top-0 z-40 flex w-full min-w-0 flex-col border-b border-border bg-card shadow-[0_1px_2px_0_rgba(0,0,0,0.03)] transition-colors duration-200">
       <div className="grid w-full min-w-0 grid-cols-[minmax(0,1fr)_auto] grid-rows-[3.5rem_2rem] items-center px-3 sm:px-6 lg:h-14 lg:grid-cols-[minmax(0,auto)_minmax(0,1fr)_auto] lg:grid-rows-1 lg:px-8">
       {/* Esquerda: Menu toggle + Breadcrumb */}
       <div className="col-start-1 row-start-1 flex h-14 min-w-0 items-center gap-2 sm:gap-3">
@@ -121,7 +121,7 @@ export function DashboardHeader() {
         </nav>
       </div>
 
-      <CityLastUpdatesTicker className="col-span-2 row-start-2 min-w-0 px-0 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:max-w-[40rem] lg:px-4 xl:max-w-[62rem] xl:px-6" />
+      <CityLastUpdatesTicker className="col-span-2 row-start-2 min-w-0 border-t border-border/60 px-0 lg:col-span-1 lg:col-start-2 lg:row-start-1 lg:max-w-[40rem] lg:border-t-0 lg:px-4 xl:max-w-[62rem] xl:px-6" />
 
       {/* Direita: Conquistas + Tema + Perfil */}
       <div className="relative z-10 isolate col-start-2 row-start-1 ml-auto flex h-14 shrink-0 items-center gap-1 pl-2 sm:gap-2 lg:col-start-3">
@@ -133,8 +133,9 @@ export function DashboardHeader() {
             onClick={handleOpenAchievements}
             className="h-9 w-9 text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 hover:bg-yellow-100/50 dark:hover:bg-yellow-900/20"
             title="Minhas Conquistas"
+            aria-label="Minhas Conquistas"
           >
-            <Trophy className="h-4 w-4 sm:h-[1.1rem] sm:w-[1.1rem]" />
+            <Trophy className="h-4 w-4 sm:h-[1.1rem] sm:w-[1.1rem]" aria-hidden="true" />
           </Button>
         )}
 
@@ -145,6 +146,7 @@ export function DashboardHeader() {
           onClick={toggleTheme}
           className="relative h-9 w-9 text-muted-foreground hover:text-foreground"
           title="Alternar Tema"
+          aria-label="Alternar tema claro ou escuro"
         >
           <Sun data-theme-toggle-icon className="h-4 w-4 rotate-0 scale-100 transition-transform duration-200 dark:-rotate-90 dark:scale-0 sm:h-[1.1rem] sm:w-[1.1rem]" />
           <Moon data-theme-toggle-icon className="absolute h-4 w-4 rotate-90 scale-0 transition-transform duration-200 dark:rotate-0 dark:scale-100 sm:h-[1.1rem] sm:w-[1.1rem]" />

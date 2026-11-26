@@ -45,9 +45,9 @@ export function UploadHeader({
 
                 {/* Seletor de organização visível apenas para admins globais/master. */}
                 {isAuthorized && user?.id && isLoadingOrgs && organizations.length === 0 ? (
-                    <div className="flex w-full min-w-0 flex-col gap-2 md:w-[320px]" aria-label="Carregando organizações">
-                        <div className="dashboard-loading-shimmer h-3 w-24 rounded-full" />
-                        <div className="dashboard-loading-shimmer h-11 w-full rounded-xl" />
+                    <div role="status" aria-busy="true" className="flex w-full min-w-0 flex-col gap-2 md:w-[320px]" aria-label="Carregando organizações">
+                        <div className="dashboard-loading-shimmer h-3 w-24 rounded-full motion-reduce:animate-none" />
+                        <div className="dashboard-loading-shimmer h-11 w-full rounded-xl motion-reduce:animate-none" />
                     </div>
                 ) : isAuthorized && user?.id && organizations.length > 0 ? (
                     <div className="flex w-full min-w-0 flex-col gap-2 md:w-[320px]">

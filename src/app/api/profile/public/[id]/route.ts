@@ -39,7 +39,10 @@ export async function GET(_request: Request, context: RouteContext) {
       return NextResponse.json({ data: null, error: error.message, details: error }, { status: 500 });
     }
 
-    return NextResponse.json({ data: data || null, error: null });
+    return NextResponse.json(
+      { data: data || null, error: null },
+      { headers: { 'Cache-Control': 'private, max-age=60, stale-while-revalidate=120' } }
+    );
   } catch (error) {
     if (isServiceRoleConfigError(error)) {
       const payload = getServiceRoleConfigErrorPayload();

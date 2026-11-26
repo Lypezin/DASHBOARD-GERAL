@@ -25,7 +25,7 @@ export const GeneralStatsScoreCard: React.FC<GeneralStatsScoreCardProps> = ({ pe
         : 'bg-rose-50 text-rose-700 ring-rose-200/70 dark:bg-rose-950/30 dark:text-rose-300 dark:ring-rose-900/50';
 
     return (
-        <div className="min-w-0 border-t-[3px] border-t-[#9ac8de] bg-white px-4 py-3 dark:border-t-sky-700 dark:bg-slate-900 sm:px-5 interactive-card">
+        <div className="min-w-0 border-t-[3px] border-t-[#9ac8de] bg-white px-4 py-3 transition-colors duration-150 hover:bg-[#f8fbfc] dark:border-t-sky-700 dark:bg-slate-900 dark:hover:bg-slate-800/50 sm:px-5">
             <div className="flex min-w-0 items-center justify-between gap-3">
                 <div className="flex min-w-0 items-center gap-2">
                     <dt className="truncate text-[11px] font-medium text-slate-500 dark:text-slate-300">Aderência geral</dt>

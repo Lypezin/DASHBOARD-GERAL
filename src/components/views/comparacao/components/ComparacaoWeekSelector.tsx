@@ -60,7 +60,11 @@ export const ComparacaoWeekSelector = React.memo(function ComparacaoWeekSelector
                         >
                             {triggerLabel}
                         </span>
-                        <ChevronDown className="ml-2 h-4 w-4 text-slate-400" />
+                        {loading ? (
+                            <Loader2 className="ml-2 h-4 w-4 shrink-0 motion-safe:animate-spin text-slate-400" aria-hidden="true" />
+                        ) : (
+                            <ChevronDown className="ml-2 h-4 w-4 shrink-0 text-slate-400" aria-hidden="true" />
+                        )}
                     </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="subtle-scrollbar max-h-[400px] w-[280px] overflow-y-auto rounded-xl border-slate-200 p-2 shadow-[0_12px_34px_-22px_rgba(15,23,42,0.4)] dark:border-slate-800" align="start">
@@ -97,11 +101,6 @@ export const ComparacaoWeekSelector = React.memo(function ComparacaoWeekSelector
                 >
                     Não foi possível carregar as semanas. Tentar novamente
                 </button>
-            ) : loading ? (
-                <span role="status" className="inline-flex items-center gap-1.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin motion-reduce:animate-none" aria-hidden="true" />
-                    Carregando semanas disponíveis...
-                </span>
             ) : null}
 
             <div className="flex min-h-[44px] flex-1 flex-wrap items-center gap-2">

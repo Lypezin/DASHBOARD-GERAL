@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { Entregador, EntregadoresData, EntregadoresPerformerMetric } from '@/types';
 import { AlertTriangle, ChevronDown, Trophy } from 'lucide-react';
 import { calculateHealthScore } from '@/components/ui/HealthBadge';
+import { ViewTransition } from '@/components/ui/view-transition';
 import { SortMetric, metricLabels, getMetricValue, PerformerRow } from './TopBottomPerformerRow';
 
 interface TopBottomPerformersProps {
@@ -70,58 +71,60 @@ export const TopBottomPerformers = React.memo(function TopBottomPerformers({
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                <div className="overflow-hidden rounded-2xl border border-emerald-200/70 bg-white dark:border-emerald-900/40 dark:bg-slate-950/50">
-                    <div className="flex items-center gap-2 border-b border-emerald-100 bg-emerald-50 px-4 py-3 dark:border-emerald-900/30 dark:bg-emerald-950/20">
-                        <Trophy className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                        <span className="text-sm font-black text-emerald-700 dark:text-emerald-300">
-                            Top 10 - {metricLabels[metric]}
-                        </span>
+            <ViewTransition stateKey={metric} preventExitInteraction>
+                <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                    <div className="overflow-hidden rounded-2xl border border-emerald-200/70 bg-white dark:border-emerald-900/40 dark:bg-slate-950/50">
+                        <div className="flex items-center gap-2 border-b border-emerald-100 bg-emerald-50 px-4 py-3 dark:border-emerald-900/30 dark:bg-emerald-950/20">
+                            <Trophy className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                            <span className="text-sm font-black text-emerald-700 dark:text-emerald-300">
+                                Top 10 - {metricLabels[metric]}
+                            </span>
+                        </div>
+                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {top10.map((entregador, index) => (
+                                <PerformerRow
+                                    key={entregador.id_entregador}
+                                    e={entregador}
+                                    metric={metric}
+                                    rank={index + 1}
+                                    highlightTop={index < 3}
+                                    hs={calculateHealthScore(
+                                        entregador.aderencia_percentual,
+                                        entregador.corridas_completadas,
+                                        entregador.corridas_ofertadas,
+                                        entregador.total_segundos
+                                    )}
+                                />
+                            ))}
+                        </div>
                     </div>
-                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                        {top10.map((entregador, index) => (
-                            <PerformerRow
-                                key={entregador.id_entregador}
-                                e={entregador}
-                                metric={metric}
-                                rank={index + 1}
-                                highlightTop={index < 3}
-                                hs={calculateHealthScore(
-                                    entregador.aderencia_percentual,
-                                    entregador.corridas_completadas,
-                                    entregador.corridas_ofertadas,
-                                    entregador.total_segundos
-                                )}
-                            />
-                        ))}
-                    </div>
-                </div>
 
-                <div className="overflow-hidden rounded-2xl border border-rose-200/70 bg-white dark:border-rose-900/40 dark:bg-slate-950/50">
-                    <div className="flex items-center gap-2 border-b border-rose-100 bg-rose-50 px-4 py-3 dark:border-rose-900/30 dark:bg-rose-950/20">
-                        <AlertTriangle className="h-4 w-4 text-rose-600 dark:text-rose-400" />
-                        <span className="text-sm font-black text-rose-700 dark:text-rose-300">
-                            Bottom 10 - {metricLabels[metric]}
-                        </span>
-                    </div>
-                    <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                        {bottom10.map((entregador, index) => (
-                            <PerformerRow
-                                key={entregador.id_entregador}
-                                e={entregador}
-                                metric={metric}
-                            rank={(totalEntregadores ?? entregadores.length) - index}
-                                hs={calculateHealthScore(
-                                    entregador.aderencia_percentual,
-                                    entregador.corridas_completadas,
-                                    entregador.corridas_ofertadas,
-                                    entregador.total_segundos
-                                )}
-                            />
-                        ))}
+                    <div className="overflow-hidden rounded-2xl border border-rose-200/70 bg-white dark:border-rose-900/40 dark:bg-slate-950/50">
+                        <div className="flex items-center gap-2 border-b border-rose-100 bg-rose-50 px-4 py-3 dark:border-rose-900/30 dark:bg-rose-950/20">
+                            <AlertTriangle className="h-4 w-4 text-rose-600 dark:text-rose-400" />
+                            <span className="text-sm font-black text-rose-700 dark:text-rose-300">
+                                Bottom 10 - {metricLabels[metric]}
+                            </span>
+                        </div>
+                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                            {bottom10.map((entregador, index) => (
+                                <PerformerRow
+                                    key={entregador.id_entregador}
+                                    e={entregador}
+                                    metric={metric}
+                                rank={(totalEntregadores ?? entregadores.length) - index}
+                                    hs={calculateHealthScore(
+                                        entregador.aderencia_percentual,
+                                        entregador.corridas_completadas,
+                                        entregador.corridas_ofertadas,
+                                        entregador.total_segundos
+                                    )}
+                                />
+                            ))}
+                        </div>
                     </div>
                 </div>
-            </div>
+            </ViewTransition>
         </div>
     );
 });

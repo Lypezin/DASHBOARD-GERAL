@@ -81,7 +81,7 @@ export const EntregadoresMainTableHeader = React.memo(function EntregadoresMainT
     return (
         <div className={isEntregadores
             ? 'sticky top-0 z-20 border-b border-[#d5e1e9] bg-[#f2f7fa] dark:border-slate-700 dark:bg-slate-800'
-            : 'sticky top-0 z-20 border-b border-slate-200 bg-slate-50/95 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95'}>
+            : 'sticky top-0 z-20 border-b border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900'}>
             <div className={`grid ${gridClass} items-center ${isEntregadores ? 'gap-3 px-5 py-3' : 'gap-4 px-6 py-3'}`}>
                 {!isEntregadores && <HeaderCell label="Saúde" />}
                 <HeaderCell label="Nome" field="nome_entregador" align="left" />

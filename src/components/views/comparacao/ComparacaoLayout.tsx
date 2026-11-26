@@ -67,6 +67,16 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
         actions.setViewModeOrigem,
         actions.retryData,
     ]);
+    const { setMostrarApresentacao } = actions;
+    const handleShowApresentacao = React.useCallback(
+        () => setMostrarApresentacao(true),
+        [setMostrarApresentacao]
+    );
+    const handleHideApresentacao = React.useCallback(
+        () => setMostrarApresentacao(false),
+        [setMostrarApresentacao]
+    );
+
     return (
         <ViewContainer className="space-y-5 pb-10 pt-4">
             <ComparacaoFilters
@@ -78,7 +88,7 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                 onPracaChange={actions.setPracaSelecionada}
                 onToggleSemana={actions.toggleSemana}
                 onClearSemanas={actions.limparSemanas}
-                onMostrarApresentacao={() => actions.setMostrarApresentacao(true)}
+                onMostrarApresentacao={handleShowApresentacao}
                 loading={state.loading}
                 error={state.error}
                 dadosComparacao={data.dadosComparacao}
@@ -197,7 +207,7 @@ export const ComparacaoLayout = React.memo(function ComparacaoLayout({
                     pracaSelecionada={state.pracaSelecionada}
                     anoSelecionado={state.anoSelecionado}
                     dimensionFilters={data.dimensionFilters}
-                    onClose={() => actions.setMostrarApresentacao(false)}
+                    onClose={handleHideApresentacao}
                     onPracaChange={actions.setPracaSelecionada}
                     onSemanasChange={actions.setSemanasSelecionadas}
                 />

@@ -46,7 +46,7 @@ export function SaasPanel({
   return (
     <div
       className={cn(
-        'min-w-0 overflow-hidden rounded-[1.65rem] border border-slate-200/80 bg-white/95 shadow-[0_24px_70px_-52px_rgba(15,23,42,0.45)] motion-safe:animate-fade-in dark:border-slate-800/80 dark:bg-slate-950/80',
+        'min-w-0 overflow-hidden rounded-[1.65rem] border border-slate-200/80 bg-white/95 shadow-[0_24px_70px_-52px_rgba(15,23,42,0.45)] dark:border-slate-800/80 dark:bg-slate-950/80',
         className
       )}
     >
@@ -164,7 +164,7 @@ export function SaasSegmentedControl({
   return (
     <div
       className={cn(
-        'subtle-scrollbar flex max-w-full gap-1 overflow-x-auto rounded-2xl border border-slate-200/70 bg-slate-100/80 p-1 shadow-inner backdrop-blur dark:border-slate-800/70 dark:bg-slate-900/70',
+        'subtle-scrollbar flex max-w-full gap-1 overflow-x-auto rounded-2xl border border-slate-200/70 bg-slate-100/90 p-1 shadow-inner dark:border-slate-800/70 dark:bg-slate-900/90',
         className
       )}
     >

@@ -46,6 +46,20 @@ export type MarketingPresentationReport = {
 };
 
 const PRIMARY_REGIONS = ['São Paulo', 'Guarulhos', 'Manaus', 'ABC', 'Sorocaba', 'Salvador', 'Taboão da Serra'];
+const PRIMARY_REGION_INDEX = new Map(PRIMARY_REGIONS.map((region, index) => [region, index]));
+const KNOWN_REGIONS = new Map([
+  ['sao paulo', 'São Paulo'],
+  ['guarulhos', 'Guarulhos'],
+  ['manaus', 'Manaus'],
+  ['sorocaba', 'Sorocaba'],
+  ['salvador', 'Salvador'],
+]);
+const SCANNED_DATE_FORMATTER = new Intl.DateTimeFormat('pt-BR', {
+  timeZone: 'America/Sao_Paulo',
+  day: '2-digit',
+  month: '2-digit',
+  year: 'numeric',
+});
 const FIRST_WEEK_OFFSET = 7;
 
 function shiftDate(isoDate: string, days: number) {
@@ -92,14 +106,7 @@ function normalizeRegion(value: string) {
   if (!key) return 'Sem região';
   if (key.includes('taboao') || key.includes('embu')) return 'Taboão da Serra';
   if (key === 'abc' || key.includes('santo andre') || key.includes('sao bernardo')) return 'ABC';
-  const known = new Map([
-    ['sao paulo', 'São Paulo'],
-    ['guarulhos', 'Guarulhos'],
-    ['manaus', 'Manaus'],
-    ['sorocaba', 'Sorocaba'],
-    ['salvador', 'Salvador'],
-  ]);
-  return known.get(key) || value.trim() || 'Sem região';
+  return KNOWN_REGIONS.get(key) || value.trim() || 'Sem região';
 }
 
 function getWeekNumber(isoDate: string) {
@@ -119,14 +126,40 @@ function isReturnedStage(stage: string) {
   return value.includes('voltou') || value.includes('desistiu') || value.includes('bug');
 }
 
-function sumLeadMetrics(leads: MarketingPresentationLead[], start: string, end: string) {
-  const created = leads.filter((lead) => inRange(lead.createdDate, start, end)).length;
-  const sent = leads.filter((lead) => inRange(lead.sentDate, start, end)).length;
-  const released = leads.filter((lead) => inRange(lead.releasedDate, start, end)).length;
-  const ran = leads.filter((lead) => inRange(lead.ranDate, start, end)).length;
-  const open = leads.filter((lead) => inRange(lead.sentDate, start, end) && isOpenStage(lead.stage)).length;
-  const returned = leads.filter((lead) => inRange(lead.sentDate, start, end) && isReturnedStage(lead.stage)).length;
-  return { created, sent, released, ran, open, returned };
+type PreparedPresentationLead = MarketingPresentationLead & {
+  normalizedRegion: string;
+  isOpen: boolean;
+  isReturned: boolean;
+};
+
+type LeadMetricsBucket = {
+  created: number;
+  sent: number;
+  released: number;
+  ran: number;
+  open: number;
+  returned: number;
+};
+
+function createEmptyMetrics(): LeadMetricsBucket {
+  return { created: 0, sent: 0, released: 0, ran: 0, open: 0, returned: 0 };
+}
+
+function accumulateLeadIntoBucket(bucket: LeadMetricsBucket, lead: PreparedPresentationLead, start: string, end: string) {
+  if (inRange(lead.createdDate, start, end)) bucket.created += 1;
+  if (inRange(lead.sentDate, start, end)) {
+    bucket.sent += 1;
+    if (lead.isOpen) bucket.open += 1;
+    if (lead.isReturned) bucket.returned += 1;
+  }
+  if (inRange(lead.releasedDate, start, end)) bucket.released += 1;
+  if (inRange(lead.ranDate, start, end)) bucket.ran += 1;
+}
+
+function compareRegions(left: string, right: string) {
+  const leftIndex = PRIMARY_REGION_INDEX.get(left) ?? PRIMARY_REGIONS.length;
+  const rightIndex = PRIMARY_REGION_INDEX.get(right) ?? PRIMARY_REGIONS.length;
+  return leftIndex - rightIndex || left.localeCompare(right, 'pt-BR');
 }
 
 async function loadImportedCosts(
@@ -145,33 +178,54 @@ async function loadImportedCosts(
   });
 }
 
-function sumCostsForRegion(rows: any[], region: string) {
-  return rows.reduce((totals, row) => {
-    if (normalizeRegion(String(row.cidade || '')) !== region) return totals;
-    totals.value += Number(row.valor) || 0;
-    totals.conversations += Number(row.conversas) || 0;
-    return totals;
-  }, { value: 0, conversations: 0 });
-}
+type PreparedCostRow = {
+  date: string;
+  region: string;
+  value: number;
+  conversations: number;
+};
 
 function buildCostsForRange(
-  leads: MarketingPresentationLead[],
-  costRows: any[],
+  leads: PreparedPresentationLead[],
+  costRows: PreparedCostRow[],
   start: string,
   end: string,
 ): MarketingCostData[] {
   if (end < start) return [];
-  const activeLeads = leads.filter((lead) => inRange(lead.sentDate, start, end) || inRange(lead.releasedDate, start, end) || inRange(lead.ranDate, start, end));
-  const regions = new Set([
-    ...PRIMARY_REGIONS,
-    ...activeLeads.map((lead) => normalizeRegion(lead.region)),
-    ...costRows.map((row) => normalizeRegion(String(row.cidade || ''))),
-  ]);
+
+  const regions = new Set<string>(PRIMARY_REGIONS);
+  const metricsByRegion = new Map<string, LeadMetricsBucket>();
+  const costsByRegion = new Map<string, { value: number; conversations: number }>();
+
+  for (const lead of leads) {
+    if (!inRange(lead.sentDate, start, end) && !inRange(lead.releasedDate, start, end) && !inRange(lead.ranDate, start, end)) {
+      continue;
+    }
+    regions.add(lead.normalizedRegion);
+    let bucket = metricsByRegion.get(lead.normalizedRegion);
+    if (!bucket) {
+      bucket = createEmptyMetrics();
+      metricsByRegion.set(lead.normalizedRegion, bucket);
+    }
+    accumulateLeadIntoBucket(bucket, lead, start, end);
+  }
+
+  for (const row of costRows) {
+    if (row.date > end) continue;
+    regions.add(row.region);
+    const existing = costsByRegion.get(row.region);
+    if (existing) {
+      existing.value += row.value;
+      existing.conversations += row.conversations;
+    } else {
+      costsByRegion.set(row.region, { value: row.value, conversations: row.conversations });
+    }
+  }
 
   return [...regions]
     .map((region) => {
-      const metrics = sumLeadMetrics(activeLeads.filter((lead) => normalizeRegion(lead.region) === region), start, end);
-      const costs = sumCostsForRegion(costRows, region);
+      const metrics = metricsByRegion.get(region) ?? createEmptyMetrics();
+      const costs = costsByRegion.get(region) ?? { value: 0, conversations: 0 };
       return {
         regiao: region,
         valorUsado: costs.value,
@@ -183,12 +237,7 @@ function buildCostsForRange(
       };
     })
     .filter((item) => item.valorUsado > 0 || item.conversas > 0 || item.rodando > 0 || item.liberado > 0 || item.aberto > 0)
-    .sort((left, right) => {
-      const leftIndex = PRIMARY_REGIONS.indexOf(left.regiao);
-      const rightIndex = PRIMARY_REGIONS.indexOf(right.regiao);
-      return (leftIndex < 0 ? PRIMARY_REGIONS.length : leftIndex) - (rightIndex < 0 ? PRIMARY_REGIONS.length : rightIndex)
-        || left.regiao.localeCompare(right.regiao, 'pt-BR');
-    });
+    .sort((left, right) => compareRegions(left.regiao, right.regiao));
 }
 
 export async function buildMarketingPresentation(
@@ -209,62 +258,126 @@ export async function buildMarketingPresentation(
   const trafficPreviousStart = monthStart;
   const trafficPreviousEnd = lastMondayOnOrBefore(monthEnd);
   const costsQueryStart = comparisonStart < monthStart ? comparisonStart : monthStart;
-  const costRows = await loadImportedCosts(costsQueryStart, monthEnd, organizationId, client);
-  const monthCostRows = costRows.filter((row: any) => {
-    const date = String(row.data || '').slice(0, 10);
-    return date >= monthStart && date <= monthEnd;
-  });
-  const cities = new Set([
-    ...PRIMARY_REGIONS,
-    ...leads.filter((lead) => inRange(lead.createdDate, comparisonStart, weekEnd)
+
+  const regionCache = new Map<string, string>();
+  const resolveRegion = (raw: string) => {
+    let resolved = regionCache.get(raw);
+    if (!resolved) {
+      resolved = normalizeRegion(raw);
+      regionCache.set(raw, resolved);
+    }
+    return resolved;
+  };
+
+  const preparedLeads: PreparedPresentationLead[] = leads.map((lead) => ({
+    ...lead,
+    normalizedRegion: resolveRegion(lead.region),
+    isOpen: isOpenStage(lead.stage),
+    isReturned: isReturnedStage(lead.stage),
+  }));
+
+  const rawCostRows = await loadImportedCosts(costsQueryStart, monthEnd, organizationId, client);
+  const preparedCostRows: PreparedCostRow[] = rawCostRows.map((row: any) => ({
+    date: String(row.data || '').slice(0, 10),
+    region: resolveRegion(String(row.cidade || '')),
+    value: Number(row.valor) || 0,
+    conversations: Number(row.conversas) || 0,
+  }));
+  const monthCostRows = preparedCostRows.filter((row) => row.date >= monthStart && row.date <= monthEnd);
+
+  const cities = new Set<string>(PRIMARY_REGIONS);
+  for (const lead of preparedLeads) {
+    if (
+      inRange(lead.createdDate, comparisonStart, weekEnd)
       || inRange(lead.sentDate, comparisonStart, weekEnd)
       || inRange(lead.releasedDate, comparisonStart, weekEnd)
-      || inRange(lead.ranDate, comparisonStart, weekEnd))
-      .map((lead) => normalizeRegion(lead.region)),
-    ...costRows.map((row: any) => normalizeRegion(String(row.cidade || ''))),
-  ]);
-  const orderedCities = [...cities].sort((left, right) => {
-    const leftIndex = PRIMARY_REGIONS.indexOf(left);
-    const rightIndex = PRIMARY_REGIONS.indexOf(right);
-    return (leftIndex < 0 ? PRIMARY_REGIONS.length : leftIndex) - (rightIndex < 0 ? PRIMARY_REGIONS.length : rightIndex)
-      || left.localeCompare(right, 'pt-BR');
-  });
+      || inRange(lead.ranDate, comparisonStart, weekEnd)
+    ) {
+      cities.add(lead.normalizedRegion);
+    }
+  }
+  for (const row of preparedCostRows) {
+    cities.add(row.region);
+  }
+  const orderedCities = [...cities].sort(compareRegions);
 
   const weeks = Array.from({ length: FIRST_WEEK_OFFSET + 1 }, (_, index) => {
     const start = shiftDate(weekStart, (index - FIRST_WEEK_OFFSET) * 7);
-    const calendarWeekEnd = shiftDate(start, 6);
-    const end = calendarWeekEnd < monthEnd ? calendarWeekEnd : monthEnd;
-    const weekLeads = leads.filter((lead) => inRange(lead.createdDate, start, end)
-      || inRange(lead.sentDate, start, end)
-      || inRange(lead.releasedDate, start, end)
-      || inRange(lead.ranDate, start, end));
-    const metrics = sumLeadMetrics(weekLeads, start, end);
-    const conversations = costRows.reduce((sum: number, row: any) => {
-      const date = String(row.data || '').slice(0, 10);
-      return date >= start && date <= end ? sum + (Number(row.conversas) || 0) : sum;
-    }, 0);
+    const calendarEnd = shiftDate(start, 6);
+    const end = calendarEnd < monthEnd ? calendarEnd : monthEnd;
+    const totalMetrics = createEmptyMetrics();
+    const metricsByCity = new Map<string, LeadMetricsBucket>();
+    const conversationsByCity = new Map<string, number>();
+    let totalConversations = 0;
+
+    for (const lead of preparedLeads) {
+      const inWeek = inRange(lead.createdDate, start, end)
+        || inRange(lead.sentDate, start, end)
+        || inRange(lead.releasedDate, start, end)
+        || inRange(lead.ranDate, start, end);
+      if (!inWeek) continue;
+
+      accumulateLeadIntoBucket(totalMetrics, lead, start, end);
+      let cityBucket = metricsByCity.get(lead.normalizedRegion);
+      if (!cityBucket) {
+        cityBucket = createEmptyMetrics();
+        metricsByCity.set(lead.normalizedRegion, cityBucket);
+      }
+      accumulateLeadIntoBucket(cityBucket, lead, start, end);
+    }
+
+    for (const row of preparedCostRows) {
+      if (row.date >= start && row.date <= end) {
+        totalConversations += row.conversations;
+        conversationsByCity.set(row.region, (conversationsByCity.get(row.region) ?? 0) + row.conversations);
+      }
+    }
+
     return {
-      start,
-      end,
-      rows: weekLeads,
+      metricsByCity,
+      conversationsByCity,
       data: {
         semana: `Semana ${String(getWeekNumber(start)).padStart(2, '0')}`,
-        criado: metrics.created,
-        enviado: metrics.sent,
-        liberado: metrics.released,
-        rodando: metrics.ran,
-        conversas: conversations,
+        criado: totalMetrics.created,
+        enviado: totalMetrics.sent,
+        liberado: totalMetrics.released,
+        rodando: totalMetrics.ran,
+        conversas: totalConversations,
       },
     };
   });
 
-  const monthLeads = leads.filter((lead) => inRange(lead.createdDate, monthStart, monthEnd)
-    || inRange(lead.sentDate, monthStart, monthEnd)
-    || inRange(lead.releasedDate, monthStart, monthEnd)
-    || inRange(lead.ranDate, monthStart, monthEnd));
+  const monthMetricsByCity = new Map<string, LeadMetricsBucket>();
+  const dailyEvolutionMap = new Map<string, { liberado: number; enviado: number }>();
+
+  for (const lead of preparedLeads) {
+    const inMonth = inRange(lead.createdDate, monthStart, monthEnd)
+      || inRange(lead.sentDate, monthStart, monthEnd)
+      || inRange(lead.releasedDate, monthStart, monthEnd)
+      || inRange(lead.ranDate, monthStart, monthEnd);
+    if (!inMonth) continue;
+
+    let cityBucket = monthMetricsByCity.get(lead.normalizedRegion);
+    if (!cityBucket) {
+      cityBucket = createEmptyMetrics();
+      monthMetricsByCity.set(lead.normalizedRegion, cityBucket);
+    }
+    accumulateLeadIntoBucket(cityBucket, lead, monthStart, monthEnd);
+
+    if (lead.releasedDate && lead.releasedDate >= monthStart && lead.releasedDate <= monthEnd) {
+      const entry = dailyEvolutionMap.get(lead.releasedDate) || { liberado: 0, enviado: 0 };
+      entry.liberado += 1;
+      dailyEvolutionMap.set(lead.releasedDate, entry);
+    }
+    if (lead.sentDate && lead.sentDate >= monthStart && lead.sentDate <= monthEnd) {
+      const entry = dailyEvolutionMap.get(lead.sentDate) || { liberado: 0, enviado: 0 };
+      entry.enviado += 1;
+      dailyEvolutionMap.set(lead.sentDate, entry);
+    }
+  }
+
   const citiesData: MarketingCityData[] = orderedCities.map((cidade) => {
-    const cityLeads = monthLeads.filter((lead) => normalizeRegion(lead.region) === cidade);
-    const metrics = sumLeadMetrics(cityLeads, monthStart, monthEnd);
+    const metrics = monthMetricsByCity.get(cidade) ?? createEmptyMetrics();
     return {
       cidade,
       criado: metrics.created,
@@ -278,10 +391,11 @@ export async function buildMarketingPresentation(
   }).filter((city) => city.criado || city.enviado || city.liberado || city.rodandoInicio || city.aberto || city.voltou);
 
   const evolutionData = datesBetween(monthStart, monthEnd).map((date) => {
+    const entry = dailyEvolutionMap.get(date);
     return {
       data: date,
-      liberado: monthLeads.filter((lead) => lead.releasedDate === date).length,
-      enviado: monthLeads.filter((lead) => lead.sentDate === date).length,
+      liberado: entry?.liberado ?? 0,
+      enviado: entry?.enviado ?? 0,
     };
   });
 
@@ -289,31 +403,24 @@ export async function buildMarketingPresentation(
   const weeklyDataByCity = orderedCities.map((cidade) => ({
     cidade,
     data: weeks.map((week) => {
-      const cityRows = week.rows.filter((lead) => normalizeRegion(lead.region) === cidade);
-      const metrics = sumLeadMetrics(cityRows, week.start, week.end);
-      const conversations = costRows.reduce((sum: number, row: any) => {
-        const date = String(row.data || '').slice(0, 10);
-        return date >= week.start && date <= week.end && normalizeRegion(String(row.cidade || '')) === cidade
-          ? sum + (Number(row.conversas) || 0)
-          : sum;
-      }, 0);
+      const metrics = week.metricsByCity.get(cidade) ?? createEmptyMetrics();
       return {
         semana: week.data.semana,
         criado: metrics.created,
         enviado: metrics.sent,
         liberado: metrics.released,
         rodando: metrics.ran,
-        conversas: conversations,
+        conversas: week.conversationsByCity.get(cidade) ?? 0,
       };
     }),
   })).filter((city) => city.data.some((week) => week.criado || week.enviado || week.liberado || week.rodando || week.conversas));
 
   const costsComparison: MarketingCostsComparison = {
-    atual: buildCostsForRange(leads, monthCostRows.filter((row: any) => String(row.data || '').slice(0, 10) <= trafficCurrentEnd), trafficCurrentStart, trafficCurrentEnd),
-    passada: buildCostsForRange(leads, monthCostRows.filter((row: any) => String(row.data || '').slice(0, 10) <= trafficPreviousEnd), trafficPreviousStart, trafficPreviousEnd),
+    atual: buildCostsForRange(preparedLeads, monthCostRows, trafficCurrentStart, trafficCurrentEnd),
+    passada: buildCostsForRange(preparedLeads, monthCostRows, trafficPreviousStart, trafficPreviousEnd),
   };
 
-  const scannedDateLabel = new Intl.DateTimeFormat('pt-BR', { timeZone: 'America/Sao_Paulo', day: '2-digit', month: '2-digit', year: 'numeric' }).format(new Date(`${scannedAt}T12:00:00.000Z`));
+  const scannedDateLabel = SCANNED_DATE_FORMATTER.format(new Date(`${scannedAt}T12:00:00.000Z`));
   return {
     reportDate,
     monthStart,

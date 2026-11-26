@@ -107,11 +107,10 @@ export function useDedicadoOrigensData({
   const [dataAccessScopeKey, setDataAccessScopeKey] = React.useState<string | null>(null);
   const [retryNonce, setRetryNonce] = React.useState(0);
 
-  const origemPayloadKey = React.useMemo(() => createRequestKey(origemPayload), [origemPayload]);
   const requestWithMode = React.useMemo(() => ({
-    ...(JSON.parse(origemPayloadKey) as Record<string, unknown>),
+    ...origemPayload,
     p_include_dia_origem: shouldLoadDiaOrigem,
-  }), [origemPayloadKey, shouldLoadDiaOrigem]);
+  }), [origemPayload, shouldLoadDiaOrigem]);
   const currentRequestKey = React.useMemo(() => createRequestKey({ requestWithMode, accessScopeKey }), [accessScopeKey, requestWithMode]);
   const isEnabled = shouldLoadOrigemSummary || shouldLoadDiaOrigem;
 

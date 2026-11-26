@@ -120,7 +120,7 @@ export const ValoresTable = React.memo(function ValoresTable({
                             ) : null}
                             <ValoresSortableHeader field="total_taxas" label="Total" sortField={sortField} sortDirection={sortDirection} onSort={onSort} align="right" />
                             <ValoresSortableHeader field="numero_corridas_aceitas" label="Corridas" sortField={sortField} sortDirection={sortDirection} onSort={onSort} align="right" />
-                            <ValoresSortableHeader field="taxa_media" label="Média" sortField={sortField} sortDirection={sortDirection} onSort={onSort} align="right" className="pr-6" />
+                            <ValoresSortableHeader field="taxa_media" label="Média" sortField={sortField} sortDirection={sortDirection} onSort={onSort} align="right" />
                         </TableRow>
                     </TableHeader>
                     <TableBody>

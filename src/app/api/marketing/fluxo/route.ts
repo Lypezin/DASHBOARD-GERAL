@@ -70,11 +70,17 @@ function getCachedFluxo(cacheKey: string, options: { allowStale?: boolean } = {}
     const now = Date.now();
     const staleExpiresAt = cached.expiresAt + (FLUXO_STALE_CACHE_TTL_MS - FLUXO_CACHE_TTL_MS);
 
-    if (cached.expiresAt <= now && (!options.allowStale || staleExpiresAt <= now)) {
+    if (staleExpiresAt <= now) {
         fluxoCache.delete(cacheKey);
         return null;
     }
 
+    if (cached.expiresAt <= now && !options.allowStale) {
+        return null;
+    }
+
+    fluxoCache.delete(cacheKey);
+    fluxoCache.set(cacheKey, cached);
     return cached.data;
 }
 
@@ -98,6 +104,7 @@ function refreshFluxoCache(cacheKey: string, fetcher: () => Promise<unknown[]>) 
 }
 
 function setCachedFluxo(cacheKey: string, data: unknown[]) {
+    fluxoCache.delete(cacheKey);
     fluxoCache.set(cacheKey, {
         data,
         expiresAt: Date.now() + FLUXO_CACHE_TTL_MS,

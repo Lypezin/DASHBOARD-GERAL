@@ -55,7 +55,7 @@ export const ModernAdminUsersTable: React.FC<AdminUsersTableProps> = ({
 
             <div className="rounded-md border bg-card">
                 <div className="relative w-full overflow-auto">
-                    <table className="w-full caption-bottom text-sm">
+                    <table className="w-full min-w-[680px] caption-bottom text-sm">
                         <thead className="[&_tr]:border-b">
                             <tr className="border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted">
                                 <th className="h-12 px-4 text-left align-middle font-medium text-muted-foreground">Usuário</th>
@@ -66,18 +66,26 @@ export const ModernAdminUsersTable: React.FC<AdminUsersTableProps> = ({
                             </tr>
                         </thead>
                         <tbody className="[&_tr:last-child]:border-0">
-                            {paginatedUsers.map((user) => (
-                                <AdminUserRow
-                                    key={user.id}
-                                    user={user}
-                                    currentUser={currentUser}
-                                    organizations={organizations}
-                                    onApprove={onApprove}
-                                    onEditPracas={onEditPracas}
-                                    onRevokeAccess={onRevokeAccess}
-                                    onToggleAdmin={onToggleAdmin}
-                                />
-                            ))}
+                            {paginatedUsers.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} className="px-6 py-12 text-center text-sm text-muted-foreground">
+                                        {searchTerm ? `Nenhum usuário encontrado para "${searchTerm}".` : 'Nenhum usuário encontrado.'}
+                                    </td>
+                                </tr>
+                            ) : (
+                                paginatedUsers.map((user) => (
+                                    <AdminUserRow
+                                        key={user.id}
+                                        user={user}
+                                        currentUser={currentUser}
+                                        organizations={organizations}
+                                        onApprove={onApprove}
+                                        onEditPracas={onEditPracas}
+                                        onRevokeAccess={onRevokeAccess}
+                                        onToggleAdmin={onToggleAdmin}
+                                    />
+                                ))
+                            )}
                         </tbody>
                     </table>
                 </div>

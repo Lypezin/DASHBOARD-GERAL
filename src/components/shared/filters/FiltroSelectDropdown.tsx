@@ -23,6 +23,7 @@ export const FiltroSelectDropdown: React.FC<FiltroSelectDropdownProps> = ({
   const position = useFloatingDropdownPosition({
     isOpen,
     anchorRef,
+    dropdownRef,
     itemCount: options.length,
     minWidth: 320,
     maxEstimatedHeight: 380,

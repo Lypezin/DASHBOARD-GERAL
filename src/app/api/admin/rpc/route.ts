@@ -28,6 +28,7 @@ export const runtime = 'nodejs';
 
 const PRACAS_CACHE_TTL_MS = 5 * 60 * 1000;
 let pracasCache: { data: unknown; expiresAt: number } | null = null;
+let inFlightPracasRequest: Promise<{ data: unknown; error: { message?: string } | null }> | null = null;
 
 const ADMIN_RPC_ALLOWLIST = new Set([
     'approve_user',
@@ -75,15 +76,27 @@ async function executeAdminOperation(
                 return { data: pracasCache.data, error: null };
             }
 
+            if (inFlightPracasRequest) {
+                return inFlightPracasRequest;
+            }
+
             {
-                const result = await admin.rpc('list_pracas_disponiveis');
-                if (!result.error) {
-                    pracasCache = {
-                        data: result.data,
-                        expiresAt: Date.now() + PRACAS_CACHE_TTL_MS,
-                    };
-                }
-                return result;
+                const request = (async () => {
+                    const result = await admin.rpc('list_pracas_disponiveis');
+                    if (!result.error) {
+                        pracasCache = {
+                            data: result.data,
+                            expiresAt: Date.now() + PRACAS_CACHE_TTL_MS,
+                        };
+                    }
+                    return result;
+                })().finally(() => {
+                    if (inFlightPracasRequest === request) {
+                        inFlightPracasRequest = null;
+                    }
+                });
+                inFlightPracasRequest = request;
+                return request;
             }
         case 'create_organization':
             return createOrganization(admin, params);

@@ -20,7 +20,7 @@ export async function GET() {
                 organizations: [],
             },
             error: null,
-        });
+        }, { headers: { 'Cache-Control': 'private, max-age=30, stale-while-revalidate=60' } });
     }
 
     const supabase = createServiceRoleClient();
@@ -40,5 +40,5 @@ export async function GET() {
             organizations: Array.isArray(organizations) ? organizations : [],
         },
         error: null,
-    });
+    }, { headers: { 'Cache-Control': 'private, max-age=30, stale-while-revalidate=60' } });
 }

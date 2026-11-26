@@ -63,7 +63,7 @@ export const DedicadoHeader = React.memo(function DedicadoHeader({
             {isExporting ? 'Exportando...' : 'Baixar Excel'}
           </button>
 
-          <div className="grid w-full grid-cols-2 gap-1.5 rounded-2xl border border-slate-200 bg-white/85 p-1.5 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 sm:grid-cols-3 xl:grid-cols-5 xl:self-stretch">
+          <div className="flex w-full flex-wrap items-center gap-1.5 rounded-2xl border border-slate-200 bg-white/85 p-1.5 shadow-sm dark:border-slate-800 dark:bg-slate-900/80 xl:w-auto">
             {subTabs.map((tab) => {
               const Icon = tab.icon;
               const active = activeSubTab === tab.id;
@@ -75,7 +75,7 @@ export const DedicadoHeader = React.memo(function DedicadoHeader({
                   type="button"
                   aria-pressed={active}
                   className={cn(
-                    'relative inline-flex min-w-0 items-center justify-center gap-1.5 rounded-xl px-2.5 py-2 text-[11px] font-bold transition-colors duration-150 sm:gap-2 sm:px-3.5 sm:text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40',
+                    'relative inline-flex flex-1 min-w-[100px] items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-[11px] font-bold transition-colors duration-150 sm:flex-initial sm:gap-2 sm:px-3.5 sm:text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/40',
                     active
                       ? 'text-white'
                       : 'text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white'
@@ -83,7 +83,7 @@ export const DedicadoHeader = React.memo(function DedicadoHeader({
                 >
                   {active && (
                     <motion.div
-                      layoutId="activeSubTab"
+                      layoutId="dedicado-active-subtab"
                       className="absolute inset-0 rounded-xl bg-blue-600 shadow-sm shadow-blue-600/20"
                       transition={prefersReducedMotion ? { duration: 0.01 } : { type: 'spring', stiffness: 420, damping: 32 }}
                     />

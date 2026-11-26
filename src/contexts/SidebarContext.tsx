@@ -1,20 +1,24 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 import { readStorage, writeStorage } from '@/utils/storage/jsonStorage';
 
 const SIDEBAR_COLLAPSED_KEY = 'sidebar_collapsed';
 
-interface SidebarContextType {
+interface SidebarStateType {
   collapsed: boolean;
+  mobileOpen: boolean;
+}
+
+interface SidebarActionsType {
   setCollapsed: (collapsed: boolean) => void;
   toggleSidebar: () => void;
-  mobileOpen: boolean;
   setMobileOpen: (open: boolean) => void;
   toggleMobileSidebar: () => void;
 }
 
-const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
+const SidebarStateContext = createContext<SidebarStateType | undefined>(undefined);
+const SidebarActionsContext = createContext<SidebarActionsType | undefined>(undefined);
 
 export function SidebarProvider({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsedState] = useState<boolean>(false);
@@ -64,26 +68,40 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [toggleSidebar]);
 
+  const actionsValue = useMemo<SidebarActionsType>(() => ({
+    setCollapsed,
+    toggleSidebar,
+    setMobileOpen,
+    toggleMobileSidebar,
+  }), [setCollapsed, toggleSidebar, toggleMobileSidebar]);
+
+  const stateValue = useMemo<SidebarStateType>(() => ({
+    collapsed,
+    mobileOpen,
+  }), [collapsed, mobileOpen]);
+
   return (
-    <SidebarContext.Provider
-      value={{
-        collapsed,
-        setCollapsed,
-        toggleSidebar,
-        mobileOpen,
-        setMobileOpen,
-        toggleMobileSidebar,
-      }}
-    >
-      {children}
-    </SidebarContext.Provider>
+    <SidebarActionsContext.Provider value={actionsValue}>
+      <SidebarStateContext.Provider value={stateValue}>
+        {children}
+      </SidebarStateContext.Provider>
+    </SidebarActionsContext.Provider>
   );
 }
 
-export function useSidebar() {
-  const context = useContext(SidebarContext);
+export function useSidebarActions() {
+  const context = useContext(SidebarActionsContext);
   if (context === undefined) {
-    throw new Error('useSidebar must be used within a SidebarProvider');
+    throw new Error('useSidebarActions must be used within a SidebarProvider');
   }
   return context;
+}
+
+export function useSidebar() {
+  const state = useContext(SidebarStateContext);
+  const actions = useContext(SidebarActionsContext);
+  if (state === undefined || actions === undefined) {
+    throw new Error('useSidebar must be used within a SidebarProvider');
+  }
+  return useMemo(() => ({ ...state, ...actions }), [state, actions]);
 }

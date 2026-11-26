@@ -55,7 +55,7 @@ export const MetricDetailDialog: React.FC<MetricDetailDialogProps> = ({
     marketingNovosNames = [],
     operacionalNovosNames = []
 }) => {
-    const { colorClass, hoverBgClass, Icon, titleText, descriptionText, isEntrada } = getMetricDialogConfig(type);
+    const { colorClass, hoverTextClass, hoverBgClass, Icon, titleText, descriptionText, isEntrada } = getMetricDialogConfig(type);
     const [open, setOpen] = useState(false);
     const [loadingDetails, setLoadingDetails] = useState(false);
     const [detailsError, setDetailsError] = useState<string | null>(null);
@@ -144,7 +144,7 @@ export const MetricDetailDialog: React.FC<MetricDetailDialogProps> = ({
                 <Button
                     variant="ghost"
                     size="sm"
-                    className={`h-7 w-7 p-0 ${colorClass} hover:${colorClass.replace('text-', '')} ${hoverBgClass}`}
+                    className={`h-7 w-7 p-0 ${colorClass} ${hoverTextClass} ${hoverBgClass}`}
                 >
                     <Eye className="h-3.5 w-3.5" />
                 </Button>

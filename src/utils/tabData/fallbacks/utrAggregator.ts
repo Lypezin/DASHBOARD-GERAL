@@ -1,5 +1,11 @@
 import { UtrData, UtrGeral, UtrPorPraca } from '@/types';
 
+function parseTempoSegundos(tempoStr: unknown): number {
+    if (typeof tempoStr !== 'string' || !tempoStr) return 0;
+    const [hRaw, mRaw, sRaw] = tempoStr.split(':');
+    return (Number(hRaw) || 0) * 3600 + (Number(mRaw) || 0) * 60 + (Number(sRaw) || 0);
+}
+
 export const processUtrData = (data: any[]): UtrData => {
     if (!data || data.length === 0) {
         return {
@@ -13,12 +19,22 @@ export const processUtrData = (data: any[]): UtrData => {
 
     let totalTempoSegundos = 0;
     let totalCorridas = 0;
+    const pracaMap = new Map<string, { tempo: number; corridas: number }>();
 
     for (const row of data) {
-        const tempoStr = row.tempo_disponivel_absoluto || '0:00:00';
-        const [hours, minutes, seconds] = tempoStr.split(':').map(Number);
-        totalTempoSegundos += (hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0);
-        totalCorridas += Number(row.numero_de_corridas_aceitas) || 0;
+        const tempo = parseTempoSegundos(row.tempo_disponivel_absoluto);
+        const corridas = Number(row.numero_de_corridas_aceitas) || 0;
+        totalTempoSegundos += tempo;
+        totalCorridas += corridas;
+
+        const praca = row.praca || 'Não especificada';
+        const existing = pracaMap.get(praca);
+        if (existing) {
+            existing.tempo += tempo;
+            existing.corridas += corridas;
+        } else {
+            pracaMap.set(praca, { tempo, corridas });
+        }
     }
 
     const tempoHoras = totalTempoSegundos / 3600;
@@ -27,23 +43,6 @@ export const processUtrData = (data: any[]): UtrData => {
         corridas: totalCorridas,
         utr: tempoHoras > 0 ? totalCorridas / tempoHoras : 0
     };
-
-    const pracaMap = new Map<string, { tempo: number; corridas: number }>();
-    for (const row of data) {
-        const praca = row.praca || 'Não especificada';
-        const tempoStr = row.tempo_disponivel_absoluto || '0:00:00';
-        const [hours, minutes, seconds] = tempoStr.split(':').map(Number);
-        const tempo = (hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0);
-        const corridas = Number(row.numero_de_corridas_aceitas) || 0;
-
-        if (pracaMap.has(praca)) {
-            const existing = pracaMap.get(praca)!;
-            existing.tempo += tempo;
-            existing.corridas += corridas;
-        } else {
-            pracaMap.set(praca, { tempo, corridas });
-        }
-    }
 
     const utrPorPraca: UtrPorPraca[] = Array.from(pracaMap.entries()).map(([praca, data]) => ({
         praca,

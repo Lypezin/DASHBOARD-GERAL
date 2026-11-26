@@ -3,6 +3,7 @@ import { Megaphone, CheckCircle2, XCircle, Flag, Clock } from 'lucide-react';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
 import { Totals } from '@/types';
 import { formatarHorasParaHMS } from '@/utils/formatters';
+import { AnimatedNumberText } from '@/components/ui/animated-counter';
 
 interface AnaliseMetricCardsProps {
     totals: Totals;
@@ -33,20 +34,22 @@ export const AnaliseMetricCards: React.FC<AnaliseMetricCardsProps> = ({ totals, 
                 initial={reduceMotion ? false : 'hidden'}
                 animate={reduceMotion ? undefined : 'visible'}
                 variants={reduceMotion ? undefined : containerVariants}
-                className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-[#d8e4eb] bg-[#d8e4eb] shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800 dark:bg-slate-800 sm:grid-cols-2 xl:grid-cols-5"
+                className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-5"
             >
                 {metrics.map(({ title, value, meta, icon: Icon, tone, progress }) => (
                     <motion.div
                         key={title}
                         variants={reduceMotion ? undefined : metricVariants}
-                        className="min-w-0 border-t-[3px] border-t-[#9ac8de] bg-white px-3.5 py-3 dark:border-t-sky-700 dark:bg-slate-900 xl:px-4"
+                        className="min-w-0 rounded-xl border border-[#d8e4eb] border-t-[3px] border-t-[#9ac8de] bg-white px-3.5 py-3 shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800 dark:border-t-sky-700 dark:bg-slate-900 xl:px-4"
                     >
                         <div className="flex min-w-0 items-center gap-2">
                             <Icon className={`h-3.5 w-3.5 shrink-0 ${tone === 'emerald' ? 'text-emerald-600 dark:text-emerald-300' : tone === 'rose' ? 'text-rose-600 dark:text-rose-300' : tone === 'sky' ? 'text-sky-700 dark:text-sky-300' : 'text-[#347ca3] dark:text-sky-200'}`} aria-hidden="true" />
                             <dt className="truncate text-[11px] font-medium text-slate-500 dark:text-slate-300">{title}</dt>
                         </div>
                         <dd className="mt-2 min-w-0 text-[#173f5a] dark:text-slate-50">
-                            <span className="block truncate text-[22px] font-semibold leading-7 tracking-tight tabular-nums" title={value}>{value}</span>
+                            <span className="block truncate text-[22px] font-semibold leading-7 tracking-tight tabular-nums" title={value}>
+                                <AnimatedNumberText value={value} />
+                            </span>
                             {progress ? (
                                 <div className="mt-2.5">
                                     <div className="h-1 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800" role="progressbar" aria-label={progress.label} aria-valuenow={Math.min(Math.max(progress.value, 0), 100)} aria-valuemin={0} aria-valuemax={100}>

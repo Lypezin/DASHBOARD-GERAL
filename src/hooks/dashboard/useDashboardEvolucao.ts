@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { CACHE, DELAYS } from '@/constants/config';
 import { useOrganization } from '@/contexts/OrganizationContext';
@@ -11,6 +11,7 @@ import { createAccessScopeKey } from '@/utils/request/createAccessScopeKey';
 import { createRequestKey } from '@/utils/request/createRequestKey';
 import { ENTREGADORES_REFRESH_COMPLETE_EVENT } from '@/utils/dashboard/dashboardDataRefreshEvents';
 import { fetchDashboardEvolucaoData } from './utils/fetchEvolucao';
+import { useTopLoaderSync } from '@/components/ui/TopLoader';
 
 interface UseDashboardEvolucaoOptions {
   filterPayload: FilterPayload;
@@ -30,22 +31,24 @@ const evolucaoCachePolicy = { ttlMs: CACHE.EVOLUCAO_TTL, maxEntries: 12 } as con
 export function useDashboardEvolucao({ filterPayload, anoEvolucao }: UseDashboardEvolucaoOptions) {
   const { organizationId, isLoading: isOrgLoading } = useOrganization();
   const { currentUser } = useAppBootstrap();
-  const stableFilterPayloadRef = useRef<{ key: string; payload: FilterPayload } | null>(null);
-  const filterPayloadKey = createRequestKey(filterPayload);
-  if (!stableFilterPayloadRef.current || stableFilterPayloadRef.current.key !== filterPayloadKey) {
-    stableFilterPayloadRef.current = { key: filterPayloadKey, payload: filterPayload };
-  }
-  const stableFilterPayload = stableFilterPayloadRef.current.payload;
+  const filterPayloadKey = useMemo(() => createRequestKey(filterPayload), [filterPayload]);
+  const stableFilterPayloadRef = useRef<{ key: string; payload: FilterPayload }>({ key: filterPayloadKey, payload: filterPayload });
+  const stableFilterPayload = useMemo(() => {
+    if (stableFilterPayloadRef.current.key !== filterPayloadKey) {
+      stableFilterPayloadRef.current = { key: filterPayloadKey, payload: filterPayload };
+    }
+    return stableFilterPayloadRef.current.payload;
+  }, [filterPayload, filterPayloadKey]);
   const currentOrganizationId = typeof stableFilterPayload.p_organization_id === 'string'
     ? stableFilterPayload.p_organization_id.trim() || organizationId || null
     : organizationId || null;
   const accessScopeKey = createAccessScopeKey(currentUser, currentOrganizationId);
-  const currentSignature = createRequestKey({
+  const currentSignature = useMemo(() => createRequestKey({
     filterPayload: stableFilterPayload,
     organizationId: currentOrganizationId,
     accessScopeKey,
     anoEvolucao,
-  });
+  }), [accessScopeKey, anoEvolucao, currentOrganizationId, stableFilterPayload]);
 
   const initialCachedRef = useRef<EvolucaoRequestData | null | undefined>();
   if (initialCachedRef.current === undefined) {
@@ -168,13 +171,15 @@ export function useDashboardEvolucao({ filterPayload, anoEvolucao }: UseDashboar
   const canShowCurrentRequestData = dataSignature === currentSignature
     && dataOrganizationId === currentOrganizationId
     && dataAccessScopeKey === accessScopeKey;
+  const isEvolucaoLoading = loading || isWaitingForCurrentRequest;
+  useTopLoaderSync(isEvolucaoLoading);
 
   return {
     evolucaoMensal: canShowCurrentRequestData ? evolucaoMensal : [],
     evolucaoSemanal: canShowCurrentRequestData ? evolucaoSemanal : [],
     utrSemanal: canShowCurrentRequestData ? utrSemanal : [],
     hasCurrentData: canShowCurrentRequestData,
-    loading: loading || isWaitingForCurrentRequest,
+    loading: isEvolucaoLoading,
     error: resolvedSignature === currentSignature ? error : null,
     refetch
   };

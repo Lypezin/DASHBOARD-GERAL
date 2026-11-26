@@ -45,7 +45,7 @@ export const AdminUserRow: React.FC<AdminUserRowProps> = ({
             </td>
             <td className="p-4 align-middle">
                 {user.is_approved ? (
-                    <Badge variant="default" className="bg-emerald-500 hover:bg-emerald-600">
+                    <Badge variant="default" className="bg-emerald-500 text-white hover:bg-emerald-600 dark:bg-emerald-600 dark:text-white dark:hover:bg-emerald-500">
                         Aprovado
                     </Badge>
                 ) : (

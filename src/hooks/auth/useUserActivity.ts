@@ -131,15 +131,40 @@ export function useUserActivity(
       }, DELAYS.AUTH_SHORT_RETRY);
     }
 
-    const heartbeat = setInterval(() => {
-      if (currentUserRef.current && isPageVisibleRef.current && sessionId) registrarAtividade('heartbeat', {}, activeTabRef.current, filtersRef.current);
-    }, DELAYS.ACTIVITY_HEARTBEAT);
+    let heartbeat: ReturnType<typeof setInterval> | null = null;
+    const startHeartbeat = () => {
+      if (heartbeat === null) {
+        heartbeat = setInterval(() => {
+          if (currentUserRef.current && isPageVisibleRef.current && sessionId) {
+            registrarAtividade('heartbeat', {}, activeTabRef.current, filtersRef.current);
+          }
+        }, DELAYS.ACTIVITY_HEARTBEAT);
+      }
+    };
+
+    if (typeof document === 'undefined' || !document.hidden) {
+      startHeartbeat();
+    }
+
+    const handleHeartbeatVisibility = () => {
+      if (document.hidden) {
+        if (heartbeat !== null) {
+          clearInterval(heartbeat);
+          heartbeat = null;
+        }
+      } else {
+        startHeartbeat();
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleHeartbeatVisibility);
 
     return () => {
       if (loginTimeout) clearTimeout(loginTimeout);
-      clearInterval(heartbeat);
+      if (heartbeat !== null) clearInterval(heartbeat);
+      document.removeEventListener('visibilitychange', handleHeartbeatVisibility);
     };
-  }, [currentUser, sessionId, registrarAtividade]);
+  }, [currentUser?.id, sessionId, registrarAtividade]);
 
   return { sessionId, isPageVisible: isPageVisibleRef.current, registrarAtividade };
 }

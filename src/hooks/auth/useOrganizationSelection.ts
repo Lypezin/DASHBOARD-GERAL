@@ -21,6 +21,8 @@ export function useOrganizationSelection(isAuthorized: boolean, user: { id: stri
             return;
         }
 
+        let cancelled = false;
+
         const fetchOrgs = async () => {
             setIsLoadingOrgs(true);
             try {
@@ -29,6 +31,8 @@ export function useOrganizationSelection(isAuthorized: boolean, user: { id: stri
                     organizationId: string;
                     organizations: Organization[];
                 }>('/api/app/organization-selection');
+
+                if (cancelled) return;
 
                 if (error || !data) {
                     safeLog.error('Erro ao carregar organizacoes:', error || 'Resposta vazia');
@@ -60,13 +64,21 @@ export function useOrganizationSelection(isAuthorized: boolean, user: { id: stri
                     return '';
                 });
             } catch (error) {
-                safeLog.error('Erro ao carregar organizacoes:', error);
+                if (!cancelled) {
+                    safeLog.error('Erro ao carregar organizacoes:', error);
+                }
             } finally {
-                setIsLoadingOrgs(false);
+                if (!cancelled) {
+                    setIsLoadingOrgs(false);
+                }
             }
         };
 
         void fetchOrgs();
+
+        return () => {
+            cancelled = true;
+        };
     }, [isAuthorized, user?.id]);
 
     const handleSelectedOrgIdChange = useCallback((value: string) => {

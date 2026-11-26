@@ -29,7 +29,7 @@ export const UploadMVProgress: React.FC<UploadMVProgressProps> = ({
                     {isDone ? (
                         <CheckCircle2 className="h-3 w-3" />
                     ) : (
-                        <RefreshCw className="h-3 w-3 animate-spin" />
+                        <RefreshCw className="h-3 w-3 motion-safe:animate-spin" />
                     )}
                     {isDone ? 'Dados sincronizados' : 'Sincronizando MVs...'}
                 </span>
@@ -40,7 +40,7 @@ export const UploadMVProgress: React.FC<UploadMVProgressProps> = ({
             </div>
             <div className={`h-1.5 w-full overflow-hidden rounded-full ${isDone ? 'bg-emerald-100 dark:bg-emerald-950/40' : 'bg-amber-100 dark:bg-amber-950/40'}`}>
                 <div
-                    className={`h-full transition-all duration-500 ease-out rounded-full ${isDone ? 'bg-emerald-500' : 'bg-amber-500'}`}
+                    className={`h-full transition-[width] duration-500 ease-out rounded-full ${isDone ? 'bg-emerald-500' : 'bg-amber-500'}`}
                     style={{ width: `${progress}%` }}
                 />
             </div>

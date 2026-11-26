@@ -6,6 +6,7 @@ import { useComparacaoMemo } from './useComparacaoMemo';
 import { useComparacaoFilters, ViewMode, SecoesVisiveis } from './useComparacaoFilters';
 import type { FilterPayload } from '@/types/filters';
 import type { ComparisonDimensionFilters } from '@/utils/comparacao/filters';
+import { useTopLoaderSync } from '@/components/ui/TopLoader';
 
 interface UseComparacaoViewControllerProps { semanas: string[]; pracas: FilterOption[]; subPracas: FilterOption[]; origens: FilterOption[]; currentUser: CurrentUser | null; anoSelecionado?: number; filterPayload: FilterPayload; }
 
@@ -45,6 +46,7 @@ export function useComparacaoViewController({ semanas, currentUser, anoSeleciona
     const { loading, dadosComparacao, utrComparacao, todasSemanas, error, utrError, loadingSemanas, errorSemanas, retrySemanas, retryData } = useComparacaoData({
         semanas, semanasSelecionadas: selectedWeeksForCurrentYear, pracaSelecionada, currentUser, anoSelecionado, dimensionFilters
     });
+    useTopLoaderSync(loading || loadingSemanas);
 
     useEffect(() => {
         if (previousYearRef.current === anoSelecionado) return;

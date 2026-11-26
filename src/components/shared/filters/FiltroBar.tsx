@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Filters, FilterOption, CurrentUser } from '@/types';
 import { safeLog } from '@/lib/errorHandler';
 import { useFiltroBar } from '@/hooks/ui/useFiltroBar';
@@ -65,7 +65,7 @@ const FiltroBar = React.memo(function FiltroBar({
 
   const { anosOptions, semanasOptions, loadingSemanas, errorSemanas, retrySemanas } = useFiltroBarOptions(anos, semanas, filters);
   const filterAppearance = ['dashboard', 'entregadores', 'valores', 'utr', 'analise'].includes(activeTab) ? 'quiet' : 'default';
-  const dimensionSupport = getDimensionFilterSupport(activeTab);
+  const dimensionSupport = useMemo(() => getDimensionFilterSupport(activeTab), [activeTab]);
   const hasSubPracaFilter = Boolean(filters.subPracas?.length || filters.subPraca);
   const hasOrigemFilter = Boolean(filters.origens?.length || filters.origem);
   const unsupportedActiveFilters = [

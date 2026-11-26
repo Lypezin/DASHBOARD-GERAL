@@ -31,7 +31,7 @@ export const ComparacaoSectionSelector: React.FC<ComparacaoSectionSelectorProps>
     const [open, setOpen] = useState(false);
     const triggerRef = useRef<HTMLButtonElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
-    const position = useFixedDropdownPosition(open, triggerRef);
+    const position = useFixedDropdownPosition(open, triggerRef, dropdownRef);
 
     useEffect(() => {
         if (!open) return;
@@ -119,11 +119,17 @@ export const ComparacaoSectionSelector: React.FC<ComparacaoSectionSelectorProps>
     );
 };
 
-function useFixedDropdownPosition(open: boolean, anchorRef: React.RefObject<HTMLElement>) {
+function useFixedDropdownPosition(
+    open: boolean,
+    anchorRef: React.RefObject<HTMLElement>,
+    dropdownRef: React.RefObject<HTMLElement>
+) {
     const [position, setPosition] = useState<{ left: number; top: number; width: number; maxHeight: number } | null>(null);
 
     useLayoutEffect(() => {
         if (!open || typeof window === 'undefined') return;
+
+        let rafId: number | null = null;
 
         const updatePosition = () => {
             const anchor = anchorRef.current;
@@ -139,18 +145,39 @@ function useFixedDropdownPosition(open: boolean, anchorRef: React.RefObject<HTML
             const maxHeight = Math.max(220, Math.min(430, openAbove ? spaceAbove : spaceBelow));
             const top = openAbove ? Math.max(margin, rect.top - maxHeight - 8) : rect.bottom + 8;
 
-            setPosition({ left, top, width, maxHeight });
+            setPosition((prev) =>
+                prev &&
+                prev.left === left &&
+                prev.top === top &&
+                prev.width === width &&
+                prev.maxHeight === maxHeight
+                    ? prev
+                    : { left, top, width, maxHeight }
+            );
+        };
+
+        const scheduleUpdate = (event?: Event) => {
+            const target = event?.target;
+            if (target instanceof Node && dropdownRef.current?.contains(target)) {
+                return;
+            }
+            if (rafId !== null) return;
+            rafId = window.requestAnimationFrame(() => {
+                rafId = null;
+                updatePosition();
+            });
         };
 
         updatePosition();
-        window.addEventListener('resize', updatePosition);
-        window.addEventListener('scroll', updatePosition, true);
+        window.addEventListener('resize', scheduleUpdate, { passive: true });
+        window.addEventListener('scroll', scheduleUpdate, { capture: true, passive: true });
 
         return () => {
-            window.removeEventListener('resize', updatePosition);
-            window.removeEventListener('scroll', updatePosition, true);
+            if (rafId !== null) window.cancelAnimationFrame(rafId);
+            window.removeEventListener('resize', scheduleUpdate);
+            window.removeEventListener('scroll', scheduleUpdate, { capture: true });
         };
-    }, [anchorRef, open]);
+    }, [anchorRef, dropdownRef, open]);
 
     return position;
 }

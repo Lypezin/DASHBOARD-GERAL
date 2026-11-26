@@ -27,7 +27,7 @@ export const ComparacaoOrigemTable: React.FC<ComparacaoOrigemTableProps> = ({
             <Table className="min-w-[720px]">
                 <TableHeader>
                     <TableRow className="border-none hover:bg-transparent">
-                        <TableHead className="sticky left-0 z-20 bg-white pb-4 pl-6 align-bottom text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:bg-slate-950 dark:text-slate-500 sm:pl-8">
+                        <TableHead className="sticky left-0 z-20 border-r border-slate-100 bg-white pb-4 pl-6 align-bottom text-xs font-bold uppercase tracking-[0.18em] text-slate-400 dark:border-slate-800/80 dark:bg-slate-950 dark:text-slate-500 sm:pl-8">
                             Origem
                         </TableHead>
                         {semanasSelecionadas.map((semana) => {

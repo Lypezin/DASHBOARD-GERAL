@@ -1,13 +1,18 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
+import dynamic from 'next/dynamic';
 import {
     TableBody,
     TableCell,
     TableRow,
 } from "@/components/ui/table";
-import { MarketingDriverDetailModal } from './MarketingDriverDetailModal';
 import { useOrganization } from '@/contexts/OrganizationContext';
 import { MarketingComparacaoRow } from './components/MarketingComparacaoRow';
 import { MarketingComparacaoTableHeader } from './components/MarketingComparacaoTableHeader';
+
+const MarketingDriverDetailModal = dynamic(
+    () => import('./MarketingDriverDetailModal').then((mod) => ({ default: mod.MarketingDriverDetailModal })),
+    { ssr: false }
+);
 
 interface ComparacaoRow {
     semana_iso: string;
@@ -33,6 +38,7 @@ interface MarketingComparacaoTableProps {
 export const MarketingComparacaoTable = React.memo(function MarketingComparacaoTable({ data, praca }: MarketingComparacaoTableProps) {
     const { organizationId } = useOrganization();
     const [selectedWeek, setSelectedWeek] = useState<string | null>(null);
+    const handleCloseModal = useCallback(() => setSelectedWeek(null), []);
 
     return (
         <div className="subtle-scrollbar overflow-auto overscroll-x-contain focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#38708e]" role="region" aria-label="Tabela do comparativo semanal" tabIndex={0}>
@@ -58,13 +64,15 @@ export const MarketingComparacaoTable = React.memo(function MarketingComparacaoT
                 </TableBody>
             </table>
 
-            <MarketingDriverDetailModal
-                isOpen={!!selectedWeek}
-                onClose={() => setSelectedWeek(null)}
-                semanaIso={selectedWeek || ''}
-                organizationId={organizationId}
-                praca={praca}
-            />
+            {selectedWeek ? (
+                <MarketingDriverDetailModal
+                    isOpen
+                    onClose={handleCloseModal}
+                    semanaIso={selectedWeek}
+                    organizationId={organizationId}
+                    praca={praca}
+                />
+            ) : null}
         </div>
     );
 });

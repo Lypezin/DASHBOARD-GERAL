@@ -30,13 +30,16 @@ export function getTimedCacheValue<T>(
   now = Date.now(),
 ): T | null {
   const maxAgeMs = policy.staleTtlMs ?? policy.ttlMs;
-  pruneTimedCacheEntries(cache, maxAgeMs, now);
-
   const entry = cache.get(key);
   if (!entry) return null;
 
   const ageMs = now - entry.timestamp;
-  if (ageMs > policy.ttlMs && (!allowStale || ageMs > maxAgeMs)) return null;
+  if (ageMs > maxAgeMs) {
+    cache.delete(key);
+    return null;
+  }
+
+  if (ageMs > policy.ttlMs && !allowStale) return null;
 
   cache.delete(key);
   cache.set(key, entry);

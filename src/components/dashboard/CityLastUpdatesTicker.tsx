@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { format, parseISO } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { useReducedMotion } from 'framer-motion';
 import { Pause, Play, RefreshCw } from 'lucide-react';
 
@@ -11,7 +9,17 @@ import { cn } from '@/lib/utils';
 
 const CITY_TICKER_MOTION_STORAGE_KEY = 'dashboard_city_ticker_motion_enabled';
 
-export function CityLastUpdatesTicker({ className = '' }: { className?: string }) {
+function formatShortIsoDayMonth(isoDate?: string | null): string {
+  if (!isoDate) return 'N/A';
+  const datePart = isoDate.slice(0, 10);
+  const parts = datePart.split('-');
+  if (parts.length === 3 && parts[1] && parts[2]) {
+    return `${parts[2]}/${parts[1]}`;
+  }
+  return 'N/A';
+}
+
+export const CityLastUpdatesTicker = React.memo(function CityLastUpdatesTicker({ className = '' }: { className?: string }) {
   const { data, loading } = useCityLastUpdates();
   const motionPreference = useReducedMotion();
   const prefersReducedMotion = motionPreference ?? false;
@@ -44,18 +52,21 @@ export function CityLastUpdatesTicker({ className = '' }: { className?: string }
       .slice(0, 10)
       .map((item) => ({
         ...item,
-        formattedDate: item.last_update_date
-          ? format(parseISO(item.last_update_date), "dd/MM", { locale: ptBR })
-          : 'N/A',
+        formattedDate: formatShortIsoDayMonth(item.last_update_date),
       }));
   }, [data]);
+
+  const marqueeItems = useMemo(
+    () => (shouldAnimateTicker ? [...visibleItems, ...visibleItems, ...visibleItems, ...visibleItems] : visibleItems),
+    [shouldAnimateTicker, visibleItems]
+  );
 
   if (visibleItems.length === 0) {
     if (!loading) {
       return (
         <div
           role="status"
-          className={cn('flex h-8 w-full min-w-0 select-none items-center gap-3 overflow-hidden pl-1', className)}
+          className={cn('flex h-8 w-full min-w-0 select-none items-center gap-3 overflow-hidden', className)}
         >
           <div className="flex items-center gap-1.5 shrink-0">
             <div className="flex h-6 w-6 items-center justify-center rounded-md bg-muted/70">
@@ -73,7 +84,7 @@ export function CityLastUpdatesTicker({ className = '' }: { className?: string }
       <div
         role="status"
         aria-label="Carregando atualização das cidades"
-        className={cn('flex h-8 w-full min-w-0 select-none items-center gap-3 overflow-hidden pl-1', className)}
+        className={cn('flex h-8 w-full min-w-0 select-none items-center gap-3 overflow-hidden', className)}
       >
         <div className="flex items-center gap-1.5 shrink-0">
           <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/10 dark:bg-emerald-500/15">
@@ -96,14 +107,8 @@ export function CityLastUpdatesTicker({ className = '' }: { className?: string }
     );
   }
 
-  // Duplicates make the marquee loop seamless. Reduced-motion users retain
-  // their previously saved choice while the ticker stays manually scrollable.
-  const marqueeItems = shouldAnimateTicker
-    ? [...visibleItems, ...visibleItems, ...visibleItems, ...visibleItems]
-    : visibleItems;
-
   return (
-    <div className={cn('flex h-8 w-full min-w-0 select-none items-center gap-3 overflow-hidden pl-1', className)}>
+    <div className={cn('flex h-8 w-full min-w-0 select-none items-center gap-3 overflow-hidden', className)}>
       {/* Indicador de Status / Refresh sutil */}
       <div className="flex items-center gap-1.5 shrink-0">
         <div className="flex h-6 w-6 items-center justify-center rounded-md bg-emerald-500/10 dark:bg-emerald-500/15">
@@ -168,7 +173,7 @@ export function CityLastUpdatesTicker({ className = '' }: { className?: string }
                 <span className="text-foreground/90 font-bold whitespace-nowrap font-outfit">
                   {item.city}
                 </span>
-                <span className="text-[10px] font-mono font-extrabold text-emerald-600 dark:text-emerald-400 opacity-100 whitespace-nowrap bg-emerald-500/10 dark:bg-emerald-500/15 px-1.5 py-0.5 rounded shadow-sm">
+                <span className="text-[10px] font-mono font-extrabold text-emerald-600 dark:text-emerald-400 opacity-100 whitespace-nowrap bg-emerald-500/10 dark:bg-emerald-500/15 px-1.5 py-0.5 rounded shadow-sm tabular-nums">
                   {item.formattedDate}
                 </span>
               </div>
@@ -176,8 +181,8 @@ export function CityLastUpdatesTicker({ className = '' }: { className?: string }
           ))}
         </div>
       </div>
-
-      
     </div>
   );
-}
+});
+
+CityLastUpdatesTicker.displayName = 'CityLastUpdatesTicker';

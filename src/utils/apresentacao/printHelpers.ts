@@ -10,14 +10,17 @@ export {
   siglaDia,
 } from './processors/common';
 
+const PERCENT_PT_BR = new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const INTEGER_PT_BR = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
+
 export function formatSigned(percentOrInt: number, suffix = '%') {
   if (!Number.isFinite(percentOrInt) || percentOrInt === 0) return suffix === '%' ? '±0,0%' : '0';
   const sign = percentOrInt > 0 ? '+' : '−';
   const value = Math.abs(percentOrInt);
   if (suffix === '%') {
-    return `${sign}${new Intl.NumberFormat('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(value)}%`;
+    return `${sign}${PERCENT_PT_BR.format(value)}%`;
   }
-  return `${sign}${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 }).format(Math.round(value))}`;
+  return `${sign}${INTEGER_PT_BR.format(Math.round(value))}`;
 }
 
 export function formatHMS(hoursString: string): string {

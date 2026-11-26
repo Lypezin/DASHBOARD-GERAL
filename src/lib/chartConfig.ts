@@ -23,8 +23,33 @@ export async function registerChartJS() {
   }
 
   chartRegistrationPromise = (async () => {
-    const { Chart, registerables } = await import('chart.js');
-    Chart.register(...registerables);
+    const {
+      Chart,
+      BarController,
+      LineController,
+      CategoryScale,
+      LinearScale,
+      BarElement,
+      LineElement,
+      PointElement,
+      Title,
+      Tooltip,
+      Legend,
+      Filler,
+    } = await import('chart.js');
+    Chart.register(
+      BarController,
+      LineController,
+      CategoryScale,
+      LinearScale,
+      BarElement,
+      LineElement,
+      PointElement,
+      Title,
+      Tooltip,
+      Legend,
+      Filler
+    );
 
     const fontFamily = typeof document !== 'undefined'
       ? window.getComputedStyle(document.body).fontFamily || "'Inter', sans-serif"

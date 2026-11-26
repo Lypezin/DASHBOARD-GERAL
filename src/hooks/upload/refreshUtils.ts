@@ -130,11 +130,51 @@ async function fetchPendingCount(incrementalOnly = false) {
     return snapshot.pendingCount + snapshot.incrementalPendingCount;
 }
 
+async function waitForNextPoll(ms: number, signal?: AbortSignal) {
+    if (signal?.aborted) return false;
+
+    if (typeof document !== 'undefined' && document.hidden) {
+        await new Promise<void>((resolve) => {
+            const onAbort = () => {
+                document.removeEventListener('visibilitychange', onVisibility);
+                resolve();
+            };
+            const onVisibility = () => {
+                if (!document.hidden) {
+                    document.removeEventListener('visibilitychange', onVisibility);
+                    signal?.removeEventListener('abort', onAbort);
+                    resolve();
+                }
+            };
+            document.addEventListener('visibilitychange', onVisibility);
+            signal?.addEventListener('abort', onAbort, { once: true });
+        });
+        if (signal?.aborted) return false;
+    }
+
+    await new Promise<void>((resolve) => {
+        const timer = setTimeout(() => {
+            signal?.removeEventListener('abort', onAbort);
+            resolve();
+        }, ms);
+        const onAbort = () => {
+            clearTimeout(timer);
+            resolve();
+        };
+        signal?.addEventListener('abort', onAbort, { once: true });
+    });
+
+    return !signal?.aborted;
+}
+
 async function monitorRefreshQueue(
     initialPendingCount: number,
     setRefreshState: SetRefreshState,
-    incrementalOnly = false
+    incrementalOnly = false,
+    signal?: AbortSignal
 ) {
+    if (signal?.aborted) return;
+
     if (initialPendingCount <= 0) {
         notifyEntregadoresRefreshComplete();
         setRefreshState({
@@ -150,6 +190,7 @@ async function monitorRefreshQueue(
     let remaining = initialPendingCount;
 
     while (remaining > 0 && Date.now() - startedAt < REFRESH_MAX_MONITORING_MS) {
+        if (signal?.aborted) return;
         const completed = Math.max(0, total - remaining);
         setRefreshState({
             isRefreshing: true,
@@ -157,10 +198,15 @@ async function monitorRefreshQueue(
             status: `Atualizando dados em segundo plano: ${completed}/${total} concluidos (${remaining} pendente(s)).`
         });
 
-        await sleep(REFRESH_POLL_INTERVAL_MS);
+        const shouldContinue = await waitForNextPoll(REFRESH_POLL_INTERVAL_MS, signal);
+        if (!shouldContinue) return;
+
         remaining = await fetchPendingCount(incrementalOnly);
+        if (signal?.aborted) return;
         total = Math.max(total, remaining);
     }
+
+    if (signal?.aborted) return;
 
     if (remaining === 0) {
         notifyEntregadoresRefreshComplete();
@@ -183,9 +229,11 @@ export const performRefresh = async (
     force: boolean,
     isLowUsage: boolean,
     timeContext: string,
-    setRefreshState: SetRefreshState
+    setRefreshState: SetRefreshState,
+    signal?: AbortSignal
 ) => {
     try {
+        if (signal?.aborted) return;
         safeLog.info(`[performRefresh] Enfileirando refresh - force=${force}, isLowUsage=${isLowUsage}, context=${timeContext}`);
         setRefreshState(prev => ({
             ...prev,
@@ -200,6 +248,7 @@ export const performRefresh = async (
         }
 
         const { data, error } = await mvService.enqueueRefresh(force ? 'upload' : 'scheduled', true, false);
+        if (signal?.aborted) return;
         if (error || !data) throw new Error(error?.message || 'Erro ao enfileirar refresh.');
         const payload = data as any;
 
@@ -209,7 +258,7 @@ export const performRefresh = async (
             const pendingCount = Math.max(Number(secondaryPending || 0), queuePending);
 
             if (pendingCount > 0) {
-                await monitorRefreshQueue(pendingCount, setRefreshState, true);
+                await monitorRefreshQueue(pendingCount, setRefreshState, true, signal);
                 return;
             }
 
@@ -232,8 +281,9 @@ export const performRefresh = async (
         }
 
         const pendingCount = getPendingCount(payload);
-        await monitorRefreshQueue(pendingCount, setRefreshState);
+        await monitorRefreshQueue(pendingCount, setRefreshState, false, signal);
     } catch (e) {
+        if (signal?.aborted) return;
         safeLog.warn('Refresh automatico de MVs falhou ao enfileirar:', e);
         setRefreshState({
             isRefreshing: false,

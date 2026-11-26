@@ -14,7 +14,7 @@ import type {
 } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 import { needsChartReady, renderActiveView } from './utils/viewRenderer';
-import { useGamification } from '@/contexts/GamificationContext';
+import { useGamificationActions } from '@/contexts/GamificationContext';
 import { scheduleIdleTask } from '@/utils/scheduling/idleTask';
 import { ViewTransition } from '@/components/ui/view-transition';
 
@@ -49,7 +49,7 @@ export type DashboardViewRenderProps = DashboardViewsRendererProps;
 
 export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer(props: DashboardViewsRendererProps) {
   const { activeTab, chartReady } = props;
-  const { registerInteraction } = useGamification();
+  const { registerInteraction } = useGamificationActions();
 
   useEffect(() => {
     const contentScroll = document.getElementById('dashboard-content-scroll');
@@ -74,22 +74,10 @@ export const DashboardViewsRenderer = React.memo(function DashboardViewsRenderer
   }, [activeTab, registerInteraction]);
 
   const needsChart = needsChartReady(activeTab);
-  const hasMainResult = props.totals !== null
-    || props.aderenciaSemanal.length > 0
-    || props.aderenciaDia.length > 0
-    || props.aderenciaTurno.length > 0
-    || props.aderenciaSubPraca.length > 0
-    || props.aderenciaOrigem.length > 0
-    || props.aderenciaDiaOrigem.length > 0;
-  const isFirstDashboardLoad = (activeTab === 'dashboard' || activeTab === 'analise')
-    && props.mainDataLoading
-    && !hasMainResult;
 
   const viewStateKey = needsChart && !chartReady
     ? `chart-loading-${activeTab}`
-    : isFirstDashboardLoad
-      ? `${activeTab}-initial-loading`
-      : activeTab;
+    : activeTab;
 
   return (
     <ErrorBoundary>

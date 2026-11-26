@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AnaliseDiaOrigemTable } from '../analise/components/AnaliseDiaOrigemTable';
 import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
 import { DedicadoInlineNotice } from './DedicadoInlineNotice';
+import { ViewTransition } from '@/components/ui/view-transition';
 import type { AderenciaDiaOrigem } from '@/types';
 import type { FilterPayload } from '@/types/filters';
 
@@ -74,22 +75,28 @@ export function DedicadoDiaOrigem({
   error,
   onRetry,
 }: DedicadoDiaOrigemProps) {
-  if (loading && data.length === 0) return <DashboardSkeleton contentOnly />;
+  const isInitialLoading = loading && data.length === 0;
 
   return (
-    <Card className="min-w-0 overflow-hidden border-slate-200/70 bg-white/90 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/85">
-      <CardHeader>
-        <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Dia x Origem</CardTitle>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          Matriz migrada da guia Análise e filtrada para as origens do período atual.
-        </p>
-      </CardHeader>
-      <CardContent className="min-w-0 p-3 sm:p-6">
-        {loading ? <DedicadoInlineNotice message="Atualizando matriz Dia x Origem com os filtros atuais..." tone="info" /> : null}
-        {error ? <DedicadoInlineNotice message={error} onRetry={onRetry} /> : null}
-        <AnaliseDiaOrigemTable data={data} dayDateMap={dayDateMap} />
-      </CardContent>
-    </Card>
+    <ViewTransition stateKey={isInitialLoading ? 'dedicado-dia-loading' : 'dedicado-dia-content'} preventExitInteraction>
+      {isInitialLoading ? (
+        <DashboardSkeleton contentOnly />
+      ) : (
+        <Card className="min-w-0 overflow-hidden border-slate-200/70 bg-white/90 shadow-sm dark:border-slate-800/70 dark:bg-slate-900/85">
+          <CardHeader>
+            <CardTitle className="text-lg font-black text-slate-950 dark:text-white">Dia x Origem</CardTitle>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Matriz migrada da guia Análise e filtrada para as origens do período atual.
+            </p>
+          </CardHeader>
+          <CardContent className="min-w-0 p-3 sm:p-6">
+            {loading ? <DedicadoInlineNotice message="Atualizando matriz Dia x Origem com os filtros atuais..." tone="info" /> : null}
+            {error ? <DedicadoInlineNotice message={error} onRetry={onRetry} /> : null}
+            <AnaliseDiaOrigemTable data={data} dayDateMap={dayDateMap} />
+          </CardContent>
+        </Card>
+      )}
+    </ViewTransition>
   );
 }
 

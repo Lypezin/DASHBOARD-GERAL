@@ -34,17 +34,18 @@ export async function POST(request: Request) {
             full_name: fullName,
         };
 
-        const { error: authUpdateError } = await admin.auth.admin.updateUserById(userId, {
-            user_metadata: nextMetadata,
-        });
+        const [{ error: authUpdateError }, { error: profileError }] = await Promise.all([
+            admin.auth.admin.updateUserById(userId, {
+                user_metadata: nextMetadata,
+            }),
+            admin
+                .from('user_profiles')
+                .upsert({ id: userId, full_name: fullName, updated_at: new Date().toISOString() }, { onConflict: 'id' }),
+        ]);
 
         if (authUpdateError) {
             return NextResponse.json({ error: authUpdateError.message }, { status: 500 });
         }
-
-        const { error: profileError } = await admin
-            .from('user_profiles')
-            .upsert({ id: userId, full_name: fullName, updated_at: new Date().toISOString() }, { onConflict: 'id' });
 
         if (profileError) {
             return NextResponse.json({ error: profileError.message }, { status: 500 });

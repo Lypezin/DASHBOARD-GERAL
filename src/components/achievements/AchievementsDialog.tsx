@@ -1,13 +1,13 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useGamification } from '@/contexts/GamificationContext';
-import { ICON_MAP } from '@/contexts/gamification/icons';
 import { Badge } from '@/types/gamification';
-import { cn } from '@/lib/utils';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ViewTransition } from '@/components/ui/view-transition';
+import { StaggerContainer, StaggerItem } from '@/components/ui/stagger';
 import { BadgeCard } from './components/BadgeCard';
 import { LeaderboardRanking } from './components/LeaderboardRanking';
 
@@ -18,11 +18,33 @@ interface AchievementsDialogProps {
 
 export function AchievementsDialog({ open, onOpenChange }: AchievementsDialogProps) {
     const { badges, unlockedBadges } = useGamification();
+    const [activeTab, setActiveTab] = useState<string>('todos');
 
-    const categories = Array.from(new Set(badges.map(b => b.category || 'geral')));
+    const { categories, badgesByCategory, unlockedMap } = useMemo(() => {
+        const nextUnlocked = new Map<string, Badge>();
+        for (const u of unlockedBadges) {
+            nextUnlocked.set(u.slug, u);
+        }
 
-    const getUnlockedInfo = (badgeSlug: string) => unlockedBadges.find(u => u.slug === badgeSlug);
-    const isBadgeUnlocked = (badgeSlug: string) => unlockedBadges.some(u => u.slug === badgeSlug);
+        const catMap = new Map<string, Badge[]>();
+        for (const b of badges) {
+            const cat = b.category || 'geral';
+            let list = catMap.get(cat);
+            if (!list) {
+                list = [];
+                catMap.set(cat, list);
+            }
+            list.push(b);
+        }
+
+        return {
+            categories: Array.from(catMap.keys()),
+            badgesByCategory: catMap,
+            unlockedMap: nextUnlocked,
+        };
+    }, [badges, unlockedBadges]);
+
+    const currentBadges = activeTab === 'todos' ? badges : (badgesByCategory.get(activeTab) ?? []);
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -35,7 +57,7 @@ export function AchievementsDialog({ open, onOpenChange }: AchievementsDialogPro
                 </DialogHeader>
 
                 <div className="flex-1 min-h-0 overflow-hidden mt-4">
-                    <Tabs defaultValue="todos" className="w-full h-full flex flex-col">
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full h-full flex flex-col">
                         <TabsList className="mb-4 w-full justify-start overflow-x-auto no-scrollbar shrink-0">
                             <TabsTrigger value="ranking">🏆 Ranking Global</TabsTrigger>
                             <TabsTrigger value="todos">Todas ({unlockedBadges.length}/{badges.length})</TabsTrigger>
@@ -47,26 +69,29 @@ export function AchievementsDialog({ open, onOpenChange }: AchievementsDialogPro
                         </TabsList>
 
                         <div className="flex-1 min-h-0 overflow-hidden relative">
-                            <ScrollArea className="h-[min(50vh,460px)] pr-2">
-                                <TabsContent value="ranking" className="mt-0 p-1">
-                                    <LeaderboardRanking />
-                                </TabsContent>
-                                <TabsContent value="todos" className="mt-0">
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-1">
-                                        {badges.map(b => (
-                                            <BadgeCard key={b.slug} badge={b} isUnlocked={isBadgeUnlocked(b.slug)} unlockedAt={getUnlockedInfo(b.slug)?.unlocked_at} />
-                                        ))}
-                                    </div>
-                                </TabsContent>
-                                {categories.map(cat => (
-                                    <TabsContent key={cat} value={cat} className="mt-0">
-                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-1">
-                                            {badges.filter(b => b.category === cat).map(b => (
-                                                <BadgeCard key={b.slug} badge={b} isUnlocked={isBadgeUnlocked(b.slug)} unlockedAt={getUnlockedInfo(b.slug)?.unlocked_at} />
-                                            ))}
+                            <ScrollArea className="h-full pr-2">
+                                <ViewTransition stateKey={activeTab} preventExitInteraction>
+                                    {activeTab === 'ranking' ? (
+                                        <div className="p-1">
+                                            <LeaderboardRanking />
                                         </div>
-                                    </TabsContent>
-                                ))}
+                                    ) : (
+                                        <StaggerContainer className="grid grid-cols-2 md:grid-cols-4 gap-4 p-1" staggerDelay={0.03}>
+                                            {currentBadges.map(b => {
+                                                const unlocked = unlockedMap.get(b.slug);
+                                                return (
+                                                    <StaggerItem key={b.slug}>
+                                                        <BadgeCard
+                                                            badge={b}
+                                                            isUnlocked={Boolean(unlocked)}
+                                                            unlockedAt={unlocked?.unlocked_at}
+                                                        />
+                                                    </StaggerItem>
+                                                );
+                                            })}
+                                        </StaggerContainer>
+                                    )}
+                                </ViewTransition>
                             </ScrollArea>
                         </div>
                     </Tabs>

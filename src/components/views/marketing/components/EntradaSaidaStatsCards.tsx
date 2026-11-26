@@ -141,34 +141,21 @@ export const EntradaSaidaStatsCards: React.FC<{ data: any[] }> = ({ data }) => {
         },
     ];
 
+    const allCards = [...flowCards, ...summaryCards];
+
     return (
-        <div className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {flowCards.map((c, i) => (
-                    <MarketingStatsCard
-                        key={i}
-                        title={c.title}
-                        value={c.value}
-                        subtitle={c.subtitle}
-                        icon={c.icon}
-                        colorTheme={c.colorTheme}
-                        breakdown={c.breakdown}
-                    />
-                ))}
-            </div>
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {summaryCards.map((c, i) => (
-                    <MarketingStatsCard
-                        key={i}
-                        title={c.title}
-                        value={c.value}
-                        subtitle={c.subtitle}
-                        icon={c.icon}
-                        colorTheme={c.colorTheme}
-                        breakdown={c.breakdown}
-                    />
-                ))}
-            </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {allCards.map((c, i) => (
+                <MarketingStatsCard
+                    key={c.title || i}
+                    title={c.title}
+                    value={c.value}
+                    subtitle={c.subtitle}
+                    icon={c.icon}
+                    colorTheme={c.colorTheme}
+                    breakdown={c.breakdown}
+                />
+            ))}
         </div>
     );
 };

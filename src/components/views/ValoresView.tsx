@@ -36,6 +36,8 @@ const ValoresView = React.memo(function ValoresView({
   } = useValoresData(valoresPayload, currentUser);
   const exportDisabled = loading || isSearching || Boolean(error) || !hasResolvedData;
 
+  const handleClearSearch = useCallback(() => setSearchTerm(''), [setSearchTerm]);
+
   const handleExport = useCallback(async () => {
     if (isExporting || exportDisabled) return;
     try {
@@ -109,10 +111,10 @@ const ValoresView = React.memo(function ValoresView({
                   Clique nos títulos das colunas para ordenar.
                 </p>
               </div>
-              <ValoresSearch searchTerm={searchTerm} isSearching={isSearching} totalResults={totalEntregadores} onSearchChange={setSearchTerm} onClearSearch={() => setSearchTerm('')} />
+              <ValoresSearch searchTerm={searchTerm} isSearching={isSearching} totalResults={totalEntregadores} onSearchChange={setSearchTerm} onClearSearch={handleClearSearch} />
             </div>
 
-            <ValoresTable sortedValores={paginatedValores} sortField={sortField} sortDirection={sortDirection} onSort={handleSort} formatarReal={formatarReal} isDetailed={false} isUpdating={loading && paginatedValores.length === 0} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} searchTerm={searchTerm} onClearSearch={() => setSearchTerm('')} />
+            <ValoresTable sortedValores={paginatedValores} sortField={sortField} sortDirection={sortDirection} onSort={handleSort} formatarReal={formatarReal} isDetailed={false} isUpdating={loading && paginatedValores.length === 0} onLoadMore={loadMore} hasMore={hasMore} isLoadingMore={isLoadingMore} searchTerm={searchTerm} onClearSearch={handleClearSearch} />
           </section>
         </ViewContainer>
       )}

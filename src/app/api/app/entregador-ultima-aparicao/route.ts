@@ -31,15 +31,14 @@ export async function POST(request: Request) {
     if (!fullCityAccess && allowedCities.length === 0) return respond({ ultima_data_aparicao: null, cidades: [], cidades_incompletas: false });
 
     const supabase = createServiceRoleClient();
-    const baseQuery = (countCities = false) => {
-      let query = supabase.from('dados_corridas').select('data_do_periodo, praca', countCities ? { count: 'exact' } : undefined)
-        .eq('organization_id', access.organizationId)
-        .eq('id_da_pessoa_entregadora', id);
-      if (!fullCityAccess) query = query.in('praca', allowedCities);
-      return query;
-    };
+    let latestQuery = supabase
+      .from('dados_corridas')
+      .select('data_do_periodo')
+      .eq('organization_id', access.organizationId)
+      .eq('id_da_pessoa_entregadora', id);
+    if (!fullCityAccess) latestQuery = latestQuery.in('praca', allowedCities);
 
-    const { data: latestRows, error: latestError } = await baseQuery()
+    const { data: latestRows, error: latestError } = await latestQuery
       .not('data_do_periodo', 'is', null)
       .order('data_do_periodo', { ascending: false })
       .limit(1);
@@ -51,7 +50,14 @@ export async function POST(request: Request) {
     }
     if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('Data de última aparição inválida.');
 
-    const { data: cityRows, error: cityError, count } = await baseQuery(true)
+    let cityQuery = supabase
+      .from('dados_corridas')
+      .select('praca', { count: 'exact' })
+      .eq('organization_id', access.organizationId)
+      .eq('id_da_pessoa_entregadora', id);
+    if (!fullCityAccess) cityQuery = cityQuery.in('praca', allowedCities);
+
+    const { data: cityRows, error: cityError, count } = await cityQuery
       .eq('data_do_periodo', date)
       .not('praca', 'is', null)
       .limit(MAX_CITY_ROWS);

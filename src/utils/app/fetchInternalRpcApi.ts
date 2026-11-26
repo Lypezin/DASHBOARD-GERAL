@@ -34,7 +34,7 @@ export async function fetchInternalRpcApi<T>({
     }
 
     const request = (async (): Promise<RpcResult<T>> => {
-        const body = createRequestKey({ mode, payload });
+        const body = JSON.stringify({ mode, payload });
         const response = await fetch(path, {
             method: 'POST',
             ...INTERNAL_FETCH_OPTIONS,

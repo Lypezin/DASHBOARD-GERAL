@@ -70,7 +70,7 @@ export const AdminEditModal: React.FC<AdminEditModalProps> = ({
           onOrganizationChange={onOrganizationChange}
         />
 
-        <DialogFooter className="gap-2">
+        <DialogFooter className="gap-2 sm:space-x-0">
           <Button variant="outline" onClick={onCancel} disabled={loading}>
             <X className="h-4 w-4" />
             Cancelar

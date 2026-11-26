@@ -18,9 +18,9 @@ export const LeaderboardRankingRow: React.FC<LeaderboardRankingRowProps> = ({ en
                 </div>
             )}
 
-            <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                    <div className={cn("w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full font-bold text-sm shadow-sm", isTop1 ? "bg-yellow-400 text-yellow-900" : isTop2 ? "bg-slate-300 text-slate-800" : isTop3 ? "bg-orange-300 text-orange-900" : "bg-slate-100 dark:bg-slate-800 text-slate-500")}>#{entry.rank}</div>
+            <div className={cn("flex items-center justify-between", isTop1 && "pr-8")}>
+                <div className="flex min-w-0 items-center gap-3">
+                    <div className={cn("w-8 h-8 flex-shrink-0 flex items-center justify-center rounded-full font-bold text-sm tabular-nums shadow-sm", isTop1 ? "bg-yellow-400 text-yellow-900" : isTop2 ? "bg-slate-300 text-slate-800" : isTop3 ? "bg-orange-300 text-orange-900" : "bg-slate-100 dark:bg-slate-800 text-slate-500")}>#{entry.rank}</div>
 
                     <div className="flex items-center gap-3">
                         <Avatar className={cn("w-10 h-10 border-2", isTop1 ? "border-yellow-400 shadow-sm" : "border-slate-100 dark:border-slate-700")}>
@@ -44,7 +44,7 @@ export const LeaderboardRankingRow: React.FC<LeaderboardRankingRowProps> = ({ en
                                     </span>
                                 )}
                             </div>
-                            <div className="flex items-center gap-3 text-xs mt-0.5">
+                            <div className="flex items-center gap-3 text-xs mt-0.5 tabular-nums">
                                 <span className="flex items-center gap-1 text-orange-500 font-medium bg-orange-50 dark:bg-orange-900/20 px-1.5 rounded-full">
                                     <Flame className="w-3 h-3 fill-orange-500" />
                                     {entry.current_streak}

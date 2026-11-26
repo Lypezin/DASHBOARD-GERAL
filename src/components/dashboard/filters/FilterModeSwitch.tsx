@@ -13,8 +13,8 @@ export const FilterModeSwitch: React.FC<FilterModeSwitchProps> = ({ isModoInterv
   return (
     <div className={cn("flex w-full flex-col gap-1 sm:w-auto", className)} data-filter-role="period">
       <span className={cn(
-        "select-none pl-1 text-[11px] font-semibold text-slate-400",
-        appearance === 'quiet' && "pl-0 text-slate-600 dark:text-slate-300"
+        "select-none pl-1 text-[11px] font-semibold text-slate-600 dark:text-slate-300",
+        appearance === 'quiet' && "pl-0"
       )}>
         Período
       </span>

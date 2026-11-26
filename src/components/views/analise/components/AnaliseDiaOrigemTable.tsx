@@ -43,7 +43,7 @@ export const AnaliseDiaOrigemTable = React.memo(function AnaliseDiaOrigemTable({
                 const dateLabel = dayDateMap[dayKey];
 
                 return (
-                  <th key={dia} className="sticky top-0 z-20 min-w-[92px] border-b border-slate-200 bg-slate-50/95 px-4 py-3 text-center backdrop-blur transition-colors dark:border-slate-800 dark:bg-slate-900/90">
+                  <th key={dia} className="sticky top-0 z-20 min-w-[92px] border-b border-slate-200 bg-slate-50 px-4 py-3 text-center transition-colors dark:border-slate-800 dark:bg-slate-900">
                     <div className="flex flex-col items-center">
                       <span className="text-xs font-bold text-slate-950 dark:text-slate-50">
                         {dia}
@@ -57,27 +57,28 @@ export const AnaliseDiaOrigemTable = React.memo(function AnaliseDiaOrigemTable({
                   </th>
                 );
               })}
-              <th className="sticky right-0 top-0 z-20 min-w-[124px] border-b border-slate-200 bg-slate-50/95 px-5 py-4 text-right font-bold backdrop-blur dark:border-slate-800 dark:bg-slate-900/90">
+              <th className="sticky right-0 top-0 z-30 min-w-[124px] border-b border-l border-slate-200 bg-slate-50 px-5 py-4 text-right font-bold dark:border-slate-800 dark:bg-slate-900">
                 <span className="text-[10px] uppercase tracking-wider text-slate-500 dark:text-slate-400">
                   Total semana
                 </span>
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200/60 dark:divide-slate-800/70">
+          <tbody>
             {matrix.origens.map((origem) => {
               let rowSum = 0;
+              const origemMap = matrix.dataMap.get(origem);
 
               return (
-                <tr key={origem} className="group/row transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-900/55">
-                  <td className="sticky left-0 z-10 min-w-[220px] max-w-[280px] border-r border-slate-200 bg-white px-5 py-3 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.02)] transition-colors group-hover/row:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:group-hover/row:bg-slate-900 dark:shadow-none">
+                <tr key={origem} style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 48px' }} className="group/row transition-colors hover:bg-slate-50/80 dark:hover:bg-slate-900/55">
+                  <td className="sticky left-0 z-10 min-w-[220px] max-w-[280px] border-b border-r border-slate-200/80 bg-white px-5 py-3 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.02)] transition-colors group-hover/row:bg-slate-50 dark:border-slate-800 dark:bg-slate-950 dark:group-hover/row:bg-slate-900 dark:shadow-none">
                     <span className="block max-w-[220px] truncate text-sm font-bold text-slate-950 dark:text-slate-50" title={origem}>
                       {origem}
                     </span>
                   </td>
 
                   {DIAS_ORDEM.map((dia) => {
-                    const segundos = matrix.dataMap.get(origem)?.get(dia) || 0;
+                    const segundos = origemMap?.get(dia) || 0;
                     rowSum += segundos;
                     const heatmapClass = getHeatmapClass(segundos);
 
@@ -85,7 +86,7 @@ export const AnaliseDiaOrigemTable = React.memo(function AnaliseDiaOrigemTable({
                       <td
                         key={dia}
                         className={cn(
-                          'min-w-[92px] border-r border-slate-200/60 px-2 py-3 text-center transition-all duration-200 dark:border-slate-800/70',
+                          'min-w-[92px] border-b border-r border-slate-200/60 px-2 py-3 text-center transition-colors duration-150 dark:border-slate-800/70',
                           heatmapClass
                         )}
                       >
@@ -100,7 +101,7 @@ export const AnaliseDiaOrigemTable = React.memo(function AnaliseDiaOrigemTable({
                     );
                   })}
 
-                  <td className="sticky right-0 z-10 min-w-[124px] border-l border-slate-200 bg-slate-50/90 px-5 py-3 text-right backdrop-blur transition-colors group-hover/row:bg-slate-100 dark:border-slate-800 dark:bg-slate-900/90 dark:group-hover/row:bg-slate-900">
+                  <td className="sticky right-0 z-10 min-w-[124px] border-b border-l border-slate-200 bg-slate-50 px-5 py-3 text-right transition-colors group-hover/row:bg-slate-100 dark:border-slate-800 dark:bg-slate-900 dark:group-hover/row:bg-slate-800">
                     <span className="text-xs font-black text-slate-950 tabular-nums dark:text-slate-50">
                       {formatarHorasParaHMS(rowSum / 3600)}
                     </span>
@@ -110,18 +111,18 @@ export const AnaliseDiaOrigemTable = React.memo(function AnaliseDiaOrigemTable({
             })}
           </tbody>
           <tfoot className="sticky bottom-0 z-30">
-            <tr className="border-t border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-900">
-              <td className="sticky left-0 z-40 min-w-[220px] max-w-[280px] border-r border-slate-200 bg-slate-50 px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
+            <tr className="bg-slate-50 dark:bg-slate-900">
+              <td className="sticky left-0 z-40 min-w-[220px] max-w-[280px] border-t border-r border-slate-200 bg-slate-50 px-5 py-4 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400">
                 Total por dia
               </td>
               {DIAS_ORDEM.map((dia) => (
-                <td key={dia} className="min-w-[92px] bg-slate-50 px-4 py-4 text-center dark:bg-slate-900">
+                <td key={dia} className="min-w-[92px] border-t border-slate-200 bg-slate-50 px-4 py-4 text-center dark:border-slate-800 dark:bg-slate-900">
                   <span className="text-[11px] font-bold text-slate-950 tabular-nums dark:text-slate-50">
                     {formatarHorasParaHMS((columnTotals.get(dia) || 0) / 3600)}
                   </span>
                 </td>
               ))}
-              <td className="sticky right-0 z-40 min-w-[124px] bg-blue-600 px-5 py-4 text-right">
+              <td className="sticky right-0 z-40 min-w-[124px] border-t border-l border-blue-500 bg-blue-600 px-5 py-4 text-right">
                 <span className="text-xs font-black text-white tabular-nums">
                   {formatarHorasParaHMS(globalTotal / 3600)}
                 </span>

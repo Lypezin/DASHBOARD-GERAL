@@ -27,7 +27,7 @@ export function EntregadoresOverviewMetric({
     return (
         <motion.div
             variants={reduceMotion ? undefined : metricVariants}
-        className="min-w-0 border-t-[3px] border-t-[#9ac8de] bg-white px-4 py-3 dark:border-t-sky-700 dark:bg-slate-900 xl:px-5"
+            className="min-w-0 rounded-xl border border-[#d8e4eb] border-t-[3px] border-t-[#9ac8de] bg-white px-4 py-3 shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800 dark:border-t-sky-700 dark:bg-slate-900 xl:px-5"
         >
             <div className="flex min-w-0 items-center gap-2">
                 <Icon className={`h-3.5 w-3.5 shrink-0 ${toneStyles[tone]}`} aria-hidden="true" />
@@ -37,16 +37,9 @@ export function EntregadoresOverviewMetric({
             </div>
 
             <dd className="mt-2 min-h-7 font-sans text-[23px] font-semibold tracking-tight text-[#173f5a] tabular-nums dark:text-slate-50">
-                <motion.span
-                    key={value}
-                    initial={reduceMotion ? false : { opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: reduceMotion ? 0 : 0.14, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ willChange: 'transform, opacity' }}
-                    className="block"
-                >
+                <span className="block">
                     <AnimatedNumberText value={value} />
-                </motion.span>
+                </span>
                 <span className="sr-only">{meta}</span>
             </dd>
         </motion.div>

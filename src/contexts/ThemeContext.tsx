@@ -1,17 +1,21 @@
 'use client';
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { readStorage, writeStorage } from '@/utils/storage/jsonStorage';
 
 type Theme = 'light' | 'dark';
 
-interface ThemeContextType {
-  theme: Theme;
+interface ThemeActionsType {
   toggleTheme: () => void;
   setTheme: (theme: Theme) => void;
 }
 
+interface ThemeContextType extends ThemeActionsType {
+  theme: Theme;
+}
+
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
+const ThemeActionsContext = createContext<ThemeActionsType | undefined>(undefined);
 
 const STORAGE_KEY = 'theme';
 const THEME_TRANSITION_BLOCK_CLASS = 'theme-switching';
@@ -56,7 +60,7 @@ function temporarilyDisableThemeTransitions() {
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('light');
-  const [hasHydrated, setHasHydrated] = useState(false);
+  const hasHydratedRef = useRef(false);
 
   const setTheme = useCallback((newTheme: Theme) => {
     temporarilyDisableThemeTransitions();
@@ -70,25 +74,33 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const toggleTheme = useCallback(() => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
-  }, [theme, setTheme]);
-
-  useEffect(() => {
-    const hydratedTheme = getInitialTheme();
-    setThemeState((currentTheme) =>
-      currentTheme === hydratedTheme ? currentTheme : hydratedTheme
-    );
-    applyThemeToDocument(hydratedTheme);
-    setHasHydrated(true);
+    setThemeState((currentTheme) => {
+      const nextTheme: Theme = currentTheme === 'light' ? 'dark' : 'light';
+      temporarilyDisableThemeTransitions();
+      applyThemeToDocument(nextTheme);
+      if (typeof window !== 'undefined') {
+        writeStorage(window.localStorage, STORAGE_KEY, nextTheme);
+      }
+      return nextTheme;
+    });
   }, []);
 
   useEffect(() => {
-    if (!hasHydrated) {
+    const hydratedTheme = getInitialTheme();
+    hasHydratedRef.current = true;
+    applyThemeToDocument(hydratedTheme);
+    setThemeState((currentTheme) =>
+      currentTheme === hydratedTheme ? currentTheme : hydratedTheme
+    );
+  }, []);
+
+  useEffect(() => {
+    if (!hasHydratedRef.current) {
       return;
     }
 
     applyThemeToDocument(theme);
-  }, [hasHydrated, theme]);
+  }, [theme]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -109,16 +121,32 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     return () => mediaQuery.removeEventListener('change', handleSystemThemeChange);
   }, []);
 
-  const contextValue = useMemo(
+  const actionsValue = useMemo<ThemeActionsType>(
+    () => ({ toggleTheme, setTheme }),
+    [toggleTheme, setTheme]
+  );
+
+  const contextValue = useMemo<ThemeContextType>(
     () => ({ theme, toggleTheme, setTheme }),
     [theme, toggleTheme, setTheme]
   );
 
   return (
-    <ThemeContext.Provider value={contextValue}>
-      {children}
-    </ThemeContext.Provider>
+    <ThemeActionsContext.Provider value={actionsValue}>
+      <ThemeContext.Provider value={contextValue}>
+        {children}
+      </ThemeContext.Provider>
+    </ThemeActionsContext.Provider>
   );
+}
+
+const NOOP_THEME_ACTIONS: ThemeActionsType = {
+  toggleTheme: () => {},
+  setTheme: () => {},
+};
+
+export function useThemeActions(): ThemeActionsType {
+  return useContext(ThemeActionsContext) ?? NOOP_THEME_ACTIONS;
 }
 
 export function useTheme() {
@@ -126,8 +154,7 @@ export function useTheme() {
   if (context === undefined) {
     return {
       theme: 'light' as Theme,
-      toggleTheme: () => {},
-      setTheme: () => {},
+      ...NOOP_THEME_ACTIONS,
     };
   }
   return context;

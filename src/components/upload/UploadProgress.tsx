@@ -28,24 +28,32 @@ const variantStyles = {
 
 export function UploadProgress({ progress, progressLabel, variant = 'default' }: UploadProgressProps) {
   const styles = variantStyles[variant];
+  const clamped = Math.min(100, Math.max(0, Number.isFinite(progress) ? progress : 0));
 
-  if (!progressLabel && progress === 0) {
+  if (!progressLabel && clamped === 0) {
     return null;
   }
 
   return (
     <div className="space-y-2.5 animate-in fade-in duration-300">
-      <div className={`overflow-hidden rounded-full ${styles.track} h-2`}>
+      <div
+        role="progressbar"
+        aria-label={progressLabel || 'Progresso do envio'}
+        aria-valuenow={Math.round(clamped)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        className={`overflow-hidden rounded-full ${styles.track} h-2`}
+      >
         <div
-          className={`h-full rounded-full ${styles.bar} transition-all duration-500 ease-out`}
-          style={{ width: `${progress}%` }}
+          className={`h-full rounded-full ${styles.bar} transition-[width] duration-500 ease-out`}
+          style={{ width: `${clamped}%` }}
         ></div>
       </div>
       <div className="flex items-center justify-between">
         {progressLabel && (
           <p className="text-xs font-medium text-slate-600 dark:text-slate-300 truncate">{progressLabel}</p>
         )}
-        <p className={`text-xs font-semibold ${styles.text} tabular-nums ml-auto`}>{progress.toFixed(0)}%</p>
+        <p className={`text-xs font-semibold ${styles.text} tabular-nums ml-auto`}>{clamped.toFixed(0)}%</p>
       </div>
     </div>
   );

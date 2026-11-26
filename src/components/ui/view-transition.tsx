@@ -13,6 +13,30 @@ type ViewTransitionProps = {
 
 type MotionStateProps = Pick<HTMLMotionProps<'div'>, 'initial' | 'animate' | 'exit' | 'transition'>;
 
+const REDUCED_MOTION_PROPS: MotionStateProps = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.1, ease: 'easeOut' } },
+  exit: { opacity: 0, transition: { duration: 0.08, ease: 'easeIn' } },
+};
+
+const REDUCED_MOTION_INERT_PROPS: MotionStateProps = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.1, ease: 'easeOut' } },
+  exit: { opacity: 0, pointerEvents: 'none', transition: { duration: 0.08, ease: 'easeIn' } },
+};
+
+const FULL_MOTION_PROPS: MotionStateProps = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1] as const } },
+  exit: { opacity: 0, y: -6, transition: { duration: 0.11, ease: 'easeIn' } },
+};
+
+const FULL_MOTION_INERT_PROPS: MotionStateProps = {
+  initial: { opacity: 0, y: 10 },
+  animate: { opacity: 1, y: 0, transition: { duration: 0.22, ease: [0.16, 1, 0.3, 1] as const } },
+  exit: { opacity: 0, y: -6, pointerEvents: 'none', transition: { duration: 0.11, ease: 'easeIn' } },
+};
+
 type TransitionPanelProps = {
   children: React.ReactNode;
   motionProps: MotionStateProps;
@@ -36,7 +60,7 @@ function TransitionPanel({ children, motionProps, preventExitInteraction }: Tran
       ref={setPanelRef}
       {...motionProps}
       aria-hidden={isExiting ? true : undefined}
-      className="col-start-1 row-start-1 min-w-0 w-full"
+      className="min-w-0 w-full"
     >
       {children}
     </motion.div>
@@ -47,31 +71,16 @@ export function ViewTransition({
   stateKey,
   children,
   className,
-  preventExitInteraction = false,
+  preventExitInteraction = true,
 }: ViewTransitionProps) {
   const shouldReduceMotion = useReducedMotion() ?? false;
-  const exitState = {
-    opacity: 0,
-    y: shouldReduceMotion ? 0 : -8,
-    ...(preventExitInteraction ? { pointerEvents: 'none' as const } : {}),
-  };
-  const motionProps: MotionStateProps = shouldReduceMotion
-    ? {
-        initial: { opacity: 0 },
-        animate: { opacity: 1 },
-        exit: { opacity: 0, ...(preventExitInteraction ? { pointerEvents: 'none' as const } : {}) },
-        transition: { duration: 0.12, ease: 'easeOut' },
-      }
-    : {
-        initial: { opacity: 0, y: 14 },
-        animate: { opacity: 1, y: 0 },
-        exit: exitState,
-        transition: { duration: 0.26, ease: [0.16, 1, 0.3, 1] },
-      };
+  const motionProps = shouldReduceMotion
+    ? (preventExitInteraction ? REDUCED_MOTION_INERT_PROPS : REDUCED_MOTION_PROPS)
+    : (preventExitInteraction ? FULL_MOTION_INERT_PROPS : FULL_MOTION_PROPS);
 
   return (
-    <div className={cn('grid min-w-0 w-full', className)}>
-      <AnimatePresence mode="sync" initial={false}>
+    <div className={cn('min-w-0 w-full', className)}>
+      <AnimatePresence mode="wait" initial={false}>
         <TransitionPanel
           key={stateKey}
           motionProps={motionProps}

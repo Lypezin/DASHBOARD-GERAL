@@ -73,11 +73,11 @@ export function UploadRefreshMVs({ onAutoRefresh }: UploadRefreshMVsProps) {
         <button
           onClick={refreshAllMVs}
           disabled={refreshing}
-          className="flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-all duration-200 hover:bg-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 disabled:opacity-40 disabled:pointer-events-none dark:bg-amber-600 dark:hover:bg-amber-500"
+          className="flex items-center justify-center gap-2 rounded-xl bg-amber-500 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-[background-color,opacity,box-shadow] duration-200 hover:bg-amber-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:ring-offset-2 disabled:opacity-40 disabled:pointer-events-none dark:bg-amber-600 dark:hover:bg-amber-500"
         >
           {refreshing ? (
             <>
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-4 w-4 motion-safe:animate-spin" />
               Atualizando...
             </>
           ) : (

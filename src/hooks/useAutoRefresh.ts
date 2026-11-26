@@ -17,9 +17,24 @@ export function useAutoRefresh() {
 
         let cancelled = false;
         let timeoutId: ReturnType<typeof setTimeout> | null = null;
+        let completed = false;
         const startedAt = Date.now();
 
+        const scheduleNext = (delayMs: number) => {
+            if (cancelled || !mountedRef.current || completed) return;
+            if (Date.now() - startedAt >= REFRESH_MAX_MONITORING_MS) return;
+            if (typeof document !== 'undefined' && document.hidden) return;
+            if (timeoutId) clearTimeout(timeoutId);
+            timeoutId = setTimeout(() => {
+                timeoutId = null;
+                void pollQueue();
+            }, delayMs);
+        };
+
         const pollQueue = async () => {
+            if (cancelled || !mountedRef.current || completed) return;
+            if (typeof document !== 'undefined' && document.hidden) return;
+
             try {
                 const snapshot = await fetchRefreshQueueSnapshot(true);
                 if (cancelled || !mountedRef.current) return;
@@ -28,6 +43,7 @@ export function useAutoRefresh() {
                 const pendingCount = getIncrementalRefreshPendingCount(queueState);
 
                 if (pendingCount <= 0) {
+                    completed = true;
                     setRefreshState((prev) => {
                         if (!prev.isRefreshing) {
                             const hasStaleSyncMessage = /Atualizando|Sincronizando|pendente/i.test(prev.status || '');
@@ -45,16 +61,29 @@ export function useAutoRefresh() {
                 }
 
                 setRefreshState(buildIncrementalRefreshStatusFromQueue(queueState));
-
-                if (Date.now() - startedAt < REFRESH_MAX_MONITORING_MS) {
-                    timeoutId = setTimeout(pollQueue, REFRESH_POLL_INTERVAL_MS);
-                }
+                scheduleNext(REFRESH_POLL_INTERVAL_MS);
             } catch {
-                if (!cancelled && mountedRef.current) {
-                    timeoutId = setTimeout(pollQueue, REFRESH_RETRY_POLL_INTERVAL_MS);
-                }
+                scheduleNext(REFRESH_RETRY_POLL_INTERVAL_MS);
             }
         };
+
+        const handleVisibilityChange = () => {
+            if (typeof document === 'undefined') return;
+            if (document.hidden) {
+                if (timeoutId) {
+                    clearTimeout(timeoutId);
+                    timeoutId = null;
+                }
+                return;
+            }
+            if (!completed && Date.now() - startedAt < REFRESH_MAX_MONITORING_MS) {
+                void pollQueue();
+            }
+        };
+
+        if (typeof document !== 'undefined') {
+            document.addEventListener('visibilitychange', handleVisibilityChange);
+        }
 
         void pollQueue();
 
@@ -62,6 +91,9 @@ export function useAutoRefresh() {
             cancelled = true;
             mountedRef.current = false;
             if (timeoutId) clearTimeout(timeoutId);
+            if (typeof document !== 'undefined') {
+                document.removeEventListener('visibilitychange', handleVisibilityChange);
+            }
         };
     }, [setRefreshState]);
 

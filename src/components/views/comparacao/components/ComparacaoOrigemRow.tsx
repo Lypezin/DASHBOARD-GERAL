@@ -10,7 +10,7 @@ interface ComparacaoOrigemRowProps {
 }
 
 export const ComparacaoOrigemRow = React.memo(({ origem, index, semanasSelecionadas, dadosPorOrigem }: ComparacaoOrigemRowProps) => {
-    const isAverageRow = origem === 'MEDIA DAS ORIGENS';
+    const isAverageRow = origem === 'MÉDIA DAS ORIGENS';
 
     return (
         <TableRow
@@ -22,9 +22,9 @@ export const ComparacaoOrigemRow = React.memo(({ origem, index, semanasSeleciona
                 hover:bg-slate-50/70 dark:hover:bg-slate-900/55
             `}
         >
-            <TableCell className={`sticky left-0 z-10 py-4 pl-6 text-[13px] font-semibold transition-colors sm:pl-8
+            <TableCell className={`sticky left-0 z-10 border-r border-slate-100 py-4 pl-6 text-[13px] font-semibold transition-colors dark:border-slate-800/80 sm:pl-8
                 ${isAverageRow
-                    ? 'bg-sky-50 text-sky-700 dark:bg-slate-950 dark:text-sky-300'
+                    ? 'bg-sky-50 text-sky-700 dark:bg-sky-950/35 dark:text-sky-300'
                     : index % 2 === 0
                         ? 'bg-white text-slate-800 group-hover:bg-slate-50 group-hover:text-sky-600 dark:bg-slate-950 dark:text-slate-200 dark:group-hover:bg-slate-900 dark:group-hover:text-sky-300'
                         : 'bg-[#f8fafc] text-slate-800 group-hover:bg-slate-50 group-hover:text-sky-600 dark:bg-slate-900 dark:text-slate-200 dark:group-hover:text-sky-300'}

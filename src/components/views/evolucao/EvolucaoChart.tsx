@@ -60,7 +60,7 @@ export const EvolucaoChart: React.FC<EvolucaoChartProps> = ({
         <EvolucaoChartLegend selectedMetrics={selectedMetrics} />
       </header>
 
-      <dl className="grid grid-cols-3 divide-x divide-[#e2ebf0] border-b border-[#e2ebf0] bg-[#f8fafb] dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900/40">
+      <dl className="grid grid-cols-1 divide-y divide-[#e2ebf0] border-b border-[#e2ebf0] bg-[#f8fafb] dark:divide-slate-800 dark:border-slate-800 dark:bg-slate-900/40 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
         <div className="px-4 py-3 sm:px-5">
           <dt className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Períodos exibidos</dt>
           <dd className="mt-1 text-base font-semibold tabular-nums text-[#183f58] dark:text-slate-100">{dadosAtivosLength.toLocaleString('pt-BR')}</dd>

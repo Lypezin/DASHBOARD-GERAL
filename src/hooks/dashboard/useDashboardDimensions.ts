@@ -197,7 +197,6 @@ export function useDashboardDimensions(options: UseDashboardDimensionsOptions = 
 
 function readCachedDimensions(cacheScopeKey: string): { data: DimensoesDashboard; isFresh: boolean } | null {
   if (typeof sessionStorage === 'undefined') return null;
-  pruneStoredDimensions();
 
   const cached = readJsonStorage<unknown | null>(
     sessionStorage,

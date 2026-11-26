@@ -4,6 +4,7 @@ import { DollarSign, BarChart3 } from 'lucide-react';
 import { motion, useReducedMotion, type Variants } from 'framer-motion';
 import { CityValuesGrid } from './components/CityValuesGrid';
 import { CityCostGrid } from './components/CityCostGrid';
+import { AnimatedNumberText } from '@/components/ui/animated-counter';
 
 interface ValoresCidadeCardsProps {
   totalGeral: number;
@@ -61,7 +62,9 @@ export const ValoresCidadeCards: React.FC<ValoresCidadeCardsProps> = ({
                 <dt className="truncate text-[11px] font-medium text-slate-500 dark:text-slate-300">{label}</dt>
               </div>
               <dd className="mt-2 min-w-0 text-[#173f5a] dark:text-slate-50">
-                <span className="block truncate text-[22px] font-semibold leading-7 tracking-tight tabular-nums" title={value}>{value}</span>
+                <span className="block truncate text-[22px] font-semibold leading-7 tracking-tight tabular-nums" title={value}>
+                  <AnimatedNumberText value={value} />
+                </span>
                 <span className="mt-1 block truncate text-[11px] leading-4 text-slate-500 dark:text-slate-400">{meta}</span>
               </dd>
             </motion.div>

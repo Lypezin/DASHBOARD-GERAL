@@ -56,7 +56,20 @@ type Mode = 'day' | 'week';
 type Metrics = { sent: number; released: number; ran: number };
 
 const DEFAULT_REGIONS = ['ABC', 'Taboão da Serra', 'Guarulhos', 'Sorocaba', 'Salvador', 'São Paulo', 'Manaus'];
+const DEFAULT_REGION_SET = new Set(DEFAULT_REGIONS);
 const DEFAULT_ATTENDANTS = ['Beatriz', 'Henrique', 'Mariane', 'Melissa', 'Dafhny'];
+const INTEGER_FORMATTER = new Intl.NumberFormat('pt-BR');
+const DATE_FORMATTERS = new Map<string, Intl.DateTimeFormat>();
+
+function getDateFormatter(options: Intl.DateTimeFormatOptions) {
+  const key = JSON.stringify(options);
+  let formatter = DATE_FORMATTERS.get(key);
+  if (!formatter) {
+    formatter = new Intl.DateTimeFormat('pt-BR', { ...options, timeZone: 'America/Sao_Paulo' });
+    DATE_FORMATTERS.set(key, formatter);
+  }
+  return formatter;
+}
 
 function shiftDate(isoDate: string, days: number) {
   const date = new Date(`${isoDate}T12:00:00.000Z`);
@@ -71,8 +84,7 @@ function getWeekStart(isoDate: string) {
 }
 
 function formatDate(isoDate: string, options: Intl.DateTimeFormatOptions = { day: '2-digit', month: 'short' }) {
-  return new Intl.DateTimeFormat('pt-BR', { ...options, timeZone: 'America/Sao_Paulo' })
-    .format(new Date(`${isoDate}T12:00:00.000Z`));
+  return getDateFormatter(options).format(new Date(`${isoDate}T12:00:00.000Z`));
 }
 
 function inRange(value: string | null, start: string, end: string) {
@@ -108,7 +120,7 @@ function sumMetrics(rows: ReportLead[], mode: Mode, referenceDate: string): Metr
 }
 
 function numberFormat(value: number) {
-  return new Intl.NumberFormat('pt-BR').format(value);
+  return INTEGER_FORMATTER.format(value);
 }
 
 function getApiError<T>(payload: ApiResponse<T>, fallback: string) {
@@ -155,17 +167,32 @@ function MetricCell({ label, value, note, tone }: { label: string; value: number
 }
 
 function WeeklyTrend({ leads, weekStart, weekEnd }: { leads: ReportLead[]; weekStart: string; weekEnd: string }) {
-  const days = Array.from({ length: 7 }, (_, index) => shiftDate(weekStart, index));
-  const dailyMetrics = days.map((date) => ({
-    date,
-    metrics: leads.reduce<Metrics>((totals, lead) => {
-      totals.sent += lead.sentDate === date ? 1 : 0;
-      totals.released += lead.releasedDate === date ? 1 : 0;
-      totals.ran += lead.ranDate === date ? 1 : 0;
-      return totals;
-    }, { sent: 0, released: 0, ran: 0 }),
-  }));
-  const maximum = Math.max(1, ...dailyMetrics.flatMap(({ metrics }) => [metrics.sent, metrics.released, metrics.ran]));
+  const { days, dailyMetrics, maximum } = React.useMemo(() => {
+    const weekDays = Array.from({ length: 7 }, (_, index) => shiftDate(weekStart, index));
+    const totalsByDay = new Map<string, Metrics>();
+    for (const day of weekDays) {
+      totalsByDay.set(day, { sent: 0, released: 0, ran: 0 });
+    }
+    for (const lead of leads) {
+      const sentBucket = lead.sentDate ? totalsByDay.get(lead.sentDate) : undefined;
+      if (sentBucket) sentBucket.sent += 1;
+      const releasedBucket = lead.releasedDate ? totalsByDay.get(lead.releasedDate) : undefined;
+      if (releasedBucket) releasedBucket.released += 1;
+      const ranBucket = lead.ranDate ? totalsByDay.get(lead.ranDate) : undefined;
+      if (ranBucket) ranBucket.ran += 1;
+    }
+
+    let maxMetric = 1;
+    const series = weekDays.map((date) => {
+      const metrics = totalsByDay.get(date)!;
+      if (metrics.sent > maxMetric) maxMetric = metrics.sent;
+      if (metrics.released > maxMetric) maxMetric = metrics.released;
+      if (metrics.ran > maxMetric) maxMetric = metrics.ran;
+      return { date, metrics };
+    });
+
+    return { days: weekDays, dailyMetrics: series, maximum: maxMetric };
+  }, [leads, weekStart]);
 
   return (
     <section aria-labelledby="marketing-trend-title" className="overflow-hidden rounded-xl border border-[#d6e2e9] bg-white dark:border-slate-800 dark:bg-slate-950/80">
@@ -218,8 +245,27 @@ function RegionBreakdown({
   mode: Mode;
   referenceDate: string;
 }) {
-  const otherRegions = Array.from(new Set(rows.map((lead) => lead.region))).filter((region) => !DEFAULT_REGIONS.includes(region)).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-  const regions = [...DEFAULT_REGIONS, ...otherRegions];
+  const { regions, metricsByRegion } = React.useMemo(() => {
+    const totalsByRegion = new Map<string, Metrics>();
+    for (const lead of rows) {
+      let bucket = totalsByRegion.get(lead.region);
+      if (!bucket) {
+        bucket = { sent: 0, released: 0, ran: 0 };
+        totalsByRegion.set(lead.region, bucket);
+      }
+      const metrics = getMetrics(lead, mode, referenceDate);
+      bucket.sent += metrics.sent;
+      bucket.released += metrics.released;
+      bucket.ran += metrics.ran;
+    }
+    const otherRegions = Array.from(totalsByRegion.keys())
+      .filter((region) => !DEFAULT_REGION_SET.has(region))
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    return {
+      regions: [...DEFAULT_REGIONS, ...otherRegions],
+      metricsByRegion: totalsByRegion,
+    };
+  }, [rows, mode, referenceDate]);
   return (
     <section aria-labelledby="marketing-regions-title" className="overflow-hidden rounded-xl border border-[#d6e2e9] bg-white dark:border-slate-800 dark:bg-slate-950/80">
       <SectionHeading id="marketing-regions-title" title="Resultado por região" detail="Cadastros contados por data e praça." />
@@ -235,8 +281,7 @@ function RegionBreakdown({
           </thead>
           <tbody className="divide-y divide-[#e7edf1] dark:divide-slate-800">
             {regions.map((region) => {
-              const regionRows = rows.filter((lead) => lead.region === region);
-              const totals = sumMetrics(regionRows, mode, referenceDate);
+              const totals = metricsByRegion.get(region) ?? { sent: 0, released: 0, ran: 0 };
               return (
                 <tr key={region} className="text-slate-700 dark:text-slate-300">
                   <th scope="row" className="px-4 py-3 font-medium text-[#173f59] dark:text-slate-200 sm:px-5">{region}</th>
@@ -262,10 +307,46 @@ function AttendantBreakdown({
   mode: Mode;
   referenceDate: string;
 }) {
-  const namesInData = Array.from(new Set(rows.map((lead) => lead.attendant)));
-  const primary = DEFAULT_ATTENDANTS.filter((name) => namesInData.some((current) => current.toLocaleLowerCase('pt-BR').includes(name.toLocaleLowerCase('pt-BR'))));
-  const otherNames = namesInData.filter((name) => !primary.some((known) => name.toLocaleLowerCase('pt-BR').includes(known.toLocaleLowerCase('pt-BR')))).sort((a, b) => a.localeCompare(b, 'pt-BR'));
-  const names = [...DEFAULT_ATTENDANTS, ...otherNames];
+  const attendantRows = React.useMemo(() => {
+    const byLowerAttendant = new Map<string, { displayName: string; metrics: Metrics }>();
+    for (const lead of rows) {
+      const lower = lead.attendant.toLocaleLowerCase('pt-BR');
+      let entry = byLowerAttendant.get(lower);
+      if (!entry) {
+        entry = { displayName: lead.attendant, metrics: { sent: 0, released: 0, ran: 0 } };
+        byLowerAttendant.set(lower, entry);
+      }
+      const metrics = getMetrics(lead, mode, referenceDate);
+      entry.metrics.sent += metrics.sent;
+      entry.metrics.released += metrics.released;
+      entry.metrics.ran += metrics.ran;
+    }
+
+    const uniqueEntries = Array.from(byLowerAttendant.entries());
+    const primaryLowers = DEFAULT_ATTENDANTS
+      .map((name) => name.toLocaleLowerCase('pt-BR'))
+      .filter((knownLower) => uniqueEntries.some(([attendantLower]) => attendantLower.includes(knownLower)));
+
+    const otherNames = uniqueEntries
+      .filter(([attendantLower]) => !primaryLowers.some((knownLower) => attendantLower.includes(knownLower)))
+      .map(([, entry]) => entry.displayName)
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+    const orderedNames = [...DEFAULT_ATTENDANTS, ...otherNames];
+    return orderedNames.map((name) => {
+      const targetLower = name.toLocaleLowerCase('pt-BR');
+      const totals: Metrics = { sent: 0, released: 0, ran: 0 };
+      for (const [attendantLower, entry] of uniqueEntries) {
+        if (attendantLower.includes(targetLower)) {
+          totals.sent += entry.metrics.sent;
+          totals.released += entry.metrics.released;
+          totals.ran += entry.metrics.ran;
+        }
+      }
+      return { name, totals };
+    });
+  }, [rows, mode, referenceDate]);
+
   return (
     <section aria-labelledby="marketing-attendants-title" className="overflow-hidden rounded-xl border border-[#d6e2e9] bg-white dark:border-slate-800 dark:bg-slate-950/80">
       <SectionHeading id="marketing-attendants-title" title="Produção por atendente" detail="Enviados e liberados no período selecionado." />
@@ -279,17 +360,13 @@ function AttendantBreakdown({
             </tr>
           </thead>
           <tbody className="divide-y divide-[#e7edf1] dark:divide-slate-800">
-            {names.length > 0 ? names.map((name) => {
-              const attendantRows = rows.filter((lead) => lead.attendant.toLocaleLowerCase('pt-BR').includes(name.toLocaleLowerCase('pt-BR')));
-              const totals = sumMetrics(attendantRows, mode, referenceDate);
-              return (
-                <tr key={name} className="text-slate-700 dark:text-slate-300">
-                  <th scope="row" className="max-w-[220px] truncate px-4 py-3 font-medium text-[#173f59] dark:text-slate-200 sm:px-5">{name}</th>
-                  <td className="px-3 py-3 text-right tabular-nums">{numberFormat(totals.sent)}</td>
-                  <td className="px-4 py-3 text-right tabular-nums sm:px-5">{numberFormat(totals.released)}</td>
-                </tr>
-              );
-            }) : (
+            {attendantRows.length > 0 ? attendantRows.map(({ name, totals }) => (
+              <tr key={name} className="text-slate-700 dark:text-slate-300">
+                <th scope="row" className="max-w-[220px] truncate px-4 py-3 font-medium text-[#173f59] dark:text-slate-200 sm:px-5">{name}</th>
+                <td className="px-3 py-3 text-right tabular-nums">{numberFormat(totals.sent)}</td>
+                <td className="px-4 py-3 text-right tabular-nums sm:px-5">{numberFormat(totals.released)}</td>
+              </tr>
+            )) : (
               <tr><td colSpan={3} className="px-4 py-8 text-center text-slate-500 dark:text-slate-400">Nenhum atendente teve movimento no período.</td></tr>
             )}
           </tbody>
@@ -311,20 +388,28 @@ function LeadList({
   const [search, setSearch] = React.useState('');
   const [stage, setStage] = React.useState('all');
   const [metric, setMetric] = React.useState('all');
-  const stages = Array.from(new Set(rows.map((lead) => lead.stage))).sort((a, b) => {
-    const aOrder = rows.find((lead) => lead.stage === a)?.stageOrder ?? 99;
-    const bOrder = rows.find((lead) => lead.stage === b)?.stageOrder ?? 99;
-    return aOrder - bOrder || a.localeCompare(b, 'pt-BR');
-  });
+  const stages = React.useMemo(() => {
+    const stageOrderMap = new Map<string, number>();
+    for (const lead of rows) {
+      if (!stageOrderMap.has(lead.stage)) {
+        stageOrderMap.set(lead.stage, lead.stageOrder ?? 99);
+      }
+    }
+    return Array.from(stageOrderMap.keys()).sort((a, b) => {
+      const aOrder = stageOrderMap.get(a) ?? 99;
+      const bOrder = stageOrderMap.get(b) ?? 99;
+      return aOrder - bOrder || a.localeCompare(b, 'pt-BR');
+    });
+  }, [rows]);
   const normalizedSearch = search.trim().toLocaleLowerCase('pt-BR');
-  const filteredRows = rows.filter((lead) => {
+  const filteredRows = React.useMemo(() => rows.filter((lead) => {
     const text = [lead.lead, lead.phone, lead.code, lead.subregion].join(' ').toLocaleLowerCase('pt-BR');
     const metrics = getMetrics(lead, mode, referenceDate);
     const matchesMetric = metric === 'all' || (metric === 'sent' && metrics.sent > 0) || (metric === 'released' && metrics.released > 0) || (metric === 'ran' && metrics.ran > 0);
     return (!normalizedSearch || text.includes(normalizedSearch))
       && (stage === 'all' || lead.stage === stage)
       && matchesMetric;
-  });
+  }), [rows, mode, referenceDate, metric, normalizedSearch, stage]);
   const hasFilters = Boolean(search || stage !== 'all' || metric !== 'all');
 
   return (
@@ -512,7 +597,7 @@ const MarketingApresentacaoView = React.memo(function MarketingApresentacaoView(
         </div>
       </header>
 
-      <section aria-label="Parâmetros da apresentação" className="flex min-w-0 flex-col gap-4 border-b border-[#d5e1e9] bg-[#f2f7fa] px-3 py-3 dark:border-[#263b4b] dark:bg-[#101c26] sm:flex-row sm:items-center sm:justify-between sm:px-4">
+      <section aria-label="Parâmetros da apresentação" className="flex min-w-0 flex-col gap-4 rounded-xl border border-[#d5e1e9] bg-[#f2f7fa] px-3 py-3 dark:border-[#263b4b] dark:bg-[#101c26] sm:flex-row sm:items-center sm:justify-between sm:px-4">
         <div className="min-w-0">
           <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.1em] text-slate-600 dark:text-slate-400">Período</p>
           <div className="inline-flex rounded-lg border border-[#cbd9e2] bg-white p-1 dark:border-slate-700 dark:bg-slate-900" role="group" aria-label="Escolher período">
@@ -542,7 +627,9 @@ const MarketingApresentacaoView = React.memo(function MarketingApresentacaoView(
                 className="h-10 rounded-lg border-[#cbd9e2] bg-white pl-10 text-xs text-[#173f59] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100"
               />
             </span>
-            <span className="mt-1.5 block text-[10px] leading-4 text-slate-500 dark:text-slate-400">Prévia: {reportLabel || 'carregando…'}</span>
+            <span className="mt-1.5 block text-[10px] leading-4 text-slate-500 dark:text-slate-400">
+              Prévia: {reportLabel || <span aria-label="Carregando prévia" className="dashboard-loading-shimmer inline-block h-3 w-24 rounded align-middle" />}
+            </span>
           </label>
           <Button
             type="button"
@@ -553,8 +640,12 @@ const MarketingApresentacaoView = React.memo(function MarketingApresentacaoView(
             <Presentation className="h-4 w-4" aria-hidden="true" />Gerar apresentação
           </Button>
           <div className="flex min-w-0 items-center gap-2 text-[11px] leading-4 text-slate-600 dark:text-slate-400">
-            <Clock3 className="h-4 w-4 shrink-0 text-[#47718a] dark:text-sky-300" aria-hidden="true" />
-            <span>{updatedAt ? `Atualizado às ${updatedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'Aguardando atualização'}{stale ? ' · exibindo dados em cache' : ''}</span>
+            {loading && !updatedAt ? (
+              <Loader2 className="h-4 w-4 shrink-0 motion-safe:animate-spin text-[#47718a] dark:text-sky-300" aria-hidden="true" />
+            ) : (
+              <Clock3 className="h-4 w-4 shrink-0 text-[#47718a] dark:text-sky-300" aria-hidden="true" />
+            )}
+            <span>{updatedAt ? `Atualizado às ${updatedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : loading ? 'Consultando dados…' : 'Aguardando atualização'}{stale ? ' · exibindo dados em cache' : ''}</span>
           </div>
         </div>
       </section>
@@ -562,7 +653,7 @@ const MarketingApresentacaoView = React.memo(function MarketingApresentacaoView(
       {error && snapshot ? (
         <div role="status" className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-xs text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-100">
           <span>Não foi possível atualizar agora; mantendo os dados carregados. {error}</span>
-          <Button variant="outline" size="sm" onClick={() => void loadReport(true, selectedDate)} disabled={loading} className="h-8 gap-2 text-xs"><RefreshCw className="h-3.5 w-3.5" aria-hidden="true" />Tentar novamente</Button>
+          <Button variant="outline" size="sm" onClick={() => void loadReport(true, selectedDate)} disabled={loading} className="h-8 gap-2 text-xs"><RefreshCw className={cn('h-3.5 w-3.5', loading && 'motion-safe:animate-spin')} aria-hidden="true" />Tentar novamente</Button>
         </div>
       ) : null}
 
@@ -575,7 +666,7 @@ const MarketingApresentacaoView = React.memo(function MarketingApresentacaoView(
             <AlertCircle className="h-4 w-4" aria-hidden="true" />
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div><AlertTitle>Não foi possível carregar os dados</AlertTitle><AlertDescription className="mt-1">{error}</AlertDescription></div>
-              <Button type="button" variant="outline" onClick={() => void loadReport(true, selectedDate)} disabled={loading} className="shrink-0 gap-2"><RefreshCw className="h-4 w-4" aria-hidden="true" />Tentar novamente</Button>
+              <Button type="button" variant="outline" onClick={() => void loadReport(true, selectedDate)} disabled={loading} className="shrink-0 gap-2"><RefreshCw className={cn('h-4 w-4', loading && 'motion-safe:animate-spin')} aria-hidden="true" />Tentar novamente</Button>
             </div>
           </Alert>
         ) : snapshot ? (

@@ -53,7 +53,7 @@ export const PerformerRow = ({
 }) => (
     <div className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50">
         <span
-            className={`inline-flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-xs font-black ${
+            className={`inline-flex h-7 min-w-7 items-center justify-center rounded-full px-2 text-xs font-black tabular-nums ${
                 highlightTop
                     ? 'bg-amber-100 text-amber-700 dark:bg-amber-950/30 dark:text-amber-300'
                     : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-300'
@@ -65,12 +65,12 @@ export const PerformerRow = ({
             <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
                 {e.nome_entregador}
             </p>
-            <p className="truncate font-mono text-[11px] text-slate-500 dark:text-slate-400">
+            <p className="truncate font-mono text-[11px] tabular-nums text-slate-500 dark:text-slate-400">
                 {e.id_entregador}
             </p>
         </div>
         <HealthBadge grade={hs.grade} score={hs.score} />
-        <span className="w-24 text-right font-mono text-sm font-black text-slate-900 dark:text-slate-100">
+        <span className="w-24 text-right font-mono text-sm font-black tabular-nums text-slate-900 dark:text-slate-100">
             {formatMetric(getMetricValue(e, metric), metric)}
         </span>
     </div>

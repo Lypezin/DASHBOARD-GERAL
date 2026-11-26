@@ -7,7 +7,8 @@ import { getPresenceData } from './presenceData';
 import { useAppBootstrap } from '@/contexts/AppBootstrapContext';
 import { normalizePresenceUsers, isSameOnlineUsers } from './presenceHelpers';
 
-const JOIN_NOTIFICATION_COOLDOWN_MS = 15000;
+const EMPTY_JOINED_USERS: OnlineUser[] = [];
+const NOOP_CLEAR_JOINED = () => {};
 
 export function usePresence(
     userId: string | null,
@@ -18,20 +19,16 @@ export function usePresence(
 ) {
     const { authUser, avatarUrl } = useAppBootstrap();
     const [onlineUsers, setOnlineUsers] = useState<OnlineUser[]>([]);
-    const [joinedUsers, setJoinedUsers] = useState<OnlineUser[]>([]);
     const [customStatus, setCustomStatus] = useState<string>('');
     const channelRef = useRef<RealtimeChannel | null>(null);
     const sessionStartRef = useRef(new Date().toISOString());
     const presenceBaseRef = useRef<OnlineUser | null>(null);
-    const recentJoinNotificationsRef = useRef<Map<string, number>>(new Map());
     const authUserRef = useRef(authUser);
     const currentUserRef = useRef(currentUser);
     const currentTabRef = useRef(currentTab);
     const isIdleRef = useRef(isIdle);
     const customStatusRef = useRef(customStatus);
     const avatarUrlRef = useRef(avatarUrl);
-
-    const clearJoinedUsers = useCallback(() => setJoinedUsers([]), []);
 
     useEffect(() => {
         authUserRef.current = authUser;
@@ -78,7 +75,6 @@ export function usePresence(
     useEffect(() => {
         if (!enabled) {
             setOnlineUsers([]);
-            setJoinedUsers([]);
             presenceBaseRef.current = null;
             if (channelRef.current) {
                 supabase.removeChannel(channelRef.current);
@@ -104,31 +100,7 @@ export function usePresence(
                 const newState = channel.presenceState<OnlineUser>();
                 const users = normalizePresenceUsers(newState);
 
-                setOnlineUsers((prev) => {
-                    if (isSameOnlineUsers(prev, users)) {
-                        return prev;
-                    }
-
-                    if (prev.length > 0) {
-                        const prevIds = new Set(prev.map((user) => user.id));
-                        const now = Date.now();
-                        const newJoiners = users.filter((user) => {
-                            if (user.id === userId || prevIds.has(user.id)) return false;
-
-                            const lastNotifiedAt = recentJoinNotificationsRef.current.get(user.id) ?? 0;
-                            if (now - lastNotifiedAt < JOIN_NOTIFICATION_COOLDOWN_MS) return false;
-
-                            recentJoinNotificationsRef.current.set(user.id, now);
-                            return true;
-                        });
-
-                        if (newJoiners.length > 0) {
-                            setJoinedUsers((last) => [...last, ...newJoiners]);
-                        }
-                    }
-
-                    return users;
-                });
+                setOnlineUsers((prev) => (isSameOnlineUsers(prev, users) ? prev : users));
             })
             .subscribe(async (status) => {
                 if (status === 'SUBSCRIBED') {
@@ -160,7 +132,7 @@ export function usePresence(
         void updatePresence();
     }, [authUser?.id, avatarUrl, buildPresencePayload, currentTab, currentUser?.id, customStatus, enabled, isIdle, userId]);
 
-    const setTypingTo = async (targetUserId: string | null) => {
+    const setTypingTo = useCallback(async (targetUserId: string | null) => {
         if (!enabled || !channelRef.current || !userId) return;
 
         const payload = await buildPresencePayload();
@@ -171,12 +143,12 @@ export function usePresence(
                 last_typed: targetUserId ? new Date().toISOString() : undefined
             });
         }
-    };
+    }, [buildPresencePayload, enabled, userId]);
 
     return {
         onlineUsers,
-        joinedUsers,
-        clearJoinedUsers,
+        joinedUsers: EMPTY_JOINED_USERS,
+        clearJoinedUsers: NOOP_CLEAR_JOINED,
         customStatus,
         setCustomStatus,
         setTypingTo

@@ -1,3 +1,5 @@
+const INTEGER_PT_BR = new Intl.NumberFormat('pt-BR');
+
 /** Converte formato HH:MM:SS ou número para horas decimais */
 export function converterHorasParaDecimal(valor: string | number): number {
     if (typeof valor === 'number') return valor;
@@ -73,7 +75,7 @@ export const formatCompactTime = (timeString: string): string => {
 
     if (isNaN(hours)) return timeString;
 
-    if (hours > 9999) return `${new Intl.NumberFormat('pt-BR').format(hours)}h`;
+    if (hours > 9999) return `${INTEGER_PT_BR.format(hours)}h`;
     if (hours > 999) return `${hours}h`;
     if (minutes > 0 && hours < 100) return `${hours}h${minutes.toString().padStart(2, '0')}`;
     return `${hours}h`;

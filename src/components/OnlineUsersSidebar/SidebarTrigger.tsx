@@ -84,7 +84,7 @@ export function SidebarTrigger({
                         <p className="text-[10px] font-semibold text-slate-500 dark:text-slate-400">
                             Chat da equipe
                         </p>
-                        <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                        <p className="truncate text-sm font-semibold tabular-nums text-slate-900 dark:text-slate-100">
                             {onlineCount} online · {unreadCount} não lidas
                         </p>
 

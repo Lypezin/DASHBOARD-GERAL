@@ -66,9 +66,11 @@ const PrioridadePromoView = React.memo(function PrioridadePromoView({
       ) : showError ? (
         <PrioridadeErrorState onRetry={retry} />
       ) : showIntegrityError ? (
-        <div role="alert" className="mx-auto flex max-w-3xl flex-col gap-4 rounded-2xl border border-amber-200/70 bg-amber-50/85 px-5 py-4 text-sm font-semibold text-amber-800 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
-          <span>{exportIntegrityError}</span>
-          <button type="button" onClick={retry} className="shrink-0 font-bold underline underline-offset-4">Tentar novamente</button>
+        <div className="mx-auto w-full max-w-[1600px] px-4 pt-6 sm:px-6 lg:px-8">
+          <div role="alert" className="mx-auto flex max-w-3xl flex-col gap-4 rounded-2xl border border-amber-200/70 bg-amber-50/85 px-5 py-4 text-sm font-semibold text-amber-800 shadow-sm sm:flex-row sm:items-center sm:justify-between dark:border-amber-900/40 dark:bg-amber-950/25 dark:text-amber-200">
+            <span>{exportIntegrityError}</span>
+            <button type="button" onClick={retry} className="shrink-0 font-bold underline underline-offset-4">Tentar novamente</button>
+          </div>
         </div>
       ) : showEmpty ? (
         <PrioridadeEmptyState />

@@ -15,7 +15,7 @@ import { useDeferredMount } from '@/hooks/ui/useDeferredMount';
 import { calculateAderenciaGeral } from '@/utils/dashboard/aderenciaCalc';
 import { getDimensionFilterSupport } from '@/utils/filters/dimensionFilterSupport';
 import { FaviconManager } from '@/components/layout/FaviconManager';
-import { startTopLoader, stopTopLoader } from '@/components/ui/TopLoader';
+import { useTopLoaderSync } from '@/components/ui/TopLoader';
 
 const DeferredActivityTracker = dynamic(
   () => import('@/components/dashboard/ActivityTracker').then((mod) => ({ default: mod.ActivityTracker })),
@@ -27,6 +27,28 @@ const DeferredLoginStreakBadge = dynamic(
   { ssr: false }
 );
 
+function DeferredActivityTrackerSlot({
+  enabled,
+  activeTab,
+  filters,
+  currentUser,
+}: {
+  enabled: boolean;
+  activeTab: React.ComponentProps<typeof DeferredActivityTracker>['activeTab'];
+  filters: React.ComponentProps<typeof DeferredActivityTracker>['filters'];
+  currentUser: React.ComponentProps<typeof DeferredActivityTracker>['currentUser'];
+}) {
+  const ready = useDeferredMount({ enabled, timeoutMs: 700 });
+  if (!ready) return null;
+  return <DeferredActivityTracker activeTab={activeTab} filters={filters} currentUser={currentUser} />;
+}
+
+function DeferredLoginStreakSlot({ enabled, className }: { enabled: boolean; className?: string }) {
+  const ready = useDeferredMount({ enabled, timeoutMs: 1200 });
+  if (!ready) return null;
+  return <DeferredLoginStreakBadge className={className} />;
+}
+
 export function DashboardShell() {
   return (
     <React.Suspense fallback={<DashboardLoadingState />}>
@@ -37,14 +59,6 @@ export function DashboardShell() {
 
 function DashboardShellContent() {
   const { auth, ui, filters, anoEvolucao, data } = useDashboardPage();
-  const showActivityTracker = useDeferredMount({
-    enabled: auth.isAuthenticated,
-    timeoutMs: 700,
-  });
-  const showLoginBadge = useDeferredMount({
-    enabled: auth.isAuthenticated,
-    timeoutMs: 1200,
-  });
 
   const aderenciaGeral = React.useMemo(() => {
     if (!data.aderenciaSemanal) return undefined;
@@ -72,13 +86,7 @@ function DashboardShellContent() {
   const isMainDataTab = ui.activeTab === 'dashboard' || ui.activeTab === 'analise';
   const showInitialLoading = isMainDataTab && ui.loading && !hasMainData && !data.hasSuccessfulData;
 
-  React.useEffect(() => {
-    if (ui.loading || filters.optionsLoading) {
-      startTopLoader();
-    } else {
-      stopTopLoader();
-    }
-  }, [ui.loading, filters.optionsLoading]);
+  useTopLoaderSync(ui.loading || filters.optionsLoading);
 
   if (auth.isCheckingAuth) return <DashboardAuthLoading />;
   if (auth.hasSessionWithoutProfile) {
@@ -105,13 +113,12 @@ function DashboardShellContent() {
     <div className="relative min-h-full">
       <FaviconManager percentual={percentualAderencia} />
 
-      {showActivityTracker ? (
-        <DeferredActivityTracker
-          activeTab={ui.activeTab}
-          filters={filters.state}
-          currentUser={auth.currentUser}
-        />
-      ) : null}
+      <DeferredActivityTrackerSlot
+        enabled={auth.isAuthenticated}
+        activeTab={ui.activeTab}
+        filters={filters.state}
+        currentUser={auth.currentUser}
+      />
 
       <div className="relative z-10 px-4 py-6 sm:px-6 lg:px-8">
         <div className="space-y-6 motion-safe:animate-fade-in">
@@ -120,41 +127,39 @@ function DashboardShellContent() {
               Não foi possível atualizar os indicadores agora. Mantendo a última resposta válida na tela.
             </div>
           ) : null}
-          {(showFiltersRow || showLoginBadge) ? (
+          {showFiltersRow ? (
             <div className="flex flex-col gap-3 xl:flex-row xl:items-start xl:justify-between">
-              {showFiltersRow ? (
-                <div className="min-w-0 flex-1">
-                  <DashboardFiltersContainer
-                    filters={filters.state}
-                    setFilters={filters.setState}
-                    anosDisponiveis={filters.options.anos}
-                    semanasDisponiveis={filters.options.semanas}
-                    pracas={filters.options.pracas}
-                    subPracas={filters.options.subPracas}
-                    origens={filters.options.origens}
-                    turnos={filters.options.turnos}
-                    currentUser={auth.currentUser}
-                    activeTab={ui.activeTab}
-                    optionsLoading={filters.optionsLoading}
-                    optionsError={filters.optionsError}
-                  />
-                  {filters.optionsLoading && !filters.optionsError ? (
-                    <p role="status" className="mt-2 inline-flex items-center gap-1.5 pl-1 text-xs font-medium text-slate-500 dark:text-slate-400">
-                      <Loader2 className="h-3.5 w-3.5 shrink-0 motion-safe:animate-spin text-blue-500" aria-hidden="true" />
-                      <span>Carregando opções dos filtros…</span>
-                    </p>
-                  ) : null}
-                  {filters.optionsError ? (
-                    <div role="alert" className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-100">
-                      <span>{filters.optionsError}</span>
-                      <button type="button" onClick={filters.retryOptions} className="underline underline-offset-2 hover:no-underline">
-                        Tentar novamente
-                      </button>
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-              {showLoginBadge ? <DeferredLoginStreakBadge className="self-start xl:self-auto shrink-0 ml-auto" /> : null}
+              <div className="min-w-0 flex-1">
+                <DashboardFiltersContainer
+                  filters={filters.state}
+                  setFilters={filters.setState}
+                  anosDisponiveis={filters.options.anos}
+                  semanasDisponiveis={filters.options.semanas}
+                  pracas={filters.options.pracas}
+                  subPracas={filters.options.subPracas}
+                  origens={filters.options.origens}
+                  turnos={filters.options.turnos}
+                  currentUser={auth.currentUser}
+                  activeTab={ui.activeTab}
+                  optionsLoading={filters.optionsLoading}
+                  optionsError={filters.optionsError}
+                />
+                {filters.optionsLoading && !filters.optionsError ? (
+                  <p role="status" className="mt-2 inline-flex items-center gap-1.5 pl-1 text-xs font-medium text-slate-500 dark:text-slate-400">
+                    <Loader2 className="h-3.5 w-3.5 shrink-0 motion-safe:animate-spin text-blue-500" aria-hidden="true" />
+                    <span>Carregando opções dos filtros…</span>
+                  </p>
+                ) : null}
+                {filters.optionsError ? (
+                  <div role="alert" className="mt-2 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-900 dark:border-amber-900/50 dark:bg-amber-950/25 dark:text-amber-100">
+                    <span>{filters.optionsError}</span>
+                    <button type="button" onClick={filters.retryOptions} className="underline underline-offset-2 hover:no-underline">
+                      Tentar novamente
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+              <DeferredLoginStreakSlot enabled={auth.isAuthenticated} className="self-start shrink-0 ml-auto xl:mt-5 xl:self-auto" />
             </div>
           ) : null}
 

@@ -65,7 +65,6 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
         const start = (currentPage - 1) * pageSize;
         return sortedEntregadores.slice(start, start + pageSize);
     }, [serverPagination, sortedEntregadores, currentPage, pageSize]);
-    const pageContentKey = `${currentPage}:${sortField}:${sortDirection}:${searchTerm}`;
 
     return (
         <div
@@ -78,21 +77,18 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
 
             <div className="subtle-scrollbar overflow-x-auto overscroll-x-contain">
                 <div className={variant === 'entregadores' ? 'min-w-[1080px]' : 'min-w-[1320px]'}>
-                    <EntregadoresMainTableHeader
-                        sortField={sortField}
-                        sortDirection={sortDirection}
-                        onSort={onSort}
-                        variant={variant}
-                    />
-
-                    <div className={`subtle-scrollbar overflow-y-auto ${variant === 'entregadores' ? 'max-h-[510px]' : 'max-h-[640px]'}`}>
+                    <div className={`subtle-scrollbar overflow-y-auto ${variant === 'entregadores' ? 'max-h-[560px]' : 'max-h-[680px]'}`}>
+                        <EntregadoresMainTableHeader
+                            sortField={sortField}
+                            sortDirection={sortDirection}
+                            onSort={onSort}
+                            variant={variant}
+                        />
                         {currentItems.length > 0 ? (
                             <motion.div
-                                key={pageContentKey}
-                                initial={shouldReduceMotion ? false : { opacity: 0, y: 6 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                transition={{ duration: shouldReduceMotion ? 0 : 0.16, ease: [0.22, 1, 0.36, 1] }}
-                                style={{ willChange: 'transform, opacity' }}
+                                initial={shouldReduceMotion ? false : { opacity: 0.92 }}
+                                animate={{ opacity: 1 }}
+                                transition={{ duration: shouldReduceMotion ? 0 : 0.14, ease: [0.22, 1, 0.36, 1] }}
                                 className={variant === 'entregadores' ? 'divide-y divide-[#e7eef3] dark:divide-slate-800/80' : 'divide-y divide-slate-100/80 dark:divide-slate-800/80'}
                             >
                                 {currentItems.map((entregador) => (
@@ -100,19 +96,12 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                                         key={entregador.id_entregador}
                                         entregador={entregador}
                                         variant={variant}
-                                        onClick={isUpdating ? undefined : onRowClick}
+                                        onClick={onRowClick}
                                     />
                                 ))}
                             </motion.div>
                         ) : (
-                            <motion.div
-                                key={`empty:${currentPage}:${searchTerm}`}
-                                initial={shouldReduceMotion ? false : { opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                transition={{ duration: shouldReduceMotion ? 0 : 0.14, ease: 'easeOut' }}
-                                style={{ willChange: 'opacity' }}
-                                className="px-6 py-14 text-center"
-                            >
+                            <div className="px-6 py-14 text-center">
                                 <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                                     {searchTerm
                                         ? `Nenhum entregador encontrado com o termo "${searchTerm}"`
@@ -121,7 +110,7 @@ export const EntregadoresMainTable = React.memo(function EntregadoresMainTable({
                                 <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
                                     Ajuste os filtros ou refine a busca para localizar registros.
                                 </p>
-                            </motion.div>
+                            </div>
                         )}
                     </div>
                 </div>

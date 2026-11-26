@@ -98,19 +98,19 @@ export function MarketingGeneratedPresentation({ reportDate }: { reportDate: str
       {showLoading ? (
         <PresentationLoading />
       ) : !report || error ? (
-        <main className="flex min-h-screen items-center justify-center bg-slate-50 px-5 dark:bg-slate-950">
+        <main className="flex min-h-screen items-center justify-center bg-slate-50 px-5 text-center dark:bg-slate-950">
           <section role="alert" className="w-full max-w-xl rounded-xl border border-rose-200 bg-white p-6 text-slate-900 shadow-sm dark:border-rose-900/60 dark:bg-slate-900 dark:text-white sm:p-8">
-            <AlertCircle className="h-6 w-6 text-rose-600 dark:text-rose-300" aria-hidden="true" />
+            <AlertCircle className="mx-auto h-7 w-7 text-rose-600 dark:text-rose-300" aria-hidden="true" />
             <h1 className="mt-4 text-lg font-semibold">Não foi possível montar a apresentação</h1>
             <p className="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">{error || 'Nenhum dado foi recebido.'}</p>
-            <Button type="button" onClick={() => setRetry((value) => value + 1)} className="mt-5 gap-2 bg-[#1e5d80] text-white hover:bg-[#174966]">
-              <RefreshCw className="h-4 w-4" aria-hidden="true" />Tentar novamente
+            <Button type="button" onClick={() => setRetry((value) => value + 1)} disabled={loading} className="mt-5 gap-2 bg-[#1e5d80] text-white hover:bg-[#174966]">
+              <RefreshCw className={`h-4 w-4 ${loading ? 'motion-safe:animate-spin' : ''}`} aria-hidden="true" />Tentar novamente
             </Button>
           </section>
         </main>
       ) : (
         <>
-          {stale ? <div role="status" className="fixed bottom-4 left-1/2 z-[100] -translate-x-1/2 rounded-full bg-amber-100 px-4 py-2 text-xs font-medium text-amber-950 shadow-lg dark:bg-amber-950 dark:text-amber-100">Dados operacionais em cache</div> : null}
+          {stale ? <div role="status" className="fixed top-4 left-1/2 z-[100] -translate-x-1/2 rounded-full bg-amber-100 px-4 py-2 text-xs font-medium text-amber-950 shadow-lg dark:bg-amber-950 dark:text-amber-100">Dados operacionais em cache</div> : null}
           <MarketingReportSlides
             citiesData={report.citiesData}
             evolutionData={report.evolutionData}

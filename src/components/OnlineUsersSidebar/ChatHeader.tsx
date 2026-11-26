@@ -50,9 +50,9 @@ function ChatHeaderComponent({ activeChatUser, currentUser, onClose }: ChatHeade
             {isTyping ? (
               <>
                 <span className="flex gap-0.5" aria-hidden="true">
-                  <span className="h-1 w-1 animate-pulse rounded-full bg-blue-500 [animation-delay:-0.2s]" />
-                  <span className="h-1 w-1 animate-pulse rounded-full bg-blue-500 [animation-delay:-0.1s]" />
-                  <span className="h-1 w-1 animate-pulse rounded-full bg-blue-500" />
+                  <span className="h-1 w-1 motion-safe:animate-pulse rounded-full bg-blue-500 [animation-delay:-0.2s]" />
+                  <span className="h-1 w-1 motion-safe:animate-pulse rounded-full bg-blue-500 [animation-delay:-0.1s]" />
+                  <span className="h-1 w-1 motion-safe:animate-pulse rounded-full bg-blue-500" />
                 </span>
                 <span className="text-blue-700 dark:text-blue-300">digitando</span>
               </>

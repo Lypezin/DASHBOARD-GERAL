@@ -12,26 +12,26 @@ function assertValidSlug(slug: string) {
 }
 
 export async function listAllOrganizations(admin: SupabaseClient) {
-    const { data, error } = await admin
-        .from('organizations')
-        .select('id, name, slug, max_users, is_active, created_at, updated_at')
-        .order('created_at', { ascending: false });
+    const [orgsResult, usersResult] = await Promise.all([
+        admin
+            .from('organizations')
+            .select('id, name, slug, max_users, is_active, created_at, updated_at')
+            .order('created_at', { ascending: false }),
+        admin
+            .from('user_profiles')
+            .select('organization_id'),
+    ]);
 
-    if (error) return { data: null, error };
-
-    const { data: users, error: usersError } = await admin
-        .from('user_profiles')
-        .select('organization_id');
-
-    if (usersError) return { data: null, error: usersError };
+    if (orgsResult.error) return { data: null, error: orgsResult.error };
+    if (usersResult.error) return { data: null, error: usersResult.error };
 
     const counts = new Map<string, number>();
-    (users || []).forEach((user) => {
+    (usersResult.data || []).forEach((user) => {
         if (user.organization_id) counts.set(user.organization_id, (counts.get(user.organization_id) || 0) + 1);
     });
 
     return {
-        data: (data || []).map((org) => ({ ...org, user_count: counts.get(org.id) || 0 })),
+        data: (orgsResult.data || []).map((org) => ({ ...org, user_count: counts.get(org.id) || 0 })),
         error: null
     };
 }

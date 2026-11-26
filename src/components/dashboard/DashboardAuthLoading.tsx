@@ -10,7 +10,7 @@ export const DashboardAuthLoading = React.memo(function DashboardAuthLoading() {
           <ShieldCheck className="relative h-8 w-8" aria-hidden="true" />
         </div>
         <div className="mx-auto mt-6 h-2 w-44 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-900">
-          <div className="h-full w-1/2 animate-[loading-bar_1.2s_ease-in-out_infinite] rounded-full bg-blue-600 dark:bg-blue-400" />
+          <div className="h-full w-1/2 motion-safe:animate-[loading-bar_1.2s_ease-in-out_infinite] rounded-full bg-blue-600 dark:bg-blue-400" />
         </div>
         <p className="mt-5 text-xl font-black tracking-tight text-slate-900 dark:text-white">
           {'Verificando autentica\u00e7\u00e3o'}

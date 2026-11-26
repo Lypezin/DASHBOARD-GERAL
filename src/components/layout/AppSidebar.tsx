@@ -25,6 +25,8 @@ export function AppSidebar() {
   const [search, setSearch] = React.useState('');
   const [searchShortcut, setSearchShortcut] = React.useState('Ctrl K');
   const searchRef = React.useRef<HTMLInputElement>(null);
+  const searchValueRef = React.useRef(search);
+  searchValueRef.current = search;
 
   React.useEffect(() => {
     if (/Mac|iPhone|iPad/.test(navigator.platform)) setSearchShortcut('⌘ K');
@@ -52,7 +54,7 @@ export function AppSidebar() {
           return;
         }
 
-        if (document.activeElement === searchRef.current && search) {
+        if (document.activeElement === searchRef.current && searchValueRef.current) {
           setSearch('');
           searchRef.current?.blur();
         }
@@ -67,7 +69,7 @@ export function AppSidebar() {
 
     window.addEventListener('keydown', handleSearchShortcut);
     return () => window.removeEventListener('keydown', handleSearchShortcut);
-  }, [mobileOpen, search, setCollapsed, setMobileOpen, shouldReduceMotion]);
+  }, [mobileOpen, setCollapsed, setMobileOpen, shouldReduceMotion]);
 
   const normalizedSearch = search.trim().toLocaleLowerCase('pt-BR');
   const visibleGroups = React.useMemo(() => SIDEBAR_GROUPS.map((group) => ({
@@ -78,10 +80,10 @@ export function AppSidebar() {
     }),
   })).filter((group) => group.items.length > 0), [normalizedSearch]);
 
-  const handleItemClick = (value: TabType) => {
+  const handleItemClick = React.useCallback((value: TabType) => {
     handleTabChange(value);
     setMobileOpen(false);
-  };
+  }, [handleTabChange, setMobileOpen]);
 
   const renderNavItems = (isMobile = false) => visibleGroups.map((group) => (
     <section key={`${isMobile ? 'mobile-' : ''}${group.name}`} className="space-y-1.5">
@@ -187,16 +189,30 @@ export function AppSidebar() {
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/75" aria-hidden="true" />
             <Input
               ref={searchRef}
-              type="search"
+              type="text"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Buscar guia..."
               aria-label="Buscar guia no menu"
-              className="h-9 rounded-[10px] border-border/80 bg-background/80 pl-9 pr-[4.6rem] text-xs shadow-none placeholder:text-muted-foreground/75 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/15"
+              className={cn(
+                'h-9 rounded-[10px] border-border/80 bg-background/80 pl-9 text-xs shadow-none placeholder:text-muted-foreground/75 focus-visible:border-primary/50 focus-visible:ring-2 focus-visible:ring-primary/15',
+                search ? 'pr-9' : 'pr-[4.6rem]'
+              )}
             />
-            <kbd className="pointer-events-none absolute right-2.5 top-1/2 inline-flex h-[19px] -translate-y-1/2 items-center gap-0.5 rounded border border-border bg-card px-1.5 font-sans text-[9px] font-medium text-muted-foreground shadow-[0_1px_0_hsl(var(--border))]">
-              {searchShortcut}
-            </kbd>
+            {search ? (
+              <button
+                type="button"
+                onClick={() => setSearch('')}
+                aria-label="Limpar busca do menu"
+                className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            ) : (
+              <kbd className="pointer-events-none absolute right-2.5 top-1/2 inline-flex h-[19px] -translate-y-1/2 items-center gap-0.5 rounded border border-border bg-card px-1.5 font-sans text-[9px] font-medium text-muted-foreground shadow-[0_1px_0_hsl(var(--border))]">
+                {searchShortcut}
+              </kbd>
+            )}
           </div>
         )}
 

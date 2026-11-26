@@ -1,6 +1,7 @@
 import type { RpcParams, RpcResult } from '@/types/rpc';
 import { buildAppAuthHeaders } from '@/utils/app/appAuthHeaders';
 import { INTERNAL_FETCH_OPTIONS, JSON_HEADERS } from '@/utils/app/internalFetchOptions';
+import { createRequestKey } from '@/utils/request/createRequestKey';
 
 const SECURE_RPC_FUNCTIONS = new Set([
   'dashboard_evolucao_bundle',
@@ -32,6 +33,8 @@ type SecureRpcResponse<T> = {
   details?: unknown;
 };
 
+const inFlightSecureRpcRequests = new Map<string, Promise<RpcResult<unknown>>>();
+
 export function shouldUseSecureRpcProxy(functionName: string) {
   return typeof window !== 'undefined' && SECURE_RPC_FUNCTIONS.has(functionName);
 }
@@ -41,44 +44,60 @@ export async function executeSecureRpcProxy<T>(
   params: RpcParams | undefined,
   timeout: number
 ): Promise<RpcResult<T>> {
-  const controller = new AbortController();
-  const timeoutId = window.setTimeout(() => controller.abort(), timeout);
+  const normalizedParams = params || {};
+  const requestKey = createRequestKey({ functionName, params: normalizedParams });
+  const existingRequest = inFlightSecureRpcRequests.get(requestKey);
+  if (existingRequest) {
+    return existingRequest as Promise<RpcResult<T>>;
+  }
 
-  try {
-    const response = await fetch('/api/app/secure-rpc', {
-      method: 'POST',
-      ...INTERNAL_FETCH_OPTIONS,
-      headers: await buildAppAuthHeaders(JSON_HEADERS),
-      signal: controller.signal,
-      body: JSON.stringify({ functionName, params: params || {} }),
-    });
+  const request = (async (): Promise<RpcResult<T>> => {
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), timeout);
 
-    const payload = await response.json().catch(() => null) as SecureRpcResponse<T> | null;
+    try {
+      const response = await fetch('/api/app/secure-rpc', {
+        method: 'POST',
+        ...INTERNAL_FETCH_OPTIONS,
+        headers: await buildAppAuthHeaders(JSON_HEADERS),
+        signal: controller.signal,
+        body: JSON.stringify({ functionName, params: normalizedParams }),
+      });
 
-    if (!response.ok) {
+      const payload = await response.json().catch(() => null) as SecureRpcResponse<T> | null;
+
+      if (!response.ok) {
+        return {
+          data: null,
+          error: {
+            message: payload?.error || 'Erro ao consultar dados protegidos.',
+            details: typeof payload?.details === 'string' ? payload.details : undefined,
+          },
+        };
+      }
+
+      return {
+        data: (payload?.data ?? null) as T | null,
+        error: null,
+      };
+    } catch (error) {
+      const isAbort = error instanceof DOMException && error.name === 'AbortError';
       return {
         data: null,
         error: {
-          message: payload?.error || 'Erro ao consultar dados protegidos.',
-          details: typeof payload?.details === 'string' ? payload.details : undefined,
+          message: isAbort ? 'Tempo limite excedido na consulta protegida.' : 'Erro ao consultar dados protegidos.',
+          code: isAbort ? 'TIMEOUT' : 'SECURE_RPC_ERROR',
         },
       };
+    } finally {
+      window.clearTimeout(timeoutId);
     }
+  })().finally(() => {
+    if (inFlightSecureRpcRequests.get(requestKey) === request) {
+      inFlightSecureRpcRequests.delete(requestKey);
+    }
+  });
 
-    return {
-      data: (payload?.data ?? null) as T | null,
-      error: null,
-    };
-  } catch (error) {
-    const isAbort = error instanceof DOMException && error.name === 'AbortError';
-    return {
-      data: null,
-      error: {
-        message: isAbort ? 'Tempo limite excedido na consulta protegida.' : 'Erro ao consultar dados protegidos.',
-        code: isAbort ? 'TIMEOUT' : 'SECURE_RPC_ERROR',
-      },
-    };
-  } finally {
-    window.clearTimeout(timeoutId);
-  }
+  inFlightSecureRpcRequests.set(requestKey, request as Promise<RpcResult<unknown>>);
+  return request;
 }

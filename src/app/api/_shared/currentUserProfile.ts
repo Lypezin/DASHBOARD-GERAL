@@ -272,6 +272,8 @@ export async function loadCurrentUserProfile(
     };
   }
 
+  setTimedCacheValue(profileCache, auth.user.id, profile, PROFILE_CACHE_POLICY);
+
   if (requireApproved && profile.is_approved !== true) {
     return {
       failure: {
@@ -289,8 +291,6 @@ export async function loadCurrentUserProfile(
       },
     };
   }
-
-  setTimedCacheValue(profileCache, auth.user.id, profile, PROFILE_CACHE_POLICY);
 
   return { profile };
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { getPremiumStyles } from './MarketingStatsTheme';
+import { AnimatedNumberText } from '@/components/ui/animated-counter';
 
 interface MarketingStatsCardProps {
     title: string;
@@ -47,7 +48,9 @@ export const MarketingStatsCard: React.FC<MarketingStatsCardProps> = ({
                     </div>
 
                     <div className="mb-2">
-                        <h3 className={`font-mono text-2xl font-bold tracking-tight tabular-nums ${styles.text}`}>{value}</h3>
+                        <h3 className={`font-mono text-2xl font-bold tracking-tight tabular-nums ${styles.text}`}>
+                            <AnimatedNumberText value={value} />
+                        </h3>
                         <p className="text-xs font-medium text-slate-500 opacity-80 dark:text-slate-400">{subtitle}</p>
                     </div>
                 </div>

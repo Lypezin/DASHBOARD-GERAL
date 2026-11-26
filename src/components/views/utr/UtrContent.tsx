@@ -3,6 +3,7 @@ import { Building2, Clock, MapPin, Target } from 'lucide-react';
 import { UtrData } from '@/types';
 import { UtrGeral } from './UtrGeral';
 import { UtrSection } from './UtrSection';
+import { StaggerContainer, StaggerItem } from '@/components/ui/stagger';
 
 interface UtrContentProps {
     utrData: UtrData;
@@ -29,39 +30,47 @@ export const UtrContent = React.memo(function UtrContent({
                     <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">UTR, tempo e corridas nos recortes operacionais disponíveis.</p>
                 </div>
 
-                <div className="grid gap-3 xl:grid-cols-2">
-                    <UtrSection
-                        title="Praça"
-                        description="Desempenho por polo operacional."
-                        icon={<Building2 className="h-4 w-4 text-[#347ca3] dark:text-sky-300" />}
-                        data={porPraca}
-                        getLabel={(item) => item.praca}
-                    />
+                <StaggerContainer className="grid gap-3 xl:grid-cols-2" staggerDelay={0.05}>
+                    <StaggerItem>
+                        <UtrSection
+                            title="Praça"
+                            description="Desempenho por polo operacional."
+                            icon={<Building2 className="h-4 w-4 text-[#347ca3] dark:text-sky-300" />}
+                            data={porPraca}
+                            getLabel={(item) => item.praca}
+                        />
+                    </StaggerItem>
 
-                    <UtrSection
-                        title="Sub-praça"
-                        description="Detalhamento por recorte interno."
-                        icon={<MapPin className="h-4 w-4 text-[#347ca3] dark:text-sky-300" />}
-                        data={porSubPraca}
-                        getLabel={(item) => item.sub_praca}
-                    />
+                    <StaggerItem>
+                        <UtrSection
+                            title="Sub-praça"
+                            description="Detalhamento por recorte interno."
+                            icon={<MapPin className="h-4 w-4 text-[#347ca3] dark:text-sky-300" />}
+                            data={porSubPraca}
+                            getLabel={(item) => item.sub_praca}
+                        />
+                    </StaggerItem>
 
-                    <UtrSection
-                        title="Origem"
-                        description="Distribuição por canal operacional."
-                        icon={<Target className="h-4 w-4 text-[#347ca3] dark:text-sky-300" />}
-                        data={porOrigem}
-                        getLabel={(item) => item.origem}
-                    />
+                    <StaggerItem>
+                        <UtrSection
+                            title="Origem"
+                            description="Distribuição por canal operacional."
+                            icon={<Target className="h-4 w-4 text-[#347ca3] dark:text-sky-300" />}
+                            data={porOrigem}
+                            getLabel={(item) => item.origem}
+                        />
+                    </StaggerItem>
 
-                    <UtrSection
-                        title="Turno"
-                        description="Comparativo por janela operacional."
-                        icon={<Clock className="h-4 w-4 text-[#347ca3] dark:text-sky-300" />}
-                        data={porTurno}
-                        getLabel={(item) => item.turno || item.periodo || ''}
-                    />
-                </div>
+                    <StaggerItem>
+                        <UtrSection
+                            title="Turno"
+                            description="Comparativo por janela operacional."
+                            icon={<Clock className="h-4 w-4 text-[#347ca3] dark:text-sky-300" />}
+                            data={porTurno}
+                            getLabel={(item) => item.turno || item.periodo || ''}
+                        />
+                    </StaggerItem>
+                </StaggerContainer>
             </section>
         </div>
     );

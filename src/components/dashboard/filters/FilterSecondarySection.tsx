@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import FiltroSelect from '@/components/shared/filters/FiltroSelect';
 import FiltroMultiSelect from '@/components/shared/filters/FiltroMultiSelect';
 import { Filters, FilterOption } from '@/types';
 import type { FiltroBarChangeHandler } from '@/hooks/ui/useFiltroBar';
 import type { DimensionFilterSupport } from '@/utils/filters/dimensionFilterSupport';
+
+const EMPTY_STRING_ARRAY: string[] = [];
 
 interface FilterSecondarySectionProps {
     appearance?: 'default' | 'quiet';
@@ -34,6 +36,41 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
     optionsError,
     dimensionSupport,
 }) => {
+    const selectedSubPracas = useMemo(() => {
+        if (!dimensionSupport.subPraca) return EMPTY_STRING_ARRAY;
+        if (filters.subPracas?.length) return filters.subPracas;
+        return filters.subPraca ? [filters.subPraca] : EMPTY_STRING_ARRAY;
+    }, [dimensionSupport.subPraca, filters.subPraca, filters.subPracas]);
+
+    const selectedOrigens = useMemo(() => {
+        if (!dimensionSupport.origem) return EMPTY_STRING_ARRAY;
+        if (filters.origens?.length) return filters.origens;
+        return filters.origem ? [filters.origem] : EMPTY_STRING_ARRAY;
+    }, [dimensionSupport.origem, filters.origem, filters.origens]);
+
+    const selectedTurnos = useMemo(() => {
+        if (!dimensionSupport.turno) return EMPTY_STRING_ARRAY;
+        if (filters.turnos?.length) return filters.turnos;
+        return filters.turno ? [filters.turno] : EMPTY_STRING_ARRAY;
+    }, [dimensionSupport.turno, filters.turno, filters.turnos]);
+
+    const handlePracaChange = useCallback(
+        (value: string | null) => handleChange('praca', value),
+        [handleChange]
+    );
+    const handleSubPracaChange = useCallback(
+        (values: string[]) => setFilters(prev => ({ ...prev, subPraca: values[0] || null, subPracas: values })),
+        [setFilters]
+    );
+    const handleOrigemChange = useCallback(
+        (values: string[]) => setFilters(prev => ({ ...prev, origem: values[0] || null, origens: values })),
+        [setFilters]
+    );
+    const handleTurnoChange = useCallback(
+        (values: string[]) => setFilters(prev => ({ ...prev, turno: values[0] || null, turnos: values })),
+        [setFilters]
+    );
+
     const isUnavailable = (options: FilterOption[]) => options.length === 0 && Boolean(optionsError);
     const isWaitingForOptions = (options: FilterOption[]) => options.length === 0 && optionsLoading;
     const placeholderFor = (options: FilterOption[], allLabel: string, supported: boolean) => {
@@ -51,41 +88,35 @@ export const FilterSecondarySection: React.FC<FilterSecondarySectionProps> = ({
                 value={filters.praca ?? ''}
                 options={pracas}
                 placeholder={placeholderFor(pracas, 'Todas', true)}
-                onChange={(value) => handleChange('praca', value)}
+                onChange={handlePracaChange}
                 disabled={shouldDisablePracaFilter || isWaitingForOptions(pracas) || isUnavailable(pracas)}
             />
             <FiltroMultiSelect
                 appearance={appearance}
                 label="Sub praça"
-                selected={dimensionSupport.subPraca
-                    ? (filters.subPracas?.length ? filters.subPracas : filters.subPraca ? [filters.subPraca] : [])
-                    : []}
+                selected={selectedSubPracas}
                 options={subPracas}
                 placeholder={placeholderFor(subPracas, 'Todas', dimensionSupport.subPraca)}
                 disabled={!dimensionSupport.subPraca || isWaitingForOptions(subPracas) || isUnavailable(subPracas)}
-                onSelectionChange={(values) => setFilters(prev => ({ ...prev, subPraca: values[0] || null, subPracas: values }))}
+                onSelectionChange={handleSubPracaChange}
             />
             <FiltroMultiSelect
                 appearance={appearance}
                 label="Origem"
-                selected={dimensionSupport.origem
-                    ? (filters.origens?.length ? filters.origens : filters.origem ? [filters.origem] : [])
-                    : []}
+                selected={selectedOrigens}
                 options={origens}
                 placeholder={placeholderFor(origens, 'Todas', dimensionSupport.origem)}
                 disabled={!dimensionSupport.origem || isWaitingForOptions(origens) || isUnavailable(origens)}
-                onSelectionChange={(values) => setFilters(prev => ({ ...prev, origem: values[0] || null, origens: values }))}
+                onSelectionChange={handleOrigemChange}
             />
             <FiltroMultiSelect
                 appearance={appearance}
                 label="Turno"
-                selected={dimensionSupport.turno
-                    ? (filters.turnos?.length ? filters.turnos : filters.turno ? [filters.turno] : [])
-                    : []}
+                selected={selectedTurnos}
                 options={turnos}
                 placeholder={placeholderFor(turnos, 'Todos', dimensionSupport.turno)}
                 disabled={!dimensionSupport.turno || isWaitingForOptions(turnos) || isUnavailable(turnos)}
-                onSelectionChange={(values) => setFilters(prev => ({ ...prev, turno: values[0] || null, turnos: values }))}
+                onSelectionChange={handleTurnoChange}
             />
         </>
     );

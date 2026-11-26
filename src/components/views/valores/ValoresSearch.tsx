@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, X } from 'lucide-react';
+import { Loader2, Search, X } from 'lucide-react';
 
 interface ValoresSearchProps {
     searchTerm: string;
@@ -29,7 +29,7 @@ export const ValoresSearch = React.memo(function ValoresSearch({
                     placeholder="Pesquisar por nome ou ID..."
                     value={searchTerm}
                     onChange={(event) => onSearchChange(event.target.value)}
-                    className="h-11 w-full rounded-md border border-[#d7e2e8] bg-white py-2 pl-10 pr-11 text-[13px] font-normal text-slate-800 shadow-sm transition-[background-color,border-color,box-shadow] duration-150 placeholder:text-slate-400 focus:border-sky-600/60 focus:outline-none focus:ring-2 focus:ring-sky-600/10 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-sky-300/60"
+                    className={`h-11 w-full rounded-md border border-[#d7e2e8] bg-white py-2 pl-10 ${isSearching && searchTerm ? 'pr-16' : 'pr-11'} text-[13px] font-normal text-slate-800 shadow-sm transition-[background-color,border-color,box-shadow] duration-150 placeholder:text-slate-400 focus:border-sky-600/60 focus:outline-none focus:ring-2 focus:ring-sky-600/10 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-sky-300/60`}
                 />
 
                 {searchTerm ? (
@@ -45,7 +45,7 @@ export const ValoresSearch = React.memo(function ValoresSearch({
 
                 {isSearching ? (
                     <span className="pointer-events-none absolute right-10 top-1/2 -translate-y-1/2" aria-hidden="true">
-                        <span className="block h-4 w-4 motion-safe:animate-spin rounded-full border-2 border-slate-200 border-t-sky-700 dark:border-slate-700 dark:border-t-sky-300" />
+                        <Loader2 className="h-4 w-4 motion-safe:animate-spin text-sky-700 dark:text-sky-300" />
                     </span>
                 ) : null}
             </div>

@@ -4,6 +4,7 @@ import React, { useMemo, useState } from 'react';
 import { AderenciaSubPraca } from '@/types';
 import { BarChart3, ChevronDown } from 'lucide-react';
 import { getPedidosAceitosConcluidosBreakdown } from '@/utils/comparisonDemandMetrics';
+import { ViewTransition } from '@/components/ui/view-transition';
 
 type BenchmarkMetric = 'aderencia' | 'completadas' | 'ofertadas' | 'aceitacao';
 
@@ -72,37 +73,39 @@ export const BenchmarkPracas = React.memo(function BenchmarkPracas({ subPracas }
                 </div>
             </div>
 
-            <div className="space-y-2">
-                {ranked.map((sp, index) => {
-                    const val = getMetric(sp, metric);
-                    const widthPct = (val / maxVal) * 100;
-                    const isTop3 = index < 3;
+            <ViewTransition stateKey={metric} preventExitInteraction>
+                <div className="space-y-2">
+                    {ranked.map((sp, index) => {
+                        const val = getMetric(sp, metric);
+                        const widthPct = (val / maxVal) * 100;
+                        const isTop3 = index < 3;
 
-                    return (
-                        <div key={sp.sub_praca} className="flex items-center gap-3">
-                            <span className={`w-5 text-right text-xs font-bold ${isTop3 ? 'text-amber-500' : 'text-slate-400'}`}>
-                                {index + 1}
-                            </span>
-                            <div className="min-w-0 flex-1">
-                                <div className="mb-0.5 flex items-center justify-between gap-2">
-                                    <span className="min-w-0 flex-1 truncate text-xs font-medium text-slate-700 dark:text-slate-300" title={sp.sub_praca}>
-                                        {sp.sub_praca}
-                                    </span>
-                                    <span className="text-xs font-bold text-slate-900 dark:text-slate-100 tabular-nums">
-                                        {formatMetric(val, metric)}
-                                    </span>
-                                </div>
-                                <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-                                    <div
-                                        className={`h-full rounded-full transition-[width] duration-300 ${isTop3 ? 'bg-blue-500' : 'bg-slate-400 dark:bg-slate-600'}`}
-                                        style={{ width: `${widthPct}%` }}
-                                    />
+                        return (
+                            <div key={sp.sub_praca} className="flex items-center gap-3">
+                                <span className={`w-5 text-right text-xs font-bold tabular-nums ${isTop3 ? 'text-amber-500' : 'text-slate-400'}`}>
+                                    {index + 1}
+                                </span>
+                                <div className="min-w-0 flex-1">
+                                    <div className="mb-0.5 flex items-center justify-between gap-2">
+                                        <span className="min-w-0 flex-1 truncate text-xs font-medium text-slate-700 dark:text-slate-300" title={sp.sub_praca}>
+                                            {sp.sub_praca}
+                                        </span>
+                                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100 tabular-nums">
+                                            {formatMetric(val, metric)}
+                                        </span>
+                                    </div>
+                                    <div className="h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+                                        <div
+                                            className={`h-full rounded-full transition-[width] duration-300 ${isTop3 ? 'bg-blue-500' : 'bg-slate-400 dark:bg-slate-600'}`}
+                                            style={{ width: `${widthPct}%` }}
+                                        />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    );
-                })}
-            </div>
+                        );
+                    })}
+                </div>
+            </ViewTransition>
         </div>
     );
 });

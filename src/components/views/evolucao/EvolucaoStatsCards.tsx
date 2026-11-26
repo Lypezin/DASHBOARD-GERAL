@@ -28,7 +28,7 @@ export const EvolucaoStatsCards = React.memo<EvolucaoStatsCardsProps>(({ dadosAt
       <Metric label="Total de pedidos" value={totalCorridas.toLocaleString('pt-BR')} meta={`${dadosAtivos.length} ${viewMode === 'mensal' ? 'meses' : 'semanas'} analisados`} icon={Car} />
       <Metric label="Total de horas" value={formatarHorasParaHMS(totalHoras)} meta="Tempo total trabalhado" icon={Clock} />
       <Metric label={`Média ${viewMode === 'mensal' ? 'mensal' : 'semanal'}`} value={mediaCorridas.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })} meta="Pedidos por período" icon={BarChart2} />
-      <Metric label="Período analisado" value={anoSelecionado.toLocaleString('pt-BR')} meta={`${viewMode === 'mensal' ? '12 meses' : '53 semanas'} disponíveis`} icon={Calendar} />
+      <Metric label="Período analisado" value={String(anoSelecionado)} meta={`${viewMode === 'mensal' ? '12 meses' : '53 semanas'} disponíveis`} icon={Calendar} />
     </dl>
   );
 });

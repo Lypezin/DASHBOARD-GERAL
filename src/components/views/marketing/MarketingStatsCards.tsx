@@ -4,6 +4,7 @@ import React from 'react';
 import { MarketingStatCard } from './components/MarketingStatCard';
 import { BarChart3, Send, CheckCircle2, Rocket, RotateCcw } from 'lucide-react';
 import { MarketingTotals } from '@/types';
+import { StaggerContainer, StaggerItem } from '@/components/ui/stagger';
 
 interface MarketingStatsCardsProps {
     totals: MarketingTotals;
@@ -79,10 +80,12 @@ export const MarketingStatsCards = React.memo(function MarketingStatsCards({
     ];
 
     return (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-            {cardConfigs.map((config, index) => (
-                <MarketingStatCard key={index} {...config} />
+        <StaggerContainer className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6" staggerDelay={0.04}>
+            {cardConfigs.map((config) => (
+                <StaggerItem key={config.title}>
+                    <MarketingStatCard {...config} />
+                </StaggerItem>
             ))}
-        </div>
+        </StaggerContainer>
     );
 });

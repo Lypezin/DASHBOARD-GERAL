@@ -1,5 +1,6 @@
 import React from 'react';
 import type { LucideIcon } from 'lucide-react';
+import { AnimatedNumberText } from '@/components/ui/animated-counter';
 
 type Tone = 'blue' | 'sky' | 'emerald' | 'rose';
 
@@ -25,7 +26,7 @@ export const PrioridadeHeroCard = ({
   tone: Tone;
   isPercentage?: boolean;
 }) => (
-  <div className="min-w-0 bg-white px-3 py-3.5 transition-colors duration-150 hover:bg-[#f8fbfc] dark:bg-slate-950/70 dark:hover:bg-slate-900 sm:px-3.5">
+  <div className="h-full min-w-0 bg-white px-3 py-3.5 transition-colors duration-150 hover:bg-[#f8fbfc] dark:bg-slate-950/70 dark:hover:bg-slate-900 sm:px-3.5">
     <div className="flex min-w-0 items-center gap-2">
       <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${tones[tone].icon}`}>
         <Icon className="h-3.5 w-3.5" aria-hidden="true" />
@@ -33,7 +34,7 @@ export const PrioridadeHeroCard = ({
       <dt className="min-w-0 truncate text-xs font-medium text-slate-600 dark:text-slate-300">{title}</dt>
     </div>
     <dd className="mt-2 whitespace-nowrap font-mono text-xl font-semibold tracking-tight text-[#183f58] tabular-nums dark:text-slate-50" title={value}>
-      {value}
+      <AnimatedNumberText value={value} />
     </dd>
     <p className="mt-1 truncate text-[11px] text-slate-500 dark:text-slate-400">{subtext}</p>
     {isPercentage ? (

@@ -15,31 +15,35 @@ export function cleanupExpiredRecords() {
 
 // Limpar registros expirados a cada minuto
 let cleanupInterval: NodeJS.Timeout | null = null;
-let beforeUnloadHandler: (() => void) | null = null;
 let visibilityChangeHandler: (() => void) | null = null;
 
 /**
  * Inicializa o cleanup periódico de registros expirados
  */
 export function initializeCleanup() {
-    if (typeof window === 'undefined' || cleanupInterval !== null) {
+    if (typeof window === 'undefined' || cleanupInterval !== null || visibilityChangeHandler !== null) {
         return;
     }
 
-    cleanupInterval = setInterval(cleanupExpiredRecords, 60000);
-
-    beforeUnloadHandler = () => {
-        if (cleanupInterval) {
-            clearInterval(cleanupInterval);
-            cleanupInterval = null;
+    const startInterval = () => {
+        if (cleanupInterval === null) {
+            cleanupInterval = setInterval(cleanupExpiredRecords, 60000);
         }
     };
 
-    window.addEventListener('beforeunload', beforeUnloadHandler);
+    if (typeof document === 'undefined' || !document.hidden) {
+        startInterval();
+    }
 
     visibilityChangeHandler = () => {
-        if (document.hidden && cleanupInterval) {
-            // Pause cleanup if needed (optional optimization)
+        if (document.hidden) {
+            if (cleanupInterval) {
+                clearInterval(cleanupInterval);
+                cleanupInterval = null;
+            }
+        } else {
+            cleanupExpiredRecords();
+            startInterval();
         }
     };
 
@@ -53,10 +57,6 @@ export function cleanupRateLimiter() {
     if (cleanupInterval) {
         clearInterval(cleanupInterval);
         cleanupInterval = null;
-    }
-    if (beforeUnloadHandler && typeof window !== 'undefined') {
-        window.removeEventListener('beforeunload', beforeUnloadHandler);
-        beforeUnloadHandler = null;
     }
     if (visibilityChangeHandler && typeof document !== 'undefined') {
         document.removeEventListener('visibilitychange', visibilityChangeHandler);

@@ -46,7 +46,7 @@ export const ComparacaoOrigemDetalhada = React.memo(function ComparacaoOrigemDet
             <div className="max-h-[72vh] divide-y divide-slate-100 overflow-y-auto dark:divide-slate-800">
                 {origens.map((origem) => (
                     <div key={origem}>
-                        <div className="sticky top-0 z-30 bg-slate-50/95 px-4 py-2.5 backdrop-blur dark:bg-slate-900/90 sm:px-6">
+                        <div className="sticky top-0 z-30 border-b border-slate-200/80 bg-slate-50 px-4 py-2.5 dark:border-slate-800 dark:bg-slate-900 sm:px-6">
                             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">{origem}</p>
                         </div>
 

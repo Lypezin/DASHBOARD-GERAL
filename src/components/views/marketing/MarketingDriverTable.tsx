@@ -49,7 +49,7 @@ export const MarketingDriverTable: React.FC<MarketingDriverTableProps> = ({
         <div className="flex h-full min-h-0 flex-col">
             <div className="subtle-scrollbar min-h-0 flex-1 overflow-auto overscroll-contain">
                 <Table className="min-w-[760px]">
-                    <TableHeader className="sticky top-0 z-10 bg-white/95 backdrop-blur dark:bg-slate-950/90">
+                    <TableHeader className="sticky top-0 z-10 bg-white dark:bg-slate-950">
                         <TableRow>
                             <TableHead className="pl-5">Nome</TableHead>
                             <TableHead>ID</TableHead>
@@ -61,17 +61,17 @@ export const MarketingDriverTable: React.FC<MarketingDriverTableProps> = ({
                     </TableHeader>
                     <TableBody>
                         {data.map((row) => (
-                            <TableRow key={row.id_entregador}>
+                            <TableRow key={row.id_entregador} style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 48px' }}>
                                 <TableCell className="max-w-[280px] pl-5 font-medium">
                                     <span className="block truncate" title={row.nome}>
                                         {row.nome}
                                     </span>
                                 </TableCell>
-                                <TableCell className="text-xs text-muted-foreground">{row.id_entregador}</TableCell>
-                                <TableCell className="text-right font-mono">{formatarHorasParaHMS(row.total_segundos / 3600)}</TableCell>
-                                <TableCell className="text-right">{row.total_ofertadas}</TableCell>
-                                <TableCell className="text-right">{row.total_aceitas}</TableCell>
-                                <TableCell className="pr-5 text-right">{row.total_completadas}</TableCell>
+                                <TableCell className="text-xs tabular-nums text-muted-foreground">{row.id_entregador}</TableCell>
+                                <TableCell className="text-right font-mono tabular-nums">{formatarHorasParaHMS(row.total_segundos / 3600)}</TableCell>
+                                <TableCell className="text-right font-mono tabular-nums">{(row.total_ofertadas || 0).toLocaleString('pt-BR')}</TableCell>
+                                <TableCell className="text-right font-mono tabular-nums">{(row.total_aceitas || 0).toLocaleString('pt-BR')}</TableCell>
+                                <TableCell className="pr-5 text-right font-mono tabular-nums">{(row.total_completadas || 0).toLocaleString('pt-BR')}</TableCell>
                             </TableRow>
                         ))}
                         {loading && (
@@ -86,7 +86,7 @@ export const MarketingDriverTable: React.FC<MarketingDriverTableProps> = ({
             </div>
 
             {hasMore && !loading && (
-                <div className="border-t bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+                <div className="border-t bg-background p-4">
                     <Button variant="secondary" onClick={onLoadMore} className="w-full">
                         Carregar Mais ({totalCount - data.length} restantes)
                     </Button>

@@ -21,7 +21,7 @@ export const ComparacaoSubPracaRow = React.memo(({ subPraca, index, semanasSelec
             className={`group border-b border-transparent transition-colors duration-150 hover:bg-slate-50/60 dark:hover:bg-slate-900/55
                 ${index % 2 === 0 ? 'bg-white dark:bg-slate-950' : 'bg-slate-50/35 dark:bg-slate-900/30'}`}
         >
-            <TableCell className={`sticky left-0 z-10 py-[18px] pl-6 text-sm font-bold leading-snug text-slate-800 transition-colors group-hover:text-sky-600 dark:text-slate-200 dark:group-hover:text-sky-300 sm:pl-8 ${index % 2 === 0 ? 'bg-white group-hover:bg-slate-50 dark:bg-slate-950 dark:group-hover:bg-slate-900' : 'bg-[#f8fafc] group-hover:bg-slate-50 dark:bg-slate-900'}`}>
+            <TableCell className={`sticky left-0 z-10 border-r border-slate-100 py-[18px] pl-6 text-sm font-bold leading-snug text-slate-800 transition-colors group-hover:text-sky-600 dark:border-slate-800/80 dark:text-slate-200 dark:group-hover:text-sky-300 sm:pl-8 ${index % 2 === 0 ? 'bg-white group-hover:bg-slate-50 dark:bg-slate-950 dark:group-hover:bg-slate-900' : 'bg-[#f8fafc] group-hover:bg-slate-50 dark:bg-slate-900'}`}>
                 {subPraca}
             </TableCell>
             {semanasSelecionadas.map((_, idx) => {

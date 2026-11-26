@@ -14,8 +14,11 @@ export const chunkArray = <T,>(array: T[], size: number): T[][] => {
     return result;
 };
 
+const INTEGER_PT_BR = new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 });
+const DAY_MONTH_PT_BR = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' });
+
 export const formatarNumeroInteiro = (valor: number) =>
-    new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 0 }).format(Number.isFinite(valor) ? valor : 0);
+    INTEGER_PT_BR.format(Number.isFinite(valor) ? valor : 0);
 
 export const extrairNumeroSemana = (semana: string) => {
     if (semana?.includes('-W')) {
@@ -33,8 +36,7 @@ export const calcularPeriodoSemana = (numeroSemana: string, ano?: number) => {
     const inicio = new Date(primeiraSemana.setDate(primeiraDiaSemana));
     const fim = new Date(inicio);
     fim.setDate(inicio.getDate() + 6);
-    const formatter = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' });
-    return `${formatter.format(inicio)} - ${formatter.format(fim)}`;
+    return `${DAY_MONTH_PT_BR.format(inicio)} - ${DAY_MONTH_PT_BR.format(fim)}`;
 };
 
 export const calcularDiferenca = (valor1: number, valor2: number) => valor2 - valor1;

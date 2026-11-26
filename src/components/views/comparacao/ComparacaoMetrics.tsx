@@ -4,6 +4,8 @@ import { DashboardResumoData } from '@/types';
 import { useComparacaoAggregations } from './hooks/useComparacaoAggregations';
 import { VariationBadge } from './components/VariationBadge';
 import { cn } from '@/lib/utils';
+import { AnimatedNumberText } from '@/components/ui/animated-counter';
+import { StaggerContainer, StaggerItem } from '@/components/ui/stagger';
 
 interface ComparacaoMetricsProps {
     dadosComparacao: DashboardResumoData[];
@@ -25,41 +27,49 @@ export const ComparacaoMetrics = React.memo(function ComparacaoMetrics({
     } = useComparacaoAggregations(dadosComparacao);
 
     return (
-        <div className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-[#d8e4eb] bg-[#d8e4eb] shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800 dark:bg-slate-800 sm:grid-cols-2 xl:grid-cols-4">
-            <MetricCard
-                label="Aderência"
-                value={`${aderenciaMedia}%`}
-                icon={Activity}
-                tone={aderenciaMedia >= 90 ? 'emerald' : aderenciaMedia >= 80 ? 'sky' : aderenciaMedia >= 70 ? 'amber' : 'rose'}
-                variation={<VariationBadge value={aderenciaVar} />}
-                progress={aderenciaMedia}
-            />
+        <StaggerContainer className="grid grid-cols-1 gap-px overflow-hidden rounded-xl border border-[#d8e4eb] bg-[#d8e4eb] shadow-[0_8px_28px_-24px_rgba(15,57,82,0.5)] dark:border-slate-800 dark:bg-slate-800 sm:grid-cols-2 xl:grid-cols-4" staggerDelay={0.04}>
+            <StaggerItem>
+                <MetricCard
+                    label="Aderência"
+                    value={`${aderenciaMedia}%`}
+                    icon={Activity}
+                    tone={aderenciaMedia >= 90 ? 'emerald' : aderenciaMedia >= 80 ? 'sky' : aderenciaMedia >= 70 ? 'amber' : 'rose'}
+                    variation={<VariationBadge value={aderenciaVar} />}
+                    progress={aderenciaMedia}
+                />
+            </StaggerItem>
 
-            <MetricCard
-                label="Corridas totais"
-                value={totalCorridas.toLocaleString('pt-BR')}
-                icon={Car}
-                tone="sky"
-                variation={<VariationBadge value={corridasVar} />}
-                meta={corridasPorSemana.length > 1 ? corridasPorSemana.map((v) => v.toLocaleString('pt-BR')).join(' / ') : undefined}
-            />
+            <StaggerItem>
+                <MetricCard
+                    label="Corridas totais"
+                    value={totalCorridas.toLocaleString('pt-BR')}
+                    icon={Car}
+                    tone="sky"
+                    variation={<VariationBadge value={corridasVar} />}
+                    meta={corridasPorSemana.length > 1 ? corridasPorSemana.map((v) => v.toLocaleString('pt-BR')).join(' / ') : undefined}
+                />
+            </StaggerItem>
 
-            <MetricCard
-                label="Horas realizadas"
-                value={horasEntregues}
-                icon={Clock3}
-                tone="amber"
-                meta="Tempo total em rota"
-            />
+            <StaggerItem>
+                <MetricCard
+                    label="Horas realizadas"
+                    value={horasEntregues}
+                    icon={Clock3}
+                    tone="amber"
+                    meta="Tempo total em rota"
+                />
+            </StaggerItem>
 
-            <MetricCard
-                label="Taxa de aceitação"
-                value={`${taxaAceitacao}%`}
-                icon={CheckCircle2}
-                tone="emerald"
-                meta={`${aceitas.toLocaleString('pt-BR')} / ${ofertadas.toLocaleString('pt-BR')}`}
-            />
-        </div>
+            <StaggerItem>
+                <MetricCard
+                    label="Taxa de aceitação"
+                    value={`${taxaAceitacao}%`}
+                    icon={CheckCircle2}
+                    tone="emerald"
+                    meta={`${aceitas.toLocaleString('pt-BR')} / ${ofertadas.toLocaleString('pt-BR')}`}
+                />
+            </StaggerItem>
+        </StaggerContainer>
     );
 });
 
@@ -102,7 +112,7 @@ function MetricCard({
     }[tone];
 
     return (
-        <div className="group min-w-0 bg-white p-4 transition-colors duration-150 hover:bg-[#f8fbfc] dark:bg-slate-950/70 dark:hover:bg-slate-900">
+        <div className="group h-full min-w-0 bg-white p-4 transition-colors duration-150 hover:bg-[#f8fbfc] dark:bg-slate-950/70 dark:hover:bg-slate-900">
             <div className="flex min-w-0 items-center justify-between gap-2.5">
                 <div className="flex min-w-0 items-center gap-2.5">
                     <span className={cn('flex h-7 w-7 shrink-0 items-center justify-center rounded-md', toneClass.icon)}>
@@ -115,7 +125,7 @@ function MetricCard({
                 {variation}
             </div>
             <p className="mt-3 whitespace-nowrap font-mono text-2xl font-semibold tracking-tight text-[#183f58] tabular-nums dark:text-slate-50" title={value}>
-                {value}
+                <AnimatedNumberText value={value} />
             </p>
             {typeof progress === 'number' && (
                 <div

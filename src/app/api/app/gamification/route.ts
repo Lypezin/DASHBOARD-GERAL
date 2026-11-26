@@ -27,7 +27,10 @@ export async function GET() {
         return NextResponse.json({ data: null, error: error.message, details: error }, { status: 500 });
     }
 
-    return NextResponse.json({ data: Array.isArray(data) ? data : [], error: null });
+    return NextResponse.json(
+        { data: Array.isArray(data) ? data : [], error: null },
+        { headers: { 'Cache-Control': 'private, max-age=30, stale-while-revalidate=60' } }
+    );
 }
 
 export async function POST(request: Request) {

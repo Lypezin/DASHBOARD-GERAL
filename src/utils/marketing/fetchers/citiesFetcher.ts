@@ -50,34 +50,43 @@ export async function fetchMarketingCitiesData(
     }
 
     if (IS_DEV) safeLog.info('Using manual fetch for cities data');
-    const results: MarketingCityData[] = [];
+    const results: MarketingCityData[] = new Array(cidadesToProcess.length);
+    const CONCURRENCY = 4;
+    let nextIndex = 0;
 
-    for (const cidade of cidadesToProcess) {
-        const base = (sel = '*') => buildCityQuery(client.from('dados_marketing').select(sel, { count: 'exact', head: true }), cidade)
-            .match(organizationId ? { organization_id: organizationId } : {});
+    await Promise.all(
+        Array.from({ length: Math.min(CONCURRENCY, cidadesToProcess.length) }, async () => {
+            while (nextIndex < cidadesToProcess.length) {
+                const index = nextIndex;
+                nextIndex += 1;
+                const cidade = cidadesToProcess[index];
+                const base = (sel = '*') => buildCityQuery(client.from('dados_marketing').select(sel, { count: 'exact', head: true }), cidade)
+                    .match(organizationId ? { organization_id: organizationId } : {});
 
-        let enviadosQuery = base().not('data_envio', 'is', null);
-        EXCLUDED_ENVIADOS.forEach((status) => { enviadosQuery = enviadosQuery.neq('status', status); });
+                let enviadosQuery = base().not('data_envio', 'is', null);
+                EXCLUDED_ENVIADOS.forEach((status) => { enviadosQuery = enviadosQuery.neq('status', status); });
 
-        const [e, l, r, a, v, c] = await Promise.all([
-            buildDateFilterQuery(enviadosQuery, 'data_envio', filters.filtroEnviados),
-            buildDateFilterQuery(base().eq('status', 'Liberado').not('data_liberacao', 'is', null), 'data_liberacao', filters.filtroLiberacao),
-            buildDateFilterQuery(base().not('rodou_dia', 'is', null), 'rodou_dia', filters.filtroRodouDia),
-            buildDateFilterQuery(base().or('status.ilike.Aberto%,status.ilike.%aguardando liberaÃ§Ã£o%,status.ilike.%Retorno%,status.ilike.%A enviar%').not('data_envio', 'is', null), 'data_envio', filters.filtroEnviados),
-            buildDateFilterQuery(base().or('status.ilike.Voltou%,status.ilike.%desistiu%,status.ilike.%bug%').not('data_envio', 'is', null), 'data_envio', filters.filtroEnviados),
-            buildDateFilterQuery(base().not('Criado', 'is', null), 'Criado', filters.filtroDataInicio)
-        ]);
+                const [e, l, r, a, v, c] = await Promise.all([
+                    buildDateFilterQuery(enviadosQuery, 'data_envio', filters.filtroEnviados),
+                    buildDateFilterQuery(base().eq('status', 'Liberado').not('data_liberacao', 'is', null), 'data_liberacao', filters.filtroLiberacao),
+                    buildDateFilterQuery(base().not('rodou_dia', 'is', null), 'rodou_dia', filters.filtroRodouDia),
+                    buildDateFilterQuery(base().or('status.ilike.Aberto%,status.ilike.%aguardando liberaÃ§Ã£o%,status.ilike.%Retorno%,status.ilike.%A enviar%').not('data_envio', 'is', null), 'data_envio', filters.filtroEnviados),
+                    buildDateFilterQuery(base().or('status.ilike.Voltou%,status.ilike.%desistiu%,status.ilike.%bug%').not('data_envio', 'is', null), 'data_envio', filters.filtroEnviados),
+                    buildDateFilterQuery(base().not('Criado', 'is', null), 'Criado', filters.filtroDataInicio)
+                ]);
 
-        results.push({
-            cidade,
-            criado: requireMarketingCount('Erro ao contar cadastros de Marketing.', c.count, c.error),
-            enviado: requireMarketingCount('Erro ao contar entregadores enviados.', e.count, e.error),
-            liberado: requireMarketingCount('Erro ao contar entregadores liberados.', l.count, l.error),
-            rodandoInicio: requireMarketingCount('Erro ao contar entregadores em operação.', r.count, r.error),
-            aberto: requireMarketingCount('Erro ao contar entregadores em aberto.', a.count, a.error),
-            voltou: requireMarketingCount('Erro ao contar entregadores que voltaram.', v.count, v.error),
-            conversas: 0
-        });
-    }
+                results[index] = {
+                    cidade,
+                    criado: requireMarketingCount('Erro ao contar cadastros de Marketing.', c.count, c.error),
+                    enviado: requireMarketingCount('Erro ao contar entregadores enviados.', e.count, e.error),
+                    liberado: requireMarketingCount('Erro ao contar entregadores liberados.', l.count, l.error),
+                    rodandoInicio: requireMarketingCount('Erro ao contar entregadores em operação.', r.count, r.error),
+                    aberto: requireMarketingCount('Erro ao contar entregadores em aberto.', a.count, a.error),
+                    voltou: requireMarketingCount('Erro ao contar entregadores que voltaram.', v.count, v.error),
+                    conversas: 0
+                };
+            }
+        })
+    );
     return results;
 }

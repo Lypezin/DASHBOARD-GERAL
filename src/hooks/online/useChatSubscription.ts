@@ -41,7 +41,11 @@ function isOptimisticMatch(existing: ChatMessage, incoming: ChatMessage) {
 }
 
 function sortMessages(messages: ChatMessage[]) {
-    return [...messages].sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+    const timestamps = new Map<string, number>();
+    for (const message of messages) {
+        timestamps.set(message.id, Date.parse(message.timestamp));
+    }
+    return [...messages].sort((a, b) => (timestamps.get(a.id) ?? 0) - (timestamps.get(b.id) ?? 0));
 }
 
 export function useChatSubscription({ userId, enabled, setMessages }: UseChatSubscriptionProps) {
@@ -72,11 +76,23 @@ export function useChatSubscription({ userId, enabled, setMessages }: UseChatSub
                 const history = await chatService.fetchHistory(userId);
                 if (cancelled) return;
 
-                setMessages((prev) => sortMessages(
-                    [...history, ...prev].filter((message, index, arr) =>
-                        arr.findIndex((candidate) => candidate.id === message.id) === index
-                    )
-                ));
+                setMessages((prev) => {
+                    const seenIds = new Set<string>();
+                    const merged: ChatMessage[] = [];
+                    for (const message of history) {
+                        if (!seenIds.has(message.id)) {
+                            seenIds.add(message.id);
+                            merged.push(message);
+                        }
+                    }
+                    for (const message of prev) {
+                        if (!seenIds.has(message.id)) {
+                            seenIds.add(message.id);
+                            merged.push(message);
+                        }
+                    }
+                    return sortMessages(merged);
+                });
             } catch (error) {
                 safeLog.error('Error fetching chat history:', error);
             }

@@ -35,7 +35,7 @@ export function SidebarHeader({
           </div>
           <div className="min-w-0">
             <h3 className="truncate text-[15px] font-bold tracking-tight text-slate-950 dark:text-white">Equipe</h3>
-            <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-0.5 truncate text-xs tabular-nums text-slate-500 dark:text-slate-400">
               {availableCount}{availableCount === 1 ? ' disponível' : ' disponíveis'} de {onlineCount} online
             </p>
           </div>

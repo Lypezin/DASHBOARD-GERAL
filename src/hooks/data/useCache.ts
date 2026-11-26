@@ -52,12 +52,13 @@ export function readSharedCacheEntry<T>(
   ttl: number = DEFAULT_TAB_DATA_TTL_MS,
   readFromSession: boolean = true
 ): T | null {
-  pruneGlobalCache(ttl);
-
   const cached = globalCache.get(key);
-  if (cached && isCacheValid(cached, ttl)) {
-    touchGlobalCacheEntry(key, cached);
-    return cached.data as T;
+  if (cached) {
+    if (isCacheValid(cached, ttl)) {
+      touchGlobalCacheEntry(key, cached);
+      return cached.data as T;
+    }
+    globalCache.delete(key);
   }
 
   if (!readFromSession) {

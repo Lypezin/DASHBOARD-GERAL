@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { Loader2, Search, SlidersHorizontal, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface EntregadoresMainSearchProps {
@@ -47,15 +47,31 @@ export const EntregadoresMainSearch = React.memo(function EntregadoresMainSearch
                         placeholder="Pesquisar por nome ou ID do entregador..."
                         value={searchTerm}
                         onChange={(e) => onSearchChange(e.target.value)}
-                        className={isEntregadores
-                            ? 'h-10 w-full rounded-md border border-[#d7e2e8] bg-white py-2 pl-10 pr-4 text-[13px] font-normal text-slate-800 shadow-sm transition-[background-color,border-color,box-shadow] duration-150 placeholder:text-slate-400 focus:border-sky-600/60 focus:outline-none focus:ring-2 focus:ring-sky-600/10 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-sky-300/60'
-                            : 'h-12 w-full rounded-2xl border border-slate-200/80 bg-slate-50/80 py-2 pl-11 pr-4 text-sm font-semibold text-slate-900 shadow-sm transition-[background-color,border-color,box-shadow] duration-150 placeholder:text-slate-400 focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/15 dark:border-slate-800/80 dark:bg-slate-900/65 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-900'}
+                        className={cn(
+                            isEntregadores
+                                ? 'h-10 w-full rounded-md border border-[#d7e2e8] bg-white py-2 pl-10 text-[13px] font-normal text-slate-800 shadow-sm transition-[background-color,border-color,box-shadow] duration-150 placeholder:text-slate-400 focus:border-sky-600/60 focus:outline-none focus:ring-2 focus:ring-sky-600/10 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-400 dark:focus:border-sky-300/60'
+                                : 'h-12 w-full rounded-2xl border border-slate-200/80 bg-slate-50/80 py-2 pl-11 text-sm font-semibold text-slate-900 shadow-sm transition-[background-color,border-color,box-shadow] duration-150 placeholder:text-slate-400 focus:border-emerald-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-emerald-500/15 dark:border-slate-800/80 dark:bg-slate-900/65 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:bg-slate-900',
+                            isSearching && searchTerm ? 'pr-36' : isSearching ? 'pr-28' : searchTerm ? 'pr-10' : 'pr-4'
+                        )}
                     />
-                    {isSearching ? (
-                        <span className={`mt-1 block text-right text-xs font-bold lg:absolute lg:right-4 lg:top-1/2 lg:mt-0 lg:-translate-y-1/2 ${isEntregadores ? 'text-sky-700 dark:text-sky-300' : 'text-emerald-600 dark:text-emerald-300'}`}>
-                            Atualizando...
-                        </span>
-                    ) : null}
+                    <div className="absolute right-3 top-1/2 flex -translate-y-1/2 items-center gap-2">
+                        {searchTerm ? (
+                            <button
+                                type="button"
+                                onClick={() => onSearchChange('')}
+                                aria-label="Limpar pesquisa"
+                                className="inline-flex h-6 w-6 items-center justify-center rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-500/40 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+                            >
+                                <X className="h-3.5 w-3.5" aria-hidden="true" />
+                            </button>
+                        ) : null}
+                        {isSearching ? (
+                            <span role="status" className={`inline-flex items-center gap-1.5 text-xs font-bold ${isEntregadores ? 'text-sky-700 dark:text-sky-300' : 'text-emerald-600 dark:text-emerald-300'}`}>
+                                <Loader2 className="h-3.5 w-3.5 motion-safe:animate-spin" aria-hidden="true" />
+                                <span className="hidden sm:inline">Atualizando…</span>
+                            </span>
+                        ) : null}
+                    </div>
                 </div>
 
                 <button

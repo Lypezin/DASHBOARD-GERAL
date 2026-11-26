@@ -38,7 +38,7 @@ export const OperationalViewToggle: React.FC<OperationalViewToggleProps> = ({
               onClick={() => onViewModeChange(mode)}
               type="button"
               className={cn(
-                "relative inline-flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-md px-3 text-xs font-semibold transition-colors duration-150",
+                "relative inline-flex h-9 items-center justify-center gap-1.5 whitespace-nowrap rounded-xl px-3 text-xs font-semibold transition-colors duration-150",
                 "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-600/30",
                 isActive
                   ? "text-white"
@@ -50,7 +50,7 @@ export const OperationalViewToggle: React.FC<OperationalViewToggleProps> = ({
                 <motion.span
                   layoutId="operational-view-pill"
                   transition={prefersReducedMotion ? { duration: 0.01 } : { type: 'spring', stiffness: 420, damping: 32 }}
-                  className="absolute inset-0 rounded-md bg-[#174d70] shadow-sm dark:bg-sky-800"
+                  className="absolute inset-0 rounded-xl bg-[#174d70] shadow-sm dark:bg-sky-800"
                   aria-hidden="true"
                 />
               ) : null}

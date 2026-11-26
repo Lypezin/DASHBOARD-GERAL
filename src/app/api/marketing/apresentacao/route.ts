@@ -49,13 +49,25 @@ function asString(value: unknown) {
   return '';
 }
 
+const SAO_PAULO_DATE_FORMATTER = new Intl.DateTimeFormat('en-CA', {
+  timeZone: 'America/Sao_Paulo',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+});
+
+const KNOWN_REGIONS = new Map([
+  ['abc', 'ABC'],
+  ['taboao da serra', 'Taboão da Serra'],
+  ['guarulhos', 'Guarulhos'],
+  ['sorocaba', 'Sorocaba'],
+  ['salvador', 'Salvador'],
+  ['sao paulo', 'São Paulo'],
+  ['manaus', 'Manaus'],
+]);
+
 function getSaoPauloDate(date = new Date()) {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'America/Sao_Paulo',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).formatToParts(date);
+  const parts = SAO_PAULO_DATE_FORMATTER.formatToParts(date);
   const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value || '';
   return `${part('year')}-${part('month')}-${part('day')}`;
 }
@@ -95,30 +107,22 @@ function normalizeName(value: string) {
 function normalizeRegion(value: string, subregion: string) {
   if (normalizeName(subregion).includes('tabo')) return 'Taboão da Serra';
   const normalized = normalizeName(value).replace(/\s*2\.0\s*$/, '').replace(/[.]/g, '').trim();
-  const known = new Map([
-    ['abc', 'ABC'],
-    ['taboao da serra', 'Taboão da Serra'],
-    ['guarulhos', 'Guarulhos'],
-    ['sorocaba', 'Sorocaba'],
-    ['salvador', 'Salvador'],
-    ['sao paulo', 'São Paulo'],
-    ['manaus', 'Manaus'],
-  ]);
-  return known.get(normalized) || value.trim() || 'Sem região';
+  return KNOWN_REGIONS.get(normalized) || value.trim() || 'Sem região';
 }
 
-function readLeadField(lead: JsonRecord, fieldName: string) {
+function buildLeadFieldsMap(lead: JsonRecord) {
   const rawFields = lead.additionalFields || lead.additional_fields;
   const fields = Array.isArray(rawFields) ? rawFields : [];
-  const target = normalizeName(fieldName);
-  const field = fields.find((item) => {
+  const map = new Map<string, string>();
+  for (const item of fields) {
     const row = asRecord(item);
     const nested = asRecord(row.additionalField || row.additional_field || row.field);
-    return normalizeName(asString(nested.name || row.name)) === target;
-  });
-  if (!field) return '';
-  const row = asRecord(field);
-  return asString(row.value ?? row.fieldValue ?? row.field_value);
+    const key = normalizeName(asString(nested.name || row.name));
+    if (key && !map.has(key)) {
+      map.set(key, asString(row.value ?? row.fieldValue ?? row.field_value));
+    }
+  }
+  return map;
 }
 
 async function wait(ms: number) {
@@ -233,14 +237,15 @@ async function fetchReport() {
   const rows: LeadRow[] = [];
   businessByLead.forEach((business, leadId) => {
     const lead = leadById.get(leadId) || asRecord(business.lead);
+    const fields = buildLeadFieldsMap(lead);
     const createdDate = normalizeDate(lead.createdAt || lead.created_at || lead.createdDate || lead.created_date)
-      || normalizeDate(readLeadField(lead, 'Criado'));
-    const sentDate = normalizeDate(readLeadField(lead, 'DT A ENVIAR'));
-    const releasedDate = normalizeDate(readLeadField(lead, 'LIBERADO DIA'));
-    const ranDate = normalizeDate(readLeadField(lead, 'RODOU DIA'));
+      || normalizeDate(fields.get('criado') || '');
+    const sentDate = normalizeDate(fields.get('dt a enviar') || '');
+    const releasedDate = normalizeDate(fields.get('liberado dia') || '');
+    const ranDate = normalizeDate(fields.get('rodou dia') || '');
     if (!createdDate && !sentDate && !releasedDate && !ranDate) return;
 
-    const subregion = readLeadField(lead, 'Subpraça');
+    const subregion = fields.get('subpraca') || '';
     const stage = asRecord(business.stage);
     const stageId = asString(business.stageId || business.stage_id || stage.id);
     const attendant = asRecord(business.attendant || business.assignedAttendant || business.assigned_attendant);
@@ -252,7 +257,7 @@ async function fetchReport() {
       lead: name || 'Sem nome',
       phone: asString(lead.phone || lead.mobilePhone || lead.mobile_phone),
       attendant: asString(attendant.name || business.attendantName || business.attendant_name) || 'Sem atendente',
-      region: normalizeRegion(readLeadField(lead, 'Regiões'), subregion),
+      region: normalizeRegion(fields.get('regioes') || '', subregion),
       subregion,
       stage: asString(stage.name) || stageNames.get(stageId) || 'Sem etapa',
       stageOrder: stageOrder.get(stageId) ?? 99,

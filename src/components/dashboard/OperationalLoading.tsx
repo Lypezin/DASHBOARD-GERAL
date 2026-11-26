@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Activity } from 'lucide-react';
+import { LoaderCircle } from 'lucide-react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -372,14 +372,14 @@ export function FilterRefreshIndicator({
               <div aria-hidden="true" className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-500/70 to-transparent" />
               <div className="flex min-w-0 items-center gap-2.5">
                 <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-blue-50 text-blue-600 dark:bg-blue-950/45 dark:text-blue-300">
-                  <Activity className="h-4 w-4" />
+                  <LoaderCircle className="h-4 w-4 motion-safe:animate-spin" aria-hidden="true" />
                 </span>
                 <div className="min-w-0 flex-1 sm:flex sm:items-center sm:gap-2">
                   <p className="truncate text-xs font-bold text-slate-800 dark:text-slate-100">Atualizando {viewName}</p>
                   <span className="hidden text-xs font-medium text-slate-500 dark:text-slate-400 sm:inline">Os resultados atuais continuam visíveis enquanto os filtros são consultados.</span>
                 </div>
                 <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-blue-50 px-2 py-1 text-[9px] font-bold uppercase tracking-[0.12em] text-blue-700 dark:bg-blue-950/45 dark:text-blue-300">
-                  <span className="h-1.5 w-1.5 rounded-full bg-blue-500 motion-safe:animate-pulse" />
+                  <LoaderCircle className="h-3 w-3 motion-safe:animate-spin text-blue-500" aria-hidden="true" />
                   Atualizando
                 </span>
               </div>

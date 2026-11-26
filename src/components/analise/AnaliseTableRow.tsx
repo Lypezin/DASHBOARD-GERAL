@@ -13,16 +13,19 @@ export const AnaliseTableRow = React.memo(function AnaliseTableRow({
   const taxas = calcularTaxas(item);
 
   return (
-    <tr className="even:bg-slate-50/40 transition-colors duration-150 hover:bg-[#edf5f9] dark:even:bg-slate-800/25 dark:hover:bg-slate-800/60">
+    <tr
+      style={{ contentVisibility: 'auto', containIntrinsicSize: 'auto 48px' }}
+      className="even:bg-slate-50/40 transition-colors duration-150 hover:bg-[#edf5f9] dark:even:bg-slate-800/25 dark:hover:bg-slate-800/60"
+    >
       <td className="py-3.5 pl-4 pr-4 text-sm font-medium text-slate-900 dark:text-slate-100 sm:pl-5">
         <div className="max-w-[320px] truncate" title={item.label}>
           {item.label}
         </div>
       </td>
-      <td className="whitespace-nowrap px-3 py-3.5 font-mono text-sm font-semibold tabular-nums text-slate-600 dark:text-slate-300">
+      <td className="whitespace-nowrap px-3 py-3.5 text-right font-mono text-sm font-semibold tabular-nums text-slate-600 dark:text-slate-300">
         {item.horas_entregues || '00:00:00'}
       </td>
-      <td className="whitespace-nowrap px-3 py-3.5 font-mono text-sm font-semibold tabular-nums text-slate-600 dark:text-slate-300">
+      <td className="whitespace-nowrap px-3 py-3.5 text-right font-mono text-sm font-semibold tabular-nums text-slate-600 dark:text-slate-300">
         {(item.corridas_ofertadas || 0).toLocaleString('pt-BR')}
       </td>
       <td className="whitespace-nowrap px-3 py-3.5 text-right font-mono text-sm font-bold tabular-nums text-emerald-600 dark:text-emerald-400">
@@ -57,7 +60,7 @@ function RateCell({
   }[tone];
 
   return (
-    <td className={`px-3 py-3.5 text-center ${last ? 'pr-5' : ''}`}>
+    <td className={`px-3 py-3.5 text-center ${last ? 'pr-4 sm:pr-5' : ''}`}>
       <span className={`inline-flex min-w-[68px] items-center justify-center rounded-full border px-2.5 py-0.5 font-mono text-xs font-semibold tabular-nums ${toneClass}`}>
         {value.toFixed(1)}%
       </span>

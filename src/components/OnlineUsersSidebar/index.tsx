@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { CurrentUser } from '@/types';
 import { useSidebarController } from './useSidebarController';
 import { SidebarTrigger } from './SidebarTrigger';
@@ -27,6 +27,7 @@ export function OnlineUsersSidebar({
     preloadRealtime = false
 }: OnlineUsersSidebarProps) {
     const [isMinimized, setInternalMinimized] = useState(initialMinimized);
+    const [hasOpened, setHasOpened] = useState(initialOpen);
     const {
         isOpen, setIsOpen, onlineUsersData, searchTerm, setSearchTerm,
         myCustomStatus, setMyCustomStatus, activeChatUser,
@@ -35,21 +36,31 @@ export function OnlineUsersSidebar({
         formatTimeOnline, totalUnread, onlineUsers, handleFileUpload
     } = useSidebarController(currentUser, currentTab, initialOpen, preloadRealtime);
 
+    useEffect(() => {
+        if (isOpen) {
+            setHasOpened(true);
+        }
+    }, [isOpen]);
+
     const { setCustomStatus, sendMessage, setTypingTo, reactToMessage, pinMessage } = onlineUsersData;
     const availableCount = useMemo(
         () => onlineUsers.filter((user) => !user.is_idle).length,
         [onlineUsers]
     );
 
-    const handleSendMessage = createSendMessageHandler({
-        chatInput,
-        activeChatUser,
-        replyingTo,
-        sendMessage,
-        setChatInput,
-        setReplyingTo,
-        clearTyping: () => setTypingTo(null)
-    });
+    const clearTyping = useCallback(() => setTypingTo(null), [setTypingTo]);
+    const handleSendMessage = useMemo(
+        () => createSendMessageHandler({
+            chatInput,
+            activeChatUser,
+            replyingTo,
+            sendMessage,
+            setChatInput,
+            setReplyingTo,
+            clearTyping
+        }),
+        [activeChatUser, chatInput, clearTyping, replyingTo, sendMessage, setChatInput, setReplyingTo]
+    );
 
     const setIsMinimized = useCallback((value: boolean) => {
         setInternalMinimized(value);
@@ -80,47 +91,51 @@ export function OnlineUsersSidebar({
             />
 
             <SidebarContainer isOpen={isOpen} onClose={handleCloseSidebar}>
-                <input type="file" ref={fileInputRef} className="hidden" accept="image/*,application/pdf" onChange={handleFileUpload} />
+                {hasOpened || isOpen ? (
+                    <>
+                        <input type="file" ref={fileInputRef} className="hidden" accept="image/*,application/pdf" onChange={handleFileUpload} />
 
-                <ChatWindow
-                    currentUser={currentUser}
-                    activeChatUser={activeChatUser!}
-                    setActiveChatUser={setActiveChatUser}
-                    messages={activeMessages}
-                    onReact={reactToMessage}
-                    onPin={pinMessage}
-                    onReply={setReplyingTo}
-                    chatEndRef={chatEndRef}
-                    chatInput={chatInput}
-                    setChatInput={setChatInput}
-                    handleSendMessage={handleSendMessage}
-                    replyingTo={replyingTo}
-                    fileInputRef={fileInputRef}
-                    onlineUsers={onlineUsers}
-                    setTypingTo={setTypingTo}
-                />
+                        <ChatWindow
+                            currentUser={currentUser}
+                            activeChatUser={activeChatUser!}
+                            setActiveChatUser={setActiveChatUser}
+                            messages={activeMessages}
+                            onReact={reactToMessage}
+                            onPin={pinMessage}
+                            onReply={setReplyingTo}
+                            chatEndRef={chatEndRef}
+                            chatInput={chatInput}
+                            setChatInput={setChatInput}
+                            handleSendMessage={handleSendMessage}
+                            replyingTo={replyingTo}
+                            fileInputRef={fileInputRef}
+                            onlineUsers={onlineUsers}
+                            setTypingTo={setTypingTo}
+                        />
 
-                <SidebarHeader
-                    isOpen={isOpen}
-                    onlineCount={onlineUsers.length}
-                    availableCount={availableCount}
-                    unreadCount={totalUnread}
-                    searchTerm={searchTerm}
-                    setSearchTerm={setSearchTerm}
-                    myCustomStatus={myCustomStatus}
-                    setMyCustomStatus={setMyCustomStatus}
-                    onStatusSubmit={setCustomStatus}
-                    onClose={handleCloseSidebar}
-                />
+                        <SidebarHeader
+                            isOpen={isOpen}
+                            onlineCount={onlineUsers.length}
+                            availableCount={availableCount}
+                            unreadCount={totalUnread}
+                            searchTerm={searchTerm}
+                            setSearchTerm={setSearchTerm}
+                            myCustomStatus={myCustomStatus}
+                            setMyCustomStatus={setMyCustomStatus}
+                            onStatusSubmit={setCustomStatus}
+                            onClose={handleCloseSidebar}
+                        />
 
-                <UserList
-                    isOpen={isOpen}
-                    currentUser={currentUser}
-                    filteredUsers={filteredUsers}
-                    unreadCounts={unreadCounts}
-                    onUserClick={handleOpenUserChat}
-                    formatTimeOnline={formatTimeOnline}
-                />
+                        <UserList
+                            isOpen={isOpen}
+                            currentUser={currentUser}
+                            filteredUsers={filteredUsers}
+                            unreadCounts={unreadCounts}
+                            onUserClick={handleOpenUserChat}
+                            formatTimeOnline={formatTimeOnline}
+                        />
+                    </>
+                ) : null}
             </SidebarContainer>
         </>
     );

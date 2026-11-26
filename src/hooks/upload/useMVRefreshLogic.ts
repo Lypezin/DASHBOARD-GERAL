@@ -1,5 +1,5 @@
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { safeLog } from '@/lib/errorHandler';
 import { isLowUsageTime, getTimeContextMessage } from '@/utils/formatters/timeUtils';
 import { performRefresh } from './refreshUtils';
@@ -10,8 +10,20 @@ export function useMVRefreshLogic() {
         progress: 0,
         status: ''
     });
+    const abortControllerRef = useRef<AbortController | null>(null);
+
+    useEffect(() => {
+        return () => {
+            abortControllerRef.current?.abort();
+            abortControllerRef.current = null;
+        };
+    }, []);
 
     const triggerRefresh = useCallback(async (force = false) => {
+        abortControllerRef.current?.abort();
+        const controller = new AbortController();
+        abortControllerRef.current = controller;
+
         try {
             const isLowUsage = isLowUsageTime();
             const timeContext = getTimeContextMessage();
@@ -28,10 +40,13 @@ export function useMVRefreshLogic() {
             safeLog.info('[MV Refresh] Iniciando performRefresh...');
 
             // Executar diretamente sem setTimeout para garantir execução imediata
-            await performRefresh(force, isLowUsage, timeContext, setRefreshState);
+            await performRefresh(force, isLowUsage, timeContext, setRefreshState, controller.signal);
 
-            safeLog.info('[MV Refresh] performRefresh concluído');
+            if (!controller.signal.aborted) {
+                safeLog.info('[MV Refresh] performRefresh concluído');
+            }
         } catch (e) {
+            if (controller.signal.aborted) return;
             safeLog.error('[MV Refresh] Erro ao iniciar refresh de MVs:', e);
             setRefreshState({ isRefreshing: false, progress: 0, status: 'Erro ao atualizar MVs' });
         }

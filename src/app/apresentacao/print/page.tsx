@@ -28,10 +28,12 @@ export default async function PrintablePage({ searchParams }: PageProps) {
 
   if (!params) {
     return (
-      <div style={{ background: '#0f172a', color: 'white', padding: 24, minHeight: '100vh' }}>
-        <h1>Parâmetros faltando</h1>
-        <p>Informe sem1, sem2 e opcionalmente praca.</p>
-      </div>
+      <main className="flex min-h-screen items-center justify-center bg-slate-950 px-5 text-center text-white">
+        <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/85 p-7 shadow-xl">
+          <h1 className="text-xl font-bold tracking-tight">Parâmetros faltando</h1>
+          <p className="mt-2.5 text-sm leading-6 text-slate-300">Informe sem1, sem2 e opcionalmente praça.</p>
+        </div>
+      </main>
     );
   }
 
@@ -40,10 +42,12 @@ export default async function PrintablePage({ searchParams }: PageProps) {
   const auth = await loadCurrentUserProfile({ requireApproved: true });
   if ('failure' in auth) {
     return (
-      <div style={{ background: '#0f172a', color: 'white', padding: 24, minHeight: '100vh' }}>
-        <h1>Acesso restrito</h1>
-        <p>{auth.failure.message}</p>
-      </div>
+      <main className="flex min-h-screen items-center justify-center bg-slate-950 px-5 text-center text-white">
+        <div className="w-full max-w-md rounded-2xl border border-slate-800 bg-slate-900/85 p-7 shadow-xl">
+          <h1 className="text-xl font-bold tracking-tight">Acesso restrito</h1>
+          <p className="mt-2.5 text-sm leading-6 text-slate-300">{auth.failure.message}</p>
+        </div>
+      </main>
     );
   }
 

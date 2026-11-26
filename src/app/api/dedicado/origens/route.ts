@@ -53,11 +53,17 @@ function normalizeMode(value: unknown): DedicadoMode | null {
     return null;
 }
 
-function getDedicadoCacheKey(mode: DedicadoMode, payload: Record<string, unknown>, profileId?: string) {
+function getDedicadoCacheKey(mode: DedicadoMode, payload: Record<string, unknown>, profile: CurrentUserProfile) {
     return createRequestKey({
         mode,
         payload,
-        profileId: profileId || null,
+        scope: {
+            fullCityAccess: hasFullCityAccess(profile),
+            role: profile.role || null,
+            is_admin: profile.is_admin === true,
+            organization_id: profile.organization_id || null,
+            assigned_pracas: normalizeAssignedPracas(profile),
+        },
     });
 }
 
@@ -83,10 +89,10 @@ function cleanupDedicadoCache(now: number) {
 async function resolveDedicadoWithCache(
     mode: DedicadoMode,
     payload: Record<string, unknown>,
-    profileId: string | undefined,
+    profile: CurrentUserProfile,
     fetcher: () => Promise<unknown>,
 ) {
-    const cacheKey = getDedicadoCacheKey(mode, payload, profileId);
+    const cacheKey = getDedicadoCacheKey(mode, payload, profile);
     const now = Date.now();
     const cached = dedicadoCache.get(cacheKey);
 
@@ -254,7 +260,7 @@ export async function POST(request: Request) {
             }
         }
 
-        const { data, cached } = await resolveDedicadoWithCache(mode, scopedPayload, auth.profile.id, async () => {
+        const { data, cached } = await resolveDedicadoWithCache(mode, scopedPayload, auth.profile, async () => {
             const result = mode === 'summary'
                 ? await executeRpcWithFallback(
                     'dashboard_dedicado_origens_v2',

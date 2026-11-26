@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/auth/useAuth';
 import { DashboardFilters } from '@/types';
 import { getDateRangeFromWeek } from '@/utils/formatters/dateUtils';
 import { getAllYearsDateRange } from '@/utils/filters/allYearsRange';
+import { useTopLoaderSync } from '@/components/ui/TopLoader';
 
 export function useMarketingComparacaoViewController(filters: DashboardFilters) {
     const { user, loading: authLoading } = useAuth();
@@ -48,6 +49,8 @@ export function useMarketingComparacaoViewController(filters: DashboardFilters) 
         praca,
         user
     );
+    const isCombinedLoading = authLoading || loading;
+    useTopLoaderSync(isCombinedLoading);
 
     // Calculate totals
     const totals = useMemo(() => {
@@ -79,7 +82,7 @@ export function useMarketingComparacaoViewController(filters: DashboardFilters) 
 
     return {
         data,
-        loading: authLoading || loading,
+        loading: isCombinedLoading,
         error,
         refetch,
         totals,

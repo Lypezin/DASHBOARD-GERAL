@@ -50,7 +50,7 @@ export function cleanupSecureRpcCache(now: number) {
   let removed = 0;
   for (const [key, value] of secureRpcCache.entries()) {
     if (removed >= 30) break;
-    if (value.expiresAt <= now) {
+    if (value.expiresAt + SECURE_RPC_STALE_CACHE_TTL_MS <= now) {
       secureRpcCache.delete(key);
       removed++;
     }
